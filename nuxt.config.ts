@@ -19,6 +19,31 @@ const resolveDomains = (): string[] => {
   return Array.from(domains);
 };
 
+const resolveSiteEnv = (): string => process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development';
+
+const resolveSiteUrl = (siteEnv: string): string | undefined => {
+  const envUrl = process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
+  if (envUrl && envUrl.trim().length > 0) {
+    return envUrl;
+  }
+  if (siteEnv === 'development') {
+    return 'http://localhost:3000';
+  }
+  return undefined;
+};
+
+const resolveIndexable = (siteEnv: string, siteUrl?: string): boolean => {
+  const flag = process.env.NUXT_SITE_INDEXABLE ?? process.env.NUXT_PUBLIC_SITE_INDEXABLE;
+  if (typeof flag !== 'undefined') {
+    return flag !== 'false';
+  }
+  return siteEnv === 'production' && Boolean(siteUrl);
+};
+
+const siteEnv = resolveSiteEnv();
+const siteUrl = resolveSiteUrl(siteEnv);
+const siteIndexable = resolveIndexable(siteEnv, siteUrl);
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
@@ -37,9 +62,18 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     '@nuxt/hints',
     '@nuxt/image',
+    '@nuxtjs/seo',
     '@nuxt/ui',
     '@nuxt/test-utils'
   ],
+  site: {
+    url: siteUrl,
+    name: 'Liora Gallery',
+    description: 'A minimal gallery for photography and illustrations.',
+    defaultLocale: 'zh-CN',
+    indexable: siteIndexable,
+    env: siteEnv,
+  },
   image: {
     domains: resolveDomains(),
     format: ['webp', 'avif', 'jpeg'],

@@ -81,6 +81,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     shutterSpeed: existing.shutterSpeed,
     captureTime: existing.captureTime,
     notes: '',
+    thumbhash: undefined,
   });
 
   const kind = ensureKind(body.kind, existing.kind);

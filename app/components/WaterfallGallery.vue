@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { thumbHashToDataURL } from 'thumbhash';
 import { Waterfall } from 'vue-wf';
 import type { FileResponse } from '~/types/file';
 
@@ -19,10 +20,39 @@ const columns = ref(5);
 
 const maxDisplayWidth = 400;
 
-const resolvedFiles = computed<Array<FileResponse & { coverUrl: string }>>(() =>
+const toByteArrayFromBase64 = (value: string): Uint8Array => {
+  if (typeof atob === 'function') {
+    const binary = atob(value);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+    return bytes;
+  }
+  if (typeof Buffer !== 'undefined') {
+    return new Uint8Array(Buffer.from(value, 'base64'));
+  }
+  throw new Error('No base64 decoder available.');
+};
+
+const decodeThumbhash = (value: string | undefined): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+  try {
+    const bytes = toByteArrayFromBase64(value);
+    return thumbHashToDataURL(bytes);
+  } catch (error) {
+    console.warn('Failed to decode thumbhash', error);
+    return undefined;
+  }
+};
+
+const resolvedFiles = computed<Array<FileResponse & { coverUrl: string; placeholder?: string }>>(() =>
   props.files.map((file) => ({
     ...file,
     coverUrl: file.thumbnailUrl?.trim() || file.imageUrl,
+    placeholder: decodeThumbhash(file.metadata.thumbhash),
   }))
 );
 
@@ -91,6 +121,7 @@ onBeforeUnmount(() => {
             format="webp"
             fit="cover"
             loading="lazy"
+            :placeholder="file.placeholder"
             class="h-full w-full object-cover"
           />
         </div>

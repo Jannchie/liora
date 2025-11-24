@@ -14,6 +14,7 @@ export interface FileMetadata {
   shutterSpeed: string;
   captureTime: string;
   notes: string;
+  thumbhash?: string;
 }
 
 export interface FilePayload {

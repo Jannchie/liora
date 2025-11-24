@@ -88,3 +88,7 @@ S3_PUBLIC_BASE_URL=https://<public-base>/<bucket-name>
 ```
 
 Ensure the token has write permission to the bucket and, if public access is desired, enable public reads or use a custom domain.
+
+## SEO
+
+This project uses `@nuxtjs/seo` for canonical links, sitemap generation, and social previews. Set your canonical host with `NUXT_SITE_URL` (or `NUXT_PUBLIC_SITE_URL`), and toggle indexing via `NUXT_SITE_INDEXABLE=true|false`. When no URL is provided, local development falls back to `http://localhost:3000`.

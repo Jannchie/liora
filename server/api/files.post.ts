@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import type { H3Event } from 'h3';
 import sharp from 'sharp';
+import { rgbaToThumbHash } from 'thumbhash';
 import type { FileMetadata, FileResponse } from '~/types/file';
 import { prisma } from '../utils/prisma';
 import type { S3Config } from '../utils/s3';
@@ -43,6 +44,7 @@ const buildMetadata = (fields: Record<string, string>, characters: string[]): Fi
   shutterSpeed: normalizeText(fields.shutterSpeed),
   captureTime: normalizeText(fields.captureTime),
   notes: normalizeText(fields.notes),
+  thumbhash: undefined,
 });
 
 const ensureKind = (value: string | undefined): 'PAINTING' | 'PHOTOGRAPHY' => {
@@ -99,6 +101,7 @@ const normalizeExt = (filename: string | undefined): string => {
 
 const createThumbnail = async (data: Buffer): Promise<Buffer> =>
   sharp(data)
+    .rotate()
     .resize({
       width: THUMBNAIL_MAX_SIZE,
       height: THUMBNAIL_MAX_SIZE,
@@ -108,10 +111,31 @@ const createThumbnail = async (data: Buffer): Promise<Buffer> =>
     .webp({ quality: 82 })
     .toBuffer();
 
+const generateThumbhash = async (data: Buffer): Promise<string | null> => {
+  try {
+    const pipeline = sharp(data).rotate();
+    const metadata = await pipeline.metadata();
+    const targetWidth = Math.min(100, metadata.width ?? 100);
+    const targetHeight = Math.min(100, metadata.height ?? 100);
+
+    const { data: raw, info } = await pipeline
+      .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const hash = rgbaToThumbHash(info.width, info.height, new Uint8Array(raw));
+    return Buffer.from(hash).toString('base64');
+  } catch (error) {
+    console.warn('Thumbhash generation failed:', error);
+    return null;
+  }
+};
+
 const saveFileWithThumbnail = async (
   file: MultipartEntry,
   config: S3Config
-): Promise<{ imageUrl: string; thumbnailUrl: string }> => {
+): Promise<{ imageUrl: string; thumbnailUrl: string; thumbhash?: string }> => {
   const ext = normalizeExt(file.filename);
   const baseName = `${Date.now()}-${randomUUID()}`;
   const originalKey = `${baseName}${ext}`;
@@ -125,8 +149,13 @@ const saveFileWithThumbnail = async (
   });
 
   let thumbnailUrl = imageUrl;
+  let thumbhash: string | undefined;
   try {
     const buffer = await createThumbnail(file.data);
+    const hash = await generateThumbhash(buffer);
+    if (hash) {
+      thumbhash = hash;
+    }
     thumbnailUrl = await uploadBufferToS3({
       key: thumbnailKey,
       data: buffer,
@@ -138,7 +167,7 @@ const saveFileWithThumbnail = async (
     console.warn('Thumbnail generation failed, falling back to original image:', error);
   }
 
-  return { imageUrl, thumbnailUrl };
+  return { imageUrl, thumbnailUrl, thumbhash };
 };
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
@@ -149,7 +178,10 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   const characters = parseCharacters(fields.characters);
   const metadata = buildMetadata(fields, characters);
-  const { imageUrl, thumbnailUrl } = await saveFileWithThumbnail(file, storageConfig);
+  const { imageUrl, thumbnailUrl, thumbhash } = await saveFileWithThumbnail(file, storageConfig);
+  if (thumbhash) {
+    metadata.thumbhash = thumbhash;
+  }
 
   const created = await prisma.file.create({
     data: {

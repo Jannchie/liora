@@ -5,6 +5,17 @@ import type { FileKind, FileResponse } from '~/types/file';
 
 const toast = useToast();
 
+const pageTitle = '管理后台 | Liora';
+const pageDescription = '录入与维护作品与元数据的管理后台。';
+
+useSeoMeta({
+  title: pageTitle,
+  ogTitle: pageTitle,
+  description: pageDescription,
+  ogDescription: pageDescription,
+  robots: 'noindex, nofollow',
+});
+
 const form = reactive({
   kind: 'PHOTOGRAPHY' as FileKind,
   width: 0,

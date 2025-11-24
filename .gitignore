@@ -24,3 +24,4 @@ logs
 !.env.example
 
 /app/generated/prisma
+prisma/dev.db

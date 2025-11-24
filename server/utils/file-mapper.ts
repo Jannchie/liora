@@ -40,6 +40,7 @@ export const ensureMetadata = (
     shutterSpeed: parsed.shutterSpeed ?? fallbacks.shutterSpeed,
     captureTime: parsed.captureTime ?? fallbacks.captureTime,
     notes: parsed.notes ?? fallbacks.notes,
+    thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
   };
 };
 
@@ -66,6 +67,7 @@ export const toFileResponse = (file: File): FileResponse => {
     shutterSpeed: file.shutterSpeed,
     captureTime: file.captureTime,
     notes: '',
+    thumbhash: undefined,
   });
 
   return {
