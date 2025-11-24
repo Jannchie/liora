@@ -32,7 +32,11 @@ const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
         variant="soft"
         :title="fetchError?.message ?? '加载失败'"
         description="无法加载数据，请稍后重试。"
-      />
+      >
+        <template #icon>
+          <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+        </template>
+      </UAlert>
 
       <ClientOnly>
         <WaterfallGallery
@@ -42,8 +46,9 @@ const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
           empty-text="还没有作品，去后台录入吧。"
         />
         <template #fallback>
-          <div class="flex h-[50vh] items-center justify-center text-sm text-gray-500">
-            画廊加载中…
+          <div class="flex h-[50vh] items-center justify-center gap-2 text-sm text-gray-500">
+            <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary" />
+            <span>画廊加载中…</span>
           </div>
         </template>
       </ClientOnly>

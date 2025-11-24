@@ -57,11 +57,13 @@ async function handleSubmit(): Promise<void> {
     <UCard class="w-full max-w-md">
       <template #header>
         <div class="space-y-1">
-          <p class="text-sm text-gray-500">
-            管理后台
+          <p class="flex items-center gap-2 text-sm text-gray-500">
+            <Icon name="mdi:shield-lock-outline" class="h-4 w-4" />
+            <span>管理后台</span>
           </p>
-          <h1 class="text-2xl font-semibold">
-            登录
+          <h1 class="flex items-center gap-2 text-2xl font-semibold">
+            <Icon name="mdi:lock-open-check-outline" class="h-5 w-5 text-primary" />
+            <span>登录</span>
           </h1>
           <p class="text-sm text-gray-500">
             使用配置的管理员账户进入后台。
@@ -92,7 +94,11 @@ async function handleSubmit(): Promise<void> {
           variant="soft"
           title="登录失败"
           :description="errorMessage"
-        />
+        >
+          <template #icon>
+            <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+          </template>
+        </UAlert>
 
         <UButton
           type="submit"
@@ -101,7 +107,10 @@ async function handleSubmit(): Promise<void> {
           block
           :loading="submitting"
         >
-          登录
+          <div class="flex items-center justify-center gap-2">
+            <Icon name="mdi:login" class="h-5 w-5" />
+            <span>登录</span>
+          </div>
         </UButton>
       </UForm>
     </UCard>

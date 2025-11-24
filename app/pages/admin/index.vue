@@ -735,31 +735,41 @@ watch(fetchError, (value) => {
     <UContainer class="space-y-8 py-10">
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p class="text-sm">
-            后台
+          <p class="flex items-center gap-2 text-sm">
+            <Icon name="mdi:cog-outline" class="h-4 w-4 text-primary" />
+            <span>后台</span>
           </p>
-          <h1 class="text-3xl font-semibold">
-            作品录入
+          <h1 class="flex items-center gap-2 text-3xl font-semibold">
+            <Icon name="mdi:database-outline" class="h-6 w-6 text-primary" />
+            <span>作品录入</span>
           </h1>
           <p class="text-sm">
             在此完成元数据填写与校验，主页仅展示瀑布流。
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <UButton to="/" variant="soft" color="primary" icon="i-heroicons-home">
-            返回主页
+          <UButton to="/" variant="soft" color="primary">
+            <span class="flex items-center gap-2">
+              <Icon name="mdi:home-outline" class="h-4 w-4" />
+              <span>返回主页</span>
+            </span>
           </UButton>
           <UButton
             variant="ghost"
             color="neutral"
             :loading="loggingOut"
-            icon="i-heroicons-arrow-right-on-rectangle"
             @click="handleLogout"
           >
-            退出登录
+            <span class="flex items-center gap-2">
+              <Icon name="mdi:logout-variant" class="h-4 w-4" />
+              <span>退出登录</span>
+            </span>
           </UButton>
-          <UButton color="primary" variant="solid" :loading="isLoading" icon="i-heroicons-arrow-path" @click="handleRefresh">
-            刷新数据
+          <UButton color="primary" variant="solid" :loading="isLoading" @click="handleRefresh">
+            <span class="flex items-center gap-2">
+              <Icon name="mdi:refresh" class="h-4 w-4" />
+              <span>刷新数据</span>
+            </span>
           </UButton>
         </div>
       </header>
@@ -770,11 +780,13 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">
-                上传照片
+              <p class="flex items-center gap-2 text-sm">
+                <Icon name="mdi:upload-outline" class="h-4 w-4 text-primary" />
+                <span>上传照片</span>
               </p>
-              <h2 class="text-xl font-semibold">
-                拖拽或点击
+              <h2 class="flex items-center gap-2 text-xl font-semibold">
+                <Icon name="mdi:cursor-default-click-outline" class="h-5 w-5 text-primary" />
+                <span>拖拽或点击</span>
               </h2>
               <p class="text-sm">
                 上传前界面保持简洁，仅展示上传入口。
@@ -789,7 +801,7 @@ watch(fetchError, (value) => {
             @drop="handleDrop"
             @click="fileInputEl?.click()"
           >
-            <UIcon name="i-heroicons-cloud-arrow-up" class="h-10 w-10" />
+            <Icon name="mdi:cloud-upload-outline" class="h-10 w-10 text-primary" />
             <p class="mt-3 text-sm">
               拖拽照片到此或点击选择文件
             </p>
@@ -804,11 +816,13 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">
-                预览与自动填充
+              <p class="flex items-center gap-2 text-sm">
+                <Icon name="mdi:image-search-outline" class="h-4 w-4 text-primary" />
+                <span>预览与自动填充</span>
               </p>
-              <h2 class="text-xl font-semibold">
-                照片信息
+              <h2 class="flex items-center gap-2 text-xl font-semibold">
+                <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary" />
+                <span>照片信息</span>
               </h2>
             </div>
           </template>
@@ -820,10 +834,16 @@ watch(fetchError, (value) => {
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <UButton variant="ghost" color="neutral" @click="fileInputEl?.click()">
-                更换图片
+                <span class="flex items-center gap-2">
+                  <Icon name="mdi:image-edit-outline" class="h-4 w-4" />
+                  <span>更换图片</span>
+                </span>
               </UButton>
-              <UButton variant="ghost" color="neutral" icon="i-heroicons-x-mark" @click="clearSelectedFile">
-                移除
+              <UButton variant="ghost" color="neutral" @click="clearSelectedFile">
+                <span class="flex items-center gap-2">
+                  <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                  <span>移除</span>
+                </span>
               </UButton>
             </div>
           </div>
@@ -832,11 +852,13 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">
-                编辑与保存
+              <p class="flex items-center gap-2 text-sm">
+                <Icon name="mdi:note-edit-outline" class="h-4 w-4 text-primary" />
+                <span>编辑与保存</span>
               </p>
-              <h2 class="text-xl font-semibold">
-                完善元数据
+              <h2 class="flex items-center gap-2 text-xl font-semibold">
+                <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
+                <span>完善元数据</span>
               </h2>
             </div>
           </template>
@@ -908,7 +930,10 @@ watch(fetchError, (value) => {
             </UFormField>
 
             <UButton color="primary" class="w-full" type="submit" :loading="submitting">
-              保存到数据库
+              <span class="flex w-full items-center justify-center gap-2">
+                <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                <span>保存到数据库</span>
+              </span>
             </UButton>
           </UForm>
         </UCard>
@@ -917,15 +942,18 @@ watch(fetchError, (value) => {
       <section class="space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm">
-              预览
+            <p class="flex items-center gap-2 text-sm">
+              <Icon name="mdi:eye-outline" class="h-4 w-4 text-primary" />
+              <span>预览</span>
             </p>
-            <h2 class="text-xl font-semibold">
-              数据列表
+            <h2 class="flex items-center gap-2 text-xl font-semibold">
+              <Icon name="mdi:view-list-outline" class="h-5 w-5 text-primary" />
+              <span>数据列表</span>
             </h2>
           </div>
-          <div class="text-sm text-neutral-500">
-            共 {{ totalFiles }} 条记录
+          <div class="flex items-center gap-2 text-sm text-neutral-500">
+            <Icon name="mdi:database-outline" class="h-4 w-4" />
+            <span>共 {{ totalFiles }} 条记录</span>
           </div>
         </div>
         <UCard>
@@ -980,18 +1008,23 @@ watch(fetchError, (value) => {
             </template>
             <template #actions-cell="{ row }">
               <div class="flex items-center gap-2">
-                <UButton size="xs" variant="ghost" color="primary" icon="i-heroicons-pencil-square" @click="openEdit(row.original)">
-                  编辑
+                <UButton size="xs" variant="ghost" color="primary" @click="openEdit(row.original)">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:pencil-outline" class="h-4 w-4" />
+                    <span>编辑</span>
+                  </span>
                 </UButton>
                 <UButton
                   size="xs"
                   variant="ghost"
                   color="error"
-                  icon="i-heroicons-trash"
                   :loading="deletingId === row.original.id"
                   @click="openDelete(row.original)"
                 >
-                  删除
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                    <span>删除</span>
+                  </span>
                 </UButton>
               </div>
             </template>
@@ -1010,22 +1043,25 @@ watch(fetchError, (value) => {
       <template #content>
         <UCard class="w-full max-w-4xl">
           <template #header>
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm">
-                  编辑
-                </p>
-                <h3 class="text-lg font-semibold">
-                  {{ editingFile?.title || '调整元数据' }}
-                </h3>
-                <p class="text-xs text-neutral-500">
-                  更新尺寸、拍摄信息或备注。
-                </p>
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm">
+                    编辑
+                  </p>
+                  <h3 class="text-lg font-semibold">
+                    {{ editingFile?.title || '调整元数据' }}
+                  </h3>
+                  <p class="text-xs text-neutral-500">
+                    更新尺寸、拍摄信息或备注。
+                  </p>
+                </div>
+                <UButton variant="ghost" color="neutral" @click="closeEdit">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:close" class="h-4 w-4" />
+                    <span>关闭</span>
+                  </span>
+                </UButton>
               </div>
-              <UButton variant="ghost" color="neutral" icon="i-heroicons-x-mark" @click="closeEdit">
-                关闭
-              </UButton>
-            </div>
           </template>
           <UForm :state="editForm" class="space-y-4" @submit.prevent="saveEdit">
             <div class="grid gap-3 sm:grid-cols-2">
@@ -1110,10 +1146,16 @@ watch(fetchError, (value) => {
 
             <div class="flex justify-end gap-2">
               <UButton variant="ghost" color="neutral" @click="closeEdit">
-                取消
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:arrow-left" class="h-4 w-4" />
+                  <span>取消</span>
+                </span>
               </UButton>
               <UButton color="primary" type="submit" :loading="updating">
-                保存
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:content-save-outline" class="h-4 w-4" />
+                  <span>保存</span>
+                </span>
               </UButton>
             </div>
           </UForm>
@@ -1125,23 +1167,26 @@ watch(fetchError, (value) => {
       <template #content>
         <UCard class="w-full max-w-xl">
           <template #header>
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm text-error-500">
-                  删除确认
-                </p>
-                <h3 class="text-lg font-semibold">
-                  确认删除这条记录吗？
-                </h3>
-                <p class="text-xs text-neutral-500">
-                  删除后将无法恢复，请确认。
-                </p>
+              <div class="flex items-start justify-between">
+                <div>
+                  <p class="text-sm text-error-500">
+                    删除确认
+                  </p>
+                  <h3 class="text-lg font-semibold">
+                    确认删除这条记录吗？
+                  </h3>
+                  <p class="text-xs text-neutral-500">
+                    删除后将无法恢复，请确认。
+                  </p>
+                </div>
+                <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:close" class="h-4 w-4" />
+                    <span>关闭</span>
+                  </span>
+                </UButton>
               </div>
-              <UButton variant="ghost" color="neutral" icon="i-heroicons-x-mark" @click="deleteModalOpen = false">
-                关闭
-              </UButton>
-            </div>
-          </template>
+            </template>
           <div class="space-y-3">
             <p class="text-sm">
               标题：<span class="font-medium">{{ deleteTarget?.title || '未命名' }}</span>
@@ -1153,10 +1198,16 @@ watch(fetchError, (value) => {
           <template #footer>
             <div class="flex justify-end gap-2">
               <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
-                取消
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:arrow-left" class="h-4 w-4" />
+                  <span>取消</span>
+                </span>
               </UButton>
               <UButton color="error" :loading="deletingId !== null" @click="confirmDelete">
-                确认删除
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                  <span>确认删除</span>
+                </span>
               </UButton>
             </div>
           </template>
