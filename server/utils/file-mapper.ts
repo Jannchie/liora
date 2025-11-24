@@ -75,14 +75,16 @@ export function toFileResponse(file: File): FileResponse {
     sha256: undefined,
     histogram: null,
   })
+  const imageUrl = file.imageUrl || file.thumbnailUrl || ''
 
   return {
     id: file.id,
     kind: file.kind,
     title: file.title,
     description: file.description,
-    imageUrl: file.imageUrl,
-    thumbnailUrl: file.thumbnailUrl || file.imageUrl,
+    originalName: file.originalName,
+    imageUrl,
+    thumbnailUrl: imageUrl,
     width: file.width,
     height: file.height,
     fanworkTitle: file.fanworkTitle,

@@ -24,6 +24,7 @@ model File {
   thumbnailUrl  String    @default("")
   width         Int
   height        Int
+  originalName  String    @default("")
   fanworkTitle  String    @default("")
   characterList String    @default("")
   location      String    @default("")
@@ -38,4 +39,15 @@ model File {
   captureTime   String    @default("")
   metadata      String    @default("{}")
   createdAt     DateTime  @default(now())
+}
+
+model SiteSetting {
+  id              Int      @id @default(1)
+  name            String   @default("Liora Gallery")
+  description     String   @default("A minimal gallery for photography and illustrations.")
+  socialGithub    String   @default("")
+  socialTwitter   String   @default("")
+  socialInstagram String   @default("")
+  socialWeibo     String   @default("")
+  updatedAt       DateTime @updatedAt
 }

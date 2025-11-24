@@ -114,7 +114,7 @@ async function updateFileThumbhash(file: DbFile): Promise<boolean> {
     return false
   }
 
-  const sourceUrl = (file.thumbnailUrl?.trim() || file.imageUrl || '').trim()
+  const sourceUrl = (file.imageUrl?.trim() || file.thumbnailUrl?.trim() || '').trim()
   if (!sourceUrl) {
     console.warn(`File #${file.id} has no usable image URL`)
     return false

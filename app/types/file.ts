@@ -53,6 +53,7 @@ export interface FileResponse {
   kind: FileKind
   title: string
   description: string
+  originalName: string
   imageUrl: string
   thumbnailUrl: string
   width: number

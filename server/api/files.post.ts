@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 import type { S3Config } from '../utils/s3'
 import type { FileMetadata, FileResponse } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
-import { extname } from 'node:path'
+import { basename, extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
@@ -22,7 +22,6 @@ interface ParsedForm {
   fields: Record<string, string>
 }
 
-const THUMBNAIL_MAX_SIZE = 960
 const SIMILARITY_THRESHOLD = 6
 const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
 
@@ -88,9 +87,9 @@ function hammingDistance(first: string, second: string): number | null {
     return null
   }
   let distance = 0
-  for (const [index, element] of first.entries()) {
+  for (const [index, element] of [...first].entries()) {
     const left = Number.parseInt(element, 16)
-    const right = Number.parseInt(second[index], 16)
+    const right = Number.parseInt(second[index] ?? '', 16)
     if (Number.isNaN(left) || Number.isNaN(right)) {
       return null
     }
@@ -206,17 +205,12 @@ function normalizeExt(filename: string | undefined): string {
   return '.jpg'
 }
 
-async function createThumbnail(data: Buffer): Promise<Buffer> {
-  return sharp(data)
-    .rotate()
-    .resize({
-      width: THUMBNAIL_MAX_SIZE,
-      height: THUMBNAIL_MAX_SIZE,
-      fit: 'inside',
-      withoutEnlargement: true,
-    })
-    .webp({ quality: 82 })
-    .toBuffer()
+function buildBaseName(filename: string | undefined): string {
+  const ext = normalizeExt(filename)
+  const raw = basename(filename ?? '', ext)
+  const normalized = raw.normalize('NFKD').replaceAll(/[^\w-]+/g, '-').replaceAll(/-+/g, '-').replaceAll(/^-|-$/g, '')
+  const limited = normalized.slice(0, 80)
+  return limited.length > 0 ? limited : 'upload'
 }
 
 async function generateThumbhash(data: Buffer): Promise<string | null> {
@@ -241,11 +235,11 @@ async function generateThumbhash(data: Buffer): Promise<string | null> {
   }
 }
 
-async function saveFileWithThumbnail(file: MultipartEntry, config: S3Config): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, config: S3Config): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
   const ext = normalizeExt(file.filename)
-  const baseName = `${Date.now()}-${randomUUID()}`
+  const safeName = buildBaseName(file.filename)
+  const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
   const originalKey = `${baseName}${ext}`
-  const thumbnailKey = `${baseName}-thumb.webp`
 
   const imageUrl = await uploadBufferToS3({
     key: originalKey,
@@ -254,25 +248,8 @@ async function saveFileWithThumbnail(file: MultipartEntry, config: S3Config): Pr
     config,
   })
 
-  let thumbnailUrl = imageUrl
-  let thumbhash: string | undefined
-  try {
-    const buffer = await createThumbnail(file.data)
-    const hash = await generateThumbhash(buffer)
-    if (hash) {
-      thumbhash = hash
-    }
-    thumbnailUrl = await uploadBufferToS3({
-      key: thumbnailKey,
-      data: buffer,
-      contentType: 'image/webp',
-      config,
-    })
-  }
-  catch (error) {
-    // Fall back to original image if thumbnail generation fails.
-    console.warn('Thumbnail generation failed, falling back to original image:', error)
-  }
+  const thumbhash = await generateThumbhash(file.data) ?? undefined
+  const thumbnailUrl = imageUrl
 
   return { imageUrl, thumbnailUrl, thumbhash }
 }
@@ -303,16 +280,19 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   if (histogram) {
     metadata.histogram = histogram
   }
-  const { imageUrl, thumbnailUrl, thumbhash } = await saveFileWithThumbnail(file, storageConfig)
+  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, storageConfig)
   if (thumbhash) {
     metadata.thumbhash = thumbhash
   }
+
+  const originalName = file.filename ? basename(file.filename) : ''
 
   const created = await prisma.file.create({
     data: {
       kind,
       title: normalizeText(fields.title),
       description: normalizeText(fields.description),
+      originalName,
       imageUrl,
       thumbnailUrl,
       width,
@@ -338,6 +318,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     kind: created.kind,
     title: created.title,
     description: created.description,
+    originalName: created.originalName,
     imageUrl: created.imageUrl,
     thumbnailUrl: created.thumbnailUrl,
     width: created.width,

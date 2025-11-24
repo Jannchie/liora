@@ -1,19 +1,36 @@
 <script setup lang="ts">
 import type { FileResponse } from '~/types/file'
+import type { SiteSettings } from '~/types/site'
 import { computed, ref } from 'vue'
 
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })
+const { data: siteSettingsData } = await useFetch<SiteSettings | null>('/api/site', {
+  default: () => null,
+})
 
-const pageTitle = 'Gallery | Liora'
-const pageDescription = '展示摄影与插画作品的瀑布流画廊。'
+const siteSettings = computed<SiteSettings | null>(() => siteSettingsData.value ?? null)
+const pageTitle = computed(() => {
+  const name = siteSettings.value?.name?.trim()
+  if (name && name.length > 0) {
+    return name
+  }
+  return 'Liora Gallery'
+})
+const pageDescription = computed(() => {
+  const description = siteSettings.value?.description?.trim()
+  if (description && description.length > 0) {
+    return description
+  }
+  return '展示摄影与插画作品的瀑布流画廊。'
+})
 
 useSeoMeta({
-  title: pageTitle,
-  ogTitle: pageTitle,
-  description: pageDescription,
-  ogDescription: pageDescription,
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   twitterCard: 'summary_large_image',
 })
 
@@ -42,6 +59,7 @@ const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
         <WaterfallGallery
           :files="files"
           :is-loading="isLoading"
+          :site-settings="siteSettings ?? undefined"
           :scroll-element="scrollContainerRef"
           empty-text="还没有作品，去后台录入吧。"
         />

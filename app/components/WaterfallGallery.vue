@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
 import type { FileResponse, HistogramData } from '~/types/file'
+import type { SiteSettings } from '~/types/site'
 import { Chart } from 'chart.js/auto'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
@@ -12,10 +13,12 @@ const props = withDefaults(
     isLoading: boolean
     emptyText?: string
     scrollElement?: HTMLElement
+    siteSettings?: SiteSettings | null
   }>(),
   {
     emptyText: '暂无数据',
     scrollElement: undefined,
+    siteSettings: undefined,
   },
 )
 
@@ -32,9 +35,6 @@ type ImageAttrs = ImageSizes & {
 }
 
 function getInitialColumns(): number {
-  if (globalThis.window !== undefined) {
-    return Math.max(1, Math.ceil(globalThis.window.innerWidth / maxDisplayWidth))
-  }
   return 3
 }
 
@@ -43,6 +43,8 @@ const columns = ref<number>(getInitialColumns())
 const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
 const activeFile = ref<ResolvedFile | null>(null)
 const histogram = ref<HistogramData | null>(null)
+const overlayImageSrc = ref<string | null>(null)
+const overlayImageLoader = ref<HTMLImageElement | null>(null)
 const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
 const histogramChart = ref<Chart | null>(null)
 
@@ -177,12 +179,24 @@ function resolveImageAttrs(src: string, displaySize: DisplaySize): ImageAttrs {
   }
 }
 
+function resolveHistogramUrl(file: ResolvedFile): string {
+  const result = image.getImage(file.imageUrl, {
+    modifiers: {
+      width: 512,
+      height: 512,
+      format: 'webp',
+      fit: 'inside',
+    },
+  })
+  return result?.url ?? file.imageUrl
+}
+
 const resolvedFiles = computed<ResolvedFile[]>(() =>
   [...props.files]
     .map((file) => {
       const decoded = decodeThumbhash(file.metadata.thumbhash)
       const displaySize = computeDisplaySize(file, decoded?.aspectRatio)
-      const coverUrl = file.thumbnailUrl?.trim() || file.imageUrl
+      const coverUrl = file.imageUrl?.trim() || ''
       return {
         ...file,
         coverUrl,
@@ -195,19 +209,30 @@ const resolvedFiles = computed<ResolvedFile[]>(() =>
     .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first)),
 )
 
+const resolvedSiteSettings = computed(() => props.siteSettings ?? null)
 const resolvedSiteConfig = computed(() => unref(siteConfig))
-const siteName = computed(() => resolvedSiteConfig.value.name ?? 'Liora Gallery')
-const siteDescription = computed(
-  () => resolvedSiteConfig.value.description ?? 'A minimal gallery for photography and illustrations.',
-)
+const siteName = computed(() => {
+  const customized = resolvedSiteSettings.value?.name?.trim()
+  if (customized && customized.length > 0) {
+    return customized
+  }
+  return resolvedSiteConfig.value.name ?? 'Liora Gallery'
+})
+const siteDescription = computed(() => {
+  const customized = resolvedSiteSettings.value?.description?.trim()
+  if (customized && customized.length > 0) {
+    return customized
+  }
+  return resolvedSiteConfig.value.description ?? 'A minimal gallery for photography and illustrations.'
+})
 const photoCount = computed(() => resolvedFiles.value.length)
 
 const socialLinks = computed<SocialLink[]>(() => {
   const links: SocialLink[] = []
-  const social = runtimeConfig.public.social
+  const social = resolvedSiteSettings.value?.social ?? runtimeConfig.public.social
 
-  const appendLink = (label: string, url: string, icon: string): void => {
-    const trimmed = url.trim()
+  const appendLink = (label: string, url: string | undefined, icon: string): void => {
+    const trimmed = (url ?? '').trim()
     if (trimmed.length > 0) {
       links.push({ label, url: trimmed, icon })
     }
@@ -242,6 +267,20 @@ const histogramColors = computed(() => ({
   green: getCssColor('--ui-color-success-500', '#22c55e'),
   blue: getCssColor('--ui-color-info-500', '#3b82f6'),
 }))
+
+function isMonochromeHistogram(data: HistogramData): boolean {
+  const length = Math.min(data.red.length, data.green.length, data.blue.length)
+  const tolerance = 1e-6
+  for (let index = 0; index < length; index += 1) {
+    const red = data.red[index] ?? 0
+    const green = data.green[index] ?? 0
+    const blue = data.blue[index] ?? 0
+    if (Math.abs(red - green) > tolerance || Math.abs(red - blue) > tolerance || Math.abs(green - blue) > tolerance) {
+      return false
+    }
+  }
+  return true
+}
 
 function normalizeHistogram(raw: HistogramData | null | undefined): HistogramData | null {
   if (!raw) {
@@ -315,6 +354,7 @@ function closeOverlay(): void {
   activeFile.value = null
   destroyHistogramChart()
   histogram.value = null
+  resetOverlayImage()
 }
 
 function toDisplayText(value: string | null | undefined): string | undefined {
@@ -393,10 +433,13 @@ watch([histogram, histogramCanvasRef], () => {
   renderHistogram()
 }, { flush: 'post' })
 
-watch(activeFile, () => {
-  if (!activeFile.value) {
+watch(activeFile, (file) => {
+  if (!file) {
     destroyHistogramChart()
+    resetOverlayImage()
+    return
   }
+  startOverlayImageLoad(file)
 })
 
 function prepareHistogram(file: ResolvedFile): Promise<void> {
@@ -464,13 +507,46 @@ function prepareHistogram(file: ResolvedFile): Promise<void> {
     }
     image.addEventListener('load', handleLoad)
     image.addEventListener('error', handleError)
-    image.src = file.imageUrl
+    image.src = resolveHistogramUrl(file)
   })
 }
 
 function destroyHistogramChart(): void {
   histogramChart.value?.destroy()
   histogramChart.value = null
+}
+
+function resetOverlayImage(): void {
+  overlayImageLoader.value = null
+  overlayImageSrc.value = null
+}
+
+function startOverlayImageLoad(file: ResolvedFile): void {
+  overlayImageSrc.value = file.coverUrl
+  if (typeof Image === 'undefined') {
+    overlayImageSrc.value = file.imageUrl
+    return
+  }
+  const loader = new Image()
+  overlayImageLoader.value = loader
+  loader.crossOrigin = 'anonymous'
+  loader.decoding = 'async'
+  const handleLoad = (): void => {
+    if (overlayImageLoader.value !== loader) {
+      return
+    }
+    overlayImageSrc.value = file.imageUrl
+    overlayImageLoader.value = null
+  }
+  const handleError = (): void => {
+    if (overlayImageLoader.value !== loader) {
+      return
+    }
+    overlayImageLoader.value = null
+  }
+  loader.addEventListener('load', handleLoad)
+  loader.addEventListener('error', handleError)
+  loader.src = file.imageUrl
 }
 
 function renderHistogram(): void {
@@ -483,11 +559,19 @@ function renderHistogram(): void {
   }
   destroyHistogramChart()
   const labels = histogram.value.red.map((_, index) => index)
-  histogramChart.value = new Chart(context, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
+  const monochrome = isMonochromeHistogram(histogram.value)
+  const datasets = monochrome
+    ? [
+        {
+          label: 'Luminance',
+          data: histogram.value.luminance,
+          borderColor: '#ffffff',
+          pointRadius: 0,
+          tension: 0.2,
+          borderWidth: 1.5,
+        },
+      ]
+    : [
         {
           label: 'Red',
           data: histogram.value.red,
@@ -512,16 +596,18 @@ function renderHistogram(): void {
           tension: 0.2,
           borderWidth: 1.5,
         },
-      ],
+      ]
+  histogramChart.value = new Chart(context, {
+    type: 'line',
+    data: {
+      labels,
+      datasets,
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       animation: false,
-      interaction: {
-        mode: 'index',
-        intersect: false,
-      },
+      events: [],
       plugins: {
         legend: {
           display: false,
@@ -564,54 +650,16 @@ function renderHistogram(): void {
       >
         <div
           v-if="entry.entryType === 'info'"
-          class="flex h-full w-full flex-col justify-between bg-elevated p-4 text-default ring-1 ring-default/40"
-          :style="{ minHeight: `${entry.displaySize.height}px` }"
         >
-          <div class="space-y-2">
-            <p class="text-xs uppercase tracking-wide text-muted">
-              Gallery
-            </p>
-            <h2 class="text-2xl font-semibold leading-tight">
-              {{ siteName }}
-            </h2>
-            <p class="text-sm leading-relaxed text-highlighted">
-              {{ siteDescription }}
-            </p>
-            <p
-              v-if="photoCount === 0 && !isLoading"
-              class="text-xs text-muted"
-            >
-              {{ emptyText }}
-            </p>
-          </div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <div class="flex items-center gap-2 text-sm font-semibold text-default">
-              <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary-500" />
-              <span>作品总数</span>
-              <span class="rounded-full bg-primary-50 px-2 py-0.5 text-primary-600">
-                {{ photoCount }}
-              </span>
-            </div>
-            <div class="flex items-center gap-2 text-muted">
-              <a
-                v-for="link in socialLinks"
-                :key="link.label"
-                :href="link.url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="flex items-center gap-1 rounded-full px-2 py-1 transition hover:bg-primary-50 hover:text-primary-600"
-                :aria-label="link.label"
-              >
-                <Icon :name="link.icon" class="h-5 w-5" />
-                <span class="text-xs font-medium">
-                  {{ link.label }}
-                </span>
-              </a>
-              <span v-if="socialLinks.length === 0" class="text-xs">
-                暂无社交链接
-              </span>
-            </div>
-          </div>
+          <WaterfallInfoCard
+            :site-name="siteName"
+            :site-description="siteDescription"
+            :photo-count="photoCount"
+            :social-links="socialLinks"
+            :empty-text="emptyText"
+            :is-loading="isLoading"
+            :display-size="entry.displaySize"
+          />
         </div>
         <button
           v-else
@@ -668,7 +716,8 @@ function renderHistogram(): void {
           <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-6">
             <div class="flex min-h-0 items-center justify-center overflow-hidden bg-black">
               <img
-                :src="activeFile.imageUrl"
+                :key="activeFile.id"
+                :src="overlayImageSrc ?? activeFile.coverUrl"
                 :alt="activeFile.title"
                 class="max-h-full max-w-full object-contain"
               >
