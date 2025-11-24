@@ -6,6 +6,7 @@ import { Chart } from 'chart.js/auto'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
+import { resolveFileTitle } from '~/utils/file'
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +25,7 @@ const props = withDefaults(
 
 const maxDisplayWidth = 400
 const waterfallGap = 4
+const infoCardBaseHeight = 260
 const image = useImage()
 const runtimeConfig = useRuntimeConfig()
 const siteConfig = useSiteConfig()
@@ -66,23 +68,14 @@ interface SocialLink {
 
 type ResolvedFile = FileResponse & {
   coverUrl: string
+  displayTitle: string
   placeholder?: string
   placeholderAspectRatio?: number
   displaySize: DisplaySize
   imageAttrs: ImageAttrs
 }
 
-interface InfoEntry {
-  entryType: 'info'
-  displaySize: DisplaySize
-}
-
-type WaterfallEntry = InfoEntry | (ResolvedFile & { entryType: 'file' })
-
-const infoCardDisplaySize: DisplaySize = {
-  width: maxDisplayWidth,
-  height: 260,
-}
+type WaterfallEntry = ResolvedFile & { entryType: 'file' }
 
 interface MetadataEntry {
   label: string
@@ -143,8 +136,8 @@ function resolveSortTimestamp(file: FileResponse): number {
   return captureTimestamp ?? createdTimestamp
 }
 
-function computeDisplaySize(file: FileResponse, aspectRatio?: number): DisplaySize {
-  const width = file.width > 0 ? Math.min(file.width, maxDisplayWidth) : maxDisplayWidth
+function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined, targetWidth: number): DisplaySize {
+  const width = file.width > 0 ? Math.min(file.width, targetWidth) : targetWidth
   const ratio
     = aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
       ? aspectRatio
@@ -191,14 +184,28 @@ function resolveHistogramUrl(file: ResolvedFile): string {
   return result?.url ?? file.imageUrl
 }
 
-const resolvedFiles = computed<ResolvedFile[]>(() =>
-  [...props.files]
+const columnWidth = computed(() => {
+  if (columns.value <= 0) {
+    return maxDisplayWidth
+  }
+  const available = wrapperWidth.value > 0
+    ? (wrapperWidth.value - waterfallGap * (columns.value - 1)) / columns.value
+    : maxDisplayWidth
+  const clamped = Math.min(maxDisplayWidth, Math.floor(available))
+  return Math.max(140, clamped)
+})
+
+const resolvedFiles = computed<ResolvedFile[]>(() => {
+  const displayWidth = columnWidth.value
+  return [...props.files]
     .map((file) => {
+      const displayTitle = resolveFileTitle(file)
       const decoded = decodeThumbhash(file.metadata.thumbhash)
-      const displaySize = computeDisplaySize(file, decoded?.aspectRatio)
+      const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
       const coverUrl = file.imageUrl?.trim() || ''
       return {
         ...file,
+        displayTitle,
         coverUrl,
         placeholder: decoded?.dataUrl,
         placeholderAspectRatio: decoded?.aspectRatio,
@@ -206,8 +213,8 @@ const resolvedFiles = computed<ResolvedFile[]>(() =>
         imageAttrs: resolveImageAttrs(coverUrl, displaySize),
       }
     })
-    .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first)),
-)
+    .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
+})
 
 const resolvedSiteSettings = computed(() => props.siteSettings ?? null)
 const resolvedSiteConfig = computed(() => unref(siteConfig))
@@ -245,10 +252,14 @@ const socialLinks = computed<SocialLink[]>(() => {
   return links
 })
 
-const waterfallEntries = computed<WaterfallEntry[]>(() => {
-  const fileEntries = resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const }))
-  return [{ entryType: 'info', displaySize: infoCardDisplaySize }, ...fileEntries]
-})
+const infoCardDisplaySize = computed<DisplaySize>(() => ({
+  width: columnWidth.value,
+  height: Math.round((columnWidth.value / maxDisplayWidth) * infoCardBaseHeight),
+}))
+
+const waterfallEntries = computed<WaterfallEntry[]>(() =>
+  resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const })),
+)
 
 const waterfallItems = computed(() => waterfallEntries.value.map(item => item.displaySize))
 
@@ -370,9 +381,9 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   if (!file) {
     return []
   }
-  const { metadata } = file
+  const { metadata, displayTitle } = file
   const entries: MetadataEntry[] = []
-  const title = toDisplayText(file.title)
+  const title = toDisplayText(displayTitle)
   if (title) {
     entries.push({ label: '标题', value: title, icon: 'mdi:format-title' })
   }
@@ -665,12 +676,12 @@ function renderHistogram(): void {
           v-else
           type="button"
           class="group relative block h-full w-full focus:outline-none"
-          :aria-label="`查看 ${entry.title || '作品'} 大图`"
+          :aria-label="`查看 ${entry.displayTitle} 大图`"
           @click="openOverlay(entry)"
         >
           <img
             :key="entry.id"
-            :alt="entry.title"
+            :alt="entry.displayTitle"
             :style="
               entry.placeholder
                 ? {
@@ -718,7 +729,7 @@ function renderHistogram(): void {
               <img
                 :key="activeFile.id"
                 :src="overlayImageSrc ?? activeFile.coverUrl"
-                :alt="activeFile.title"
+                :alt="activeFile.displayTitle"
                 class="max-h-full max-w-full object-contain"
               >
             </div>
@@ -733,7 +744,7 @@ function renderHistogram(): void {
                     <span>{{ activeFile.kind === 'PHOTOGRAPHY' ? '摄影' : '插画' }}</span>
                   </p>
                   <h3 class="text-lg font-semibold leading-snug">
-                    {{ activeFile.title || '未命名作品' }}
+                    {{ activeFile.displayTitle }}
                   </h3>
                 </div>
                 <button

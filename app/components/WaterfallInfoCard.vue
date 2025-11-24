@@ -29,12 +29,9 @@ withDefaults(
 <template>
   <div
     class="flex h-full w-full flex-col justify-between rounded-sm bg-default/60 p-4 text-default ring-1 ring-default/20"
-    :style="{ minHeight: `${displaySize.height}px` }"
+    :style="{ height: `${displaySize.height}px` }"
   >
     <div class="space-y-3">
-      <p class="text-xs text-muted">
-        Gallery overview
-      </p>
       <div class="space-y-1">
         <h2 class="text-xl font-semibold leading-tight text-highlighted">
           {{ siteName }}
@@ -50,7 +47,7 @@ withDefaults(
         {{ emptyText }}
       </p>
     </div>
-    <div class="mt-4 space-y-3 text-sm text-muted">
+    <div class="space-y-3 text-sm text-muted">
       <div class="flex items-center justify-center gap-2 text-default">
         <Icon name="mdi:image-multiple-outline" class="h-4 w-4 text-muted" />
         <span>作品总数</span>

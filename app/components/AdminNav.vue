@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 interface NavItem {
   label: string
   to: string
   icon: string
+  value: string
 }
 
 const items: NavItem[] = [
-  { label: '上传与列表', to: '/admin/upload', icon: 'mdi:database-outline' },
-  { label: '站点信息', to: '/admin/site', icon: 'mdi:earth' },
+  { label: '上传', to: '/admin/upload', icon: 'mdi:upload-outline', value: '/admin/upload' },
+  { label: '数据列表', to: '/admin/files', icon: 'mdi:view-list-outline', value: '/admin/files' },
+  { label: '站点信息', to: '/admin/site', icon: 'mdi:earth', value: '/admin/site' },
 ]
 
 const route = useRoute()
 const toast = useToast()
 const loggingOut = ref(false)
 
-const isActive = (path: string): boolean => route.path === path
+const activeTab = computed<string>(() => items.find((item) => item.to === route.path)?.value ?? '')
 
 async function handleLogout(): Promise<void> {
   loggingOut.value = true
@@ -33,6 +35,13 @@ async function handleLogout(): Promise<void> {
     loggingOut.value = false
   }
 }
+
+async function handleTabChange(value: string | number): Promise<void> {
+  if (typeof value !== 'string' || value === route.path) {
+    return
+  }
+  await navigateTo(value)
+}
 </script>
 
 <template>
@@ -42,19 +51,21 @@ async function handleLogout(): Promise<void> {
         <Icon name="mdi:shield-crown-outline" class="h-4 w-4" />
         <span>Admin</span>
       </div>
-      <div class="flex flex-wrap items-center gap-1">
-        <NuxtLink
-          v-for="item in items"
-          :key="item.to"
-          :to="item.to"
-          class="flex items-center gap-2 rounded-md px-3 py-1.5 text-muted ring-1 ring-transparent transition hover:bg-default/70 hover:text-default"
-          :class="isActive(item.to) ? 'bg-primary-50 text-primary-700 ring-primary/30' : ''"
-          :aria-current="isActive(item.to) ? 'page' : undefined"
-        >
+      <UTabs
+        :items="items"
+        :model-value="activeTab"
+        :content="false"
+        :ui="{
+          list: 'flex flex-wrap items-center gap-1 p-0',
+          indicator: 'hidden',
+          trigger: 'flex items-center gap-2 rounded-md px-3 py-1.5 text-muted ring-1 ring-transparent transition hover:bg-default/70 hover:text-default data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:ring-primary/30',
+        }"
+        @update:model-value="handleTabChange"
+      >
+        <template #leading="{ item }">
           <Icon :name="item.icon" class="h-4 w-4" />
-          <span>{{ item.label }}</span>
-        </NuxtLink>
-      </div>
+        </template>
+      </UTabs>
     </div>
     <div class="flex items-center gap-2">
       <UButton to="/" variant="ghost" color="primary">
