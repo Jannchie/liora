@@ -7,6 +7,10 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 const toast = useToast()
 const image = useImage()
 
+definePageMeta({
+  middleware: 'admin-auth',
+})
+
 const pageTitle = '管理后台 | Liora'
 const pageDescription = '录入与维护作品与元数据的管理后台。'
 
@@ -40,6 +44,7 @@ const form = reactive({
 const probing = ref(false)
 const extracting = ref(false)
 const submitting = ref(false)
+const loggingOut = ref(false)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref<string>('')
 const fileInputEl = ref<HTMLInputElement | null>(null)
@@ -693,6 +698,22 @@ async function confirmDelete(): Promise<void> {
   }
 }
 
+async function handleLogout(): Promise<void> {
+  loggingOut.value = true
+  try {
+    await $fetch('/api/auth/logout', { method: 'POST' })
+    toast.add({ title: '已退出', description: '登录状态已清除。', color: 'primary' })
+    await navigateTo('/admin/login')
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : '退出失败'
+    toast.add({ title: '退出失败', description: message, color: 'error' })
+  }
+  finally {
+    loggingOut.value = false
+  }
+}
+
 async function handleRefresh(): Promise<void> {
   await refresh()
   page.value = 1
@@ -727,6 +748,15 @@ watch(fetchError, (value) => {
         <div class="flex items-center gap-2">
           <UButton to="/" variant="soft" color="primary" icon="i-heroicons-home">
             返回主页
+          </UButton>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            :loading="loggingOut"
+            icon="i-heroicons-arrow-right-on-rectangle"
+            @click="handleLogout"
+          >
+            退出登录
           </UButton>
           <UButton color="primary" variant="solid" :loading="isLoading" icon="i-heroicons-arrow-path" @click="handleRefresh">
             刷新数据

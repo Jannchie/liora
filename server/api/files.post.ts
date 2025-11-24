@@ -5,6 +5,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
+import { requireAdmin } from '../utils/auth'
 import { prisma } from '../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
@@ -276,6 +277,7 @@ async function saveFileWithThumbnail(file: MultipartEntry, config: S3Config): Pr
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
+  requireAdmin(event)
   const { file, fields } = await parseMultipart(event)
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
   const kind = ensureKind(fields.kind)

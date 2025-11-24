@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { createError, getRouterParam, readBody } from 'h3'
+import { requireAdmin } from '../../utils/auth'
 import { ensureKind, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
 import { prisma } from '../../utils/prisma'
 
@@ -58,6 +59,7 @@ function normalizeCharacters(value: string | string[] | undefined, fallback: str
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
+  requireAdmin(event)
   const id = parseId(event)
   const body = await readBody<UpdateBody>(event)
 

@@ -51,6 +51,11 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
+    admin: {
+      username: process.env.ADMIN_USERNAME ?? process.env.NUXT_ADMIN_USERNAME ?? '',
+      password: process.env.ADMIN_PASSWORD ?? process.env.NUXT_ADMIN_PASSWORD ?? '',
+      sessionSecret: process.env.ADMIN_SESSION_SECRET ?? process.env.NUXT_ADMIN_SESSION_SECRET ?? '',
+    },
     storage: {
       endpoint: process.env.S3_ENDPOINT ?? '',
       bucket: process.env.S3_BUCKET ?? '',

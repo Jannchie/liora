@@ -169,11 +169,13 @@ async function main(): Promise<void> {
   console.log(`Backfill complete. Added thumbhash for ${updatedCount} of ${files.length} records.`)
 }
 
-void main()
-  .catch((error) => {
-    console.error('Backfill failed:', error)
-    process.exitCode = 1
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+try {
+  await main()
+}
+catch (error) {
+  console.error('Backfill failed:', error)
+  process.exitCode = 1
+}
+finally {
+  await prisma.$disconnect()
+}

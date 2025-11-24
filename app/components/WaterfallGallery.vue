@@ -38,6 +38,7 @@ function getInitialColumns(): number {
 const galleryRef = ref<HTMLElement | null>(null)
 const columns = ref<number>(getInitialColumns())
 const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
+const activeFile = ref<ResolvedFile | null>(null)
 
 interface ThumbhashInfo {
   dataUrl: string
@@ -55,6 +56,11 @@ type ResolvedFile = FileResponse & {
   placeholderAspectRatio?: number
   displaySize: DisplaySize
   imageAttrs: ImageAttrs
+}
+
+interface MetadataEntry {
+  label: string
+  value: string
 }
 
 function toByteArrayFromBase64(value: string): Uint8Array {
@@ -190,6 +196,79 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver.value?.disconnect()
 })
+
+function openOverlay(file: ResolvedFile): void {
+  activeFile.value = file
+}
+
+function closeOverlay(): void {
+  activeFile.value = null
+}
+
+function toDisplayText(value: string | null | undefined): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : undefined
+}
+
+const metadataEntries = computed<MetadataEntry[]>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return []
+  }
+  const { metadata } = file
+  const entries: MetadataEntry[] = []
+  const title = toDisplayText(file.title)
+  if (title) {
+    entries.push({ label: '标题', value: title })
+  }
+  const description = toDisplayText(file.description)
+  if (description) {
+    entries.push({ label: '描述', value: description })
+  }
+  const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
+  if (fanworkTitle) {
+    entries.push({ label: '作品', value: fanworkTitle })
+  }
+  if (metadata.characters.length > 0) {
+    entries.push({ label: '角色', value: metadata.characters.join('、') })
+  }
+  const locationName = toDisplayText(metadata.locationName || file.location)
+  if (locationName) {
+    entries.push({ label: '地点', value: locationName })
+  }
+  const cameraModel = toDisplayText(metadata.cameraModel || file.cameraModel)
+  if (cameraModel) {
+    entries.push({ label: '设备', value: cameraModel })
+  }
+  const aperture = toDisplayText(metadata.aperture)
+  const focalLength = toDisplayText(metadata.focalLength)
+  const iso = toDisplayText(metadata.iso)
+  const shutterSpeed = toDisplayText(metadata.shutterSpeed)
+  const exposureParts = [aperture, focalLength, iso, shutterSpeed].filter(Boolean) as string[]
+  if (exposureParts.length > 0) {
+    entries.push({ label: '参数', value: exposureParts.join(' · ') })
+  }
+  const captureTime = toDisplayText(metadata.captureTime)
+  if (captureTime) {
+    entries.push({ label: '拍摄时间', value: captureTime })
+  }
+  entries.push({ label: '尺寸', value: `${file.width} × ${file.height}` })
+  return entries
+})
+
+const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  const source = file.placeholder ?? file.coverUrl
+  return {
+    backgroundImage: `url('${source}')`,
+  }
+})
 </script>
 
 <template>
@@ -209,28 +288,103 @@ onBeforeUnmount(() => {
           v-for="file in resolvedFiles"
           :key="file.id"
         >
-          <img
-            :key="file.id"
-            :alt="file.title"
-            :style="
-              file.placeholder
-                ? {
-                  backgroundImage: `url(${file.placeholder})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }
-                : undefined
-            "
-            loading="lazy"
-            class="h-full w-full object-cover"
-            v-bind="file.imageAttrs"
+          <button
+            type="button"
+            class="group relative block h-full w-full focus:outline-none"
+            :aria-label="`查看 ${file.title || '作品'} 大图`"
+            @click="openOverlay(file)"
           >
+            <img
+              :key="file.id"
+              :alt="file.title"
+              :style="
+                file.placeholder
+                  ? {
+                    backgroundImage: `url(${file.placeholder})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }
+                  : undefined
+              "
+              loading="lazy"
+              class="h-full w-full object-cover transition duration-200 group-hover:opacity-90"
+              v-bind="file.imageAttrs"
+            >
+          </button>
         </div>
       </Waterfall>
     </div>
     <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center">
       <span class="text-sm">加载中…</span>
     </div>
+    <Teleport to="body">
+      <div
+        v-if="activeFile"
+        class="fixed inset-0 z-50"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div
+          v-if="overlayBackgroundStyle"
+          class="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center blur-3xl"
+          :style="overlayBackgroundStyle"
+          aria-hidden="true"
+        />
+        <div class="absolute inset-0" @click="closeOverlay" />
+        <div class="relative flex h-full w-full">
+          <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-[var(--ui-bg)] text-[var(--ui-text)] backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-6">
+            <div class="flex min-h-0 items-center justify-center overflow-hidden bg-[var(--ui-bg-muted)]">
+              <img
+                :src="activeFile.imageUrl"
+                :alt="activeFile.title"
+                class="max-h-full max-w-full object-contain"
+              >
+            </div>
+            <div class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4 md:p-6">
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <p class="text-xs uppercase tracking-wide text-muted">
+                    {{ activeFile.kind === 'PHOTOGRAPHY' ? '摄影' : '插画' }}
+                  </p>
+                  <h3 class="text-lg font-semibold leading-snug">
+                    {{ activeFile.title || '未命名作品' }}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  class="px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
+                  @click="closeOverlay"
+                >
+                  关闭
+                </button>
+              </div>
+              <div class="space-y-3 text-sm text-default">
+                <div
+                  v-for="item in metadataEntries"
+                  :key="item.label"
+                  class="bg-elevated p-3"
+                >
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                    {{ item.label }}
+                  </p>
+                  <p class="mt-1 whitespace-pre-line wrap-break-word leading-relaxed text-highlighted">
+                    {{ item.value }}
+                  </p>
+                </div>
+                <div v-if="metadataEntries.length === 0" class="bg-elevated p-3">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                    元数据
+                  </p>
+                  <p class="mt-1 text-highlighted">
+                    暂无元数据
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
