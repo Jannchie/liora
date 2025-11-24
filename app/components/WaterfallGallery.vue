@@ -17,11 +17,13 @@ const props = withDefaults(
     siteSettings?: SiteSettings | null
   }>(),
   {
-    emptyText: '暂无数据',
+    emptyText: undefined,
     scrollElement: undefined,
     siteSettings: undefined,
   },
 )
+
+const { t } = useI18n()
 
 const maxDisplayWidth = 400
 const waterfallGap = 4
@@ -88,6 +90,23 @@ interface MetadataEntry {
   icon: string
 }
 
+const metadataLabels = computed(() => ({
+  title: t('gallery.metadata.title'),
+  description: t('gallery.metadata.description'),
+  work: t('gallery.metadata.work'),
+  characters: t('gallery.metadata.characters'),
+  location: t('gallery.metadata.location'),
+  camera: t('gallery.metadata.device'),
+  exposure: t('gallery.metadata.exposure'),
+  captureTime: t('gallery.metadata.captureTime'),
+  size: t('gallery.metadata.size'),
+}))
+
+const characterSeparator = computed(() => t('gallery.metadata.characterSeparator'))
+const resolvedEmptyText = computed(() => props.emptyText ?? t('gallery.empty'))
+const loadingText = computed(() => t('common.loading'))
+const untitledLabel = computed(() => t('common.labels.untitled'))
+
 function toByteArrayFromBase64(value: string): Uint8Array {
   if (typeof atob === 'function') {
     const binary = atob(value)
@@ -139,6 +158,10 @@ function resolveSortTimestamp(file: FileResponse): number {
   const captureTimestamp = toTimestamp(file.metadata.captureTime)
   const createdTimestamp = toTimestamp(file.createdAt) ?? 0
   return captureTimestamp ?? createdTimestamp
+}
+
+function resolveKindLabel(kind: FileResponse['kind']): string {
+  return kind === 'PHOTOGRAPHY' ? t('common.kinds.photography') : t('common.kinds.painting')
 }
 
 function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined, targetWidth: number): DisplaySize {
@@ -204,7 +227,7 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
   const displayWidth = columnWidth.value
   return [...props.files]
     .map((file) => {
-      const displayTitle = resolveFileTitle(file)
+      const displayTitle = resolveFileTitle(file, untitledLabel.value)
       const decoded = decodeThumbhash(file.metadata.thumbhash)
       const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
       const coverUrl = file.imageUrl?.trim() || ''
@@ -228,7 +251,11 @@ const siteName = computed(() => {
   if (customized && customized.length > 0) {
     return customized
   }
-  return resolvedSiteConfig.value.name ?? 'Liora Gallery'
+  const configured = resolvedSiteConfig.value.name?.trim()
+  if (configured && configured.length > 0) {
+    return configured
+  }
+  return t('home.defaultTitle')
 })
 const siteDescription = computed(() => {
   const customized = resolvedSiteSettings.value?.description?.trim()
@@ -236,7 +263,10 @@ const siteDescription = computed(() => {
     return customized
   }
   const fallback = resolvedSiteConfig.value.description ?? ''
-  return fallback && fallback.length > 0 ? fallback : ''
+  if (fallback && fallback.length > 0) {
+    return fallback
+  }
+  return t('home.defaultDescription')
 })
 const photoCount = computed(() => resolvedFiles.value.length)
 
@@ -392,26 +422,30 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const entries: MetadataEntry[] = []
   const title = toDisplayText(displayTitle)
   if (title) {
-    entries.push({ label: '标题', value: title, icon: 'mdi:format-title' })
+    entries.push({ label: metadataLabels.value.title, value: title, icon: 'mdi:format-title' })
   }
   const description = toDisplayText(file.description)
   if (description) {
-    entries.push({ label: '描述', value: description, icon: 'mdi:text-box-outline' })
+    entries.push({ label: metadataLabels.value.description, value: description, icon: 'mdi:text-box-outline' })
   }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {
-    entries.push({ label: '作品', value: fanworkTitle, icon: 'mdi:palette-outline' })
+    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'mdi:palette-outline' })
   }
   if (metadata.characters.length > 0) {
-    entries.push({ label: '角色', value: metadata.characters.join('、'), icon: 'mdi:account-multiple-outline' })
+    entries.push({
+      label: metadataLabels.value.characters,
+      value: metadata.characters.join(characterSeparator.value),
+      icon: 'mdi:account-multiple-outline',
+    })
   }
   const locationName = toDisplayText(metadata.locationName || file.location)
   if (locationName) {
-    entries.push({ label: '地点', value: locationName, icon: 'mdi:map-marker-outline' })
+    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'mdi:map-marker-outline' })
   }
   const cameraModel = toDisplayText(metadata.cameraModel || file.cameraModel)
   if (cameraModel) {
-    entries.push({ label: '设备', value: cameraModel, icon: 'mdi:camera-outline' })
+    entries.push({ label: metadataLabels.value.camera, value: cameraModel, icon: 'mdi:camera-outline' })
   }
   const aperture = toDisplayText(metadata.aperture)
   const focalLength = toDisplayText(metadata.focalLength)
@@ -419,13 +453,13 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const shutterSpeed = toDisplayText(metadata.shutterSpeed)
   const exposureParts = [aperture, focalLength, iso, shutterSpeed].filter(Boolean) as string[]
   if (exposureParts.length > 0) {
-    entries.push({ label: '参数', value: exposureParts.join(' · '), icon: 'mdi:tune' })
+    entries.push({ label: metadataLabels.value.exposure, value: exposureParts.join(' · '), icon: 'mdi:tune' })
   }
   const captureTime = toDisplayText(metadata.captureTime)
   if (captureTime) {
-    entries.push({ label: '拍摄时间', value: captureTime, icon: 'mdi:clock-outline' })
+    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'mdi:clock-outline' })
   }
-  entries.push({ label: '尺寸', value: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' })
+  entries.push({ label: metadataLabels.value.size, value: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' })
   return entries
 })
 
@@ -669,7 +703,7 @@ function renderHistogram(): void {
           :site-description="siteDescription"
           :photo-count="photoCount"
           :social-links="socialLinks"
-          :empty-text="emptyText"
+          :empty-text="resolvedEmptyText"
           :is-loading="isLoading"
           :display-size="infoCardDisplaySize"
         />
@@ -677,7 +711,7 @@ function renderHistogram(): void {
           v-else
           type="button"
           class="group relative block h-full w-full focus:outline-none"
-          :aria-label="`查看 ${entry.displayTitle} 大图`"
+          :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
           @click="openOverlay(entry)"
         >
           <img
@@ -707,7 +741,7 @@ function renderHistogram(): void {
     >
       <div class="flex items-center gap-2 px-3 py-2 text-sm text-default ring-1 ring-default">
         <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary-500" />
-        <span>加载中…</span>
+        <span>{{ loadingText }}</span>
       </div>
     </div>
     <Teleport to="body">
@@ -742,7 +776,7 @@ function renderHistogram(): void {
                       :name="activeFile.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline'"
                       class="h-4 w-4"
                     />
-                    <span>{{ activeFile.kind === 'PHOTOGRAPHY' ? '摄影' : '插画' }}</span>
+                    <span>{{ resolveKindLabel(activeFile.kind) }}</span>
                   </p>
                   <h3 class="text-lg font-semibold leading-snug">
                     {{ activeFile.displayTitle }}
@@ -754,13 +788,13 @@ function renderHistogram(): void {
                   @click="closeOverlay"
                 >
                   <Icon name="mdi:close" class="h-4 w-4" />
-                  <span>关闭</span>
+                  <span>{{ t('common.actions.close') }}</span>
                 </button>
               </div>
               <div class="space-y-3 bg-elevated p-3 text-default">
                 <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
                   <Icon name="mdi:chart-line" class="h-4 w-4 text-info-500" />
-                  <span>直方图</span>
+                  <span>{{ t('gallery.histogram.title') }}</span>
                 </p>
                 <div class="relative h-32 w-full">
                   <canvas ref="histogramCanvasRef" class="h-full w-full" />
@@ -769,7 +803,7 @@ function renderHistogram(): void {
                     class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
                   >
                     <Icon name="line-md:loading-loop" class="h-4 w-4" />
-                    <span>计算中…</span>
+                    <span>{{ t('gallery.histogram.pending') }}</span>
                   </div>
                 </div>
               </div>
@@ -790,11 +824,11 @@ function renderHistogram(): void {
                 <div v-if="metadataEntries.length === 0" class="bg-elevated p-3">
                   <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
                     <Icon name="mdi:information-outline" class="h-4 w-4" />
-                    <span>元数据</span>
+                    <span>{{ t('gallery.metadata.section') }}</span>
                   </p>
                   <p class="mt-1 flex items-center gap-2 text-highlighted">
                     <Icon name="mdi:alert-circle-outline" class="h-4 w-4 text-muted" />
-                    <span>暂无元数据</span>
+                    <span>{{ t('gallery.metadata.empty') }}</span>
                   </p>
                 </div>
               </div>

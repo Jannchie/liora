@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 definePageMeta({
   middleware: 'admin-auth',
 })
@@ -8,6 +10,6 @@ navigateTo('/admin/upload')
 
 <template>
   <div class="p-6 text-sm text-muted">
-    正在跳转到上传管理…
+    {{ t('admin.redirecting') }}
   </div>
 </template>

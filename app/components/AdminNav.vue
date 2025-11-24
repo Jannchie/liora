@@ -8,28 +8,30 @@ interface NavItem {
   value: string
 }
 
-const items: NavItem[] = [
-  { label: '上传', to: '/admin/upload', icon: 'mdi:upload-outline', value: '/admin/upload' },
-  { label: '数据列表', to: '/admin/files', icon: 'mdi:view-list-outline', value: '/admin/files' },
-  { label: '站点信息', to: '/admin/site', icon: 'mdi:earth', value: '/admin/site' },
-]
+const { t } = useI18n()
 
 const route = useRoute()
 const toast = useToast()
 const loggingOut = ref(false)
 
-const activeTab = computed<string>(() => items.find(item => item.to === route.path)?.value ?? '')
+const navItems = computed<NavItem[]>(() => [
+  { label: t('admin.nav.upload'), to: '/admin/upload', icon: 'mdi:upload-outline', value: '/admin/upload' },
+  { label: t('admin.nav.files'), to: '/admin/files', icon: 'mdi:view-list-outline', value: '/admin/files' },
+  { label: t('admin.nav.site'), to: '/admin/site', icon: 'mdi:earth', value: '/admin/site' },
+])
+
+const activeTab = computed<string>(() => navItems.value.find(item => item.to === route.path)?.value ?? '')
 
 async function handleLogout(): Promise<void> {
   loggingOut.value = true
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
-    toast.add({ title: '已退出登录', color: 'primary' })
+    toast.add({ title: t('admin.nav.logoutSuccess'), color: 'primary' })
     await navigateTo('/admin/login')
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '退出失败，请重试'
-    toast.add({ title: '退出失败', description: message, color: 'error' })
+    const message = error instanceof Error ? error.message : t('admin.nav.logoutFailed')
+    toast.add({ title: t('admin.nav.logoutFailed'), description: message, color: 'error' })
   }
   finally {
     loggingOut.value = false
@@ -49,10 +51,10 @@ async function handleTabChange(value: string | number): Promise<void> {
     <div class="flex items-center gap-3">
       <div class="flex items-center gap-2 rounded-md bg-default/60 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
         <Icon name="mdi:shield-crown-outline" class="h-4 w-4" />
-        <span>Admin</span>
+        <span>{{ t('admin.nav.label') }}</span>
       </div>
       <UTabs
-        :items="items"
+        :items="navItems"
         :model-value="activeTab"
         :content="false"
         @update:model-value="handleTabChange"
@@ -63,10 +65,11 @@ async function handleTabChange(value: string | number): Promise<void> {
       </UTabs>
     </div>
     <div class="flex items-center gap-2">
+      <LanguageSwitcher size="xs" />
       <UButton to="/" variant="ghost" color="primary">
         <span class="flex items-center gap-2">
           <Icon name="mdi:home-outline" class="h-4 w-4" />
-          <span>查看前台</span>
+          <span>{{ t('admin.nav.viewFrontend') }}</span>
         </span>
       </UButton>
       <UButton
@@ -77,7 +80,7 @@ async function handleTabChange(value: string | number): Promise<void> {
       >
         <span class="flex items-center gap-2">
           <Icon name="mdi:logout" class="h-4 w-4" />
-          <span>退出</span>
+          <span>{{ t('admin.nav.logout') }}</span>
         </span>
       </UButton>
     </div>

@@ -1,7 +1,7 @@
 import type { SessionState } from '~/types/auth'
-import { clearSession } from '../../utils/auth'
+import { clearAdminSession } from '../../utils/auth'
 
 export default defineEventHandler(async (event): Promise<SessionState> => {
-  clearSession(event)
+  clearAdminSession(event)
   return { authenticated: false }
 })

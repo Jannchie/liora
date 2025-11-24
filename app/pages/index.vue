@@ -3,6 +3,8 @@ import type { FileResponse } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
 import { computed, ref } from 'vue'
 
+const { t } = useI18n()
+
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })
@@ -11,19 +13,21 @@ const { data: siteSettingsData } = await useFetch<SiteSettings | null>('/api/sit
 })
 
 const siteSettings = computed<SiteSettings | null>(() => siteSettingsData.value ?? null)
+const defaultTitle = computed(() => t('home.defaultTitle'))
+const defaultDescription = computed(() => t('home.defaultDescription'))
 const pageTitle = computed(() => {
   const name = siteSettings.value?.name?.trim()
   if (name && name.length > 0) {
     return name
   }
-  return 'Liora Gallery'
+  return defaultTitle.value
 })
 const pageDescription = computed(() => {
   const description = siteSettings.value?.description?.trim()
   if (description && description.length > 0) {
     return description
   }
-  return '展示摄影与插画作品的瀑布流画廊。'
+  return defaultDescription.value
 })
 
 useSeoMeta({
@@ -38,17 +42,24 @@ const files = computed<FileResponse[]>(() => data.value ?? [])
 const isLoading = computed(() => pending.value)
 const fetchError = computed(() => error.value)
 const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
+const alertTitle = computed(() => fetchError.value?.message ?? t('home.fetchFailed'))
+const alertDescription = computed(() => t('home.fetchFailedDescription'))
+const emptyText = computed(() => t('home.emptyText'))
+const loadingText = computed(() => t('home.loading'))
 </script>
 
 <template>
   <div ref="scrollContainerRef" class="h-screen w-screen overflow-auto">
     <div class="max-w-[2000px] m-auto">
+      <div class="flex justify-end px-4 pt-4">
+        <LanguageSwitcher size="sm" />
+      </div>
       <UAlert
         v-if="fetchError"
         color="error"
         variant="soft"
-        :title="fetchError?.message ?? '加载失败'"
-        description="无法加载数据，请稍后重试。"
+        :title="alertTitle"
+        :description="alertDescription"
       >
         <template #icon>
           <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
@@ -61,12 +72,12 @@ const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
           :is-loading="isLoading"
           :site-settings="siteSettings ?? undefined"
           :scroll-element="scrollContainerRef"
-          empty-text="还没有作品，去后台录入吧。"
+          :empty-text="emptyText"
         />
         <template #fallback>
           <div class="flex h-[50vh] items-center justify-center gap-2 text-sm text-gray-500">
             <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary" />
-            <span>画廊加载中…</span>
+            <span>{{ loadingText }}</span>
           </div>
         </template>
       </ClientOnly>

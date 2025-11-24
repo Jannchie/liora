@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import type { SessionState } from '~/types/auth'
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 
+const { t } = useI18n()
 const toast = useToast()
-const pageTitle = '登录 | Liora 管理后台'
-const pageDescription = '进入管理后台以维护作品与元数据。'
+const pageTitle = computed(() => t('admin.login.seoTitle'))
+const pageDescription = computed(() => t('admin.login.seoDescription'))
 
 useSeoMeta({
-  title: pageTitle,
-  ogTitle: pageTitle,
-  description: pageDescription,
-  ogDescription: pageDescription,
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   robots: 'noindex, nofollow',
 })
 
@@ -38,13 +39,13 @@ async function handleSubmit(): Promise<void> {
       method: 'POST',
       body: { username: form.username, password: form.password },
     })
-    toast.add({ title: '登录成功', color: 'primary' })
+    toast.add({ title: t('admin.login.toastSuccess'), color: 'primary' })
     await navigateTo('/admin')
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '登录失败，请重试'
+    const message = error instanceof Error ? error.message : t('admin.login.errorFallback')
     errorMessage.value = message
-    toast.add({ title: '登录失败', description: message, color: 'error' })
+    toast.add({ title: t('admin.login.toastFailed'), description: message, color: 'error' })
   }
   finally {
     submitting.value = false
@@ -59,32 +60,32 @@ async function handleSubmit(): Promise<void> {
         <div class="space-y-1">
           <p class="flex items-center gap-2 text-sm text-gray-500">
             <Icon name="mdi:shield-lock-outline" class="h-4 w-4" />
-            <span>管理后台</span>
+            <span>{{ t('admin.login.sectionLabel') }}</span>
           </p>
           <h1 class="flex items-center gap-2 text-2xl font-semibold">
             <Icon name="mdi:lock-open-check-outline" class="h-5 w-5 text-primary" />
-            <span>登录</span>
+            <span>{{ t('admin.login.heading') }}</span>
           </h1>
           <p class="text-sm text-gray-500">
-            使用配置的管理员账户进入后台。
+            {{ t('admin.login.subtitle') }}
           </p>
         </div>
       </template>
 
       <UForm class="space-y-4" @submit.prevent="handleSubmit">
-        <UFormGroup label="用户名" name="username" required>
+        <UFormGroup :label="t('admin.login.usernameLabel')" name="username" required>
           <UInput
             v-model="form.username"
             autocomplete="username"
-            placeholder="请输入用户名"
+            :placeholder="t('admin.login.usernamePlaceholder')"
           />
         </UFormGroup>
-        <UFormGroup label="密码" name="password" required>
+        <UFormGroup :label="t('admin.login.passwordLabel')" name="password" required>
           <UInput
             v-model="form.password"
             type="password"
             autocomplete="current-password"
-            placeholder="请输入密码"
+            :placeholder="t('admin.login.passwordPlaceholder')"
           />
         </UFormGroup>
 
@@ -92,7 +93,7 @@ async function handleSubmit(): Promise<void> {
           v-if="errorMessage"
           color="error"
           variant="soft"
-          title="登录失败"
+          :title="t('admin.login.errorTitle')"
           :description="errorMessage"
         >
           <template #icon>
@@ -109,7 +110,7 @@ async function handleSubmit(): Promise<void> {
         >
           <div class="flex items-center justify-center gap-2">
             <Icon name="mdi:login" class="h-5 w-5" />
-            <span>登录</span>
+            <span>{{ t('admin.login.submit') }}</span>
           </div>
         </UButton>
       </UForm>

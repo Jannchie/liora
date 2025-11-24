@@ -1,0 +1,375 @@
+{
+  "locales": {
+    "en": "English",
+    "zh-CN": "简体中文"
+  },
+  "common": {
+    "loading": "加载中…",
+    "labels": {
+      "untitled": "未命名",
+      "recordCount": "共 {count} 条记录",
+      "pageIndicator": "第 {page} / {pageCount} 页",
+      "unknown": "—"
+    },
+    "actions": {
+      "close": "关闭",
+      "edit": "编辑",
+      "delete": "删除",
+      "save": "保存",
+      "reset": "重置",
+      "cancel": "取消",
+      "changeImage": "更换图片",
+      "remove": "移除",
+      "switchLanguage": "切换语言"
+    },
+    "kinds": {
+      "photography": "摄影",
+      "painting": "插画"
+    },
+    "toast": {
+      "loadFailed": "加载失败"
+    }
+  },
+  "home": {
+    "defaultTitle": "Liora Gallery",
+    "defaultDescription": "展示摄影与插画作品的瀑布流画廊。",
+    "fetchFailed": "加载失败",
+    "fetchFailedDescription": "无法加载数据，请稍后重试。",
+    "emptyText": "还没有作品，去后台录入吧。",
+    "loading": "画廊加载中…"
+  },
+  "gallery": {
+    "empty": "暂无数据",
+    "viewLarge": "查看 {title} 大图",
+    "histogram": {
+      "title": "直方图",
+      "pending": "计算中…"
+    },
+    "metadata": {
+      "title": "标题",
+      "description": "描述",
+      "work": "作品",
+      "characters": "角色",
+      "characterSeparator": "、",
+      "location": "地点",
+      "device": "设备",
+      "exposure": "参数",
+      "captureTime": "拍摄时间",
+      "size": "尺寸",
+      "section": "元数据",
+      "empty": "暂无元数据"
+    },
+    "totalWorks": "作品总数"
+  },
+  "admin": {
+    "nav": {
+      "label": "后台",
+      "upload": "上传",
+      "files": "数据列表",
+      "site": "站点信息",
+      "viewFrontend": "查看前台",
+      "logout": "退出",
+      "logoutSuccess": "已退出登录",
+      "logoutFailed": "退出失败，请重试"
+    },
+    "redirecting": "正在跳转到上传管理…",
+    "login": {
+      "seoTitle": "登录 | Liora 管理后台",
+      "seoDescription": "进入管理后台以维护作品与元数据。",
+      "toastSuccess": "登录成功",
+      "toastFailed": "登录失败",
+      "errorFallback": "登录失败，请重试",
+      "sectionLabel": "管理后台",
+      "heading": "登录",
+      "subtitle": "使用配置的管理员账户进入后台。",
+      "usernameLabel": "用户名",
+      "usernamePlaceholder": "请输入用户名",
+      "passwordLabel": "密码",
+      "passwordPlaceholder": "请输入密码",
+      "errorTitle": "登录失败",
+      "submit": "登录"
+    },
+    "upload": {
+      "seoTitle": "作品上传 | Liora",
+      "seoDescription": "在后台上传作品并填写元数据。",
+      "toast": {
+        "selectImage": "请先选择图片文件",
+        "readSize": "请先获取尺寸",
+        "sizeFailed": "获取尺寸失败",
+        "sizeFailedFallback": "读取失败",
+        "sizeReadError": "无法读取图片尺寸",
+        "exifFailed": "读取元数据失败",
+        "exifFailedFallback": "读取元数据失败",
+        "saveSuccessTitle": "已保存",
+        "saveSuccessDescription": "记录写入数据库成功。",
+        "saveFailedTitle": "保存失败",
+        "saveFailedFallback": "提交失败"
+      },
+      "title": "作品上传",
+      "subtitle": "在此完成元数据填写与校验，主页仅展示瀑布流。",
+      "sections": {
+        "upload": {
+          "label": "上传照片",
+          "title": "拖拽或点击",
+          "description": "上传前界面保持简洁，仅展示上传入口。",
+          "dropHint": "拖拽照片到此或点击选择文件",
+          "supported": "支持 JPG/PNG 等常见格式"
+        },
+        "preview": {
+          "label": "预览与自动填充",
+          "title": "照片信息",
+          "alt": "预览"
+        },
+        "edit": {
+          "label": "编辑与保存",
+          "title": "完善元数据"
+        }
+      },
+      "fields": {
+        "width": {
+          "label": "宽度",
+          "description": "单位：px",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "高度",
+          "description": "单位：px",
+          "placeholder": "1200"
+        },
+        "aperture": {
+          "label": "光圈",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "焦距",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "快门",
+          "placeholder": "1/125s"
+        },
+        "cameraModel": {
+          "label": "器材型号",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "location": {
+          "label": "拍摄地点"
+        },
+        "locationName": {
+          "label": "标准地名",
+          "placeholder": "如：北京市东城区故宫博物院"
+        },
+        "locationRaw": {
+          "label": "自定义地名",
+          "placeholder": "可写简称或自定义"
+        },
+        "latitude": {
+          "label": "纬度"
+        },
+        "longitude": {
+          "label": "经度"
+        },
+        "captureTime": {
+          "label": "拍摄时间",
+          "placeholder": "选择拍摄时间",
+          "description": "输入本地时间，保存时会转换为含秒与时区的 ISO 字符串。"
+        },
+        "title": {
+          "label": "标题（可留空）",
+          "placeholder": "未命名作品"
+        },
+        "description": {
+          "label": "介绍（可留空）",
+          "placeholder": "一句话介绍作品或拍摄背景"
+        },
+        "notes": {
+          "label": "备注（可留空）",
+          "placeholder": "补充故事、参数或灵感关键词"
+        }
+      },
+      "actions": {
+        "save": "保存到数据库"
+      }
+    },
+    "files": {
+      "seoTitle": "作品列表 | Liora",
+      "seoDescription": "查看与维护已上传的作品记录。",
+      "toast": {
+        "updateSuccess": "已更新",
+        "updateSuccessDescription": "记录已保存。",
+        "updateFailed": "更新失败",
+        "updateFailedFallback": "更新失败",
+        "deleteSuccess": "已删除",
+        "deleteSuccessDescription": "记录已移除。",
+        "deleteFailed": "删除失败",
+        "deleteFailedFallback": "删除失败"
+      },
+      "title": "数据列表",
+      "subtitle": "查看已有作品记录，支持编辑和删除。",
+      "actions": {
+        "toUpload": "去上传",
+        "refresh": "刷新数据"
+      },
+      "section": {
+        "label": "作品列表",
+        "title": "数据总览"
+      },
+      "table": {
+        "headers": {
+          "preview": "预览",
+          "title": "标题",
+          "kind": "类型",
+          "size": "尺寸",
+          "location": "地点",
+          "captureTime": "拍摄时间",
+          "createdAt": "创建时间",
+          "actions": "操作"
+        },
+        "empty": "暂无数据，先录入一条。"
+      },
+      "editModal": {
+        "lead": "编辑",
+        "fallbackTitle": "调整元数据",
+        "subtitle": "更新尺寸、拍摄信息或备注。"
+      },
+      "form": {
+        "kind": {
+          "label": "类型"
+        },
+        "captureTime": {
+          "label": "拍摄时间",
+          "placeholder": "选择拍摄时间"
+        },
+        "title": {
+          "label": "标题",
+          "placeholder": "未命名作品"
+        },
+        "description": {
+          "label": "介绍",
+          "placeholder": "一句话介绍"
+        },
+        "fanworkTitle": {
+          "label": "作品名（同人/系列）",
+          "placeholder": "系列或关联作品名称"
+        },
+        "characters": {
+          "label": "角色/标签",
+          "placeholder": "用逗号或换行分隔多个角色"
+        },
+        "width": {
+          "label": "宽度",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "高度",
+          "placeholder": "1200"
+        },
+        "locationName": {
+          "label": "标准地名",
+          "placeholder": "如：北京市东城区故宫博物院"
+        },
+        "location": {
+          "label": "自定义地名",
+          "placeholder": "可写简称或自定义"
+        },
+        "latitude": {
+          "label": "纬度"
+        },
+        "longitude": {
+          "label": "经度"
+        },
+        "cameraModel": {
+          "label": "器材型号",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "aperture": {
+          "label": "光圈",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "焦距",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "快门",
+          "placeholder": "1/125s"
+        },
+        "notes": {
+          "label": "备注",
+          "placeholder": "补充故事或说明"
+        }
+      },
+      "delete": {
+        "title": "删除确认",
+        "heading": "确认删除这条记录吗？",
+        "description": "删除后将无法恢复，请确认。",
+        "titleLabel": "标题：",
+        "createdAtLabel": "创建时间：",
+        "confirm": "确认删除"
+      }
+    },
+    "site": {
+      "seoTitle": "站点信息 | Liora",
+      "seoDescription": "配置站点名称、描述与社交链接。",
+      "toast": {
+        "saveSuccess": "已保存",
+        "saveSuccessDescription": "站点信息已更新。",
+        "saveFailed": "保存失败",
+        "saveFailedFallback": "保存失败，请重试",
+        "reset": "已重置",
+        "resetDescription": "已恢复为当前保存的站点信息。",
+        "loadFailed": "加载站点信息失败"
+      },
+      "badge": "站点信息",
+      "title": "编辑站点",
+      "subtitle": "配置首页展示的站点名称、描述以及社交链接。",
+      "lastUpdated": {
+        "label": "上次更新：",
+        "none": "尚无记录"
+      },
+      "sections": {
+        "basic": {
+          "label": "基本信息",
+          "title": "站点标题与描述"
+        },
+        "social": {
+          "label": "社交链接",
+          "title": "可选的社交平台",
+          "helper": "留空则不会展示"
+        }
+      },
+      "fields": {
+        "name": {
+          "label": "站点名称",
+          "placeholder": "例如：Liora Gallery",
+          "help": "用于首页信息卡与浏览器标题，保持简短清晰。"
+        },
+        "description": {
+          "label": "站点描述",
+          "placeholder": "用于首页展示的简介，可留空",
+          "help": "简介会展示在瀑布流信息卡，建议 1-2 句说明站点定位，可留空。"
+        },
+        "github": {
+          "placeholder": "https://github.com/username",
+          "help": "需要完整链接（含 https://），留空则不显示。"
+        },
+        "twitter": {
+          "placeholder": "https://twitter.com/username",
+          "help": "可填写 X 或 Twitter 链接，留空即隐藏。"
+        },
+        "instagram": {
+          "placeholder": "https://instagram.com/username",
+          "help": "支持任何公开主页链接，未填则不展示。"
+        },
+        "weibo": {
+          "label": "微博",
+          "placeholder": "https://weibo.com/username",
+          "help": "需要可访问的完整链接，留空则隐藏。"
+        }
+      },
+      "actions": {
+        "save": "保存站点信息"
+      }
+    }
+  }
+}

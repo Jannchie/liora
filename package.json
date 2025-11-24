@@ -20,6 +20,7 @@
     "@nuxt/image": "2.0.0",
     "@nuxt/test-utils": "3.20.1",
     "@nuxt/ui": "4.2.1",
+    "@nuxtjs/i18n": "^10.2.1",
     "@nuxtjs/seo": "^3.2.2",
     "@prisma/adapter-libsql": "^7.0.0",
     "@prisma/client": "^7.0.0",

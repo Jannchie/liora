@@ -1,6 +1,6 @@
 import type { FileResponse } from '~/types/file'
 
-export function resolveFileTitle(file: Pick<FileResponse, 'title' | 'originalName'>, fallback = '未命名'): string {
+export function resolveFileTitle(file: Pick<FileResponse, 'title' | 'originalName'>, fallback = 'Untitled'): string {
   const normalizedTitle = file.title.trim()
   if (normalizedTitle.length > 0) {
     return normalizedTitle

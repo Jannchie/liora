@@ -2,20 +2,30 @@
 import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
 import { computed, reactive, ref, watch } from 'vue'
 
+const { t } = useI18n()
 definePageMeta({
   middleware: 'admin-auth',
 })
 
 const toast = useToast()
 
-const pageTitle = '站点信息 | Liora'
-const pageDescription = '配置站点名称、描述与社交链接。'
+const pageTitle = computed(() => t('admin.site.seoTitle'))
+const pageDescription = computed(() => t('admin.site.seoDescription'))
+const toastMessages = computed(() => ({
+  saveSuccess: t('admin.site.toast.saveSuccess'),
+  saveSuccessDescription: t('admin.site.toast.saveSuccessDescription'),
+  saveFailed: t('admin.site.toast.saveFailed'),
+  saveFailedFallback: t('admin.site.toast.saveFailedFallback'),
+  reset: t('admin.site.toast.reset'),
+  resetDescription: t('admin.site.toast.resetDescription'),
+  loadFailed: t('admin.site.toast.loadFailed'),
+}))
 
 useSeoMeta({
-  title: pageTitle,
-  ogTitle: pageTitle,
-  description: pageDescription,
-  ogDescription: pageDescription,
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   robots: 'noindex, nofollow',
 })
 
@@ -57,10 +67,10 @@ watch(settingsData, applySettings, { immediate: true })
 
 const lastUpdated = computed(() => {
   if (!settingsData.value?.updatedAt) {
-    return ''
+    return t('admin.site.lastUpdated.none')
   }
   const date = new Date(settingsData.value.updatedAt)
-  return Number.isNaN(date.getTime()) ? '' : date.toLocaleString()
+  return Number.isNaN(date.getTime()) ? t('admin.site.lastUpdated.none') : date.toLocaleString()
 })
 
 async function handleSubmit(): Promise<void> {
@@ -75,11 +85,11 @@ async function handleSubmit(): Promise<void> {
       },
     })
     settingsData.value = updated
-    toast.add({ title: '已保存', description: '站点信息已更新。', color: 'primary' })
+    toast.add({ title: toastMessages.value.saveSuccess, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '保存失败，请重试'
-    toast.add({ title: '保存失败', description: message, color: 'error' })
+    const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
+    toast.add({ title: toastMessages.value.saveFailed, description: message, color: 'error' })
   }
   finally {
     saving.value = false
@@ -88,7 +98,7 @@ async function handleSubmit(): Promise<void> {
 
 function handleReset(): void {
   applySettings(settingsData.value)
-  toast.add({ title: '已重置', description: '已恢复为当前保存的站点信息。', color: 'neutral' })
+  toast.add({ title: toastMessages.value.reset, description: toastMessages.value.resetDescription, color: 'neutral' })
 }
 </script>
 
@@ -101,21 +111,21 @@ function handleReset(): void {
         <div>
           <p class="flex items-center gap-2 text-sm text-muted">
             <Icon name="mdi:earth" class="h-4 w-4" />
-            <span>站点信息</span>
+            <span>{{ t('admin.site.badge') }}</span>
           </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold text-highlighted">
             <Icon name="mdi:pencil-outline" class="h-6 w-6 text-primary-600" />
-            <span>编辑站点</span>
+            <span>{{ t('admin.site.title') }}</span>
           </h1>
           <p class="text-sm text-muted">
-            配置首页展示的站点名称、描述以及社交链接。
+            {{ t('admin.site.subtitle') }}
           </p>
         </div>
         <div class="flex flex-col items-end gap-2 text-sm text-muted sm:items-end">
           <div class="flex items-center gap-2">
             <Icon name="mdi:clock-outline" class="h-4 w-4" />
-            <span>上次更新：</span>
-            <span class="text-highlighted">{{ lastUpdated || '尚无记录' }}</span>
+            <span>{{ t('admin.site.lastUpdated.label') }}</span>
+            <span class="text-highlighted">{{ lastUpdated }}</span>
           </div>
           <div class="flex gap-2">
             <UButton
@@ -126,7 +136,7 @@ function handleReset(): void {
             >
               <span class="flex items-center gap-2">
                 <Icon name="mdi:content-save-outline" class="h-4 w-4" />
-                <span>保存</span>
+                <span>{{ t('common.actions.save') }}</span>
               </span>
             </UButton>
             <UButton
@@ -137,7 +147,7 @@ function handleReset(): void {
             >
               <span class="flex items-center gap-2">
                 <Icon name="mdi:restore" class="h-4 w-4" />
-                <span>重置</span>
+                <span>{{ t('common.actions.reset') }}</span>
               </span>
             </UButton>
           </div>
@@ -148,7 +158,7 @@ function handleReset(): void {
         v-if="settingsError"
         color="error"
         variant="soft"
-        title="加载站点信息失败"
+        :title="toastMessages.loadFailed"
         :description="settingsError?.message"
       >
         <template #icon>
@@ -161,10 +171,10 @@ function handleReset(): void {
           <template #header>
             <div class="flex flex-col gap-1">
               <p class="text-sm text-muted">
-                基本信息
+                {{ t('admin.site.sections.basic.label') }}
               </p>
               <h2 class="text-xl font-semibold text-highlighted">
-                站点标题与描述
+                {{ t('admin.site.sections.basic.title') }}
               </h2>
             </div>
           </template>
@@ -173,31 +183,31 @@ function handleReset(): void {
             <div class="space-y-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:format-title" class="h-4 w-4" />
-                <span>站点名称</span>
+                <span>{{ t('admin.site.fields.name.label') }}</span>
               </div>
               <UInput
                 v-model="form.name"
-                placeholder="例如：Liora Gallery"
+                :placeholder="t('admin.site.fields.name.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                用于首页信息卡与浏览器标题，保持简短清晰。
+                {{ t('admin.site.fields.name.help') }}
               </p>
             </div>
 
             <div class="space-y-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:text" class="h-4 w-4" />
-                <span>站点描述</span>
+                <span>{{ t('admin.site.fields.description.label') }}</span>
               </div>
               <UTextarea
                 v-model="form.description"
                 :rows="4"
-                placeholder="用于首页展示的简介，可留空"
+                :placeholder="t('admin.site.fields.description.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                简介会展示在瀑布流信息卡，建议 1-2 句说明站点定位，可留空。
+                {{ t('admin.site.fields.description.help') }}
               </p>
             </div>
           </div>
@@ -208,13 +218,13 @@ function handleReset(): void {
             <div class="flex items-center justify-between">
               <div>
                 <p class="text-sm text-muted">
-                  社交链接
+                  {{ t('admin.site.sections.social.label') }}
                 </p>
                 <h2 class="text-xl font-semibold text-highlighted">
-                  可选的社交平台
+                  {{ t('admin.site.sections.social.title') }}
                 </h2>
               </div>
-              <span class="text-sm text-muted">留空则不会展示</span>
+              <span class="text-sm text-muted">{{ t('admin.site.sections.social.helper') }}</span>
             </div>
           </template>
 
@@ -226,11 +236,11 @@ function handleReset(): void {
               </div>
               <UInput
                 v-model="form.social.github"
-                placeholder="https://github.com/username"
+                :placeholder="t('admin.site.fields.github.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                需要完整链接（含 https://），留空则不显示。
+                {{ t('admin.site.fields.github.help') }}
               </p>
             </div>
 
@@ -241,11 +251,11 @@ function handleReset(): void {
               </div>
               <UInput
                 v-model="form.social.twitter"
-                placeholder="https://twitter.com/username"
+                :placeholder="t('admin.site.fields.twitter.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                可填写 X 或 Twitter 链接，留空即隐藏。
+                {{ t('admin.site.fields.twitter.help') }}
               </p>
             </div>
 
@@ -256,26 +266,26 @@ function handleReset(): void {
               </div>
               <UInput
                 v-model="form.social.instagram"
-                placeholder="https://instagram.com/username"
+                :placeholder="t('admin.site.fields.instagram.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                支持任何公开主页链接，未填则不展示。
+                {{ t('admin.site.fields.instagram.help') }}
               </p>
             </div>
 
             <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:sina-weibo" class="h-4 w-4" />
-                <span>微博</span>
+                <span>{{ t('admin.site.fields.weibo.label') }}</span>
               </div>
               <UInput
                 v-model="form.social.weibo"
-                placeholder="https://weibo.com/username"
+                :placeholder="t('admin.site.fields.weibo.placeholder')"
                 :disabled="saving || loadingSettings"
               />
               <p class="text-xs text-muted">
-                需要可访问的完整链接，留空则隐藏。
+                {{ t('admin.site.fields.weibo.help') }}
               </p>
             </div>
           </div>
@@ -291,7 +301,7 @@ function handleReset(): void {
         >
           <span class="flex items-center gap-2">
             <Icon name="mdi:restore" class="h-4 w-4" />
-            <span>重置</span>
+            <span>{{ t('common.actions.reset') }}</span>
           </span>
         </UButton>
         <UButton
@@ -302,7 +312,7 @@ function handleReset(): void {
         >
           <span class="flex items-center gap-2">
             <Icon name="mdi:content-save-outline" class="h-4 w-4" />
-            <span>保存站点信息</span>
+            <span>{{ t('admin.site.actions.save') }}</span>
           </span>
         </UButton>
       </div>

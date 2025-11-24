@@ -96,7 +96,7 @@ export function createSession(event: H3Event, username: string): SessionState {
   return { authenticated: true, username: config.username }
 }
 
-export function clearSession(event: H3Event): void {
+export function clearAdminSession(event: H3Event): void {
   deleteCookie(event, SESSION_COOKIE_NAME, { path: '/' })
 }
 
@@ -109,7 +109,7 @@ export function readSession(event: H3Event): SessionState {
   const config = resolveAdminConfig(event)
   const payload = verifyToken(token, config.sessionSecret)
   if (!payload || !safeEqual(payload.username, config.username)) {
-    clearSession(event)
+    clearAdminSession(event)
     return { authenticated: false }
   }
 

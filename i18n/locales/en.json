@@ -1,0 +1,375 @@
+{
+  "locales": {
+    "en": "English",
+    "zh-CN": "Simplified Chinese"
+  },
+  "common": {
+    "loading": "Loading…",
+    "labels": {
+      "untitled": "Untitled",
+      "recordCount": "{count} records",
+      "pageIndicator": "Page {page} / {pageCount}",
+      "unknown": "—"
+    },
+    "actions": {
+      "close": "Close",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "reset": "Reset",
+      "cancel": "Cancel",
+      "changeImage": "Change image",
+      "remove": "Remove",
+      "switchLanguage": "Switch language"
+    },
+    "kinds": {
+      "photography": "Photography",
+      "painting": "Illustration"
+    },
+    "toast": {
+      "loadFailed": "Load failed"
+    }
+  },
+  "home": {
+    "defaultTitle": "Liora Gallery",
+    "defaultDescription": "A waterfall gallery for photography and illustrations.",
+    "fetchFailed": "Load failed",
+    "fetchFailedDescription": "Unable to fetch data, please try again later.",
+    "emptyText": "No works yet. Add one in the admin panel.",
+    "loading": "Loading gallery…"
+  },
+  "gallery": {
+    "empty": "No data yet",
+    "viewLarge": "View {title} large",
+    "histogram": {
+      "title": "Histogram",
+      "pending": "Calculating…"
+    },
+    "metadata": {
+      "title": "Title",
+      "description": "Description",
+      "work": "Work",
+      "characters": "Characters",
+      "characterSeparator": ", ",
+      "location": "Location",
+      "device": "Gear",
+      "exposure": "Exposure",
+      "captureTime": "Captured at",
+      "size": "Size",
+      "section": "Metadata",
+      "empty": "No metadata"
+    },
+    "totalWorks": "Total works"
+  },
+  "admin": {
+    "nav": {
+      "label": "Admin",
+      "upload": "Upload",
+      "files": "Records",
+      "site": "Site info",
+      "viewFrontend": "View site",
+      "logout": "Sign out",
+      "logoutSuccess": "Signed out",
+      "logoutFailed": "Failed to sign out"
+    },
+    "redirecting": "Redirecting to upload…",
+    "login": {
+      "seoTitle": "Sign in | Liora Admin",
+      "seoDescription": "Access the admin panel to manage works and metadata.",
+      "toastSuccess": "Signed in",
+      "toastFailed": "Sign-in failed",
+      "errorFallback": "Sign-in failed, please retry.",
+      "sectionLabel": "Admin Panel",
+      "heading": "Sign in",
+      "subtitle": "Use the configured admin account to continue.",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Enter username",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter password",
+      "errorTitle": "Sign-in failed",
+      "submit": "Sign in"
+    },
+    "upload": {
+      "seoTitle": "Upload | Liora",
+      "seoDescription": "Upload works and fill metadata in the admin panel.",
+      "toast": {
+        "selectImage": "Please choose an image first",
+        "readSize": "Read image dimensions first",
+        "sizeFailed": "Failed to read size",
+        "sizeFailedFallback": "Read failed",
+        "sizeReadError": "Unable to read image dimensions",
+        "exifFailed": "Failed to read metadata",
+        "exifFailedFallback": "Failed to parse metadata",
+        "saveSuccessTitle": "Saved",
+        "saveSuccessDescription": "Record written to database.",
+        "saveFailedTitle": "Save failed",
+        "saveFailedFallback": "Submit failed"
+      },
+      "title": "Upload work",
+      "subtitle": "Fill and validate metadata here; the homepage shows only the waterfall view.",
+      "sections": {
+        "upload": {
+          "label": "Upload photo",
+          "title": "Drag or click",
+          "description": "Keep the pre-upload view simple with only the entry point.",
+          "dropHint": "Drag a photo here or click to pick a file",
+          "supported": "Common formats such as JPG/PNG are supported"
+        },
+        "preview": {
+          "label": "Preview & autofill",
+          "title": "Photo details",
+          "alt": "Preview"
+        },
+        "edit": {
+          "label": "Edit & save",
+          "title": "Complete metadata"
+        }
+      },
+      "fields": {
+        "width": {
+          "label": "Width",
+          "description": "Unit: px",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "Height",
+          "description": "Unit: px",
+          "placeholder": "1200"
+        },
+        "aperture": {
+          "label": "Aperture",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "Focal length",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "Shutter",
+          "placeholder": "1/125s"
+        },
+        "cameraModel": {
+          "label": "Camera",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "location": {
+          "label": "Location"
+        },
+        "locationName": {
+          "label": "Standard name",
+          "placeholder": "e.g. Palace Museum, Beijing"
+        },
+        "locationRaw": {
+          "label": "Custom name",
+          "placeholder": "Use a short or custom label"
+        },
+        "latitude": {
+          "label": "Latitude"
+        },
+        "longitude": {
+          "label": "Longitude"
+        },
+        "captureTime": {
+          "label": "Capture time",
+          "placeholder": "Select capture time",
+          "description": "Use local time; it will be stored as an ISO string with seconds and timezone."
+        },
+        "title": {
+          "label": "Title (optional)",
+          "placeholder": "Untitled work"
+        },
+        "description": {
+          "label": "Description (optional)",
+          "placeholder": "One-line description or shooting notes"
+        },
+        "notes": {
+          "label": "Notes (optional)",
+          "placeholder": "Add story, parameters, or keywords"
+        }
+      },
+      "actions": {
+        "save": "Save to database"
+      }
+    },
+    "files": {
+      "seoTitle": "Records | Liora",
+      "seoDescription": "Browse and manage uploaded works.",
+      "toast": {
+        "updateSuccess": "Updated",
+        "updateSuccessDescription": "Record saved.",
+        "updateFailed": "Update failed",
+        "updateFailedFallback": "Update failed",
+        "deleteSuccess": "Deleted",
+        "deleteSuccessDescription": "Record removed.",
+        "deleteFailed": "Delete failed",
+        "deleteFailedFallback": "Delete failed"
+      },
+      "title": "Records",
+      "subtitle": "Review existing entries with edit and delete controls.",
+      "actions": {
+        "toUpload": "Go to upload",
+        "refresh": "Refresh"
+      },
+      "section": {
+        "label": "Works",
+        "title": "Data overview"
+      },
+      "table": {
+        "headers": {
+          "preview": "Preview",
+          "title": "Title",
+          "kind": "Type",
+          "size": "Size",
+          "location": "Location",
+          "captureTime": "Capture time",
+          "createdAt": "Created at",
+          "actions": "Actions"
+        },
+        "empty": "No data yet. Add your first record."
+      },
+      "editModal": {
+        "lead": "Edit",
+        "fallbackTitle": "Adjust metadata",
+        "subtitle": "Update size, shooting info, or notes."
+      },
+      "form": {
+        "kind": {
+          "label": "Type"
+        },
+        "captureTime": {
+          "label": "Capture time",
+          "placeholder": "Select capture time"
+        },
+        "title": {
+          "label": "Title",
+          "placeholder": "Untitled work"
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "One-line description"
+        },
+        "fanworkTitle": {
+          "label": "Series / fanwork",
+          "placeholder": "Related work or series name"
+        },
+        "characters": {
+          "label": "Characters / tags",
+          "placeholder": "Separate multiple names with commas or new lines"
+        },
+        "width": {
+          "label": "Width",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "Height",
+          "placeholder": "1200"
+        },
+        "locationName": {
+          "label": "Standard location",
+          "placeholder": "e.g. Palace Museum, Beijing"
+        },
+        "location": {
+          "label": "Custom location",
+          "placeholder": "Use a short or custom label"
+        },
+        "latitude": {
+          "label": "Latitude"
+        },
+        "longitude": {
+          "label": "Longitude"
+        },
+        "cameraModel": {
+          "label": "Camera",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "aperture": {
+          "label": "Aperture",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "Focal length",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "Shutter",
+          "placeholder": "1/125s"
+        },
+        "notes": {
+          "label": "Notes",
+          "placeholder": "Add context or notes"
+        }
+      },
+      "delete": {
+        "title": "Delete confirmation",
+        "heading": "Delete this record?",
+        "description": "This action cannot be undone.",
+        "titleLabel": "Title: ",
+        "createdAtLabel": "Created at: ",
+        "confirm": "Confirm delete"
+      }
+    },
+    "site": {
+      "seoTitle": "Site info | Liora",
+      "seoDescription": "Configure site title, description, and social links.",
+      "toast": {
+        "saveSuccess": "Saved",
+        "saveSuccessDescription": "Site info updated.",
+        "saveFailed": "Save failed",
+        "saveFailedFallback": "Save failed, please retry",
+        "reset": "Reset",
+        "resetDescription": "Restored the saved site info.",
+        "loadFailed": "Failed to load site info"
+      },
+      "badge": "Site info",
+      "title": "Edit site",
+      "subtitle": "Configure the homepage title, description, and social links.",
+      "lastUpdated": {
+        "label": "Last updated:",
+        "none": "Not recorded"
+      },
+      "sections": {
+        "basic": {
+          "label": "Basics",
+          "title": "Title & description"
+        },
+        "social": {
+          "label": "Social links",
+          "title": "Optional platforms",
+          "helper": "Leave blank to hide"
+        }
+      },
+      "fields": {
+        "name": {
+          "label": "Site name",
+          "placeholder": "e.g. Liora Gallery",
+          "help": "Shown on the info card and in the browser title."
+        },
+        "description": {
+          "label": "Site description",
+          "placeholder": "Intro for the homepage (optional)",
+          "help": "Appears on the info card; keep it to 1-2 sentences."
+        },
+        "github": {
+          "placeholder": "https://github.com/username",
+          "help": "Use a full URL (with https://). Leave blank to hide."
+        },
+        "twitter": {
+          "placeholder": "https://twitter.com/username",
+          "help": "Link to X or Twitter; blank to hide."
+        },
+        "instagram": {
+          "placeholder": "https://instagram.com/username",
+          "help": "Any public profile URL; blank to hide."
+        },
+        "weibo": {
+          "label": "Weibo",
+          "placeholder": "https://weibo.com/username",
+          "help": "Provide a reachable URL; blank to hide."
+        }
+      },
+      "actions": {
+        "save": "Save site info"
+      }
+    }
+  }
+}

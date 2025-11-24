@@ -41,6 +41,8 @@ function resolveIndexable(siteEnv: string, siteUrl?: string): boolean {
   return siteEnv === 'production' && Boolean(siteUrl)
 }
 
+const defaultLocale = 'zh-CN'
+
 const siteEnv = resolveSiteEnv()
 const siteUrl = resolveSiteUrl(siteEnv)
 const siteIndexable = resolveIndexable(siteEnv, siteUrl)
@@ -80,12 +82,29 @@ export default defineNuxtConfig({
     '@nuxtjs/seo',
     '@nuxt/ui',
     '@nuxt/test-utils',
+    '@nuxtjs/i18n',
   ],
+  i18n: {
+    strategy: 'no_prefix',
+    defaultLocale,
+    lazy: true,
+    langDir: 'i18n/locales',
+    locales: [
+      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
+      { code: 'en', name: 'English', file: 'en.json' },
+    ],
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root',
+    },
+    vueI18n: './i18n.config.ts',
+  },
   site: {
     url: siteUrl,
     name: 'Liora Gallery',
     description: 'A minimal gallery for photography and illustrations.',
-    defaultLocale: 'zh-CN',
+    defaultLocale,
     indexable: siteIndexable,
     env: siteEnv,
   },

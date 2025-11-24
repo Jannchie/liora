@@ -3,19 +3,33 @@ import type { FileKind } from '~/types/file'
 import exifr from 'exifr'
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 
+const { t } = useI18n()
 const toast = useToast()
 definePageMeta({
   middleware: 'admin-auth',
 })
 
-const pageTitle = '作品上传 | Liora'
-const pageDescription = '在后台上传作品并填写元数据。'
+const pageTitle = computed(() => t('admin.upload.seoTitle'))
+const pageDescription = computed(() => t('admin.upload.seoDescription'))
+
+const toastMessages = computed(() => ({
+  selectImage: t('admin.upload.toast.selectImage'),
+  readSize: t('admin.upload.toast.readSize'),
+  sizeFailed: t('admin.upload.toast.sizeFailed'),
+  sizeFailedFallback: t('admin.upload.toast.sizeFailedFallback'),
+  exifFailed: t('admin.upload.toast.exifFailed'),
+  exifFailedFallback: t('admin.upload.toast.exifFailedFallback'),
+  saveSuccessTitle: t('admin.upload.toast.saveSuccessTitle'),
+  saveSuccessDescription: t('admin.upload.toast.saveSuccessDescription'),
+  saveFailedTitle: t('admin.upload.toast.saveFailedTitle'),
+  saveFailedFallback: t('admin.upload.toast.saveFailedFallback'),
+}))
 
 useSeoMeta({
-  title: pageTitle,
-  ogTitle: pageTitle,
-  description: pageDescription,
-  ogDescription: pageDescription,
+  title: () => pageTitle.value,
+  ogTitle: () => pageTitle.value,
+  description: () => pageDescription.value,
+  ogDescription: () => pageDescription.value,
   robots: 'noindex, nofollow',
 })
 
@@ -81,7 +95,7 @@ async function detectImageSize(): Promise<void> {
     return
   }
   if (!selectedFile.value) {
-    toast.add({ title: '请先选择图片文件', color: 'warning' })
+    toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
     return
   }
 
@@ -95,7 +109,7 @@ async function detectImageSize(): Promise<void> {
     const size = await new Promise<{ width: number, height: number }>((resolve, reject) => {
       const img = new Image()
       img.addEventListener('load', () => resolve({ width: img.naturalWidth, height: img.naturalHeight }))
-      img.addEventListener('error', () => reject(new Error('无法读取图片尺寸')))
+      img.addEventListener('error', () => reject(new Error(t('admin.upload.toast.sizeReadError'))))
       img.src = objectUrl
     })
 
@@ -103,8 +117,8 @@ async function detectImageSize(): Promise<void> {
     form.height = size.height
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '读取失败'
-    toast.add({ title: '获取尺寸失败', description: message, color: 'error' })
+    const message = error instanceof Error ? error.message : toastMessages.value.sizeFailedFallback
+    toast.add({ title: toastMessages.value.sizeFailed, description: message, color: 'error' })
     URL.revokeObjectURL(objectUrl)
     previewUrl.value = ''
   }
@@ -317,8 +331,8 @@ async function extractExif(): Promise<void> {
     }
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '读取元数据失败'
-    toast.add({ title: '读取元数据失败', description: message, color: 'warning' })
+    const message = error instanceof Error ? error.message : toastMessages.value.exifFailedFallback
+    toast.add({ title: toastMessages.value.exifFailed, description: message, color: 'warning' })
   }
 }
 
@@ -357,12 +371,12 @@ watch(
 
 async function submit(): Promise<void> {
   if (!selectedFile.value) {
-    toast.add({ title: '请先选择图片文件', color: 'warning' })
+    toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
     return
   }
 
   if (form.width <= 0 || form.height <= 0) {
-    toast.add({ title: '请先获取尺寸', color: 'warning' })
+    toast.add({ title: toastMessages.value.readSize, color: 'warning' })
     return
   }
 
@@ -393,13 +407,13 @@ async function submit(): Promise<void> {
       method: 'POST',
       body: formData,
     })
-    toast.add({ title: '已保存', description: '记录写入数据库成功。', color: 'primary' })
+    toast.add({ title: toastMessages.value.saveSuccessTitle, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
     clearSelectedFile()
     resetOptionalFields()
   }
   catch (error) {
-    const message = error instanceof Error ? error.message : '提交失败'
-    toast.add({ title: '保存失败', description: message, color: 'error' })
+    const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
+    toast.add({ title: toastMessages.value.saveFailedTitle, description: message, color: 'error' })
   }
   finally {
     submitting.value = false
@@ -420,14 +434,14 @@ onBeforeUnmount(() => {
         <div>
           <p class="flex items-center gap-2 text-sm">
             <Icon name="mdi:cog-outline" class="h-4 w-4 text-primary" />
-            <span>后台</span>
+            <span>{{ t('admin.nav.label') }}</span>
           </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold">
             <Icon name="mdi:database-outline" class="h-6 w-6 text-primary" />
-            <span>作品上传</span>
+            <span>{{ t('admin.upload.title') }}</span>
           </h1>
           <p class="text-sm">
-            在此完成元数据填写与校验，主页仅展示瀑布流。
+            {{ t('admin.upload.subtitle') }}
           </p>
         </div>
       </header>
@@ -440,14 +454,14 @@ onBeforeUnmount(() => {
             <div class="space-y-1">
               <p class="flex items-center gap-2 text-sm">
                 <Icon name="mdi:upload-outline" class="h-4 w-4 text-primary" />
-                <span>上传照片</span>
+                <span>{{ t('admin.upload.sections.upload.label') }}</span>
               </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
                 <Icon name="mdi:cursor-default-click-outline" class="h-5 w-5 text-primary" />
-                <span>拖拽或点击</span>
+                <span>{{ t('admin.upload.sections.upload.title') }}</span>
               </h2>
               <p class="text-sm">
-                上传前界面保持简洁，仅展示上传入口。
+                {{ t('admin.upload.sections.upload.description') }}
               </p>
             </div>
           </template>
@@ -461,10 +475,10 @@ onBeforeUnmount(() => {
           >
             <Icon name="mdi:cloud-upload-outline" class="h-10 w-10 text-primary" />
             <p class="mt-3 text-sm">
-              拖拽照片到此或点击选择文件
+              {{ t('admin.upload.sections.upload.dropHint') }}
             </p>
             <p class="text-xs">
-              支持 JPG/PNG 等常见格式
+              {{ t('admin.upload.sections.upload.supported') }}
             </p>
           </div>
         </UCard>
@@ -476,31 +490,31 @@ onBeforeUnmount(() => {
             <div class="space-y-1">
               <p class="flex items-center gap-2 text-sm">
                 <Icon name="mdi:image-search-outline" class="h-4 w-4 text-primary" />
-                <span>预览与自动填充</span>
+                <span>{{ t('admin.upload.sections.preview.label') }}</span>
               </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
                 <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary" />
-                <span>照片信息</span>
+                <span>{{ t('admin.upload.sections.preview.title') }}</span>
               </h2>
             </div>
           </template>
           <div class="space-y-4">
             <div class="space-y-3">
               <div class="w-full overflow-hidden rounded-lg bg-black/5" :style="{ aspectRatio: aspectRatioStyle }">
-                <img v-if="previewUrl" :src="previewUrl" alt="预览" class="h-full w-full object-cover">
+                <img v-if="previewUrl" :src="previewUrl" :alt="t('admin.upload.sections.preview.alt')" class="h-full w-full object-cover">
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <UButton variant="ghost" color="neutral" @click="fileInputEl?.click()">
                 <span class="flex items-center gap-2">
                   <Icon name="mdi:image-edit-outline" class="h-4 w-4" />
-                  <span>更换图片</span>
+                  <span>{{ t('common.actions.changeImage') }}</span>
                 </span>
               </UButton>
               <UButton variant="ghost" color="neutral" @click="clearSelectedFile">
                 <span class="flex items-center gap-2">
                   <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
-                  <span>移除</span>
+                  <span>{{ t('common.actions.remove') }}</span>
                 </span>
               </UButton>
             </div>
@@ -512,85 +526,85 @@ onBeforeUnmount(() => {
             <div class="space-y-1">
               <p class="flex items-center gap-2 text-sm">
                 <Icon name="mdi:note-edit-outline" class="h-4 w-4 text-primary" />
-                <span>编辑与保存</span>
+                <span>{{ t('admin.upload.sections.edit.label') }}</span>
               </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
                 <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
-                <span>完善元数据</span>
+                <span>{{ t('admin.upload.sections.edit.title') }}</span>
               </h2>
             </div>
           </template>
           <UForm :state="form" class="space-y-4" @submit.prevent="submit">
             <div class="grid grid-cols-2 gap-3">
-              <UFormField name="width" label="宽度" description="单位：px">
-                <UInput v-model.number="form.width" type="number" min="1" placeholder="800" />
+              <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')">
+                <UInput v-model.number="form.width" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
               </UFormField>
-              <UFormField name="height" label="高度" description="单位：px">
-                <UInput v-model.number="form.height" type="number" min="1" placeholder="1200" />
+              <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')">
+                <UInput v-model.number="form.height" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
               </UFormField>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-              <UFormField name="aperture" label="光圈">
-                <UInput v-model="form.aperture" placeholder="f/1.8" />
+              <UFormField :label="t('admin.upload.fields.aperture.label')" name="aperture">
+                <UInput v-model="form.aperture" :placeholder="t('admin.upload.fields.aperture.placeholder')" />
               </UFormField>
-              <UFormField name="focalLength" label="焦距">
-                <UInput v-model="form.focalLength" placeholder="35mm" />
+              <UFormField :label="t('admin.upload.fields.focalLength.label')" name="focalLength">
+                <UInput v-model="form.focalLength" :placeholder="t('admin.upload.fields.focalLength.placeholder')" />
               </UFormField>
-              <UFormField name="shutterSpeed" label="快门">
-                <UInput v-model="form.shutterSpeed" placeholder="1/125s" />
+              <UFormField :label="t('admin.upload.fields.shutterSpeed.label')" name="shutterSpeed">
+                <UInput v-model="form.shutterSpeed" :placeholder="t('admin.upload.fields.shutterSpeed.placeholder')" />
               </UFormField>
               <UFormField name="iso" label="ISO">
                 <UInput v-model="form.iso" placeholder="800" />
               </UFormField>
             </div>
 
-            <UFormField name="cameraModel" label="器材型号">
-              <UInput v-model="form.cameraModel" placeholder="Fujifilm X100VI" />
+            <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel">
+              <UInput v-model="form.cameraModel" :placeholder="t('admin.upload.fields.cameraModel.placeholder')" />
             </UFormField>
 
-            <UFormField name="location" label="拍摄地点">
+            <UFormField :label="t('admin.upload.fields.location.label')" name="location">
               <div class="space-y-2">
-                <UFormField name="locationName" label="标准地名">
-                  <UInput v-model="form.locationName" placeholder="如：北京市东城区故宫博物院" />
+                <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName">
+                  <UInput v-model="form.locationName" :placeholder="t('admin.upload.fields.locationName.placeholder')" />
                 </UFormField>
-                <UFormField name="locationRaw" label="自定义地名">
-                  <UInput v-model="form.location" placeholder="可写简称或自定义" />
+                <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw">
+                  <UInput v-model="form.location" :placeholder="t('admin.upload.fields.locationRaw.placeholder')" />
                 </UFormField>
                 <div class="grid grid-cols-2 gap-2 text-xs">
-                  <UFormField name="latitude" label="纬度">
+                  <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
                     <UInput v-model.number="form.latitude" type="number" step="0.000001" placeholder="39.9087" />
                   </UFormField>
-                  <UFormField name="longitude" label="经度">
+                  <UFormField :label="t('admin.upload.fields.longitude.label')" name="longitude">
                     <UInput v-model.number="form.longitude" type="number" step="0.000001" placeholder="116.3975" />
                   </UFormField>
                 </div>
               </div>
             </UFormField>
 
-            <UFormField name="captureTime" label="拍摄时间">
-              <UInput v-model="captureTimeLocal" type="datetime-local" step="1" placeholder="选择拍摄时间" />
+            <UFormField :label="t('admin.upload.fields.captureTime.label')" name="captureTime">
+              <UInput v-model="captureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.upload.fields.captureTime.placeholder')" />
               <template #description>
-                <span class="text-xs">输入本地时间，保存时会转换为含秒与时区的 ISO 字符串。</span>
+                <span class="text-xs">{{ t('admin.upload.fields.captureTime.description') }}</span>
               </template>
             </UFormField>
 
-            <UFormField name="title" label="标题（可留空）">
-              <UInput v-model="form.title" placeholder="未命名作品" />
+            <UFormField :label="t('admin.upload.fields.title.label')" name="title">
+              <UInput v-model="form.title" :placeholder="t('admin.upload.fields.title.placeholder')" />
             </UFormField>
 
-            <UFormField name="description" label="介绍（可留空）">
-              <UTextarea v-model="form.description" placeholder="一句话介绍作品或拍摄背景" :rows="3" />
+            <UFormField :label="t('admin.upload.fields.description.label')" name="description">
+              <UTextarea v-model="form.description" :placeholder="t('admin.upload.fields.description.placeholder')" :rows="3" />
             </UFormField>
 
-            <UFormField name="notes" label="备注（可留空）">
-              <UTextarea v-model="form.notes" placeholder="补充故事、参数或灵感关键词" :rows="2" />
+            <UFormField :label="t('admin.upload.fields.notes.label')" name="notes">
+              <UTextarea v-model="form.notes" :placeholder="t('admin.upload.fields.notes.placeholder')" :rows="2" />
             </UFormField>
 
             <UButton color="primary" class="w-full" type="submit" :loading="submitting">
               <span class="flex w-full items-center justify-center gap-2">
                 <Icon name="mdi:content-save-outline" class="h-5 w-5" />
-                <span>保存到数据库</span>
+                <span>{{ t('admin.upload.actions.save') }}</span>
               </span>
             </UButton>
           </UForm>
