@@ -1,186 +1,235 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
-import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash';
-import { Waterfall } from 'vue-wf';
-import type { FileResponse } from '~/types/file';
+import type { ImageSizes } from '@nuxt/image'
+import type { FileResponse } from '~/types/file'
+import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { Waterfall } from 'vue-wf'
 
 const props = withDefaults(
   defineProps<{
-    files: FileResponse[];
-    isLoading: boolean;
-    emptyText?: string;
+    files: FileResponse[]
+    isLoading: boolean
+    emptyText?: string
+    scrollElement?: HTMLElement
   }>(),
   {
     emptyText: '暂无数据',
+    scrollElement: undefined,
+  },
+)
+
+const maxDisplayWidth = 400
+const waterfallGap = 4
+const image = useImage()
+
+type ImageAttrs = ImageSizes & {
+  src: string
+  width?: number
+  height?: number
+}
+
+function getInitialColumns(): number {
+  if (globalThis.window !== undefined) {
+    return Math.max(1, Math.ceil(window.innerWidth / maxDisplayWidth))
   }
-);
+  return 3
+}
 
-const galleryRef = ref<HTMLElement | null>(null);
-const columns = ref(5);
+const galleryRef = ref<HTMLElement | null>(null)
+const columns = ref<number>(getInitialColumns())
+const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
 
-const maxDisplayWidth = 400;
+interface ThumbhashInfo {
+  dataUrl: string
+  aspectRatio: number
+}
 
-type ThumbhashInfo = {
-  dataUrl: string;
-  aspectRatio: number;
-};
-
-type DisplaySize = {
-  width: number;
-  height: number;
-};
+interface DisplaySize {
+  width: number
+  height: number
+}
 
 type ResolvedFile = FileResponse & {
-  coverUrl: string;
-  placeholder?: string;
-  placeholderAspectRatio?: number;
-  displaySize: DisplaySize;
-};
+  coverUrl: string
+  placeholder?: string
+  placeholderAspectRatio?: number
+  displaySize: DisplaySize
+  imageAttrs: ImageAttrs
+}
 
-const toByteArrayFromBase64 = (value: string): Uint8Array => {
+function toByteArrayFromBase64(value: string): Uint8Array {
   if (typeof atob === 'function') {
-    const binary = atob(value);
-    const bytes = new Uint8Array(binary.length);
+    const binary = atob(value)
+    const bytes = new Uint8Array(binary.length)
     for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.charCodeAt(index);
+      bytes[index] = binary.codePointAt(index) || 0
     }
-    return bytes;
+    return bytes
   }
   if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(value, 'base64'));
+    return new Uint8Array(Buffer.from(value, 'base64'))
   }
-  throw new Error('No base64 decoder available.');
-};
+  throw new Error('No base64 decoder available.')
+}
 
-const decodeThumbhash = (value: string | undefined): ThumbhashInfo | undefined => {
+function decodeThumbhash(value: string | undefined): ThumbhashInfo | undefined {
   if (!value) {
-    return undefined;
+    return undefined
   }
   try {
-    const bytes = toByteArrayFromBase64(value);
-    const aspectRatio = thumbHashToApproximateAspectRatio(bytes);
+    const bytes = toByteArrayFromBase64(value)
+    const aspectRatio = thumbHashToApproximateAspectRatio(bytes)
     if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) {
       return {
         dataUrl: thumbHashToDataURL(bytes),
         aspectRatio: 1,
-      };
+      }
     }
     return {
       dataUrl: thumbHashToDataURL(bytes),
       aspectRatio,
-    };
-  } catch (error) {
-    console.warn('Failed to decode thumbhash', error);
-    return undefined;
+    }
   }
-};
+  catch (error) {
+    console.warn('Failed to decode thumbhash', error)
+    return undefined
+  }
+}
 
-const toTimestamp = (value: string | undefined): number | null => {
+function toTimestamp(value: string | undefined): number | null {
   if (!value) {
-    return null;
+    return null
   }
-  const parsed = Date.parse(value);
-  return Number.isNaN(parsed) ? null : parsed;
-};
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? null : parsed
+}
 
-const resolveSortTimestamp = (file: FileResponse): number => {
-  const captureTimestamp = toTimestamp(file.metadata.captureTime);
-  const createdTimestamp = toTimestamp(file.createdAt) ?? 0;
-  return captureTimestamp ?? createdTimestamp;
-};
+function resolveSortTimestamp(file: FileResponse): number {
+  const captureTimestamp = toTimestamp(file.metadata.captureTime)
+  const createdTimestamp = toTimestamp(file.createdAt) ?? 0
+  return captureTimestamp ?? createdTimestamp
+}
 
-const computeDisplaySize = (file: FileResponse, aspectRatio?: number): DisplaySize => {
-  const width = file.width > 0 ? Math.min(file.width, maxDisplayWidth) : maxDisplayWidth;
-  const ratio =
-    aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
+function computeDisplaySize(file: FileResponse, aspectRatio?: number): DisplaySize {
+  const width = file.width > 0 ? Math.min(file.width, maxDisplayWidth) : maxDisplayWidth
+  const ratio
+    = aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
       ? aspectRatio
-      : file.width > 0 && file.height > 0
-        ? file.width / file.height
-        : 1;
-  const height = Math.round(width / ratio);
-  return { width, height };
-};
+      : (file.width > 0 && file.height > 0
+          ? file.width / file.height
+          : 1)
+  const height = Math.round(width / ratio)
+  return { width, height }
+}
+
+function resolveImageAttrs(src: string, displaySize: DisplaySize): ImageAttrs {
+  const modifiers = {
+    width: displaySize.width,
+    height: displaySize.height,
+    format: 'webp',
+    fit: 'cover',
+  }
+  const sizes = image.getSizes(src, {
+    modifiers,
+    sizes: `${maxDisplayWidth}px`,
+  })
+  const resolvedSrc
+    = sizes.src
+    ?? image.getImage(src, {
+      modifiers,
+    }).url
+  return {
+    ...sizes,
+    src: resolvedSrc,
+    width: displaySize.width,
+    height: displaySize.height,
+  }
+}
 
 const resolvedFiles = computed<ResolvedFile[]>(() =>
   [...props.files]
     .map((file) => {
-      const decoded = decodeThumbhash(file.metadata.thumbhash);
-      const displaySize = computeDisplaySize(file, decoded?.aspectRatio);
+      const decoded = decodeThumbhash(file.metadata.thumbhash)
+      const displaySize = computeDisplaySize(file, decoded?.aspectRatio)
+      const coverUrl = file.thumbnailUrl?.trim() || file.imageUrl
       return {
         ...file,
-        coverUrl: file.thumbnailUrl?.trim() || file.imageUrl,
+        coverUrl,
         placeholder: decoded?.dataUrl,
         placeholderAspectRatio: decoded?.aspectRatio,
         displaySize,
-      };
+        imageAttrs: resolveImageAttrs(coverUrl, displaySize),
+      }
     })
-    .sort((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
-);
+    .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first)),
+)
 
-const waterfallItems = computed(() => resolvedFiles.value.map((file) => file.displaySize));
-const isPriorityIndex = (index: number): boolean => index === 0;
+const waterfallItems = computed(() => resolvedFiles.value.map(file => file.displaySize))
 
-const updateColumns = (): void => {
-  if (typeof window === 'undefined') {
-    return;
+const resizeObserver = ref<ResizeObserver | null>(null)
+
+function updateColumns(): void {
+  const width = galleryRef.value?.clientWidth ?? null
+  if (typeof width === 'number' && Number.isFinite(width) && width > 0) {
+    const target = Math.max(1, Math.ceil(width / maxDisplayWidth))
+    columns.value = target
+    wrapperWidth.value = width
   }
-  const width = galleryRef.value?.clientWidth ?? window.innerWidth;
-  if (!Number.isFinite(width) || width <= 0) {
-    return;
-  }
-  const target = Math.max(1, Math.ceil(width / maxDisplayWidth));
-  columns.value = target;
-};
+}
 
 onMounted(() => {
-  updateColumns();
-  if (typeof window !== 'undefined') {
-    window.addEventListener('resize', updateColumns, { passive: true });
+  updateColumns()
+  if (typeof ResizeObserver !== 'undefined') {
+    resizeObserver.value = new ResizeObserver(() => updateColumns())
+    if (galleryRef.value) {
+      resizeObserver.value.observe(galleryRef.value)
+    }
   }
-});
+})
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('resize', updateColumns);
-  }
-});
-
+  resizeObserver.value?.disconnect()
+})
 </script>
 
 <template>
   <div ref="galleryRef" class="relative">
-    <div v-if="!resolvedFiles.length && !isLoading" class="flex h-full items-center justify-center px-4 py-12 text-sm">
+    <div v-if="resolvedFiles.length === 0 && !isLoading" class="flex h-full items-center justify-center text-sm">
       {{ emptyText }}
     </div>
-    <div v-else class="overflow-hidden">
+    <div v-else>
       <Waterfall
-        :gap="4"
+        :gap="waterfallGap"
         :cols="columns"
         :items="waterfallItems"
+        :wrapper-width="wrapperWidth"
+        :scroll-element="scrollElement"
       >
         <div
-          v-for="(file, index) in resolvedFiles"
+          v-for="file in resolvedFiles"
           :key="file.id"
-          :style="{ aspectRatio: `${file.displaySize.width} / ${file.displaySize.height}` }"
         >
-          <NuxtImg
-            :src="file.coverUrl"
+          <img
+            :key="file.id"
             :alt="file.title"
-            :width="file.displaySize.width"
-            :height="file.displaySize.height"
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px"
-            format="webp"
-            fit="cover"
-            :loading="isPriorityIndex(index) ? 'eager' : 'lazy'"
-            :fetchpriority="isPriorityIndex(index) ? 'high' : 'auto'"
-            :preload="isPriorityIndex(index)"
-            :placeholder="file.placeholder"
+            :style="
+              file.placeholder
+                ? {
+                  backgroundImage: `url(${file.placeholder})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }
+                : undefined
+            "
+            loading="lazy"
             class="h-full w-full object-cover"
-          />
+            v-bind="file.imageAttrs"
+          >
         </div>
       </Waterfall>
     </div>
-    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center backdrop-blur-sm">
+    <div v-if="isLoading" class="absolute inset-0 flex items-center justify-center">
       <span class="text-sm">加载中…</span>
     </div>
   </div>

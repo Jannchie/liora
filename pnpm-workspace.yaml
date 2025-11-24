@@ -1,1 +1,4 @@
 allowScripts: true
+
+onlyBuiltDependencies:
+  - vue-demi

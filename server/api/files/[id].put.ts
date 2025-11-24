@@ -1,72 +1,72 @@
-import { createError, getRouterParam, readBody } from 'h3';
-import type { H3Event } from 'h3';
-import type { FilePayload, FileResponse } from '~/types/file';
-import { ensureKind, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper';
-import { prisma } from '../../utils/prisma';
+import type { H3Event } from 'h3'
+import type { FilePayload, FileResponse } from '~/types/file'
+import { createError, getRouterParam, readBody } from 'h3'
+import { ensureKind, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
+import { prisma } from '../../utils/prisma'
 
-type UpdateBody = Partial<FilePayload>;
+type UpdateBody = Partial<FilePayload>
 
-const parseId = (event: H3Event): number => {
-  const idParam = getRouterParam(event, 'id');
-  const id = Number(idParam);
+function parseId(event: H3Event): number {
+  const idParam = getRouterParam(event, 'id')
+  const id = Number(idParam)
   if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' });
+    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' })
   }
-  return id;
-};
+  return id
+}
 
-const normalizeText = (value: string | undefined, fallback: string): string => {
+function normalizeText(value: string | undefined, fallback: string): string {
   if (value === undefined) {
-    return fallback;
+    return fallback
   }
-  return value.trim();
-};
+  return value.trim()
+}
 
-const parsePositiveNumber = (value: number | string | undefined, fallback: number, field: string): number => {
+function parsePositiveNumber(value: number | string | undefined, fallback: number, field: string): number {
   if (value === undefined) {
-    return fallback;
+    return fallback
   }
-  const parsed = typeof value === 'string' ? Number(value) : value;
+  const parsed = typeof value === 'string' ? Number(value) : value
   if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw createError({ statusCode: 400, statusMessage: `${field} must be a positive number.` });
+    throw createError({ statusCode: 400, statusMessage: `${field} must be a positive number.` })
   }
-  return parsed;
-};
+  return parsed
+}
 
-const parseNullableNumber = (value: number | string | null | undefined, fallback: number | null, field: string): number | null => {
+function parseNullableNumber(value: number | string | null | undefined, fallback: number | null, field: string): number | null {
   if (value === undefined) {
-    return fallback;
+    return fallback
   }
   if (value === null) {
-    return null;
+    return null
   }
-  const parsed = typeof value === 'string' ? Number(value) : value;
+  const parsed = typeof value === 'string' ? Number(value) : value
   if (!Number.isFinite(parsed)) {
-    throw createError({ statusCode: 400, statusMessage: `${field} must be a valid number.` });
+    throw createError({ statusCode: 400, statusMessage: `${field} must be a valid number.` })
   }
-  return parsed;
-};
+  return parsed
+}
 
-const normalizeCharacters = (value: string | string[] | undefined, fallback: string[]): string[] => {
+function normalizeCharacters(value: string | string[] | undefined, fallback: string[]): string[] {
   if (value === undefined) {
-    return fallback;
+    return fallback
   }
-  const list = Array.isArray(value) ? value : value.split(/[,，\n]/);
+  const list = Array.isArray(value) ? value : value.split(/[,，\n]/)
   return list
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-};
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+}
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
-  const id = parseId(event);
-  const body = await readBody<UpdateBody>(event);
+  const id = parseId(event)
+  const body = await readBody<UpdateBody>(event)
 
-  const existing = await prisma.file.findUnique({ where: { id } });
+  const existing = await prisma.file.findUnique({ where: { id } })
   if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found.' });
+    throw createError({ statusCode: 404, statusMessage: 'File not found.' })
   }
 
-  const existingCharacters = mapCharacters(existing.characterList);
+  const existingCharacters = mapCharacters(existing.characterList)
   const existingMetadata = ensureMetadata(existing.metadata, {
     fanworkTitle: existing.fanworkTitle,
     characters: existingCharacters,
@@ -84,14 +84,14 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
-  });
+  })
 
-  const kind = ensureKind(body.kind, existing.kind);
-  const title = normalizeText(body.title, existing.title);
-  const description = normalizeText(body.description, existing.description);
-  const width = parsePositiveNumber(body.width, existing.width, 'Width');
-  const height = parsePositiveNumber(body.height, existing.height, 'Height');
-  const characters = normalizeCharacters(body.characters, existingMetadata.characters);
+  const kind = ensureKind(body.kind, existing.kind)
+  const title = normalizeText(body.title, existing.title)
+  const description = normalizeText(body.description, existing.description)
+  const width = parsePositiveNumber(body.width, existing.width, 'Width')
+  const height = parsePositiveNumber(body.height, existing.height, 'Height')
+  const characters = normalizeCharacters(body.characters, existingMetadata.characters)
 
   const mergedMetadata = {
     ...existingMetadata,
@@ -108,7 +108,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     shutterSpeed: normalizeText(body.shutterSpeed, existingMetadata.shutterSpeed),
     captureTime: normalizeText(body.captureTime, existingMetadata.captureTime),
     notes: normalizeText(body.notes, existingMetadata.notes),
-  };
+  }
 
   const updated = await prisma.file.update({
     where: { id },
@@ -132,7 +132,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       captureTime: mergedMetadata.captureTime,
       metadata: JSON.stringify(mergedMetadata),
     },
-  });
+  })
 
-  return toFileResponse(updated);
-});
+  return toFileResponse(updated)
+})

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { FileResponse } from '~/types/file';
+import type { FileResponse } from '~/types/file'
+import { computed, ref } from 'vue'
 
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
-});
+})
 
-const pageTitle = 'Gallery | Liora';
-const pageDescription = '展示摄影与插画作品的瀑布流画廊。';
+const pageTitle = 'Gallery | Liora'
+const pageDescription = '展示摄影与插画作品的瀑布流画廊。'
 
 useSeoMeta({
   title: pageTitle,
@@ -15,16 +15,17 @@ useSeoMeta({
   description: pageDescription,
   ogDescription: pageDescription,
   twitterCard: 'summary_large_image',
-});
+})
 
-const files = computed<FileResponse[]>(() => data.value ?? []);
-const isLoading = computed(() => pending.value);
-const fetchError = computed(() => error.value);
+const files = computed<FileResponse[]>(() => data.value ?? [])
+const isLoading = computed(() => pending.value)
+const fetchError = computed(() => error.value)
+const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <UContainer class="space-y-6 py-10 max-w-[2000px]">
+  <div ref="scrollContainerRef" class="h-screen w-screen overflow-auto">
+    <div class="max-w-[2000px] m-auto">
       <UAlert
         v-if="fetchError"
         color="error"
@@ -33,7 +34,19 @@ const fetchError = computed(() => error.value);
         description="无法加载数据，请稍后重试。"
       />
 
-      <WaterfallGallery :files="files" :is-loading="isLoading" empty-text="还没有作品，去后台录入吧。" />
-    </UContainer>
+      <ClientOnly>
+        <WaterfallGallery
+          :files="files"
+          :is-loading="isLoading"
+          :scroll-element="scrollContainerRef"
+          empty-text="还没有作品，去后台录入吧。"
+        />
+        <template #fallback>
+          <div class="flex h-[50vh] items-center justify-center text-sm text-gray-500">
+            画廊加载中…
+          </div>
+        </template>
+      </ClientOnly>
+    </div>
   </div>
 </template>

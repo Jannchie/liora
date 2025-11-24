@@ -1,31 +1,31 @@
-import type { File, FileKind } from '@prisma/client';
-import type { FileMetadata, FileResponse } from '~/types/file';
+import type { File, FileKind } from '@prisma/client'
+import type { FileMetadata, FileResponse } from '~/types/file'
 
-export const mapCharacters = (characterList: string): string[] =>
-  characterList
+export function mapCharacters(characterList: string): string[] {
+  return characterList
     .split(',')
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0);
+    .map(value => value.trim())
+    .filter(value => value.length > 0)
+}
 
-export const joinCharacters = (characters: string[]): string =>
-  characters
-    .map((value) => value.trim())
-    .filter((value) => value.length > 0)
-    .join(', ');
+export function joinCharacters(characters: string[]): string {
+  return characters
+    .map(value => value.trim())
+    .filter(value => value.length > 0)
+    .join(', ')
+}
 
-const parseMetadata = (raw: string): Partial<FileMetadata> => {
+function parseMetadata(raw: string): Partial<FileMetadata> {
   try {
-    return JSON.parse(raw) as Partial<FileMetadata>;
-  } catch {
-    return {};
+    return JSON.parse(raw) as Partial<FileMetadata>
   }
-};
+  catch {
+    return {}
+  }
+}
 
-export const ensureMetadata = (
-  raw: string,
-  fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }
-): FileMetadata => {
-  const parsed = parseMetadata(raw);
+export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }): FileMetadata {
+  const parsed = parseMetadata(raw)
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -43,18 +43,18 @@ export const ensureMetadata = (
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
     perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
     sha256: parsed.sha256 ?? fallbacks.sha256,
-  };
-};
-
-export const ensureKind = (value: FileKind | string | undefined, fallback: FileKind): FileKind => {
-  if (value === 'PAINTING' || value === 'PHOTOGRAPHY') {
-    return value;
   }
-  return fallback;
-};
+}
 
-export const toFileResponse = (file: File): FileResponse => {
-  const characters = mapCharacters(file.characterList);
+export function ensureKind(value: FileKind | string | undefined, fallback: FileKind): FileKind {
+  if (value === 'PAINTING' || value === 'PHOTOGRAPHY') {
+    return value
+  }
+  return fallback
+}
+
+export function toFileResponse(file: File): FileResponse {
+  const characters = mapCharacters(file.characterList)
   const metadata = ensureMetadata(file.metadata, {
     fanworkTitle: file.fanworkTitle,
     characters,
@@ -72,7 +72,7 @@ export const toFileResponse = (file: File): FileResponse => {
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
-  });
+  })
 
   return {
     id: file.id,
@@ -89,5 +89,5 @@ export const toFileResponse = (file: File): FileResponse => {
     characters,
     metadata,
     createdAt: file.createdAt.toISOString(),
-  };
-};
+  }
+}

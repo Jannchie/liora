@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
-import exifr from 'exifr';
-import type { FileKind, FileResponse } from '~/types/file';
+import type { ImageSizes } from '@nuxt/image'
+import type { FileKind, FileResponse } from '~/types/file'
+import exifr from 'exifr'
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue'
 
-const toast = useToast();
+const toast = useToast()
+const image = useImage()
 
-const pageTitle = '管理后台 | Liora';
-const pageDescription = '录入与维护作品与元数据的管理后台。';
+const pageTitle = '管理后台 | Liora'
+const pageDescription = '录入与维护作品与元数据的管理后台。'
 
 useSeoMeta({
   title: pageTitle,
@@ -14,7 +16,7 @@ useSeoMeta({
   description: pageDescription,
   ogDescription: pageDescription,
   robots: 'noindex, nofollow',
-});
+})
 
 const form = reactive({
   kind: 'PHOTOGRAPHY' as FileKind,
@@ -33,48 +35,79 @@ const form = reactive({
   latitude: null as number | null,
   longitude: null as number | null,
   notes: '',
-});
+})
 
-const probing = ref(false);
-const extracting = ref(false);
-const submitting = ref(false);
-const selectedFile = ref<File | null>(null);
-const previewUrl = ref<string>('');
-const fileInputEl = ref<HTMLInputElement | null>(null);
-const isDragging = ref(false);
-const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'));
-const captureTimeLocal = ref<string>('');
-const editCaptureTimeLocal = ref<string>('');
-const editingFile = ref<FileResponse | null>(null);
-const editModalOpen = ref(false);
-const updating = ref(false);
-const editCharactersText = ref<string>('');
-const deletingId = ref<number | null>(null);
-const deleteTarget = ref<FileResponse | null>(null);
-const deleteModalOpen = ref(false);
-const page = ref(1);
-const pageSize = ref(10);
+const probing = ref(false)
+const extracting = ref(false)
+const submitting = ref(false)
+const selectedFile = ref<File | null>(null)
+const previewUrl = ref<string>('')
+const fileInputEl = ref<HTMLInputElement | null>(null)
+const isDragging = ref(false)
+const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
+const captureTimeLocal = ref<string>('')
+const editCaptureTimeLocal = ref<string>('')
+const editingFile = ref<FileResponse | null>(null)
+const editModalOpen = ref(false)
+const updating = ref(false)
+const editCharactersText = ref<string>('')
+const deletingId = ref<number | null>(null)
+const deleteTarget = ref<FileResponse | null>(null)
+const deleteModalOpen = ref(false)
+const page = ref(1)
+const pageSize = ref(10)
 
 const { data: filesData, pending: pendingFiles, refresh, error: fetchError } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
-});
+})
 
-const files = computed<FileResponse[]>(() => filesData.value ?? []);
-const isLoading = computed(() => pendingFiles.value);
-const totalFiles = computed(() => files.value.length);
-const pageCount = computed(() => Math.max(1, Math.ceil(totalFiles.value / pageSize.value)));
+const files = computed<FileResponse[]>(() => filesData.value ?? [])
+const isLoading = computed(() => pendingFiles.value)
+const totalFiles = computed(() => files.value.length)
+const pageCount = computed(() => Math.max(1, Math.ceil(totalFiles.value / pageSize.value)))
 const paginatedFiles = computed<FileResponse[]>(() => {
-  const start = (page.value - 1) * pageSize.value;
-  return files.value.slice(start, start + pageSize.value);
-});
+  const start = (page.value - 1) * pageSize.value
+  return files.value.slice(start, start + pageSize.value)
+})
 
-const resolvePreviewUrl = (file: FileResponse): string => {
-  const thumbnail = file.thumbnailUrl.trim();
+function resolvePreviewUrl(file: FileResponse): string {
+  const thumbnail = file.thumbnailUrl.trim()
   if (thumbnail) {
-    return thumbnail;
+    return thumbnail
   }
-  return file.imageUrl;
-};
+  return file.imageUrl
+}
+
+type ImageAttributes = ImageSizes & {
+  src: string
+  width?: number
+  height?: number
+}
+
+function resolvePreviewImage(file: FileResponse): ImageAttributes {
+  const source = resolvePreviewUrl(file)
+  const modifiers = {
+    width: 192,
+    height: 112,
+    format: 'webp',
+    fit: 'cover',
+  }
+  const sizes = image.getSizes(source, {
+    modifiers,
+    sizes: '160px',
+  })
+  const resolvedSrc
+    = sizes.src
+    ?? image.getImage(source, {
+      modifiers,
+    }).url
+  return {
+    ...sizes,
+    src: resolvedSrc,
+    width: 192,
+    height: 112,
+  }
+}
 
 const tableColumns = [
   { id: 'preview', header: '预览', accessorFn: (row: FileResponse) => resolvePreviewUrl(row) },
@@ -85,20 +118,20 @@ const tableColumns = [
   { id: 'captureTime', header: '拍摄时间', accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt },
   { accessorKey: 'createdAt', id: 'createdAt', header: '创建时间' },
   { id: 'actions', header: '操作', accessorFn: (row: FileResponse) => row.id },
-];
+]
 
 const kindOptions = [
   { label: '摄影', value: 'PHOTOGRAPHY' },
   { label: '插画', value: 'PAINTING' },
-];
+]
 
-const formatDateTime = (value: string): string => {
-  const date = new Date(value);
+function formatDateTime(value: string): string {
+  const date = new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return ''
   }
-  return date.toLocaleString();
-};
+  return date.toLocaleString()
+}
 
 const editForm = reactive<EditableForm>({
   kind: 'PHOTOGRAPHY',
@@ -119,262 +152,264 @@ const editForm = reactive<EditableForm>({
   shutterSpeed: '',
   captureTime: '',
   notes: '',
-});
+})
 
-const resetOptionalFields = (): void => {
-  form.title = '';
-  form.description = '';
-  form.location = '';
-  form.locationName = '';
-  form.latitude = null;
-  form.longitude = null;
-  form.cameraModel = '';
-  form.aperture = '';
-  form.focalLength = '';
-  form.iso = '';
-  form.shutterSpeed = '';
-  form.captureTime = '';
-  captureTimeLocal.value = '';
-  form.notes = '';
-};
+function resetOptionalFields(): void {
+  form.title = ''
+  form.description = ''
+  form.location = ''
+  form.locationName = ''
+  form.latitude = null
+  form.longitude = null
+  form.cameraModel = ''
+  form.aperture = ''
+  form.focalLength = ''
+  form.iso = ''
+  form.shutterSpeed = ''
+  form.captureTime = ''
+  captureTimeLocal.value = ''
+  form.notes = ''
+}
 
-const resetEditForm = (): void => {
-  editForm.kind = 'PHOTOGRAPHY';
-  editForm.title = '';
-  editForm.description = '';
-  editForm.width = 0;
-  editForm.height = 0;
-  editForm.fanworkTitle = '';
-  editForm.characters = [];
-  editForm.location = '';
-  editForm.locationName = '';
-  editForm.latitude = null;
-  editForm.longitude = null;
-  editForm.cameraModel = '';
-  editForm.aperture = '';
-  editForm.focalLength = '';
-  editForm.iso = '';
-  editForm.shutterSpeed = '';
-  editForm.captureTime = '';
-  editCaptureTimeLocal.value = '';
-  editForm.notes = '';
-  editCharactersText.value = '';
-};
+function resetEditForm(): void {
+  editForm.kind = 'PHOTOGRAPHY'
+  editForm.title = ''
+  editForm.description = ''
+  editForm.width = 0
+  editForm.height = 0
+  editForm.fanworkTitle = ''
+  editForm.characters = []
+  editForm.location = ''
+  editForm.locationName = ''
+  editForm.latitude = null
+  editForm.longitude = null
+  editForm.cameraModel = ''
+  editForm.aperture = ''
+  editForm.focalLength = ''
+  editForm.iso = ''
+  editForm.shutterSpeed = ''
+  editForm.captureTime = ''
+  editCaptureTimeLocal.value = ''
+  editForm.notes = ''
+  editCharactersText.value = ''
+}
 
 watch(
   () => totalFiles.value,
   (count) => {
-    const maxPage = Math.max(1, Math.ceil(count / pageSize.value));
+    const maxPage = Math.max(1, Math.ceil(count / pageSize.value))
     if (page.value > maxPage) {
-      page.value = maxPage;
+      page.value = maxPage
     }
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 
 watch(
   () => editModalOpen.value,
   (value) => {
     if (!value) {
-      editingFile.value = null;
-      resetEditForm();
+      editingFile.value = null
+      resetEditForm()
     }
-  }
-);
+  },
+)
 
 watch(
   () => deleteModalOpen.value,
   (value) => {
     if (!value) {
-      deleteTarget.value = null;
+      deleteTarget.value = null
     }
-  }
-);
+  },
+)
 
-const clearSelectedFile = (): void => {
+function clearSelectedFile(): void {
   if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
+    URL.revokeObjectURL(previewUrl.value)
   }
-  previewUrl.value = '';
-  selectedFile.value = null;
-  form.width = 0;
-  form.height = 0;
+  previewUrl.value = ''
+  selectedFile.value = null
+  form.width = 0
+  form.height = 0
   if (fileInputEl.value) {
-    fileInputEl.value.value = '';
+    fileInputEl.value.value = ''
   }
-};
+}
 
-const detectImageSize = async (): Promise<void> => {
-  if (typeof window === 'undefined') {
-    return;
+async function detectImageSize(): Promise<void> {
+  if (globalThis.window === undefined) {
+    return
   }
   if (!selectedFile.value) {
-    toast.add({ title: '请先选择图片文件', color: 'warning' });
-    return;
+    toast.add({ title: '请先选择图片文件', color: 'warning' })
+    return
   }
 
-  probing.value = true;
+  probing.value = true
   if (previewUrl.value) {
-    URL.revokeObjectURL(previewUrl.value);
+    URL.revokeObjectURL(previewUrl.value)
   }
-  const objectUrl = URL.createObjectURL(selectedFile.value);
-  previewUrl.value = objectUrl;
+  const objectUrl = URL.createObjectURL(selectedFile.value)
+  previewUrl.value = objectUrl
 
   try {
-    const size = await new Promise<{ width: number; height: number }>((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
-      img.onerror = () => reject(new Error('无法读取图片尺寸'));
-      img.src = objectUrl;
-    });
+    const size = await new Promise<{ width: number, height: number }>((resolve, reject) => {
+      const img = new Image()
+      img.addEventListener('load', () => resolve({ width: img.naturalWidth, height: img.naturalHeight }))
+      img.addEventListener('error', () => reject(new Error('无法读取图片尺寸')))
+      img.src = objectUrl
+    })
 
-    form.width = size.width;
-    form.height = size.height;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '读取失败';
-    toast.add({ title: '获取尺寸失败', description: message, color: 'error' });
-    URL.revokeObjectURL(objectUrl);
-    previewUrl.value = '';
-  } finally {
-    probing.value = false;
+    form.width = size.width
+    form.height = size.height
   }
-};
+  catch (error) {
+    const message = error instanceof Error ? error.message : '读取失败'
+    toast.add({ title: '获取尺寸失败', description: message, color: 'error' })
+    URL.revokeObjectURL(objectUrl)
+    previewUrl.value = ''
+  }
+  finally {
+    probing.value = false
+  }
+}
 
-type ExifData = {
-  Make?: string;
-  Model?: string;
-  ImageDescription?: string;
-  XPComment?: string | string[];
-  XPKeywords?: string[];
-  FNumber?: number;
-  ExposureTime?: number;
-  ShutterSpeedValue?: number;
-  FocalLength?: number;
-  ISO?: number;
-  LensModel?: string;
-  DateTimeOriginal?: string | Date;
-  CreateDate?: string | Date;
-  latitude?: number;
-  longitude?: number;
-};
+interface ExifData {
+  Make?: string
+  Model?: string
+  ImageDescription?: string
+  XPComment?: string | string[]
+  XPKeywords?: string[]
+  FNumber?: number
+  ExposureTime?: number
+  ShutterSpeedValue?: number
+  FocalLength?: number
+  ISO?: number
+  LensModel?: string
+  DateTimeOriginal?: string | Date
+  CreateDate?: string | Date
+  latitude?: number
+  longitude?: number
+}
 
-type EditableForm = {
-  kind: FileKind;
-  title: string;
-  description: string;
-  width: number;
-  height: number;
-  fanworkTitle: string;
-  characters: string[];
-  location: string;
-  locationName: string;
-  latitude: number | null;
-  longitude: number | null;
-  cameraModel: string;
-  aperture: string;
-  focalLength: string;
-  iso: string;
-  shutterSpeed: string;
-  captureTime: string;
-  notes: string;
-};
+interface EditableForm {
+  kind: FileKind
+  title: string
+  description: string
+  width: number
+  height: number
+  fanworkTitle: string
+  characters: string[]
+  location: string
+  locationName: string
+  latitude: number | null
+  longitude: number | null
+  cameraModel: string
+  aperture: string
+  focalLength: string
+  iso: string
+  shutterSpeed: string
+  captureTime: string
+  notes: string
+}
 
-const formatLocation = (latitude: number | undefined, longitude: number | undefined): string => {
+function formatLocation(latitude: number | undefined, longitude: number | undefined): string {
   if (latitude === undefined || longitude === undefined) {
-    return '';
+    return ''
   }
-  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-};
+  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+}
 
-const textFrom = (value: string | string[] | undefined): string => {
+function textFrom(value: string | string[] | undefined): string {
   if (Array.isArray(value)) {
-    return value.join(' ');
+    return value.join(' ')
   }
-  return value ?? '';
-};
+  return value ?? ''
+}
 
-const formatAperture = (value: number | undefined): string => {
+function formatAperture(value: number | undefined): string {
   if (!value || value <= 0) {
-    return '';
+    return ''
   }
-  return `f/${value.toFixed(1)}`;
-};
+  return `f/${value.toFixed(1)}`
+}
 
-const formatShutter = (exposureTime?: number, shutterSpeed?: number): string => {
+function formatShutter(exposureTime?: number, shutterSpeed?: number): string {
   if (exposureTime && exposureTime > 0) {
     if (exposureTime < 1) {
-      return `1/${Math.round(1 / exposureTime)}s`;
+      return `1/${Math.round(1 / exposureTime)}s`
     }
-    return `${exposureTime.toFixed(2)}s`;
+    return `${exposureTime.toFixed(2)}s`
   }
   if (shutterSpeed !== undefined) {
-    const base = Math.pow(2, -shutterSpeed);
+    const base = 2 ** -shutterSpeed
     if (base < 1) {
-      return `1/${Math.round(1 / base)}s`;
+      return `1/${Math.round(1 / base)}s`
     }
-    return `${base.toFixed(2)}s`;
+    return `${base.toFixed(2)}s`
   }
-  return '';
-};
+  return ''
+}
 
-const formatFocal = (value: number | undefined): string => {
+function formatFocal(value: number | undefined): string {
   if (!value || value <= 0) {
-    return '';
+    return ''
   }
-  return `${value.toFixed(0)}mm`;
-};
+  return `${value.toFixed(0)}mm`
+}
 
-const pad = (value: number): string => value.toString().padStart(2, '0');
+const pad = (value: number): string => value.toString().padStart(2, '0')
 
-const formatDate = (value: string | Date | undefined): string => {
+function formatDate(value: string | Date | undefined): string {
   if (!value) {
-    return '';
+    return ''
   }
-  const date = value instanceof Date ? value : new Date(value);
+  const date = value instanceof Date ? value : new Date(value)
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return ''
   }
-  return date.toISOString();
-};
+  return date.toISOString()
+}
 
-const toLocalInputString = (isoString: string): string => {
-  const date = new Date(isoString);
+function toLocalInputString(isoString: string): string {
+  const date = new Date(isoString)
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return ''
   }
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
-};
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
+}
 
-const toIsoWithOffset = (localString: string): string => {
-  const date = new Date(localString);
+function toIsoWithOffset(localString: string): string {
+  const date = new Date(localString)
   if (Number.isNaN(date.getTime())) {
-    return '';
+    return ''
   }
-  const offsetMinutes = -date.getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? '+' : '-';
-  const abs = Math.abs(offsetMinutes);
-  const offsetHours = pad(Math.floor(abs / 60));
-  const offsetMins = pad(abs % 60);
-  const year = date.getFullYear();
-  const month = pad(date.getMonth() + 1);
-  const day = pad(date.getDate());
-  const hours = pad(date.getHours());
-  const minutes = pad(date.getMinutes());
-  const seconds = pad(date.getSeconds());
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`;
-};
+  const offsetMinutes = -date.getTimezoneOffset()
+  const sign = offsetMinutes >= 0 ? '+' : '-'
+  const abs = Math.abs(offsetMinutes)
+  const offsetHours = pad(Math.floor(abs / 60))
+  const offsetMins = pad(abs % 60)
+  const year = date.getFullYear()
+  const month = pad(date.getMonth() + 1)
+  const day = pad(date.getDate())
+  const hours = pad(date.getHours())
+  const minutes = pad(date.getMinutes())
+  const seconds = pad(date.getSeconds())
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`
+}
 
-const extractExif = async (): Promise<void> => {
+async function extractExif(): Promise<void> {
   if (!selectedFile.value) {
-    return;
+    return
   }
-  extracting.value = true;
+  extracting.value = true
   try {
     const parsed = (await exifr.parse(selectedFile.value, [
       'Make',
@@ -392,278 +427,286 @@ const extractExif = async (): Promise<void> => {
       'CreateDate',
       'latitude',
       'longitude',
-    ])) as ExifData | undefined;
+    ])) as ExifData | undefined
 
     if (!parsed) {
-      return;
+      return
     }
 
-    const model = [parsed.Make, parsed.Model].filter(Boolean).join(' ').trim();
-    const lens = parsed.LensModel ?? '';
-    const locationText = formatLocation(parsed.latitude, parsed.longitude);
-    const description = textFrom(parsed.ImageDescription ?? parsed.XPComment ?? textFrom(parsed.XPKeywords));
-    const aperture = formatAperture(parsed.FNumber);
-    const shutter = formatShutter(parsed.ExposureTime, parsed.ShutterSpeedValue);
-    const focal = formatFocal(parsed.FocalLength);
-    const iso = parsed.ISO ? String(parsed.ISO) : '';
-    const captureTime = formatDate(parsed.DateTimeOriginal ?? parsed.CreateDate);
+    const model = [parsed.Make, parsed.Model].filter(Boolean).join(' ').trim()
+    const lens = parsed.LensModel ?? ''
+    const locationText = formatLocation(parsed.latitude, parsed.longitude)
+    const description = textFrom(parsed.ImageDescription ?? parsed.XPComment ?? textFrom(parsed.XPKeywords))
+    const aperture = formatAperture(parsed.FNumber)
+    const shutter = formatShutter(parsed.ExposureTime, parsed.ShutterSpeedValue)
+    const focal = formatFocal(parsed.FocalLength)
+    const iso = parsed.ISO ? String(parsed.ISO) : ''
+    const captureTime = formatDate(parsed.DateTimeOriginal ?? parsed.CreateDate)
 
     if (model) {
-      form.cameraModel = model;
+      form.cameraModel = model
     }
     if (lens) {
-      form.cameraModel = model ? `${model} · ${lens}` : lens;
+      form.cameraModel = model ? `${model} · ${lens}` : lens
     }
     if (locationText) {
-      form.location = locationText;
-      form.locationName = locationText;
+      form.location = locationText
+      form.locationName = locationText
     }
     if (description && !form.description) {
-      form.description = description;
+      form.description = description
     }
     if (aperture) {
-      form.aperture = aperture;
+      form.aperture = aperture
     }
     if (shutter) {
-      form.shutterSpeed = shutter;
+      form.shutterSpeed = shutter
     }
     if (focal) {
-      form.focalLength = focal;
+      form.focalLength = focal
     }
     if (iso) {
-      form.iso = iso;
+      form.iso = iso
     }
     if (captureTime) {
-      form.captureTime = captureTime;
-      captureTimeLocal.value = toLocalInputString(captureTime);
+      form.captureTime = captureTime
+      captureTimeLocal.value = toLocalInputString(captureTime)
     }
 
-    const parts: string[] = [];
+    const parts: string[] = []
     if (model) {
-      parts.push(model);
+      parts.push(model)
     }
     if (lens) {
-      parts.push(lens);
+      parts.push(lens)
     }
     if (locationText) {
-      parts.push(locationText);
+      parts.push(locationText)
     }
     if (description) {
-      parts.push(description);
+      parts.push(description)
     }
-    const exposureParts: string[] = [];
+    const exposureParts: string[] = []
     if (focal) {
-      exposureParts.push(focal);
+      exposureParts.push(focal)
     }
     if (aperture) {
-      exposureParts.push(aperture);
+      exposureParts.push(aperture)
     }
     if (shutter) {
-      exposureParts.push(shutter);
+      exposureParts.push(shutter)
     }
     if (iso) {
-      exposureParts.push(`ISO ${iso}`);
+      exposureParts.push(`ISO ${iso}`)
     }
-    if (exposureParts.length) {
-      parts.push(exposureParts.join(' · '));
+    if (exposureParts.length > 0) {
+      parts.push(exposureParts.join(' · '))
     }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '读取元数据失败';
-    toast.add({ title: '读取元数据失败', description: message, color: 'warning' });
-  } finally {
-    extracting.value = false;
   }
-};
+  catch (error) {
+    const message = error instanceof Error ? error.message : '读取元数据失败'
+    toast.add({ title: '读取元数据失败', description: message, color: 'warning' })
+  }
+  finally {
+    extracting.value = false
+  }
+}
 
-const refreshMetadata = async (): Promise<void> => {
-  await detectImageSize();
-  await extractExif();
-};
+async function refreshMetadata(): Promise<void> {
+  await detectImageSize()
+  await extractExif()
+}
 
-const handleFileSelect = async (file: File | null): Promise<void> => {
-  clearSelectedFile();
+async function handleFileSelect(file: File | null): Promise<void> {
+  clearSelectedFile()
   if (!file) {
-    return;
+    return
   }
-  selectedFile.value = file;
-  await refreshMetadata();
-};
+  selectedFile.value = file
+  await refreshMetadata()
+}
 
-const handleFileChange = async (event: Event): Promise<void> => {
-  const target = event.target as HTMLInputElement | null;
-  await handleFileSelect(target?.files?.[0] ?? null);
-};
+async function handleFileChange(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement | null
+  await handleFileSelect(target?.files?.[0] ?? null)
+}
 
-const handleDrop = async (event: DragEvent): Promise<void> => {
-  event.preventDefault();
-  isDragging.value = false;
-  const file = event.dataTransfer?.files?.[0];
-  await handleFileSelect(file ?? null);
-};
+async function handleDrop(event: DragEvent): Promise<void> {
+  event.preventDefault()
+  isDragging.value = false
+  const file = event.dataTransfer?.files?.[0]
+  await handleFileSelect(file ?? null)
+}
 
 watch(
   () => captureTimeLocal.value,
   (value) => {
-    form.captureTime = value ? toIsoWithOffset(value) : '';
-  }
-);
+    form.captureTime = value ? toIsoWithOffset(value) : ''
+  },
+)
 
 watch(
   () => editCaptureTimeLocal.value,
   (value) => {
-    editForm.captureTime = value ? toIsoWithOffset(value) : '';
-  }
-);
+    editForm.captureTime = value ? toIsoWithOffset(value) : ''
+  },
+)
 
-const submit = async (): Promise<void> => {
+async function submit(): Promise<void> {
   if (!selectedFile.value) {
-    toast.add({ title: '请先选择图片文件', color: 'warning' });
-    return;
+    toast.add({ title: '请先选择图片文件', color: 'warning' })
+    return
   }
 
   if (form.width <= 0 || form.height <= 0) {
-    toast.add({ title: '请先获取尺寸', color: 'warning' });
-    return;
+    toast.add({ title: '请先获取尺寸', color: 'warning' })
+    return
   }
 
-  submitting.value = true;
+  submitting.value = true
   try {
-    const formData = new FormData();
-    formData.append('file', selectedFile.value);
-    formData.append('kind', form.kind);
-    formData.append('width', String(form.width));
-    formData.append('height', String(form.height));
-    formData.append('title', form.title);
-    formData.append('description', form.description);
-    formData.append('fanworkTitle', '');
-    formData.append('characters', '');
-    formData.append('location', form.location);
-    formData.append('locationName', form.locationName);
-    formData.append('latitude', form.latitude !== null ? String(form.latitude) : '');
-    formData.append('longitude', form.longitude !== null ? String(form.longitude) : '');
-    formData.append('cameraModel', form.cameraModel);
-    formData.append('aperture', form.aperture);
-    formData.append('focalLength', form.focalLength);
-    formData.append('iso', form.iso);
-    formData.append('shutterSpeed', form.shutterSpeed);
-    formData.append('captureTime', form.captureTime);
-    formData.append('notes', form.notes);
+    const formData = new FormData()
+    formData.append('file', selectedFile.value)
+    formData.append('kind', form.kind)
+    formData.append('width', String(form.width))
+    formData.append('height', String(form.height))
+    formData.append('title', form.title)
+    formData.append('description', form.description)
+    formData.append('fanworkTitle', '')
+    formData.append('characters', '')
+    formData.append('location', form.location)
+    formData.append('locationName', form.locationName)
+    formData.append('latitude', form.latitude === null ? '' : String(form.latitude))
+    formData.append('longitude', form.longitude === null ? '' : String(form.longitude))
+    formData.append('cameraModel', form.cameraModel)
+    formData.append('aperture', form.aperture)
+    formData.append('focalLength', form.focalLength)
+    formData.append('iso', form.iso)
+    formData.append('shutterSpeed', form.shutterSpeed)
+    formData.append('captureTime', form.captureTime)
+    formData.append('notes', form.notes)
 
     const created = await $fetch<FileResponse>('/api/files', {
       method: 'POST',
       body: formData,
-    });
+    })
 
-    filesData.value = [created, ...(filesData.value ?? [])];
-    toast.add({ title: '已保存', description: '记录写入数据库成功。', color: 'primary' });
-    clearSelectedFile();
-    resetOptionalFields();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '提交失败';
-    toast.add({ title: '保存失败', description: message, color: 'error' });
-  } finally {
-    submitting.value = false;
+    filesData.value = [created, ...(filesData.value ?? [])]
+    toast.add({ title: '已保存', description: '记录写入数据库成功。', color: 'primary' })
+    clearSelectedFile()
+    resetOptionalFields()
   }
-};
+  catch (error) {
+    const message = error instanceof Error ? error.message : '提交失败'
+    toast.add({ title: '保存失败', description: message, color: 'error' })
+  }
+  finally {
+    submitting.value = false
+  }
+}
 
-const fillEditForm = (file: FileResponse): void => {
-  const metadata = file.metadata;
-  editForm.kind = file.kind;
-  editForm.title = file.title ?? '';
-  editForm.description = file.description ?? '';
-  editForm.width = file.width;
-  editForm.height = file.height;
-  editForm.fanworkTitle = metadata.fanworkTitle || file.fanworkTitle || '';
-  editForm.characters = metadata.characters ?? file.characters ?? [];
-  editForm.location = metadata.location || file.location || '';
-  editForm.locationName = metadata.locationName;
-  editForm.latitude = metadata.latitude;
-  editForm.longitude = metadata.longitude;
-  editForm.cameraModel = metadata.cameraModel || file.cameraModel || '';
-  editForm.aperture = metadata.aperture;
-  editForm.focalLength = metadata.focalLength;
-  editForm.iso = metadata.iso;
-  editForm.shutterSpeed = metadata.shutterSpeed;
-  editForm.captureTime = metadata.captureTime;
-  editCaptureTimeLocal.value = metadata.captureTime ? toLocalInputString(metadata.captureTime) : '';
-  editForm.notes = metadata.notes;
-  editCharactersText.value = editForm.characters.join(', ');
-};
+function fillEditForm(file: FileResponse): void {
+  const metadata = file.metadata
+  editForm.kind = file.kind
+  editForm.title = file.title ?? ''
+  editForm.description = file.description ?? ''
+  editForm.width = file.width
+  editForm.height = file.height
+  editForm.fanworkTitle = metadata.fanworkTitle || file.fanworkTitle || ''
+  editForm.characters = metadata.characters ?? file.characters ?? []
+  editForm.location = metadata.location || file.location || ''
+  editForm.locationName = metadata.locationName
+  editForm.latitude = metadata.latitude
+  editForm.longitude = metadata.longitude
+  editForm.cameraModel = metadata.cameraModel || file.cameraModel || ''
+  editForm.aperture = metadata.aperture
+  editForm.focalLength = metadata.focalLength
+  editForm.iso = metadata.iso
+  editForm.shutterSpeed = metadata.shutterSpeed
+  editForm.captureTime = metadata.captureTime
+  editCaptureTimeLocal.value = metadata.captureTime ? toLocalInputString(metadata.captureTime) : ''
+  editForm.notes = metadata.notes
+  editCharactersText.value = editForm.characters.join(', ')
+}
 
-const openEdit = (file: FileResponse): void => {
-  editingFile.value = file;
-  fillEditForm(file);
-  editModalOpen.value = true;
-};
+function openEdit(file: FileResponse): void {
+  editingFile.value = file
+  fillEditForm(file)
+  editModalOpen.value = true
+}
 
-const closeEdit = (): void => {
-  editModalOpen.value = false;
-  editingFile.value = null;
-  resetEditForm();
-};
+function closeEdit(): void {
+  editModalOpen.value = false
+  editingFile.value = null
+  resetEditForm()
+}
 
-const saveEdit = async (): Promise<void> => {
+async function saveEdit(): Promise<void> {
   if (!editingFile.value) {
-    return;
+    return
   }
   const parsedCharacters = editCharactersText.value
     .split(/[,，\n]/)
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0);
-  updating.value = true;
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+  updating.value = true
   try {
     const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`, {
       method: 'PUT',
       body: { ...editForm, characters: parsedCharacters },
-    });
-    filesData.value = filesData.value?.map((item) => (item.id === updated.id ? updated : item)) ?? [updated];
-    toast.add({ title: '已更新', description: '记录已保存。', color: 'primary' });
-    closeEdit();
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '更新失败';
-    toast.add({ title: '更新失败', description: message, color: 'error' });
-  } finally {
-    updating.value = false;
+    })
+    filesData.value = filesData.value?.map(item => (item.id === updated.id ? updated : item)) ?? [updated]
+    toast.add({ title: '已更新', description: '记录已保存。', color: 'primary' })
+    closeEdit()
   }
-};
+  catch (error) {
+    const message = error instanceof Error ? error.message : '更新失败'
+    toast.add({ title: '更新失败', description: message, color: 'error' })
+  }
+  finally {
+    updating.value = false
+  }
+}
 
-const openDelete = (file: FileResponse): void => {
-  deleteTarget.value = file;
-  deleteModalOpen.value = true;
-};
+function openDelete(file: FileResponse): void {
+  deleteTarget.value = file
+  deleteModalOpen.value = true
+}
 
-const confirmDelete = async (): Promise<void> => {
+async function confirmDelete(): Promise<void> {
   if (!deleteTarget.value) {
-    return;
+    return
   }
-  deletingId.value = deleteTarget.value.id;
+  deletingId.value = deleteTarget.value.id
   try {
-    await $fetch(`/api/files/${deleteTarget.value.id}`, { method: 'DELETE' });
-    filesData.value = filesData.value?.filter((item) => item.id !== deleteTarget.value?.id) ?? [];
-    toast.add({ title: '已删除', description: '记录已移除。', color: 'primary' });
-    deleteModalOpen.value = false;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : '删除失败';
-    toast.add({ title: '删除失败', description: message, color: 'error' });
-  } finally {
-    deletingId.value = null;
+    await $fetch(`/api/files/${deleteTarget.value.id}`, { method: 'DELETE' })
+    filesData.value = filesData.value?.filter(item => item.id !== deleteTarget.value?.id) ?? []
+    toast.add({ title: '已删除', description: '记录已移除。', color: 'primary' })
+    deleteModalOpen.value = false
   }
-};
+  catch (error) {
+    const message = error instanceof Error ? error.message : '删除失败'
+    toast.add({ title: '删除失败', description: message, color: 'error' })
+  }
+  finally {
+    deletingId.value = null
+  }
+}
 
-const handleRefresh = async (): Promise<void> => {
-  await refresh();
-  page.value = 1;
-};
+async function handleRefresh(): Promise<void> {
+  await refresh()
+  page.value = 1
+}
 
 onBeforeUnmount(() => {
-  clearSelectedFile();
-});
+  clearSelectedFile()
+})
 
 watch(fetchError, (value) => {
   if (value) {
-    toast.add({ title: '加载失败', description: value.message, color: 'error' });
+    toast.add({ title: '加载失败', description: value.message, color: 'error' })
   }
-});
+})
 </script>
 
 <template>
@@ -671,8 +714,12 @@ watch(fetchError, (value) => {
     <UContainer class="space-y-8 py-10">
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p class="text-sm">后台</p>
-          <h1 class="text-3xl font-semibold">作品录入</h1>
+          <p class="text-sm">
+            后台
+          </p>
+          <h1 class="text-3xl font-semibold">
+            作品录入
+          </h1>
           <p class="text-sm">
             在此完成元数据填写与校验，主页仅展示瀑布流。
           </p>
@@ -693,9 +740,15 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">上传照片</p>
-              <h2 class="text-xl font-semibold">拖拽或点击</h2>
-              <p class="text-sm">上传前界面保持简洁，仅展示上传入口。</p>
+              <p class="text-sm">
+                上传照片
+              </p>
+              <h2 class="text-xl font-semibold">
+                拖拽或点击
+              </h2>
+              <p class="text-sm">
+                上传前界面保持简洁，仅展示上传入口。
+              </p>
             </div>
           </template>
           <div
@@ -707,8 +760,12 @@ watch(fetchError, (value) => {
             @click="fileInputEl?.click()"
           >
             <UIcon name="i-heroicons-cloud-arrow-up" class="h-10 w-10" />
-            <p class="mt-3 text-sm">拖拽照片到此或点击选择文件</p>
-            <p class="text-xs">支持 JPG/PNG 等常见格式</p>
+            <p class="mt-3 text-sm">
+              拖拽照片到此或点击选择文件
+            </p>
+            <p class="text-xs">
+              支持 JPG/PNG 等常见格式
+            </p>
           </div>
         </UCard>
       </div>
@@ -717,8 +774,12 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">预览与自动填充</p>
-              <h2 class="text-xl font-semibold">照片信息</h2>
+              <p class="text-sm">
+                预览与自动填充
+              </p>
+              <h2 class="text-xl font-semibold">
+                照片信息
+              </h2>
             </div>
           </template>
           <div class="space-y-4">
@@ -741,8 +802,12 @@ watch(fetchError, (value) => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="text-sm">编辑与保存</p>
-              <h2 class="text-xl font-semibold">完善元数据</h2>
+              <p class="text-sm">
+                编辑与保存
+              </p>
+              <h2 class="text-xl font-semibold">
+                完善元数据
+              </h2>
             </div>
           </template>
           <UForm :state="form" class="space-y-4" @submit.prevent="submit">
@@ -822,8 +887,12 @@ watch(fetchError, (value) => {
       <section class="space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm">预览</p>
-            <h2 class="text-xl font-semibold">数据列表</h2>
+            <p class="text-sm">
+              预览
+            </p>
+            <h2 class="text-xl font-semibold">
+              数据列表
+            </h2>
           </div>
           <div class="text-sm text-neutral-500">
             共 {{ totalFiles }} 条记录
@@ -838,21 +907,19 @@ watch(fetchError, (value) => {
           >
             <template #preview-cell="{ row }">
               <div class="h-14 w-24 overflow-hidden rounded-md bg-black/5">
-                <NuxtImg
-                  :src="resolvePreviewUrl(row.original)"
+                <img
                   :alt="row.original.title || '预览'"
-                  width="192"
-                  height="112"
-                  sizes="160px"
-                  format="webp"
-                  fit="cover"
+                  loading="lazy"
                   class="h-full w-full object-cover"
-                />
+                  v-bind="resolvePreviewImage(row.original)"
+                >
               </div>
             </template>
             <template #title-cell="{ row }">
               <div class="space-y-1">
-                <p class="font-medium leading-tight">{{ row.original.title || '未命名' }}</p>
+                <p class="font-medium leading-tight">
+                  {{ row.original.title || '未命名' }}
+                </p>
                 <p v-if="row.original.description" class="text-xs text-neutral-500 line-clamp-2">
                   {{ row.original.description }}
                 </p>
@@ -915,9 +982,15 @@ watch(fetchError, (value) => {
           <template #header>
             <div class="flex items-start justify-between">
               <div>
-                <p class="text-sm">编辑</p>
-                <h3 class="text-lg font-semibold">{{ editingFile?.title || '调整元数据' }}</h3>
-                <p class="text-xs text-neutral-500">更新尺寸、拍摄信息或备注。</p>
+                <p class="text-sm">
+                  编辑
+                </p>
+                <h3 class="text-lg font-semibold">
+                  {{ editingFile?.title || '调整元数据' }}
+                </h3>
+                <p class="text-xs text-neutral-500">
+                  更新尺寸、拍摄信息或备注。
+                </p>
               </div>
               <UButton variant="ghost" color="neutral" icon="i-heroicons-x-mark" @click="closeEdit">
                 关闭
@@ -1024,9 +1097,15 @@ watch(fetchError, (value) => {
           <template #header>
             <div class="flex items-start justify-between">
               <div>
-                <p class="text-sm text-error-500">删除确认</p>
-                <h3 class="text-lg font-semibold">确认删除这条记录吗？</h3>
-                <p class="text-xs text-neutral-500">删除后将无法恢复，请确认。</p>
+                <p class="text-sm text-error-500">
+                  删除确认
+                </p>
+                <h3 class="text-lg font-semibold">
+                  确认删除这条记录吗？
+                </h3>
+                <p class="text-xs text-neutral-500">
+                  删除后将无法恢复，请确认。
+                </p>
               </div>
               <UButton variant="ghost" color="neutral" icon="i-heroicons-x-mark" @click="deleteModalOpen = false">
                 关闭

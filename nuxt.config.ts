@@ -1,48 +1,49 @@
-const resolveDomains = (): string[] => {
-  const domains = new Set<string>();
+function resolveDomains(): string[] {
+  const domains = new Set<string>()
   const add = (value: string | undefined): void => {
     if (!value) {
-      return;
+      return
     }
     try {
-      const host = new URL(value).host;
+      const host = new URL(value).host
       if (host) {
-        domains.add(host);
+        domains.add(host)
       }
-    } catch {
+    }
+    catch {
       // ignore invalid URLs
     }
-  };
+  }
 
-  add(process.env.S3_PUBLIC_BASE_URL);
-  add(process.env.S3_ENDPOINT);
-  return Array.from(domains);
-};
+  add(process.env.S3_PUBLIC_BASE_URL)
+  add(process.env.S3_ENDPOINT)
+  return [...domains]
+}
 
-const resolveSiteEnv = (): string => process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development';
+const resolveSiteEnv = (): string => process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development'
 
-const resolveSiteUrl = (siteEnv: string): string | undefined => {
-  const envUrl = process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL;
+function resolveSiteUrl(siteEnv: string): string | undefined {
+  const envUrl = process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
-    return envUrl;
+    return envUrl
   }
   if (siteEnv === 'development') {
-    return 'http://localhost:3000';
+    return 'http://localhost:3000'
   }
-  return undefined;
-};
+  return undefined
+}
 
-const resolveIndexable = (siteEnv: string, siteUrl?: string): boolean => {
-  const flag = process.env.NUXT_SITE_INDEXABLE ?? process.env.NUXT_PUBLIC_SITE_INDEXABLE;
-  if (typeof flag !== 'undefined') {
-    return flag !== 'false';
+function resolveIndexable(siteEnv: string, siteUrl?: string): boolean {
+  const flag = process.env.NUXT_SITE_INDEXABLE ?? process.env.NUXT_PUBLIC_SITE_INDEXABLE
+  if (flag !== undefined) {
+    return flag !== 'false'
   }
-  return siteEnv === 'production' && Boolean(siteUrl);
-};
+  return siteEnv === 'production' && Boolean(siteUrl)
+}
 
-const siteEnv = resolveSiteEnv();
-const siteUrl = resolveSiteUrl(siteEnv);
-const siteIndexable = resolveIndexable(siteEnv, siteUrl);
+const siteEnv = resolveSiteEnv()
+const siteUrl = resolveSiteUrl(siteEnv)
+const siteIndexable = resolveIndexable(siteEnv, siteUrl)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -64,7 +65,7 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxtjs/seo',
     '@nuxt/ui',
-    '@nuxt/test-utils'
+    '@nuxt/test-utils',
   ],
   site: {
     url: siteUrl,
@@ -78,4 +79,9 @@ export default defineNuxtConfig({
     domains: resolveDomains(),
     format: ['webp', 'avif', 'jpeg'],
   },
-});
+  eslint: {
+    config: {
+      standalone: false,
+    },
+  },
+})
