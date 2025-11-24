@@ -75,6 +75,7 @@ type ResolvedFile = FileResponse & {
   displayTitle: string
   placeholder?: string
   placeholderAspectRatio?: number
+  overlayPlaceholderUrl?: string | null
   displaySize: DisplaySize
   imageAttrs: ImageAttrs
 }
@@ -202,6 +203,30 @@ function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' |
   }
 }
 
+function resolveOverlayPlaceholderUrl(src: string | undefined, aspectRatio: number | undefined): string | null {
+  const normalized = (src ?? '').trim()
+  if (!normalized) {
+    return null
+  }
+  const width = 48
+  const modifiers: Record<string, number | string> = {
+    width,
+    format: 'webp',
+    fit: 'inside',
+    blur: 60,
+    quality: 20,
+  }
+  const height
+    = aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
+      ? Math.max(1, Math.round(width / aspectRatio))
+      : null
+  if (height) {
+    modifiers.height = height
+  }
+  const result = image.getImage(normalized, { modifiers })
+  return result?.url ?? normalized
+}
+
 function resolveHistogramUrl(file: ResolvedFile): string {
   const result = image.getImage(file.imageUrl, {
     modifiers: {
@@ -212,6 +237,21 @@ function resolveHistogramUrl(file: ResolvedFile): string {
     },
   })
   return result?.url ?? file.imageUrl
+}
+
+function runViewTransition(action: () => void): void {
+  action()
+}
+
+function viewTransitionStyle(_id: number | null | undefined): Record<string, string> | undefined {
+  return undefined
+}
+
+function entryTransitionStyle(id: number): Record<string, string> | undefined {
+  if (activeFile.value?.id === id) {
+    return undefined
+  }
+  return viewTransitionStyle(id)
 }
 
 const columnWidth = computed(() => {
@@ -243,6 +283,10 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
       )
       const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
       const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
+      const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
+        thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl,
+        decoded?.aspectRatio,
+      )
       return {
         ...file,
         imageUrl,
@@ -253,6 +297,7 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
         previewAttrs,
         placeholder: decoded?.dataUrl,
         placeholderAspectRatio: decoded?.aspectRatio,
+        overlayPlaceholderUrl,
         displaySize,
         imageAttrs,
       }
@@ -406,6 +451,7 @@ onBeforeUnmount(() => {
 
 function openOverlay(file: ResolvedFile): void {
   activeFile.value = file
+  startOverlayImageLoad(file)
   destroyHistogramChart()
   const cachedHistogram = normalizeHistogram(file.metadata.histogram)
   histogram.value = cachedHistogram
@@ -419,6 +465,14 @@ function closeOverlay(): void {
   destroyHistogramChart()
   histogram.value = null
   resetOverlayImage()
+}
+
+function handleEntryClick(file: ResolvedFile): void {
+  runViewTransition(() => openOverlay(file))
+}
+
+function handleOverlayClose(): void {
+  runViewTransition(() => closeOverlay())
 }
 
 function toDisplayText(value: string | null | undefined): string | undefined {
@@ -484,7 +538,13 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
   if (!file) {
     return null
   }
-  const source = file.placeholder || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
+  const source
+    = file.placeholder
+      || file.overlayPlaceholderUrl
+      || file.previewUrl
+      || file.coverUrl
+      || file.imageUrl
+      || file.thumbnailUrl
   if (!source) {
     return null
   }
@@ -496,22 +556,13 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
 function handleKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape' && activeFile.value) {
     event.preventDefault()
-    closeOverlay()
+    handleOverlayClose()
   }
 }
 
 watch([histogram, histogramCanvasRef], () => {
   renderHistogram()
 }, { flush: 'post' })
-
-watch(activeFile, (file) => {
-  if (!file) {
-    destroyHistogramChart()
-    resetOverlayImage()
-    return
-  }
-  startOverlayImageLoad(file)
-})
 
 function prepareHistogram(file: ResolvedFile): Promise<void> {
   if (globalThis.document === undefined || typeof Image === 'undefined') {
@@ -594,33 +645,79 @@ function resetOverlayImage(): void {
 
 function startOverlayImageLoad(file: ResolvedFile): void {
   const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
-  overlayImageSrc.value = previewSrc
+  const placeholderSrc = file.placeholder || file.overlayPlaceholderUrl || file.coverUrl || file.thumbnailUrl
+  overlayImageSrc.value = placeholderSrc || previewSrc
   if (typeof Image === 'undefined') {
     overlayImageSrc.value = file.imageUrl || file.thumbnailUrl || previewSrc
     return
   }
-  const loader = new Image()
-  overlayImageLoader.value = loader
-  loader.crossOrigin = 'anonymous'
-  loader.decoding = 'async'
   const fullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
-  const handleLoad = (): void => {
-    if (overlayImageLoader.value !== loader) {
+
+  const startFullLoad = (): void => {
+    const fullLoader = new Image()
+    overlayImageLoader.value = fullLoader
+    fullLoader.crossOrigin = 'anonymous'
+    fullLoader.decoding = 'async'
+    const handleFullLoad = async (): Promise<void> => {
+      if (overlayImageLoader.value !== fullLoader) {
+        return
+      }
+      if (fullLoader.decode) {
+        try {
+          await fullLoader.decode()
+        }
+        catch {
+          // Ignore decode errors and still swap the src.
+        }
+      }
+      overlayImageSrc.value = fullImageSrc
+      overlayImageLoader.value = null
+    }
+    const handleFullError = (): void => {
+      if (overlayImageLoader.value !== fullLoader) {
+        return
+      }
+      overlayImageSrc.value = fullImageSrc
+      overlayImageLoader.value = null
+    }
+    fullLoader.addEventListener('load', handleFullLoad)
+    fullLoader.addEventListener('error', handleFullError)
+    fullLoader.src = fullImageSrc
+  }
+
+  if (!previewSrc) {
+    startFullLoad()
+    return
+  }
+
+  const previewLoader = new Image()
+  overlayImageLoader.value = previewLoader
+  previewLoader.crossOrigin = 'anonymous'
+  previewLoader.decoding = 'async'
+  const handlePreviewLoad = async (): Promise<void> => {
+    if (overlayImageLoader.value !== previewLoader) {
       return
     }
-    overlayImageSrc.value = fullImageSrc
-    overlayImageLoader.value = null
+    if (previewLoader.decode) {
+      try {
+        await previewLoader.decode()
+      }
+      catch {
+        // Ignore decode errors and still show the preview.
+      }
+    }
+    overlayImageSrc.value = previewSrc
+    startFullLoad()
   }
-  const handleError = (): void => {
-    if (overlayImageLoader.value !== loader) {
+  const handlePreviewError = (): void => {
+    if (overlayImageLoader.value !== previewLoader) {
       return
     }
-    overlayImageSrc.value = fullImageSrc
-    overlayImageLoader.value = null
+    startFullLoad()
   }
-  loader.addEventListener('load', handleLoad)
-  loader.addEventListener('error', handleError)
-  loader.src = fullImageSrc
+  previewLoader.addEventListener('load', handlePreviewLoad)
+  previewLoader.addEventListener('error', handlePreviewError)
+  previewLoader.src = previewSrc
 }
 
 function renderHistogram(): void {
@@ -734,12 +831,13 @@ function renderHistogram(): void {
           type="button"
           class="group relative block h-full w-full focus:outline-none"
           :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
-          @click="openOverlay(entry)"
+          @click="handleEntryClick(entry)"
         >
           <img
             :key="entry.id"
             :alt="entry.displayTitle"
-            :style="
+            :style="[
+              entryTransitionStyle(entry.id),
               entry.placeholder
                 ? {
                   backgroundImage: `url(${entry.placeholder})`,
@@ -747,8 +845,8 @@ function renderHistogram(): void {
                   backgroundPosition: 'center',
                   backgroundRepeat: 'no-repeat',
                 }
-                : undefined
-            "
+                : undefined,
+            ]"
             loading="lazy"
             class="h-full w-full object-cover transition duration-200 group-hover:opacity-90"
             v-bind="entry.imageAttrs"
@@ -779,7 +877,7 @@ function renderHistogram(): void {
           :style="overlayBackgroundStyle"
           aria-hidden="true"
         />
-        <div class="absolute inset-0" @click="closeOverlay" />
+        <div class="absolute inset-0" @click="handleOverlayClose" />
         <div class="relative flex h-full w-full">
           <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-6">
             <div class="flex min-h-0 items-center justify-center overflow-hidden bg-black">
@@ -790,7 +888,19 @@ function renderHistogram(): void {
                 :sizes="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.sizes : undefined"
                 :width="activeFile.width"
                 :height="activeFile.height"
+                :style="[
+                  viewTransitionStyle(activeFile.id),
+                  // activeFile.placeholder
+                  //   ? {
+                  //     backgroundImage: `url(${activeFile.placeholder})`,
+                  //     backgroundSize: 'cover',
+                  //     backgroundPosition: 'center',
+                  //     backgroundRepeat: 'no-repeat',
+                  //   }
+                  //   : undefined,
+                ]"
                 :alt="activeFile.displayTitle"
+                loading="eager"
                 class="h-full w-full object-contain"
               >
             </div>
@@ -811,7 +921,7 @@ function renderHistogram(): void {
                 <button
                   type="button"
                   class="flex items-center gap-2 px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
-                  @click="closeOverlay"
+                  @click="handleOverlayClose"
                 >
                   <Icon name="mdi:close" class="h-4 w-4" />
                   <span>{{ t('common.actions.close') }}</span>
