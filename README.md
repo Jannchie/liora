@@ -92,3 +92,14 @@ Ensure the token has write permission to the bucket and, if public access is des
 ## SEO
 
 This project uses `@nuxtjs/seo` for canonical links, sitemap generation, and social previews. Set your canonical host with `NUXT_SITE_URL` (or `NUXT_PUBLIC_SITE_URL`), and toggle indexing via `NUXT_SITE_INDEXABLE=true|false`. When no URL is provided, local development falls back to `http://localhost:3000`.
+
+## Social links
+
+Set any of the following environment variables to show social icons in the gallery header card. Only non-empty values render.
+
+```txt
+NUXT_PUBLIC_SOCIAL_GITHUB=https://github.com/<username>
+NUXT_PUBLIC_SOCIAL_TWITTER=https://x.com/<username>
+NUXT_PUBLIC_SOCIAL_INSTAGRAM=https://instagram.com/<username>
+NUXT_PUBLIC_SOCIAL_WEIBO=https://weibo.com/<username>
+```

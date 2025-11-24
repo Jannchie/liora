@@ -63,6 +63,14 @@ export default defineNuxtConfig({
       secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? '',
       publicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? '',
     },
+    public: {
+      social: {
+        github: process.env.NUXT_PUBLIC_SOCIAL_GITHUB ?? '',
+        twitter: process.env.NUXT_PUBLIC_SOCIAL_TWITTER ?? '',
+        instagram: process.env.NUXT_PUBLIC_SOCIAL_INSTAGRAM ?? '',
+        weibo: process.env.NUXT_PUBLIC_SOCIAL_WEIBO ?? '',
+      },
+    },
   },
   modules: [
     '@nuxt/eslint',

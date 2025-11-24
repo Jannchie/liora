@@ -1,5 +1,12 @@
 export type FileKind = 'PAINTING' | 'PHOTOGRAPHY'
 
+export interface HistogramData {
+  red: number[]
+  green: number[]
+  blue: number[]
+  luminance: number[]
+}
+
 export interface FileMetadata {
   fanworkTitle: string
   characters: string[]
@@ -17,6 +24,7 @@ export interface FileMetadata {
   thumbhash?: string
   perceptualHash?: string
   sha256?: string
+  histogram?: HistogramData | null
 }
 
 export interface FilePayload {

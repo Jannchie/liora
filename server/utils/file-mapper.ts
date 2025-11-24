@@ -43,6 +43,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
     perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
     sha256: parsed.sha256 ?? fallbacks.sha256,
+    histogram: parsed.histogram ?? fallbacks.histogram,
   }
 }
 
@@ -72,6 +73,7 @@ export function toFileResponse(file: File): FileResponse {
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
+    histogram: null,
   })
 
   return {

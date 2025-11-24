@@ -47,6 +47,9 @@ importers:
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.6.1)

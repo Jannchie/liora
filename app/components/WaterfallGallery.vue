@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
-import type { FileResponse } from '~/types/file'
+import type { FileResponse, HistogramData } from '~/types/file'
 import { Chart } from 'chart.js/auto'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
 
 const props = withDefaults(
@@ -22,6 +22,8 @@ const props = withDefaults(
 const maxDisplayWidth = 400
 const waterfallGap = 4
 const image = useImage()
+const runtimeConfig = useRuntimeConfig()
+const siteConfig = useSiteConfig()
 
 type ImageAttrs = ImageSizes & {
   src: string
@@ -54,6 +56,12 @@ interface DisplaySize {
   height: number
 }
 
+interface SocialLink {
+  label: string
+  url: string
+  icon: string
+}
+
 type ResolvedFile = FileResponse & {
   coverUrl: string
   placeholder?: string
@@ -62,16 +70,22 @@ type ResolvedFile = FileResponse & {
   imageAttrs: ImageAttrs
 }
 
+interface InfoEntry {
+  entryType: 'info'
+  displaySize: DisplaySize
+}
+
+type WaterfallEntry = InfoEntry | (ResolvedFile & { entryType: 'file' })
+
+const infoCardDisplaySize: DisplaySize = {
+  width: maxDisplayWidth,
+  height: 260,
+}
+
 interface MetadataEntry {
   label: string
   value: string
   icon: string
-}
-
-interface HistogramData {
-  red: number[]
-  green: number[]
-  blue: number[]
 }
 
 function toByteArrayFromBase64(value: string): Uint8Array {
@@ -181,7 +195,37 @@ const resolvedFiles = computed<ResolvedFile[]>(() =>
     .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first)),
 )
 
-const waterfallItems = computed(() => resolvedFiles.value.map(file => file.displaySize))
+const resolvedSiteConfig = computed(() => unref(siteConfig))
+const siteName = computed(() => resolvedSiteConfig.value.name ?? 'Liora Gallery')
+const siteDescription = computed(
+  () => resolvedSiteConfig.value.description ?? 'A minimal gallery for photography and illustrations.',
+)
+const photoCount = computed(() => resolvedFiles.value.length)
+
+const socialLinks = computed<SocialLink[]>(() => {
+  const links: SocialLink[] = []
+  const social = runtimeConfig.public.social
+
+  const appendLink = (label: string, url: string, icon: string): void => {
+    const trimmed = url.trim()
+    if (trimmed.length > 0) {
+      links.push({ label, url: trimmed, icon })
+    }
+  }
+
+  appendLink('GitHub', social.github, 'mdi:github')
+  appendLink('X', social.twitter, 'mdi:twitter')
+  appendLink('Instagram', social.instagram, 'mdi:instagram')
+  appendLink('Weibo', social.weibo, 'mdi:sina-weibo')
+  return links
+})
+
+const waterfallEntries = computed<WaterfallEntry[]>(() => {
+  const fileEntries = resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const }))
+  return [{ entryType: 'info', displaySize: infoCardDisplaySize }, ...fileEntries]
+})
+
+const waterfallItems = computed(() => waterfallEntries.value.map(item => item.displaySize))
 
 function getCssColor(name: string, fallback: string): string {
   if (globalThis.document !== undefined) {
@@ -198,6 +242,32 @@ const histogramColors = computed(() => ({
   green: getCssColor('--ui-color-success-500', '#22c55e'),
   blue: getCssColor('--ui-color-info-500', '#3b82f6'),
 }))
+
+function normalizeHistogram(raw: HistogramData | null | undefined): HistogramData | null {
+  if (!raw) {
+    return null
+  }
+  const buildChannel = (source: number[] | null | undefined): number[] | null => {
+    if (!Array.isArray(source)) {
+      return null
+    }
+    return Array.from({ length: 256 }, (_, index) => {
+      const value = source[index] ?? 0
+      return Number.isFinite(value) ? Number(value) : 0
+    })
+  }
+
+  const red = buildChannel(raw.red)
+  const green = buildChannel(raw.green)
+  const blue = buildChannel(raw.blue)
+  const luminance = buildChannel(raw.luminance) ?? Array.from({ length: 256 }, () => 0)
+
+  if (!red || !green || !blue) {
+    return null
+  }
+
+  return { red, green, blue, luminance }
+}
 
 const resizeObserver = ref<ResizeObserver | null>(null)
 
@@ -233,8 +303,12 @@ onBeforeUnmount(() => {
 
 function openOverlay(file: ResolvedFile): void {
   activeFile.value = file
-  histogram.value = null
-  void prepareHistogram(file)
+  destroyHistogramChart()
+  const cachedHistogram = normalizeHistogram(file.metadata.histogram)
+  histogram.value = cachedHistogram
+  if (!cachedHistogram) {
+    void prepareHistogram(file)
+  }
 }
 
 function closeOverlay(): void {
@@ -357,6 +431,7 @@ function prepareHistogram(file: ResolvedFile): Promise<void> {
         red: Array.from({ length: 256 }, () => 0),
         green: Array.from({ length: 256 }, () => 0),
         blue: Array.from({ length: 256 }, () => 0),
+        luminance: Array.from({ length: 256 }, () => 0),
       }
       for (let index = 0; index < imageData.data.length; index += 4) {
         const red = imageData.data[index]
@@ -365,6 +440,16 @@ function prepareHistogram(file: ResolvedFile): Promise<void> {
         bins.red[red] += 1
         bins.green[green] += 1
         bins.blue[blue] += 1
+        const luminance = Math.min(255, Math.max(0, Math.round(0.299 * red + 0.587 * green + 0.114 * blue)))
+        bins.luminance[luminance] += 1
+      }
+      const pixelCount = imageData.width * imageData.height
+      if (pixelCount > 0) {
+        for (const channel of Object.values(bins)) {
+          for (let binIndex = 0; binIndex < channel.length; binIndex += 1) {
+            channel[binIndex] = Number(channel[binIndex] / pixelCount)
+          }
+        }
       }
       if (activeFile.value?.id === file.id) {
         histogram.value = bins
@@ -466,52 +551,95 @@ function renderHistogram(): void {
 
 <template>
   <div ref="galleryRef" class="relative">
-    <div
-      v-if="resolvedFiles.length === 0 && !isLoading"
-      class="flex h-full items-center justify-center gap-2 text-sm text-muted"
+    <Waterfall
+      :gap="waterfallGap"
+      :cols="columns"
+      :items="waterfallItems"
+      :wrapper-width="wrapperWidth"
+      :scroll-element="scrollElement"
     >
-      <Icon name="mdi:image-off-outline" class="h-5 w-5" />
-      <span>{{ emptyText }}</span>
-    </div>
-    <div v-else>
-      <Waterfall
-        :gap="waterfallGap"
-        :cols="columns"
-        :items="waterfallItems"
-        :wrapper-width="wrapperWidth"
-        :scroll-element="scrollElement"
+      <div
+        v-for="entry in waterfallEntries"
+        :key="entry.entryType === 'info' ? 'waterfall-info' : entry.id"
       >
         <div
-          v-for="file in resolvedFiles"
-          :key="file.id"
+          v-if="entry.entryType === 'info'"
+          class="flex h-full w-full flex-col justify-between bg-elevated p-4 text-default ring-1 ring-default/40"
+          :style="{ minHeight: `${entry.displaySize.height}px` }"
         >
-          <button
-            type="button"
-            class="group relative block h-full w-full focus:outline-none"
-            :aria-label="`查看 ${file.title || '作品'} 大图`"
-            @click="openOverlay(file)"
-          >
-            <img
-              :key="file.id"
-              :alt="file.title"
-              :style="
-                file.placeholder
-                  ? {
-                    backgroundImage: `url(${file.placeholder})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }
-                  : undefined
-              "
-              loading="lazy"
-              class="h-full w-full object-cover transition duration-200 group-hover:opacity-90"
-              v-bind="file.imageAttrs"
+          <div class="space-y-2">
+            <p class="text-xs uppercase tracking-wide text-muted">
+              Gallery
+            </p>
+            <h2 class="text-2xl font-semibold leading-tight">
+              {{ siteName }}
+            </h2>
+            <p class="text-sm leading-relaxed text-highlighted">
+              {{ siteDescription }}
+            </p>
+            <p
+              v-if="photoCount === 0 && !isLoading"
+              class="text-xs text-muted"
             >
-          </button>
+              {{ emptyText }}
+            </p>
+          </div>
+          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2 text-sm font-semibold text-default">
+              <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary-500" />
+              <span>作品总数</span>
+              <span class="rounded-full bg-primary-50 px-2 py-0.5 text-primary-600">
+                {{ photoCount }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-muted">
+              <a
+                v-for="link in socialLinks"
+                :key="link.label"
+                :href="link.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex items-center gap-1 rounded-full px-2 py-1 transition hover:bg-primary-50 hover:text-primary-600"
+                :aria-label="link.label"
+              >
+                <Icon :name="link.icon" class="h-5 w-5" />
+                <span class="text-xs font-medium">
+                  {{ link.label }}
+                </span>
+              </a>
+              <span v-if="socialLinks.length === 0" class="text-xs">
+                暂无社交链接
+              </span>
+            </div>
+          </div>
         </div>
-      </Waterfall>
-    </div>
+        <button
+          v-else
+          type="button"
+          class="group relative block h-full w-full focus:outline-none"
+          :aria-label="`查看 ${entry.title || '作品'} 大图`"
+          @click="openOverlay(entry)"
+        >
+          <img
+            :key="entry.id"
+            :alt="entry.title"
+            :style="
+              entry.placeholder
+                ? {
+                  backgroundImage: `url(${entry.placeholder})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundRepeat: 'no-repeat',
+                }
+                : undefined
+            "
+            loading="lazy"
+            class="h-full w-full object-cover transition duration-200 group-hover:opacity-90"
+            v-bind="entry.imageAttrs"
+          >
+        </button>
+      </div>
+    </Waterfall>
     <div
       v-if="isLoading"
       class="absolute inset-0 flex items-center justify-center backdrop-blur-sm"

@@ -6,6 +6,7 @@ import { extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
+import { computeHistogram } from '../utils/histogram'
 import { prisma } from '../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
@@ -296,6 +297,11 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       statusMessage: `检测到相似图片，已存在记录 #${similar.id}${similar.distance > 0 ? `（距离 ${similar.distance}）` : ''}`,
       data: { existingId: similar.id, distance: similar.distance },
     })
+  }
+
+  const histogram = await computeHistogram(file.data)
+  if (histogram) {
+    metadata.histogram = histogram
   }
   const { imageUrl, thumbnailUrl, thumbhash } = await saveFileWithThumbnail(file, storageConfig)
   if (thumbhash) {
