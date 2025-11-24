@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { extname } from 'node:path';
 import type { H3Event } from 'h3';
 import sharp from 'sharp';
@@ -21,6 +21,88 @@ type ParsedForm = {
 };
 
 const THUMBNAIL_MAX_SIZE = 960;
+const SIMILARITY_THRESHOLD = 6;
+
+type ImageHashes = {
+  perceptualHash: string | null;
+  sha256: string;
+};
+
+const computePerceptualHash = async (data: Buffer): Promise<string | null> => {
+  try {
+    const { data: raw } = await sharp(data)
+      .rotate()
+      .resize(8, 8, { fit: 'cover' })
+      .greyscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const pixels = new Uint8Array(raw);
+    const mean = pixels.reduce((sum, value) => sum + value, 0) / pixels.length;
+    let hash = 0n;
+    for (const value of pixels) {
+      hash = (hash << 1n) | (value > mean ? 1n : 0n);
+    }
+    return hash.toString(16).padStart(16, '0');
+  } catch (error) {
+    console.warn('Perceptual hash generation failed:', error);
+    return null;
+  }
+};
+
+const computeHashes = async (data: Buffer): Promise<ImageHashes> => ({
+  perceptualHash: await computePerceptualHash(data),
+  sha256: createHash('sha256').update(data).digest('hex'),
+});
+
+const extractHashes = (raw: string): { perceptualHash?: string; sha256?: string } => {
+  try {
+    const parsed = JSON.parse(raw) as Partial<FileMetadata>;
+    return {
+      perceptualHash: typeof parsed.perceptualHash === 'string' ? parsed.perceptualHash : undefined,
+      sha256: typeof parsed.sha256 === 'string' ? parsed.sha256 : undefined,
+    };
+  } catch {
+    return {};
+  }
+};
+
+const hammingDistance = (first: string, second: string): number | null => {
+  if (!first || !second || first.length !== second.length) {
+    return null;
+  }
+  let diff = BigInt(`0x${first}`) ^ BigInt(`0x${second}`);
+  let distance = 0;
+  while (diff !== 0n) {
+    distance += Number(diff & 1n);
+    diff >>= 1n;
+  }
+  return distance;
+};
+
+const findSimilarFile = async (hashes: ImageHashes): Promise<{ id: number; title: string; distance: number } | null> => {
+  const existing = await prisma.file.findMany({ select: { id: true, title: true, metadata: true } });
+  let closest: { id: number; title: string; distance: number } | null = null;
+
+  for (const file of existing) {
+    const parsed = extractHashes(file.metadata);
+    if (parsed.sha256 && parsed.sha256 === hashes.sha256) {
+      return { id: file.id, title: file.title, distance: 0 };
+    }
+    if (!parsed.perceptualHash || !hashes.perceptualHash) {
+      continue;
+    }
+    const distance = hammingDistance(parsed.perceptualHash, hashes.perceptualHash);
+    if (distance === null) {
+      continue;
+    }
+    if (distance <= SIMILARITY_THRESHOLD && (!closest || distance < closest.distance)) {
+      closest = { id: file.id, title: file.title, distance };
+    }
+  }
+
+  return closest;
+};
 
 const normalizeText = (value: string | undefined): string => value?.trim() ?? '';
 
@@ -45,6 +127,8 @@ const buildMetadata = (fields: Record<string, string>, characters: string[]): Fi
   captureTime: normalizeText(fields.captureTime),
   notes: normalizeText(fields.notes),
   thumbhash: undefined,
+  perceptualHash: undefined,
+  sha256: undefined,
 });
 
 const ensureKind = (value: string | undefined): 'PAINTING' | 'PHOTOGRAPHY' => {
@@ -178,6 +262,18 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   const characters = parseCharacters(fields.characters);
   const metadata = buildMetadata(fields, characters);
+  const hashes = await computeHashes(file.data);
+  metadata.perceptualHash = hashes.perceptualHash ?? undefined;
+  metadata.sha256 = hashes.sha256;
+
+  const similar = await findSimilarFile(hashes);
+  if (similar) {
+    throw createError({
+      statusCode: 409,
+      statusMessage: `检测到相似图片，已存在记录 #${similar.id}${similar.distance > 0 ? `（距离 ${similar.distance}）` : ''}`,
+      data: { existingId: similar.id, distance: similar.distance },
+    });
+  }
   const { imageUrl, thumbnailUrl, thumbhash } = await saveFileWithThumbnail(file, storageConfig);
   if (thumbhash) {
     metadata.thumbhash = thumbhash;

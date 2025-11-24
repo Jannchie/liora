@@ -41,6 +41,8 @@ export const ensureMetadata = (
     captureTime: parsed.captureTime ?? fallbacks.captureTime,
     notes: parsed.notes ?? fallbacks.notes,
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
+    perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
+    sha256: parsed.sha256 ?? fallbacks.sha256,
   };
 };
 
@@ -68,6 +70,8 @@ export const toFileResponse = (file: File): FileResponse => {
     captureTime: file.captureTime,
     notes: '',
     thumbhash: undefined,
+    perceptualHash: undefined,
+    sha256: undefined,
   });
 
   return {

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '../app/generated/prisma/client';
@@ -10,6 +11,11 @@ type DbFile = {
   thumbnailUrl: string | null;
   metadata: string;
   title: string;
+};
+
+type ImageHashes = {
+  perceptualHash: string | null;
+  sha256: string;
 };
 
 const databaseUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'dev.db')}`;
@@ -60,9 +66,46 @@ const buildThumbhash = async (buffer: Buffer): Promise<string | null> => {
   }
 };
 
+const computePerceptualHash = async (buffer: Buffer): Promise<string | null> => {
+  try {
+    const { data } = await sharp(buffer)
+      .rotate()
+      .resize(8, 8, { fit: 'cover' })
+      .greyscale()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    const pixels = new Uint8Array(data);
+    const mean = pixels.reduce((sum, value) => sum + value, 0) / pixels.length;
+    let hash = 0n;
+    for (const value of pixels) {
+      hash = (hash << 1n) | (value > mean ? 1n : 0n);
+    }
+    return hash.toString(16).padStart(16, '0');
+  } catch (error) {
+    console.warn('Failed to build perceptual hash:', error);
+    return null;
+  }
+};
+
+const computeHashes = async (buffer: Buffer): Promise<ImageHashes | null> => {
+  try {
+    const sha256 = createHash('sha256').update(buffer).digest('hex');
+    const perceptualHash = await computePerceptualHash(buffer);
+    return { sha256, perceptualHash };
+  } catch (error) {
+    console.warn('Failed to compute hashes:', error);
+    return null;
+  }
+};
+
 const updateFileThumbhash = async (file: DbFile): Promise<boolean> => {
   const metadata = parseMetadata(file.metadata);
-  if (typeof metadata.thumbhash === 'string' && metadata.thumbhash.trim().length > 0) {
+  const hasThumbhash = typeof metadata.thumbhash === 'string' && metadata.thumbhash.trim().length > 0;
+  const hasPerceptualHash = typeof metadata.perceptualHash === 'string' && metadata.perceptualHash.trim().length > 0;
+  const hasSha256 = typeof metadata.sha256 === 'string' && metadata.sha256.trim().length > 0;
+
+  if (hasThumbhash && hasPerceptualHash && hasSha256) {
     return false;
   }
 
@@ -77,12 +120,26 @@ const updateFileThumbhash = async (file: DbFile): Promise<boolean> => {
     return false;
   }
 
-  const thumbhash = await buildThumbhash(imageBuffer);
-  if (!thumbhash) {
-    return false;
+  const thumbhash = hasThumbhash ? (metadata.thumbhash as string) : await buildThumbhash(imageBuffer);
+  const hashes = !hasPerceptualHash || !hasSha256 ? await computeHashes(imageBuffer) : null;
+
+  let changed = false;
+  if (!hasThumbhash && thumbhash) {
+    metadata.thumbhash = thumbhash;
+    changed = true;
+  }
+  if (!hasPerceptualHash && hashes?.perceptualHash) {
+    metadata.perceptualHash = hashes.perceptualHash;
+    changed = true;
+  }
+  if (!hasSha256 && hashes?.sha256) {
+    metadata.sha256 = hashes.sha256;
+    changed = true;
   }
 
-  metadata.thumbhash = thumbhash;
+  if (!changed) {
+    return false;
+  }
 
   await prisma.file.update({
     where: { id: file.id },

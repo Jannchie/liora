@@ -230,7 +230,6 @@ const detectImageSize = async (): Promise<void> => {
 
     form.width = size.width;
     form.height = size.height;
-    toast.add({ title: '尺寸已获取', description: `${size.width} × ${size.height}`, color: 'primary' });
   } catch (error) {
     const message = error instanceof Error ? error.message : '读取失败';
     toast.add({ title: '获取尺寸失败', description: message, color: 'error' });

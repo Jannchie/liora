@@ -82,6 +82,8 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     captureTime: existing.captureTime,
     notes: '',
     thumbhash: undefined,
+    perceptualHash: undefined,
+    sha256: undefined,
   });
 
   const kind = ensureKind(body.kind, existing.kind);

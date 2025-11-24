@@ -15,6 +15,8 @@ export interface FileMetadata {
   captureTime: string;
   notes: string;
   thumbhash?: string;
+  perceptualHash?: string;
+  sha256?: string;
 }
 
 export interface FilePayload {
