@@ -1,0 +1,41 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum FileKind {
+  PAINTING
+  PHOTOGRAPHY
+}
+
+model File {
+  id            Int       @id @default(autoincrement())
+  kind          FileKind
+  title         String    @default("")
+  description   String    @default("")
+  imageUrl      String
+  thumbnailUrl  String    @default("")
+  width         Int
+  height        Int
+  fanworkTitle  String    @default("")
+  characterList String    @default("")
+  location      String    @default("")
+  locationName  String    @default("")
+  latitude      Float?
+  longitude     Float?
+  cameraModel   String    @default("")
+  aperture      String    @default("")
+  focalLength   String    @default("")
+  iso           String    @default("")
+  shutterSpeed  String    @default("")
+  captureTime   String    @default("")
+  metadata      String    @default("{}")
+  createdAt     DateTime  @default(now())
+}
