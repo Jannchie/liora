@@ -18,7 +18,7 @@ const route = useRoute()
 const toast = useToast()
 const loggingOut = ref(false)
 
-const activeTab = computed<string>(() => items.find((item) => item.to === route.path)?.value ?? '')
+const activeTab = computed<string>(() => items.find(item => item.to === route.path)?.value ?? '')
 
 async function handleLogout(): Promise<void> {
   loggingOut.value = true
@@ -55,11 +55,6 @@ async function handleTabChange(value: string | number): Promise<void> {
         :items="items"
         :model-value="activeTab"
         :content="false"
-        :ui="{
-          list: 'flex flex-wrap items-center gap-1 p-0',
-          indicator: 'hidden',
-          trigger: 'flex items-center gap-2 rounded-md px-3 py-1.5 text-muted ring-1 ring-transparent transition hover:bg-default/70 hover:text-default data-[state=active]:bg-primary-50 data-[state=active]:text-primary-700 data-[state=active]:ring-primary/30',
-        }"
         @update:model-value="handleTabChange"
       >
         <template #leading="{ item }">

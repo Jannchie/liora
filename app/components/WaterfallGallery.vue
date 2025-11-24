@@ -75,7 +75,12 @@ type ResolvedFile = FileResponse & {
   imageAttrs: ImageAttrs
 }
 
-type WaterfallEntry = ResolvedFile & { entryType: 'file' }
+interface InfoEntry {
+  entryType: 'info'
+  displaySize: DisplaySize
+}
+
+type WaterfallEntry = InfoEntry | (ResolvedFile & { entryType: 'file' })
 
 interface MetadataEntry {
   label: string
@@ -230,7 +235,8 @@ const siteDescription = computed(() => {
   if (customized && customized.length > 0) {
     return customized
   }
-  return resolvedSiteConfig.value.description ?? 'A minimal gallery for photography and illustrations.'
+  const fallback = resolvedSiteConfig.value.description ?? ''
+  return fallback && fallback.length > 0 ? fallback : ''
 })
 const photoCount = computed(() => resolvedFiles.value.length)
 
@@ -257,9 +263,10 @@ const infoCardDisplaySize = computed<DisplaySize>(() => ({
   height: Math.round((columnWidth.value / maxDisplayWidth) * infoCardBaseHeight),
 }))
 
-const waterfallEntries = computed<WaterfallEntry[]>(() =>
-  resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const })),
-)
+const waterfallEntries = computed<WaterfallEntry[]>(() => {
+  const fileEntries = resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const }))
+  return [{ entryType: 'info', displaySize: infoCardDisplaySize.value }, ...fileEntries]
+})
 
 const waterfallItems = computed(() => waterfallEntries.value.map(item => item.displaySize))
 
@@ -655,23 +662,17 @@ function renderHistogram(): void {
       :wrapper-width="wrapperWidth"
       :scroll-element="scrollElement"
     >
-      <div
-        v-for="entry in waterfallEntries"
-        :key="entry.entryType === 'info' ? 'waterfall-info' : entry.id"
-      >
-        <div
+      <template v-for="entry in waterfallEntries" :key="entry.entryType === 'info' ? 'waterfall-info' : entry.id">
+        <WaterfallInfoCard
           v-if="entry.entryType === 'info'"
-        >
-          <WaterfallInfoCard
-            :site-name="siteName"
-            :site-description="siteDescription"
-            :photo-count="photoCount"
-            :social-links="socialLinks"
-            :empty-text="emptyText"
-            :is-loading="isLoading"
-            :display-size="entry.displaySize"
-          />
-        </div>
+          :site-name="siteName"
+          :site-description="siteDescription"
+          :photo-count="photoCount"
+          :social-links="socialLinks"
+          :empty-text="emptyText"
+          :is-loading="isLoading"
+          :display-size="infoCardDisplaySize"
+        />
         <button
           v-else
           type="button"
@@ -697,7 +698,7 @@ function renderHistogram(): void {
             v-bind="entry.imageAttrs"
           >
         </button>
-      </div>
+      </template>
     </Waterfall>
     <div
       v-if="isLoading"
