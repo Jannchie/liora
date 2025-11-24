@@ -65,7 +65,7 @@ async function handleTabChange(value: string | number): Promise<void> {
       </UTabs>
     </div>
     <div class="flex items-center gap-2">
-      <LanguageSwitcher size="xs" />
+      <LanguageSwitcher />
       <UButton to="/" variant="ghost" color="primary">
         <span class="flex items-center gap-2">
           <Icon name="mdi:home-outline" class="h-4 w-4" />

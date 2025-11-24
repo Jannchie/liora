@@ -51,8 +51,8 @@ const loadingText = computed(() => t('home.loading'))
 <template>
   <div ref="scrollContainerRef" class="h-screen w-screen overflow-auto">
     <div class="max-w-[2000px] m-auto">
-      <div class="flex justify-end px-4 pt-4">
-        <LanguageSwitcher size="sm" />
+      <div class="flex justify-end p-4">
+        <LanguageSwitcher />
       </div>
       <UAlert
         v-if="fetchError"

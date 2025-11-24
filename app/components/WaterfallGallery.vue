@@ -70,6 +70,8 @@ interface SocialLink {
 
 type ResolvedFile = FileResponse & {
   coverUrl: string
+  previewUrl: string
+  previewAttrs: ImageAttrs
   displayTitle: string
   placeholder?: string
   placeholderAspectRatio?: number
@@ -176,12 +178,12 @@ function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined,
   return { width, height }
 }
 
-function resolveImageAttrs(src: string, displaySize: DisplaySize): ImageAttrs {
+function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' | 'inside' = 'cover'): ImageAttrs {
   const modifiers = {
     width: displaySize.width,
     height: displaySize.height,
     format: 'webp',
-    fit: 'cover',
+    fit,
   }
   const sizes = image.getSizes(src, {
     modifiers,
@@ -230,15 +232,29 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
       const displayTitle = resolveFileTitle(file, untitledLabel.value)
       const decoded = decodeThumbhash(file.metadata.thumbhash)
       const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
-      const coverUrl = file.imageUrl?.trim() || ''
+      const imageUrl = (file.imageUrl ?? '').trim()
+      const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
+      const baseImageUrl = imageUrl.length > 0 ? imageUrl : thumbnailUrl
+      const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize)
+      const previewSize = computeDisplaySize(
+        file,
+        decoded?.aspectRatio,
+        Math.min(Math.max(displayWidth * 2, 800), Math.min(file.width || Number.MAX_SAFE_INTEGER, 2000)),
+      )
+      const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
+      const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
       return {
         ...file,
+        imageUrl,
+        thumbnailUrl,
         displayTitle,
-        coverUrl,
+        coverUrl: previewUrl,
+        previewUrl,
+        previewAttrs,
         placeholder: decoded?.dataUrl,
         placeholderAspectRatio: decoded?.aspectRatio,
         displaySize,
-        imageAttrs: resolveImageAttrs(coverUrl, displaySize),
+        imageAttrs,
       }
     })
     .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
@@ -468,7 +484,10 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
   if (!file) {
     return null
   }
-  const source = file.placeholder ?? file.coverUrl
+  const source = file.placeholder || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
+  if (!source) {
+    return null
+  }
   return {
     backgroundImage: `url('${source}')`,
   }
@@ -574,31 +593,34 @@ function resetOverlayImage(): void {
 }
 
 function startOverlayImageLoad(file: ResolvedFile): void {
-  overlayImageSrc.value = file.coverUrl
+  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
+  overlayImageSrc.value = previewSrc
   if (typeof Image === 'undefined') {
-    overlayImageSrc.value = file.imageUrl
+    overlayImageSrc.value = file.imageUrl || file.thumbnailUrl || previewSrc
     return
   }
   const loader = new Image()
   overlayImageLoader.value = loader
   loader.crossOrigin = 'anonymous'
   loader.decoding = 'async'
+  const fullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
   const handleLoad = (): void => {
     if (overlayImageLoader.value !== loader) {
       return
     }
-    overlayImageSrc.value = file.imageUrl
+    overlayImageSrc.value = fullImageSrc
     overlayImageLoader.value = null
   }
   const handleError = (): void => {
     if (overlayImageLoader.value !== loader) {
       return
     }
+    overlayImageSrc.value = fullImageSrc
     overlayImageLoader.value = null
   }
   loader.addEventListener('load', handleLoad)
   loader.addEventListener('error', handleError)
-  loader.src = file.imageUrl
+  loader.src = fullImageSrc
 }
 
 function renderHistogram(): void {
@@ -763,9 +785,13 @@ function renderHistogram(): void {
             <div class="flex min-h-0 items-center justify-center overflow-hidden bg-black">
               <img
                 :key="activeFile.id"
-                :src="overlayImageSrc ?? activeFile.coverUrl"
+                :src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
+                :srcset="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.srcset : undefined"
+                :sizes="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.sizes : undefined"
+                :width="activeFile.width"
+                :height="activeFile.height"
                 :alt="activeFile.displayTitle"
-                class="max-h-full max-w-full object-contain"
+                class="h-full w-full object-contain"
               >
             </div>
             <div class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4 md:p-6">
