@@ -118,6 +118,7 @@ const resolvedFiles = computed<ResolvedFile[]>(() =>
 );
 
 const waterfallItems = computed(() => resolvedFiles.value.map((file) => file.displaySize));
+const isPriorityIndex = (index: number): boolean => index === 0;
 
 const updateColumns = (): void => {
   if (typeof window === 'undefined') {
@@ -158,19 +159,21 @@ onBeforeUnmount(() => {
         :items="waterfallItems"
       >
         <div
-          v-for="file in resolvedFiles"
+          v-for="(file, index) in resolvedFiles"
           :key="file.id"
           :style="{ aspectRatio: `${file.displaySize.width} / ${file.displaySize.height}` }"
         >
           <NuxtImg
             :src="file.coverUrl"
-            :alt="file.title || file.fanworkTitle || '作品预览'"
+            :alt="file.title"
             :width="file.displaySize.width"
             :height="file.displaySize.height"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 400px"
             format="webp"
             fit="cover"
-            loading="lazy"
+            :loading="isPriorityIndex(index) ? 'eager' : 'lazy'"
+            :fetchpriority="isPriorityIndex(index) ? 'high' : 'auto'"
+            :preload="isPriorityIndex(index)"
             :placeholder="file.placeholder"
             class="h-full w-full object-cover"
           />

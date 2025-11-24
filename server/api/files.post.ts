@@ -22,6 +22,7 @@ type ParsedForm = {
 
 const THUMBNAIL_MAX_SIZE = 960;
 const SIMILARITY_THRESHOLD = 6;
+const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 
 type ImageHashes = {
   perceptualHash: string | null;
@@ -39,11 +40,20 @@ const computePerceptualHash = async (data: Buffer): Promise<string | null> => {
 
     const pixels = new Uint8Array(raw);
     const mean = pixels.reduce((sum, value) => sum + value, 0) / pixels.length;
-    let hash = 0n;
-    for (const value of pixels) {
-      hash = (hash << 1n) | (value > mean ? 1n : 0n);
+    let nibble = 0;
+    let hex = '';
+    for (let index = 0; index < pixels.length; index += 1) {
+      nibble = (nibble << 1) | (pixels[index] > mean ? 1 : 0);
+      if ((index + 1) % 4 === 0) {
+        hex += nibble.toString(16);
+        nibble = 0;
+      }
     }
-    return hash.toString(16).padStart(16, '0');
+    if (pixels.length % 4 !== 0) {
+      nibble <<= 4 - (pixels.length % 4);
+      hex += nibble.toString(16);
+    }
+    return hex.padStart(16, '0');
   } catch (error) {
     console.warn('Perceptual hash generation failed:', error);
     return null;
@@ -71,11 +81,14 @@ const hammingDistance = (first: string, second: string): number | null => {
   if (!first || !second || first.length !== second.length) {
     return null;
   }
-  let diff = BigInt(`0x${first}`) ^ BigInt(`0x${second}`);
   let distance = 0;
-  while (diff !== 0n) {
-    distance += Number(diff & 1n);
-    diff >>= 1n;
+  for (let index = 0; index < first.length; index += 1) {
+    const left = parseInt(first[index], 16);
+    const right = parseInt(second[index], 16);
+    if (Number.isNaN(left) || Number.isNaN(right)) {
+      return null;
+    }
+    distance += NIBBLE_BIT_COUNTS[left ^ right];
   }
   return distance;
 };
