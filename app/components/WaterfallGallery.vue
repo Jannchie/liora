@@ -31,6 +31,8 @@ const infoCardBaseHeight = 260
 const image = useImage()
 const runtimeConfig = useRuntimeConfig()
 const siteConfig = useSiteConfig()
+const route = useRoute()
+const router = useRouter()
 
 type ImageAttrs = ImageSizes & {
   src: string
@@ -79,6 +81,8 @@ type ResolvedFile = FileResponse & {
   displaySize: DisplaySize
   imageAttrs: ImageAttrs
 }
+
+const overlayRouteKey = 'photo'
 
 interface InfoEntry {
   entryType: 'info'
@@ -225,18 +229,6 @@ function resolveOverlayPlaceholderUrl(src: string | undefined, aspectRatio: numb
   }
   const result = image.getImage(normalized, { modifiers })
   return result?.url ?? normalized
-}
-
-function resolveHistogramUrl(file: ResolvedFile): string {
-  const result = image.getImage(file.imageUrl, {
-    modifiers: {
-      width: 512,
-      height: 512,
-      format: 'webp',
-      fit: 'inside',
-    },
-  })
-  return result?.url ?? file.imageUrl
 }
 
 function runViewTransition(action: () => void): void {
@@ -449,26 +441,75 @@ onBeforeUnmount(() => {
   destroyHistogramChart()
 })
 
-function openOverlay(file: ResolvedFile): void {
+function resolveOverlayRouteId(value: string | string[] | null | undefined): number | null {
+  const normalized = Array.isArray(value) ? value[0] : value
+  if (!normalized) {
+    return null
+  }
+  const parsed = Number.parseInt(normalized, 10)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'replace' = 'push'): Promise<void> {
+  const currentValue = route.query[overlayRouteKey]
+  const currentId = resolveOverlayRouteId(currentValue)
+  const nextValue = fileId === null ? null : String(fileId)
+  if (currentId !== null && nextValue !== null && currentId === fileId) {
+    return
+  }
+  if (currentId === null && nextValue === null) {
+    return
+  }
+  const nextQuery = { ...route.query }
+  if (nextValue === null) {
+    delete nextQuery[overlayRouteKey]
+  }
+  else {
+    nextQuery[overlayRouteKey] = nextValue
+  }
+  const navigate = navigation === 'replace' ? router.replace : router.push
+  await navigate({ query: nextQuery })
+}
+
+function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: ResolvedFile): string | null {
+  const container = event?.currentTarget instanceof HTMLElement ? event.currentTarget : null
+  const imageElement = container?.querySelector('img')
+  if (imageElement instanceof HTMLImageElement) {
+    const currentSrc = imageElement.currentSrc?.trim() ?? ''
+    const fallbackSrc = imageElement.src?.trim() ?? ''
+    const resolved = currentSrc.length > 0 ? currentSrc : fallbackSrc
+    if (resolved.length > 0) {
+      return resolved
+    }
+  }
+  const fallback = file.imageAttrs?.src ?? file.thumbnailUrl ?? ''
+  const normalized = fallback.trim()
+  return normalized.length > 0 ? normalized : null
+}
+
+function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
   activeFile.value = file
-  startOverlayImageLoad(file)
+  startOverlayImageLoad(file, immediateSrc)
   destroyHistogramChart()
   const cachedHistogram = normalizeHistogram(file.metadata.histogram)
   histogram.value = cachedHistogram
-  if (!cachedHistogram) {
-    void prepareHistogram(file)
+  if (syncRoute) {
+    void syncOverlayRoute(file.id, 'push')
   }
 }
 
-function closeOverlay(): void {
+function closeOverlay(syncRoute: boolean = true): void {
   activeFile.value = null
   destroyHistogramChart()
   histogram.value = null
   resetOverlayImage()
+  if (syncRoute) {
+    void syncOverlayRoute(null, 'replace')
+  }
 }
 
-function handleEntryClick(file: ResolvedFile): void {
-  runViewTransition(() => openOverlay(file))
+function handleEntryClick(event: MouseEvent, file: ResolvedFile): void {
+  runViewTransition(() => openOverlay(file, true, resolveInlinePreviewSrc(event, file)))
 }
 
 function handleOverlayClose(): void {
@@ -558,80 +599,40 @@ function handleKeydown(event: KeyboardEvent): void {
     event.preventDefault()
     handleOverlayClose()
   }
+  if (event.key === 'ArrowRight') {
+    event.preventDefault()
+    navigateOverlay(1)
+  }
+  if (event.key === 'ArrowLeft') {
+    event.preventDefault()
+    navigateOverlay(-1)
+  }
 }
+
+const overlayRouteId = computed<number | null>(() => resolveOverlayRouteId(route.query[overlayRouteKey]))
+
+watch([overlayRouteId, resolvedFiles], ([routeId, files]) => {
+  if (routeId === null) {
+    if (activeFile.value) {
+      closeOverlay(false)
+    }
+    return
+  }
+  const target = files.find(file => file.id === routeId)
+  if (!target) {
+    if (activeFile.value) {
+      closeOverlay(false)
+    }
+    return
+  }
+  if (!activeFile.value || activeFile.value.id !== target.id) {
+    openOverlay(target, false)
+  }
+}, { immediate: true })
 
 watch([histogram, histogramCanvasRef], () => {
   renderHistogram()
 }, { flush: 'post' })
-
-function prepareHistogram(file: ResolvedFile): Promise<void> {
-  if (globalThis.document === undefined || typeof Image === 'undefined') {
-    histogram.value = null
-    return Promise.resolve()
-  }
-  return new Promise((resolve) => {
-    const image = new Image()
-    image.crossOrigin = 'anonymous'
-    image.decoding = 'async'
-    function cleanup(): void {
-      image.removeEventListener('load', handleLoad)
-      image.removeEventListener('error', handleError)
-    }
-
-    function handleLoad(): void {
-      const width = Math.max(1, Math.min(image.naturalWidth || image.width, 512))
-      const height = Math.max(1, Math.min(image.naturalHeight || image.height, 512))
-      const canvas = globalThis.document.createElement('canvas')
-      canvas.width = width
-      canvas.height = height
-      const context = canvas.getContext('2d')
-      if (!context) {
-        histogram.value = null
-        resolve()
-        return
-      }
-      context.drawImage(image, 0, 0, width, height)
-      const imageData = context.getImageData(0, 0, width, height)
-      const bins: HistogramData = {
-        red: Array.from({ length: 256 }, () => 0),
-        green: Array.from({ length: 256 }, () => 0),
-        blue: Array.from({ length: 256 }, () => 0),
-        luminance: Array.from({ length: 256 }, () => 0),
-      }
-      for (let index = 0; index < imageData.data.length; index += 4) {
-        const red = imageData.data[index]
-        const green = imageData.data[index + 1]
-        const blue = imageData.data[index + 2]
-        bins.red[red] += 1
-        bins.green[green] += 1
-        bins.blue[blue] += 1
-        const luminance = Math.min(255, Math.max(0, Math.round(0.299 * red + 0.587 * green + 0.114 * blue)))
-        bins.luminance[luminance] += 1
-      }
-      const pixelCount = imageData.width * imageData.height
-      if (pixelCount > 0) {
-        for (const channel of Object.values(bins)) {
-          for (let binIndex = 0; binIndex < channel.length; binIndex += 1) {
-            channel[binIndex] = Number(channel[binIndex] / pixelCount)
-          }
-        }
-      }
-      if (activeFile.value?.id === file.id) {
-        histogram.value = bins
-      }
-      cleanup()
-      resolve()
-    }
-    function handleError(): void {
-      histogram.value = null
-      cleanup()
-      resolve()
-    }
-    image.addEventListener('load', handleLoad)
-    image.addEventListener('error', handleError)
-    image.src = resolveHistogramUrl(file)
-  })
-}
 
 function destroyHistogramChart(): void {
   histogramChart.value?.destroy()
@@ -643,17 +644,46 @@ function resetOverlayImage(): void {
   overlayImageSrc.value = null
 }
 
-function startOverlayImageLoad(file: ResolvedFile): void {
-  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
-  const placeholderSrc = file.placeholder || file.overlayPlaceholderUrl || file.coverUrl || file.thumbnailUrl
-  overlayImageSrc.value = placeholderSrc || previewSrc
-  if (typeof Image === 'undefined') {
-    overlayImageSrc.value = file.imageUrl || file.thumbnailUrl || previewSrc
+function navigateOverlay(offset: number): void {
+  const currentId = activeFile.value?.id ?? null
+  if (currentId === null) {
     return
   }
+  const currentIndex = resolvedFiles.value.findIndex(file => file.id === currentId)
+  if (currentIndex < 0) {
+    return
+  }
+  const nextIndex = currentIndex + offset
+  if (nextIndex < 0 || nextIndex >= resolvedFiles.value.length) {
+    return
+  }
+  const target = resolvedFiles.value[nextIndex]
+  runViewTransition(() => openOverlay(target))
+}
+
+function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null = null): void {
+  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
   const fullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
+  const firstAvailable = [
+    immediateSrc,
+    file.thumbnailUrl,
+    file.imageAttrs?.src,
+    file.coverUrl,
+    file.previewUrl,
+    file.imageUrl,
+    file.placeholder,
+    file.overlayPlaceholderUrl,
+  ].find(value => typeof value === 'string' && value.trim().length > 0)?.trim()
+  overlayImageSrc.value = firstAvailable || previewSrc
+  if (typeof Image === 'undefined') {
+    overlayImageSrc.value = fullImageSrc || overlayImageSrc.value
+    return
+  }
 
   const startFullLoad = (): void => {
+    if (!fullImageSrc) {
+      return
+    }
     const fullLoader = new Image()
     overlayImageLoader.value = fullLoader
     fullLoader.crossOrigin = 'anonymous'
@@ -685,7 +715,7 @@ function startOverlayImageLoad(file: ResolvedFile): void {
     fullLoader.src = fullImageSrc
   }
 
-  if (!previewSrc) {
+  if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
     startFullLoad()
     return
   }
@@ -831,7 +861,7 @@ function renderHistogram(): void {
           type="button"
           class="group relative block h-full w-full focus:outline-none"
           :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
-          @click="handleEntryClick(entry)"
+          @click="handleEntryClick($event, entry)"
         >
           <img
             :key="entry.id"
