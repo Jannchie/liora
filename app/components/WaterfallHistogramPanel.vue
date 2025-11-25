@@ -18,7 +18,7 @@ const props = defineProps<{
   histogram: HistogramData | null
 }>()
 
-const histogramSmoothingKernel = [1, 4, 6, 4, 1]
+const histogramSmoothingKernel = [1, 6, 15, 20, 15, 6, 1]
 
 const { t } = useI18n()
 
@@ -205,7 +205,7 @@ function renderHistogram(): void {
   }
   const baseDataset = {
     pointRadius: 0,
-    tension: 0.35,
+    tension: 0.45,
     cubicInterpolationMode: 'monotone' as const,
     fill: false,
     borderWidth: 2,

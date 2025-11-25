@@ -443,7 +443,7 @@ watch(fetchError, (value) => {
       v-model:open="editModalOpen"
       fullscreen
       scrollable
-      :ui="{ content: 'fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !m-0' }"
+      :ui="{ content: 'fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!' }"
     >
       <template #content>
         <div class="flex h-full flex-col bg-default/85 backdrop-blur">
