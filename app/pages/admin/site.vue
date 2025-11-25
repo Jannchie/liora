@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
 import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
+import { computed, reactive, ref, watch } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
@@ -20,6 +20,9 @@ const toastMessages = computed(() => ({
   reset: t('admin.site.toast.reset'),
   resetDescription: t('admin.site.toast.resetDescription'),
   loadFailed: t('admin.site.toast.loadFailed'),
+  iconUploadSuccess: t('admin.site.toast.iconUploadSuccess'),
+  iconUploadFailed: t('admin.site.toast.iconUploadFailed'),
+  iconUploadFailedFallback: t('admin.site.toast.iconUploadFailedFallback'),
 }))
 
 useSeoMeta({
@@ -56,6 +59,8 @@ const form = reactive<SiteSettingsPayload>({
 })
 
 const saving = ref(false)
+const uploadingIcon = ref(false)
+const iconFileInput = ref<HTMLInputElement | null>(null)
 
 function applySettings(value: SiteSettings | null | undefined): void {
   if (!value) {
@@ -80,6 +85,14 @@ const lastUpdated = computed(() => {
   return Number.isNaN(date.getTime()) ? t('admin.site.lastUpdated.none') : date.toLocaleString()
 })
 
+const resolvedIconPreview = computed(() => {
+  const iconUrl = form.iconUrl?.trim() ?? ''
+  if (iconUrl.length > 0) {
+    return iconUrl
+  }
+  return '/favicon.ico'
+})
+
 async function handleSubmit(): Promise<void> {
   saving.value = true
   try {
@@ -101,6 +114,43 @@ async function handleSubmit(): Promise<void> {
   }
   finally {
     saving.value = false
+  }
+}
+
+function openIconPicker(): void {
+  iconFileInput.value?.click()
+}
+
+async function handleIconFileChange(event: Event): Promise<void> {
+  if (uploadingIcon.value) {
+    return
+  }
+  const target = event.target as HTMLInputElement | null
+  const file = target?.files?.[0]
+  if (!file) {
+    return
+  }
+  if (target) {
+    target.value = ''
+  }
+  uploadingIcon.value = true
+  try {
+    const formData = new FormData()
+    formData.append('icon', file)
+    const updated = await $fetch<SiteSettings>('/api/site/icon', {
+      method: 'POST',
+      body: formData,
+    })
+    applySettings(updated)
+    setSettings(updated)
+    toast.add({ title: toastMessages.value.iconUploadSuccess, color: 'primary' })
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.iconUploadFailedFallback
+    toast.add({ title: toastMessages.value.iconUploadFailed, description: message, color: 'error' })
+  }
+  finally {
+    uploadingIcon.value = false
   }
 }
 
@@ -231,6 +281,47 @@ function handleReset(): void {
               />
               <p class="text-xs text-muted">
                 {{ t('admin.site.fields.icon.help') }}
+              </p>
+              <div class="flex flex-wrap items-center gap-3">
+                <div class="flex items-center gap-2 rounded border border-default/20 bg-default/60 px-3 py-2">
+                  <img
+                    :src="resolvedIconPreview"
+                    alt="Site icon preview"
+                    class="h-10 w-10 rounded border border-default/20 bg-white object-contain"
+                  >
+                  <div class="text-xs text-muted">
+                    <p class="font-semibold text-highlighted">
+                      {{ t('admin.site.fields.icon.previewLabel') }}
+                    </p>
+                    <p>
+                      {{ t('admin.site.fields.icon.previewHelp') }}
+                    </p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <UButton
+                    color="primary"
+                    variant="soft"
+                    :loading="uploadingIcon"
+                    :disabled="saving || loadingSettings || uploadingIcon"
+                    @click="openIconPicker"
+                  >
+                    <span class="flex items-center gap-2">
+                      <Icon name="mdi:image-plus" class="h-4 w-4" />
+                      <span>{{ t('admin.site.fields.icon.upload') }}</span>
+                    </span>
+                  </UButton>
+                  <input
+                    ref="iconFileInput"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                    class="hidden"
+                    @change="handleIconFileChange"
+                  >
+                </div>
+              </div>
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.icon.uploadHelp') }}
               </p>
             </div>
           </div>

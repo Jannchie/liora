@@ -431,7 +431,10 @@
         "saveFailedFallback": "保存失败，请重试",
         "reset": "已重置",
         "resetDescription": "已恢复为当前保存的站点信息。",
-        "loadFailed": "加载站点信息失败"
+        "loadFailed": "加载站点信息失败",
+        "iconUploadSuccess": "图标已更新",
+        "iconUploadFailed": "图标上传失败",
+        "iconUploadFailedFallback": "上传失败，请重试。"
       },
       "badge": "站点信息",
       "title": "编辑站点",
@@ -465,7 +468,11 @@
         "icon": {
           "label": "站点图标",
           "placeholder": "https://example.com/favicon.ico",
-          "help": "支持 https 链接、/ 开头的路径或以 data:image 开头的数据 URI，不填则使用默认图标。"
+          "help": "支持 https 链接、/ 开头的路径或以 data:image 开头的数据 URI，不填则使用默认图标。",
+          "upload": "上传图标",
+          "uploadHelp": "支持 PNG/WebP/ICO/SVG，大小不超过 1MB。上传后会自动替换当前图标。",
+          "previewLabel": "当前图标",
+          "previewHelp": "用于浏览器标签页与收藏夹展示。"
         },
         "github": {
           "placeholder": "https://github.com/username",

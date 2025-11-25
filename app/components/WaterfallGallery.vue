@@ -1835,7 +1835,7 @@ function renderHistogram(): void {
               >
                 <div
                   v-if="overlayZoomIndicatorVisible"
-                  class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+                  class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
                 >
                   {{ overlayZoomLabel }}
                 </div>

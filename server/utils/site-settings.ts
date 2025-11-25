@@ -6,9 +6,11 @@ const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'
 const FALLBACK_ICON_URL = '/favicon.ico'
 
-const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
+function normalizeText(value: string | undefined): string {
+  return value?.trim() ?? ''
+}
 
-const normalizeIconUrl = (value: string | undefined): string => {
+function normalizeIconUrl(value: string | undefined): string {
   const trimmed = normalizeText(value)
   return trimmed.length > 0 ? trimmed : FALLBACK_ICON_URL
 }
@@ -143,6 +145,26 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
       socialWeibo: validated.social.weibo,
+    },
+  })
+  return serialize(updated)
+}
+
+export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
+  const validatedIcon = validateIconUrl(iconUrl)
+  const defaults = resolveDefaultSiteSetting()
+  const updated = await prisma.siteSetting.upsert({
+    where: { id: 1 },
+    update: { iconUrl: validatedIcon },
+    create: {
+      id: 1,
+      name: defaults.name,
+      description: defaults.description,
+      iconUrl: validatedIcon,
+      socialGithub: defaults.social.github,
+      socialTwitter: defaults.social.twitter,
+      socialInstagram: defaults.social.instagram,
+      socialWeibo: defaults.social.weibo,
     },
   })
   return serialize(updated)

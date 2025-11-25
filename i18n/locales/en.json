@@ -431,7 +431,10 @@
         "saveFailedFallback": "Save failed, please retry",
         "reset": "Reset",
         "resetDescription": "Restored the saved site info.",
-        "loadFailed": "Failed to load site info"
+        "loadFailed": "Failed to load site info",
+        "iconUploadSuccess": "Icon updated",
+        "iconUploadFailed": "Icon upload failed",
+        "iconUploadFailedFallback": "Upload failed, please retry."
       },
       "badge": "Site info",
       "title": "Edit site",
@@ -465,7 +468,11 @@
         "icon": {
           "label": "Favicon URL",
           "placeholder": "https://example.com/favicon.ico",
-          "help": "Use an https URL, data:image URI, or a path like /favicon.ico."
+          "help": "Paste an https URL, data:image URI, or a path like /favicon.ico.",
+          "upload": "Upload icon",
+          "uploadHelp": "PNG/WebP/ICO/SVG up to 1MB are supported. Uploading will replace the current icon automatically.",
+          "previewLabel": "Current icon",
+          "previewHelp": "Displayed in browser tabs and bookmarks."
         },
         "github": {
           "placeholder": "https://github.com/username",

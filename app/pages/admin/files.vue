@@ -439,159 +439,183 @@ watch(fetchError, (value) => {
       </section>
     </UContainer>
 
-    <UModal v-model:open="editModalOpen">
+    <UModal
+      v-model:open="editModalOpen"
+      fullscreen
+      scrollable
+      :ui="{ content: 'fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 !top-0 !left-0 !translate-x-0 !translate-y-0 !m-0' }"
+    >
       <template #content>
-        <UCard class="w-full max-w-4xl">
-          <template #header>
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm">
-                  {{ t('admin.files.editModal.lead') }}
-                </p>
-                <h3 class="text-lg font-semibold">
-                  {{ editingFile?.title || t('admin.files.editModal.fallbackTitle') }}
-                </h3>
-                <p class="text-xs text-neutral-500">
-                  {{ t('admin.files.editModal.subtitle') }}
-                </p>
-              </div>
-              <UButton variant="ghost" color="neutral" @click="closeEdit">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.close') }}</span>
-                </span>
-              </UButton>
+        <div class="flex h-full flex-col bg-default/85 backdrop-blur">
+          <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-default/40 bg-default/90 px-5 py-4 backdrop-blur">
+            <div>
+              <p class="text-sm">
+                {{ t('admin.files.editModal.lead') }}
+              </p>
+              <h3 class="text-lg font-semibold">
+                {{ editingFile?.title || t('admin.files.editModal.fallbackTitle') }}
+              </h3>
+              <p class="text-xs text-neutral-500">
+                {{ t('admin.files.editModal.subtitle') }}
+              </p>
             </div>
-          </template>
-          <UForm :state="editForm" class="space-y-5" @submit.prevent="saveEdit">
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:calendar-clock-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">时间与标题</p>
-                  <p class="text-sm text-neutral-600">拍摄时间与摘要信息</p>
+            <UButton variant="ghost" color="neutral" @click="closeEdit">
+              <span class="flex items-center gap-1.5">
+                <Icon name="mdi:close" class="h-4 w-4" />
+                <span>{{ t('common.actions.close') }}</span>
+              </span>
+            </UButton>
+          </div>
+          <div class="relative flex-1 overflow-y-auto px-5 py-4">
+            <UForm :state="editForm" class="space-y-5 pb-16" @submit.prevent="saveEdit">
+              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:calendar-clock-outline" class="h-4 w-4 text-primary" />
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      时间与标题
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                      拍摄时间与摘要信息
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField class="sm:col-span-2" :label="t('admin.files.form.captureTime.label')" name="captureTime">
-                  <UInput v-model="editCaptureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.files.form.captureTime.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.title.label')" name="title">
-                  <UInput v-model="editForm.title" :placeholder="t('admin.files.form.title.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.description.label')" name="description">
-                  <UTextarea v-model="editForm.description" :rows="2" :placeholder="t('admin.files.form.description.placeholder')" />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:account-music-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">作品归属</p>
-                  <p class="text-sm text-neutral-600">同人、角色与说明</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <UFormField class="sm:col-span-2" :label="t('admin.files.form.captureTime.label')" name="captureTime">
+                    <UInput v-model="editCaptureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.files.form.captureTime.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.title.label')" name="title">
+                    <UInput v-model="editForm.title" :placeholder="t('admin.files.form.title.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.description.label')" name="description">
+                    <UTextarea v-model="editForm.description" :rows="2" :placeholder="t('admin.files.form.description.placeholder')" />
+                  </UFormField>
                 </div>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField :label="t('admin.files.form.fanworkTitle.label')" name="fanworkTitle">
-                  <UInput v-model="editForm.fanworkTitle" :placeholder="t('admin.files.form.fanworkTitle.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.characters.label')" name="characters">
-                  <UTextarea v-model="editCharactersText" :rows="2" :placeholder="t('admin.files.form.characters.placeholder')" />
-                </UFormField>
-              </div>
-            </section>
+              </section>
 
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:image-size-select-large" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">尺寸与地点</p>
-                  <p class="text-sm text-neutral-600">画幅与地理信息</p>
+              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:account-music-outline" class="h-4 w-4 text-primary" />
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      作品归属
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                      同人、角色与说明
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField :label="t('admin.files.form.width.label')" name="width">
-                  <UInput v-model.number="editForm.width" type="number" min="1" :placeholder="t('admin.files.form.width.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.height.label')" name="height">
-                  <UInput v-model.number="editForm.height" type="number" min="1" :placeholder="t('admin.files.form.height.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.locationName.label')" name="locationName">
-                  <UInput v-model="editForm.locationName" :placeholder="t('admin.files.form.locationName.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.location.label')" name="location">
-                  <UInput v-model="editForm.location" :placeholder="t('admin.files.form.location.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.latitude.label')" name="latitude">
-                  <UInput v-model.number="editForm.latitude" type="number" step="0.000001" placeholder="39.9087" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.longitude.label')" name="longitude">
-                  <UInput v-model.number="editForm.longitude" type="number" step="0.000001" placeholder="116.3975" />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:camera-wireless-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">器材与曝光</p>
-                  <p class="text-sm text-neutral-600">相机、镜头与曝光数据</p>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <UFormField :label="t('admin.files.form.fanworkTitle.label')" name="fanworkTitle">
+                    <UInput v-model="editForm.fanworkTitle" :placeholder="t('admin.files.form.fanworkTitle.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.characters.label')" name="characters">
+                    <UTextarea v-model="editCharactersText" :rows="2" :placeholder="t('admin.files.form.characters.placeholder')" />
+                  </UFormField>
                 </div>
-              </div>
-              <UFormField :label="t('admin.files.form.cameraModel.label')" name="cameraModel">
-                <UInput v-model="editForm.cameraModel" :placeholder="t('admin.files.form.cameraModel.placeholder')" />
-              </UFormField>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <UFormField :label="t('admin.files.form.aperture.label')" name="aperture">
-                  <UInput v-model="editForm.aperture" :placeholder="t('admin.files.form.aperture.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.focalLength.label')" name="focalLength">
-                  <UInput v-model="editForm.focalLength" :placeholder="t('admin.files.form.focalLength.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.files.form.shutterSpeed.label')" name="shutterSpeed">
-                  <UInput v-model="editForm.shutterSpeed" :placeholder="t('admin.files.form.shutterSpeed.placeholder')" />
-                </UFormField>
-                <UFormField name="iso" label="ISO">
-                  <UInput v-model="editForm.iso" placeholder="800" />
-                </UFormField>
-              </div>
-            </section>
+              </section>
 
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">备注</p>
-                  <p class="text-sm text-neutral-600">补充记录与检索标签</p>
+              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:image-size-select-large" class="h-4 w-4 text-primary" />
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      尺寸与地点
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                      画幅与地理信息
+                    </p>
+                  </div>
                 </div>
-              </div>
-              <UFormField :label="t('admin.files.form.notes.label')" name="notes">
-                <UTextarea v-model="editForm.notes" :rows="2" :placeholder="t('admin.files.form.notes.placeholder')" />
-              </UFormField>
-            </section>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <UFormField :label="t('admin.files.form.width.label')" name="width">
+                    <UInput v-model.number="editForm.width" type="number" min="1" :placeholder="t('admin.files.form.width.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.height.label')" name="height">
+                    <UInput v-model.number="editForm.height" type="number" min="1" :placeholder="t('admin.files.form.height.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.locationName.label')" name="locationName">
+                    <UInput v-model="editForm.locationName" :placeholder="t('admin.files.form.locationName.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.location.label')" name="location">
+                    <UInput v-model="editForm.location" :placeholder="t('admin.files.form.location.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.latitude.label')" name="latitude">
+                    <UInput v-model.number="editForm.latitude" type="number" step="0.000001" placeholder="39.9087" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.longitude.label')" name="longitude">
+                    <UInput v-model.number="editForm.longitude" type="number" step="0.000001" placeholder="116.3975" />
+                  </UFormField>
+                </div>
+              </section>
 
-            <div class="flex justify-end gap-2">
-              <UButton variant="ghost" color="neutral" @click="closeEdit">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:arrow-left" class="h-4 w-4" />
-                  <span>{{ t('common.actions.cancel') }}</span>
-                </span>
-              </UButton>
-              <UButton color="primary" type="submit" :loading="updating">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:content-save-outline" class="h-4 w-4" />
-                  <span>{{ t('common.actions.save') }}</span>
-                </span>
-              </UButton>
-            </div>
-          </UForm>
-        </UCard>
+              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:camera-wireless-outline" class="h-4 w-4 text-primary" />
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      器材与曝光
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                      相机、镜头与曝光数据
+                    </p>
+                  </div>
+                </div>
+                <UFormField :label="t('admin.files.form.cameraModel.label')" name="cameraModel">
+                  <UInput v-model="editForm.cameraModel" :placeholder="t('admin.files.form.cameraModel.placeholder')" />
+                </UFormField>
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <UFormField :label="t('admin.files.form.aperture.label')" name="aperture">
+                    <UInput v-model="editForm.aperture" :placeholder="t('admin.files.form.aperture.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.focalLength.label')" name="focalLength">
+                    <UInput v-model="editForm.focalLength" :placeholder="t('admin.files.form.focalLength.placeholder')" />
+                  </UFormField>
+                  <UFormField :label="t('admin.files.form.shutterSpeed.label')" name="shutterSpeed">
+                    <UInput v-model="editForm.shutterSpeed" :placeholder="t('admin.files.form.shutterSpeed.placeholder')" />
+                  </UFormField>
+                  <UFormField name="iso" label="ISO">
+                    <UInput v-model="editForm.iso" placeholder="800" />
+                  </UFormField>
+                </div>
+              </section>
+
+              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
+                  <div>
+                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                      备注
+                    </p>
+                    <p class="text-sm text-neutral-600">
+                      补充记录与检索标签
+                    </p>
+                  </div>
+                </div>
+                <UFormField :label="t('admin.files.form.notes.label')" name="notes">
+                  <UTextarea v-model="editForm.notes" :rows="2" :placeholder="t('admin.files.form.notes.placeholder')" />
+                </UFormField>
+              </section>
+
+              <div class="sticky bottom-0 flex justify-end gap-2 border-t border-default/30 bg-default/90 px-1 py-3 backdrop-blur">
+                <UButton variant="ghost" color="neutral" @click="closeEdit">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:arrow-left" class="h-4 w-4" />
+                    <span>{{ t('common.actions.cancel') }}</span>
+                  </span>
+                </UButton>
+                <UButton color="primary" type="submit" :loading="updating">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:content-save-outline" class="h-4 w-4" />
+                    <span>{{ t('common.actions.save') }}</span>
+                  </span>
+                </UButton>
+              </div>
+            </UForm>
+          </div>
+        </div>
       </template>
     </UModal>
-
     <UModal v-model:open="deleteModalOpen">
       <template #content>
         <UCard class="w-full max-w-xl">
