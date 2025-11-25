@@ -23,7 +23,7 @@ const props = withDefaults(
   },
 )
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const maxDisplayWidth = 400
 const waterfallGap = 4
@@ -51,6 +51,13 @@ const activeFile = ref<ResolvedFile | null>(null)
 const histogram = ref<HistogramData | null>(null)
 const overlayImageSrc = ref<string | null>(null)
 const overlayImageLoader = ref<HTMLImageElement | null>(null)
+const overlayImageAbortController = ref<AbortController | null>(null)
+const overlayImageObjectUrl = ref<string | null>(null)
+const overlayDownloadState = ref<OverlayDownloadState>({
+  status: 'idle',
+  loaded: 0,
+  total: null,
+})
 const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
 const histogramChart = ref<Chart | null>(null)
 
@@ -82,6 +89,14 @@ type ResolvedFile = FileResponse & {
   imageAttrs: ImageAttrs
 }
 
+type OverlayDownloadStatus = 'idle' | 'loading' | 'done' | 'error'
+
+interface OverlayDownloadState {
+  status: OverlayDownloadStatus
+  loaded: number
+  total: number | null
+}
+
 const overlayRouteKey = 'photo'
 
 interface InfoEntry {
@@ -94,6 +109,11 @@ type WaterfallEntry = InfoEntry | (ResolvedFile & { entryType: 'file' })
 interface MetadataEntry {
   label: string
   value: string
+  icon: string
+}
+
+interface OverlayStat {
+  label: string
   icon: string
 }
 
@@ -169,6 +189,20 @@ function resolveSortTimestamp(file: FileResponse): number {
 
 function resolveKindLabel(kind: FileResponse['kind']): string {
   return kind === 'PHOTOGRAPHY' ? t('common.kinds.photography') : t('common.kinds.painting')
+}
+
+function formatDisplayDateTime(value: string | undefined): string | undefined {
+  if (!value) {
+    return undefined
+  }
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return toDisplayText(value)
+  }
+  return new Intl.DateTimeFormat(locale.value || undefined, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(parsed)
 }
 
 function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined, targetWidth: number): DisplaySize {
@@ -568,12 +602,68 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   if (exposureParts.length > 0) {
     entries.push({ label: metadataLabels.value.exposure, value: exposureParts.join(' · '), icon: 'mdi:tune' })
   }
-  const captureTime = toDisplayText(metadata.captureTime)
+  const captureTime = formatDisplayDateTime(metadata.captureTime)
   if (captureTime) {
     entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'mdi:clock-outline' })
   }
   entries.push({ label: metadataLabels.value.size, value: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' })
   return entries
+})
+
+const overlayStats = computed<OverlayStat[]>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return []
+  }
+  const stats: OverlayStat[] = [
+    { label: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' },
+  ]
+  const captureTime = formatDisplayDateTime(file.metadata.captureTime)
+  if (captureTime) {
+    stats.push({ label: captureTime, icon: 'mdi:clock-outline' })
+  }
+  stats.push({
+    label: resolveKindLabel(file.kind),
+    icon: file.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline',
+  })
+  return stats
+})
+
+function formatBytes(value: number | null): string {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+    return '0 B'
+  }
+  const units = ['B', 'KB', 'MB', 'GB', 'TB']
+  let size = value
+  let unitIndex = 0
+  while (size >= 1024 && unitIndex < units.length - 1) {
+    size /= 1024
+    unitIndex += 1
+  }
+  const precision = size >= 10 || unitIndex === 0 ? 0 : 1
+  return `${size.toFixed(precision)} ${units[unitIndex]}`
+}
+
+const overlayDownloadPercent = computed<number | null>(() => {
+  const state = overlayDownloadState.value
+  if (state.status !== 'loading' || state.total === null || state.total <= 0) {
+    return null
+  }
+  return Math.min(100, Math.round((state.loaded / state.total) * 100))
+})
+
+const overlayDownloadLabel = computed<string | null>(() => {
+  const state = overlayDownloadState.value
+  if (state.status !== 'loading' || state.total === null || state.total <= 0) {
+    return null
+  }
+  const loadedText = formatBytes(state.loaded)
+  return `${loadedText} / ${formatBytes(state.total)}`
+})
+
+const overlayDownloadVisible = computed<boolean>(() => {
+  const state = overlayDownloadState.value
+  return state.status === 'loading' && state.total !== null && state.total > 0
 })
 
 const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
@@ -641,9 +731,32 @@ function destroyHistogramChart(): void {
   histogramChart.value = null
 }
 
+function abortOverlayImageFetch(): void {
+  overlayImageAbortController.value?.abort()
+  overlayImageAbortController.value = null
+}
+
+function revokeOverlayObjectUrl(): void {
+  if (overlayImageObjectUrl.value) {
+    URL.revokeObjectURL(overlayImageObjectUrl.value)
+    overlayImageObjectUrl.value = null
+  }
+}
+
+function resetOverlayDownload(): void {
+  overlayDownloadState.value = {
+    status: 'idle',
+    loaded: 0,
+    total: null,
+  }
+}
+
 function resetOverlayImage(): void {
+  abortOverlayImageFetch()
+  revokeOverlayObjectUrl()
   overlayImageLoader.value = null
   overlayImageSrc.value = null
+  resetOverlayDownload()
 }
 
 function navigateOverlay(offset: number): void {
@@ -664,6 +777,10 @@ function navigateOverlay(offset: number): void {
 }
 
 function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null = null): void {
+  abortOverlayImageFetch()
+  revokeOverlayObjectUrl()
+  resetOverlayDownload()
+  overlayImageLoader.value = null
   const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
   const fullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
   const firstAvailable = [
@@ -682,43 +799,78 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     return
   }
 
-  const startFullLoad = (): void => {
+  const applyBlobSrc = (blob: Blob): void => {
+    if (overlayImageAbortController.value?.signal.aborted) {
+      return
+    }
+    revokeOverlayObjectUrl()
+    const objectUrl = URL.createObjectURL(blob)
+    overlayImageObjectUrl.value = objectUrl
+    overlayImageSrc.value = objectUrl
+  }
+
+  const startFullLoad = async (): Promise<void> => {
     if (!fullImageSrc) {
       return
     }
-    const fullLoader = new Image()
-    overlayImageLoader.value = fullLoader
-    fullLoader.crossOrigin = 'anonymous'
-    fullLoader.decoding = 'async'
-    const handleFullLoad = async (): Promise<void> => {
-      if (overlayImageLoader.value !== fullLoader) {
+    if (typeof fetch === 'undefined') {
+      overlayImageSrc.value = fullImageSrc
+      return
+    }
+    const controller = new AbortController()
+    overlayImageAbortController.value = controller
+    overlayDownloadState.value = { status: 'loading', loaded: 0, total: null }
+    try {
+      const response = await fetch(fullImageSrc, {
+        signal: controller.signal,
+        mode: 'cors',
+        credentials: 'omit',
+      })
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`)
+      }
+      const contentLengthHeader = response.headers.get('content-length')
+      const parsedTotal = contentLengthHeader ? Number.parseInt(contentLengthHeader, 10) : null
+      const total = typeof parsedTotal === 'number' && Number.isFinite(parsedTotal) ? parsedTotal : null
+      if (!response.body) {
+        const blob = await response.blob()
+        overlayDownloadState.value = { status: 'done', loaded: blob.size, total: total ?? blob.size }
+        applyBlobSrc(blob)
         return
       }
-      if (fullLoader.decode) {
-        try {
-          await fullLoader.decode()
+      const reader = response.body.getReader()
+      const chunks: Uint8Array[] = []
+      let loaded = 0
+      overlayDownloadState.value = { status: 'loading', loaded, total }
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) {
+          break
         }
-        catch {
-          // Ignore decode errors and still swap the src.
+        if (value) {
+          chunks.push(value)
+          loaded += value.length
+          overlayDownloadState.value = { status: 'loading', loaded, total }
         }
       }
-      overlayImageSrc.value = fullImageSrc
-      overlayImageLoader.value = null
+      const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'image/jpeg' })
+      overlayDownloadState.value = { status: 'done', loaded: blob.size, total: total ?? blob.size }
+      applyBlobSrc(blob)
     }
-    const handleFullError = (): void => {
-      if (overlayImageLoader.value !== fullLoader) {
+    catch {
+      if (controller.signal.aborted) {
         return
       }
+      overlayDownloadState.value = { status: 'error', loaded: 0, total: null }
       overlayImageSrc.value = fullImageSrc
-      overlayImageLoader.value = null
     }
-    fullLoader.addEventListener('load', handleFullLoad)
-    fullLoader.addEventListener('error', handleFullError)
-    fullLoader.src = fullImageSrc
+    finally {
+      overlayImageAbortController.value = null
+    }
   }
 
   if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
-    startFullLoad()
+    void startFullLoad()
     return
   }
 
@@ -739,13 +891,15 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       }
     }
     overlayImageSrc.value = previewSrc
-    startFullLoad()
+    overlayImageLoader.value = null
+    void startFullLoad()
   }
   const handlePreviewError = (): void => {
     if (overlayImageLoader.value !== previewLoader) {
       return
     }
-    startFullLoad()
+    overlayImageLoader.value = null
+    void startFullLoad()
   }
   previewLoader.addEventListener('load', handlePreviewLoad)
   previewLoader.addEventListener('error', handlePreviewError)
@@ -911,13 +1065,14 @@ function renderHistogram(): void {
         />
         <div class="absolute inset-0" @click="handleOverlayClose" />
         <div class="relative flex h-full w-full">
-          <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-6">
-            <div class="flex min-h-0 items-center justify-center overflow-hidden bg-black">
+          <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0">
+            <div class="relative flex min-h-0 items-center justify-center overflow-hidden bg-black">
               <img
                 :key="activeFile.id"
                 :src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
                 :srcset="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.srcset : undefined"
                 :sizes="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.sizes : undefined"
+                crossorigin="anonymous"
                 :width="activeFile.width"
                 :height="activeFile.height"
                 :style="[
@@ -935,36 +1090,55 @@ function renderHistogram(): void {
                 loading="eager"
                 class="h-full w-full object-contain"
               >
+              <OverlayDownloadBadge
+                :visible="overlayDownloadVisible"
+                :label="overlayDownloadLabel"
+                :percent="overlayDownloadPercent"
+              />
             </div>
-            <div class="flex min-h-0 flex-col gap-4 overflow-y-auto p-4 md:p-6">
-              <div class="flex items-start justify-between gap-3">
-                <div class="space-y-1">
-                  <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">
-                    <Icon
-                      :name="activeFile.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline'"
-                      class="h-4 w-4"
-                    />
-                    <span>{{ resolveKindLabel(activeFile.kind) }}</span>
-                  </p>
-                  <h3 class="text-lg font-semibold leading-snug">
-                    {{ activeFile.displayTitle }}
-                  </h3>
+            <div class="flex min-h-0 flex-col gap-5 overflow-y-auto p-4 md:border-l md:border-default/20 md:p-6">
+              <div class="space-y-3">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="space-y-1">
+                    <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">
+                      <Icon
+                        :name="activeFile.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline'"
+                        class="h-4 w-4"
+                      />
+                      <span>{{ resolveKindLabel(activeFile.kind) }}</span>
+                    </p>
+                    <h3 class="text-lg font-semibold leading-snug text-highlighted">
+                      {{ activeFile.displayTitle }}
+                    </h3>
+                  </div>
+                  <button
+                    type="button"
+                    class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
+                    @click="handleOverlayClose"
+                  >
+                    <Icon name="mdi:close" class="h-4 w-4" />
+                    <span>{{ t('common.actions.close') }}</span>
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  class="flex items-center gap-2 px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
-                  @click="handleOverlayClose"
-                >
-                  <Icon name="mdi:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.close') }}</span>
-                </button>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
+                  <div
+                    v-for="stat in overlayStats"
+                    :key="`${stat.icon}-${stat.label}`"
+                    class="inline-flex items-center gap-1 rounded-full bg-default/60 px-2 py-1 text-highlighted ring-1 ring-default/20"
+                  >
+                    <Icon :name="stat.icon" class="h-3.5 w-3.5" />
+                    <span class="leading-none">{{ stat.label }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="space-y-3 bg-elevated p-3 text-default">
-                <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                  <Icon name="mdi:chart-line" class="h-4 w-4 text-info-500" />
-                  <span>{{ t('gallery.histogram.title') }}</span>
-                </p>
-                <div class="relative h-32 w-full">
+              <div class="rounded-lg border border-default/20 bg-elevated/80">
+                <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                  <div class="flex items-center gap-2">
+                    <Icon name="mdi:chart-line" class="h-4 w-4" />
+                    <span>{{ t('gallery.histogram.title') }}</span>
+                  </div>
+                </div>
+                <div class="relative h-32 w-full p-3">
                   <canvas ref="histogramCanvasRef" class="h-full w-full" />
                   <div
                     v-if="!histogram"
@@ -975,27 +1149,38 @@ function renderHistogram(): void {
                   </div>
                 </div>
               </div>
-              <div class="space-y-3 text-sm text-default">
-                <div
-                  v-for="item in metadataEntries"
-                  :key="item.label"
-                  class="bg-elevated p-3"
-                >
-                  <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    <Icon :name="item.icon" class="h-4 w-4" />
-                    <span>{{ item.label }}</span>
-                  </p>
-                  <p class="mt-1 whitespace-pre-line wrap-break-word leading-relaxed text-highlighted">
-                    {{ item.value }}
-                  </p>
-                </div>
-                <div v-if="metadataEntries.length === 0" class="bg-elevated p-3">
-                  <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+              <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
+                <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                  <div class="flex items-center gap-2">
                     <Icon name="mdi:information-outline" class="h-4 w-4" />
                     <span>{{ t('gallery.metadata.section') }}</span>
+                  </div>
+                  <span class="rounded-full bg-default/60 px-2 py-[2px] text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
+                    {{ metadataEntries.length }}
+                  </span>
+                </div>
+                <div v-if="metadataEntries.length > 0" class="divide-y divide-default/10">
+                  <div
+                    v-for="item in metadataEntries"
+                    :key="item.label"
+                    class="grid gap-1 px-3 py-3"
+                  >
+                    <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                      <Icon :name="item.icon" class="h-4 w-4" />
+                      <span>{{ item.label }}</span>
+                    </p>
+                    <p class="text-base leading-relaxed text-highlighted">
+                      {{ item.value }}
+                    </p>
+                  </div>
+                </div>
+                <div v-else class="px-3 py-4 text-sm text-muted">
+                  <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                    <Icon name="mdi:alert-circle-outline" class="h-4 w-4" />
+                    <span>{{ t('gallery.metadata.section') }}</span>
                   </p>
-                  <p class="mt-1 flex items-center gap-2 text-highlighted">
-                    <Icon name="mdi:alert-circle-outline" class="h-4 w-4 text-muted" />
+                  <p class="mt-2 flex items-center gap-2 text-highlighted">
+                    <Icon name="mdi:information-outline" class="h-4 w-4 text-muted" />
                     <span>{{ t('gallery.metadata.empty') }}</span>
                   </p>
                 </div>
