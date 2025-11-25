@@ -8,10 +8,19 @@ const options = computed(() => locales.value.map((item) => {
   const value = typeof item === 'string' ? item : item.code
   return { label, value }
 }))
+
+function isLocaleCode(value: unknown): value is typeof locale.value {
+  if (typeof value !== 'string') {
+    return false
+  }
+  const codes = locales.value.map(entry => (typeof entry === 'string' ? entry : entry.code))
+  return codes.includes(value as typeof locale.value)
+}
+
 const model = computed({
   get: () => locale.value,
   set: (value: string | number | null | undefined) => {
-    if (typeof value === 'string') {
+    if (isLocaleCode(value)) {
       void setLocale(value)
     }
   },

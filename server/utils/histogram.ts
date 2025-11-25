@@ -24,17 +24,28 @@ export async function computeHistogram(data: Buffer): Promise<HistogramData | nu
       luminance: Array.from({ length: 256 }, () => 0),
     }
 
+    const incrementChannel = (channel: number[], value: number): void => {
+      if (value < 0 || value >= channel.length) {
+        return
+      }
+      const current = channel[value]
+      if (current === undefined) {
+        return
+      }
+      channel[value] = current + 1
+    }
+
     for (let index = 0; index < raw.length; index += channels) {
       const red = raw[index] ?? 0
       const green = raw[index + 1] ?? red
       const blue = raw[index + 2] ?? green
 
-      histogram.red[red] += 1
-      histogram.green[green] += 1
-      histogram.blue[blue] += 1
+      incrementChannel(histogram.red, red)
+      incrementChannel(histogram.green, green)
+      incrementChannel(histogram.blue, blue)
 
       const luminance = Math.min(255, Math.max(0, Math.round(0.299 * red + 0.587 * green + 0.114 * blue)))
-      histogram.luminance[luminance] += 1
+      incrementChannel(histogram.luminance, luminance)
     }
 
     const pixelCount = width * height

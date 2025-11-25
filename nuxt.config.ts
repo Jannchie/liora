@@ -87,7 +87,6 @@ export default defineNuxtConfig({
   i18n: {
     strategy: 'no_prefix',
     defaultLocale,
-    lazy: true,
     langDir: 'locales',
     locales: [
       { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
@@ -107,6 +106,26 @@ export default defineNuxtConfig({
     defaultLocale,
     indexable: siteIndexable,
     env: siteEnv,
+  },
+  sitemap: {
+    sitemapName: 'sitemap.xml',
+    exclude: ['/admin/**', '/api/**'],
+    defaults: {
+      changefreq: 'weekly',
+    },
+  },
+  robots: {
+    sitemap: siteUrl ? [`${siteUrl}/sitemap.xml`] : [],
+    disallow: ['/admin', '/admin/**', '/api/**'],
+  },
+  ogImage: {
+    defaults: {
+      component: 'LioraCard',
+      width: 1200,
+      height: 630,
+    },
+    fonts: ['Noto Serif SC:400', 'Noto Serif SC:700', 'Noto Serif JP:400', 'Noto Serif JP:700'],
+    googleFontMirror: true,
   },
   image: {
     domains: resolveDomains(),

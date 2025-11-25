@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
 import { computed, reactive, ref, watch } from 'vue'
+import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
+import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
 definePageMeta({
@@ -29,18 +30,23 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const { data: settingsData, pending: loadingSettings, error: settingsError } = await useFetch<SiteSettings>('/api/site', {
-  default: () => ({
-    name: 'Liora Gallery',
-    description: 'A minimal gallery for photography and illustrations.',
-    social: { github: '', twitter: '', instagram: '', weibo: '' },
-    updatedAt: new Date().toISOString(),
-  }),
-})
+const {
+  settings: settingsState,
+  loading: loadingSettingsState,
+  error: settingsErrorState,
+  load: loadSettings,
+  setSettings,
+} = useSiteSettingsState()
+
+await loadSettings(true)
+
+const loadingSettings = computed(() => loadingSettingsState.value)
+const settingsError = computed(() => settingsErrorState.value)
 
 const form = reactive<SiteSettingsPayload>({
   name: '',
   description: '',
+  iconUrl: '',
   social: {
     github: '',
     twitter: '',
@@ -57,19 +63,20 @@ function applySettings(value: SiteSettings | null | undefined): void {
   }
   form.name = value.name
   form.description = value.description
+  form.iconUrl = value.iconUrl
   form.social.github = value.social.github
   form.social.twitter = value.social.twitter
   form.social.instagram = value.social.instagram
   form.social.weibo = value.social.weibo
 }
 
-watch(settingsData, applySettings, { immediate: true })
+watch(settingsState, applySettings, { immediate: true })
 
 const lastUpdated = computed(() => {
-  if (!settingsData.value?.updatedAt) {
+  if (!settingsState.value?.updatedAt) {
     return t('admin.site.lastUpdated.none')
   }
-  const date = new Date(settingsData.value.updatedAt)
+  const date = new Date(settingsState.value.updatedAt)
   return Number.isNaN(date.getTime()) ? t('admin.site.lastUpdated.none') : date.toLocaleString()
 })
 
@@ -81,10 +88,11 @@ async function handleSubmit(): Promise<void> {
       body: {
         name: form.name,
         description: form.description,
+        iconUrl: form.iconUrl,
         social: { ...form.social },
       },
     })
-    settingsData.value = updated
+    setSettings(updated)
     toast.add({ title: toastMessages.value.saveSuccess, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
   }
   catch (error) {
@@ -97,7 +105,7 @@ async function handleSubmit(): Promise<void> {
 }
 
 function handleReset(): void {
-  applySettings(settingsData.value)
+  applySettings(settingsState.value)
   toast.add({ title: toastMessages.value.reset, description: toastMessages.value.resetDescription, color: 'neutral' })
 }
 </script>
@@ -208,6 +216,21 @@ function handleReset(): void {
               />
               <p class="text-xs text-muted">
                 {{ t('admin.site.fields.description.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:link-variant" class="h-4 w-4" />
+                <span>{{ t('admin.site.fields.icon.label') }}</span>
+              </div>
+              <UInput
+                v-model="form.iconUrl"
+                :placeholder="t('admin.site.fields.icon.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.icon.help') }}
               </p>
             </div>
           </div>

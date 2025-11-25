@@ -349,6 +349,11 @@
           "placeholder": "用于首页展示的简介，可留空",
           "help": "简介会展示在瀑布流信息卡，建议 1-2 句说明站点定位，可留空。"
         },
+        "icon": {
+          "label": "站点图标",
+          "placeholder": "https://example.com/favicon.ico",
+          "help": "支持 https 链接、/ 开头的路径或以 data:image 开头的数据 URI，不填则使用默认图标。"
+        },
         "github": {
           "placeholder": "https://github.com/username",
           "help": "需要完整链接（含 https://），留空则不显示。"

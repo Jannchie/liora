@@ -8,6 +8,7 @@ export interface SiteSocialLinks {
 export interface SiteSettingsPayload {
   name: string
   description: string
+  iconUrl: string
   social: SiteSocialLinks
 }
 

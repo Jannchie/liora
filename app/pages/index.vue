@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import type { FileResponse } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
+import { defineOgImageComponent } from '#imports'
 import { computed, ref } from 'vue'
+import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
 
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })
-const { data: siteSettingsData } = await useFetch<SiteSettings | null>('/api/site', {
-  default: () => null,
-})
 
-const siteSettings = computed<SiteSettings | null>(() => siteSettingsData.value ?? null)
+const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
+await loadSiteSettings()
+
+const siteSettings = computed<SiteSettings | null>(() => siteSettingsState.value)
 const defaultTitle = computed(() => t('home.defaultTitle'))
 const defaultDescription = computed(() => t('home.defaultDescription'))
 const pageTitle = computed(() => {
@@ -30,15 +32,8 @@ const pageDescription = computed(() => {
   return defaultDescription.value
 })
 
-useSeoMeta({
-  title: () => pageTitle.value,
-  ogTitle: () => pageTitle.value,
-  description: () => pageDescription.value,
-  ogDescription: () => pageDescription.value,
-  twitterCard: 'summary_large_image',
-})
-
 const files = computed<FileResponse[]>(() => data.value ?? [])
+const totalFiles = computed(() => files.value.length)
 const isLoading = computed(() => pending.value)
 const fetchError = computed(() => error.value)
 const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
@@ -46,6 +41,17 @@ const alertTitle = computed(() => fetchError.value?.message ?? t('home.fetchFail
 const alertDescription = computed(() => t('home.fetchFailedDescription'))
 const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
+
+usePageSeo({
+  title: pageTitle,
+  description: pageDescription,
+})
+
+defineOgImageComponent('LioraCard', {
+  title: () => pageTitle.value,
+  description: () => pageDescription.value,
+  itemCount: () => totalFiles.value,
+})
 </script>
 
 <template>

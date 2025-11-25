@@ -1,0 +1,19 @@
+-- RedefineTables
+PRAGMA defer_foreign_keys=ON;
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_SiteSetting" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT DEFAULT 1,
+    "name" TEXT NOT NULL DEFAULT 'Liora Gallery',
+    "description" TEXT NOT NULL DEFAULT 'A minimal gallery for photography and illustrations.',
+    "iconUrl" TEXT NOT NULL DEFAULT '/favicon.ico',
+    "socialGithub" TEXT NOT NULL DEFAULT '',
+    "socialTwitter" TEXT NOT NULL DEFAULT '',
+    "socialInstagram" TEXT NOT NULL DEFAULT '',
+    "socialWeibo" TEXT NOT NULL DEFAULT '',
+    "updatedAt" DATETIME NOT NULL
+);
+INSERT INTO "new_SiteSetting" ("description", "id", "name", "socialGithub", "socialInstagram", "socialTwitter", "socialWeibo", "updatedAt") SELECT "description", "id", "name", "socialGithub", "socialInstagram", "socialTwitter", "socialWeibo", "updatedAt" FROM "SiteSetting";
+DROP TABLE "SiteSetting";
+ALTER TABLE "new_SiteSetting" RENAME TO "SiteSetting";
+PRAGMA foreign_keys=ON;
+PRAGMA defer_foreign_keys=OFF;

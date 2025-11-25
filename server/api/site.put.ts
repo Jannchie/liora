@@ -7,6 +7,7 @@ function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPaylo
   return {
     name: typeof body.name === 'string' ? body.name : '',
     description: typeof body.description === 'string' ? body.description : '',
+    iconUrl: typeof body.iconUrl === 'string' ? body.iconUrl : '',
     social: {
       github: typeof body.social?.github === 'string' ? body.social.github : '',
       twitter: typeof body.social?.twitter === 'string' ? body.social.twitter : '',

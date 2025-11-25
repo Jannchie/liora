@@ -4,8 +4,39 @@ import { prisma } from './prisma'
 
 const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'
+const FALLBACK_ICON_URL = '/favicon.ico'
 
 const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
+
+const normalizeIconUrl = (value: string | undefined): string => {
+  const trimmed = normalizeText(value)
+  return trimmed.length > 0 ? trimmed : FALLBACK_ICON_URL
+}
+
+function validateIconUrl(value: string): string {
+  const normalized = normalizeText(value)
+  if (normalized.length === 0) {
+    return FALLBACK_ICON_URL
+  }
+
+  const lowered = normalized.toLowerCase()
+  if (lowered.startsWith('data:image')) {
+    return normalized
+  }
+
+  try {
+    const resolved = new URL(normalized, 'http://localhost')
+    const protocol = resolved.protocol
+    if (protocol === 'http:' || protocol === 'https:') {
+      return normalized
+    }
+  }
+  catch {
+    // fall through to error
+  }
+
+  throw createError({ statusCode: 400, statusMessage: 'Icon URL must be an http(s) URL, a relative path, or a data:image URI.' })
+}
 
 function resolveDefaultSocial(): SiteSocialLinks {
   const runtimeConfig = useRuntimeConfig()
@@ -21,11 +52,13 @@ function resolveDefaultSocial(): SiteSocialLinks {
 function resolveDefaultSiteSetting(): {
   name: string
   description: string
+  iconUrl: string
   social: SiteSocialLinks
 } {
   return {
     name: FALLBACK_NAME,
     description: FALLBACK_DESCRIPTION,
+    iconUrl: FALLBACK_ICON_URL,
     social: resolveDefaultSocial(),
   }
 }
@@ -34,6 +67,7 @@ function serialize(setting: SiteSetting): SiteSettings {
   return {
     name: setting.name,
     description: setting.description,
+    iconUrl: normalizeIconUrl(setting.iconUrl),
     social: {
       github: setting.socialGithub,
       twitter: setting.socialTwitter,
@@ -56,6 +90,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       id: 1,
       name: defaults.name,
       description: defaults.description,
+      iconUrl: defaults.iconUrl,
       socialGithub: defaults.social.github,
       socialTwitter: defaults.social.twitter,
       socialInstagram: defaults.social.instagram,
@@ -76,6 +111,7 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
   return {
     name: trimmedName,
     description: trimmedDescription,
+    iconUrl: validateIconUrl(payload.iconUrl),
     social: {
       github: normalizeText(payload.social.github),
       twitter: normalizeText(payload.social.twitter),
@@ -92,6 +128,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
     update: {
       name: validated.name,
       description: validated.description,
+      iconUrl: validated.iconUrl,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
@@ -101,6 +138,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       id: 1,
       name: validated.name,
       description: validated.description,
+      iconUrl: validated.iconUrl,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,

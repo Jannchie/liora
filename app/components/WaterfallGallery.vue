@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
+import type { LocationQueryValue } from 'vue-router'
 import type { FileResponse, HistogramData } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
 import { Chart } from 'chart.js/auto'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
-import { computed, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
 import { resolveFileTitle } from '~/utils/file'
 
@@ -47,6 +48,7 @@ function getInitialColumns(): number {
 const galleryRef = ref<HTMLElement | null>(null)
 const columns = ref<number>(getInitialColumns())
 const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
+const isHydrated = ref<boolean>(false)
 const activeFile = ref<ResolvedFile | null>(null)
 const histogram = ref<HistogramData | null>(null)
 const overlayImageSrc = ref<string | null>(null)
@@ -58,6 +60,8 @@ const overlayDownloadState = ref<OverlayDownloadState>({
   loaded: 0,
   total: null,
 })
+const overlayDownloadHideDelayMs = 500
+const overlayDownloadHideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
 const histogramChart = ref<Chart | null>(null)
 
@@ -456,7 +460,9 @@ function updateColumns(): void {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  isHydrated.value = true
+  await nextTick()
   updateColumns()
   if (typeof ResizeObserver !== 'undefined') {
     resizeObserver.value = new ResizeObserver(() => updateColumns())
@@ -475,11 +481,14 @@ onBeforeUnmount(() => {
     globalThis.window.removeEventListener('keydown', handleKeydown)
   }
   destroyHistogramChart()
+  clearOverlayDownloadHideTimer()
 })
 
-function resolveOverlayRouteId(value: string | string[] | null | undefined): number | null {
-  const normalized = Array.isArray(value) ? value[0] : value
-  if (!normalized) {
+function resolveOverlayRouteId(value: LocationQueryValue | LocationQueryValue[] | undefined): number | null {
+  const normalized = Array.isArray(value)
+    ? value.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
+    : value
+  if (typeof normalized !== 'string') {
     return null
   }
   const parsed = Number.parseInt(normalized, 10)
@@ -646,7 +655,7 @@ function formatBytes(value: number | null): string {
 
 const overlayDownloadPercent = computed<number | null>(() => {
   const state = overlayDownloadState.value
-  if (state.status !== 'loading' || state.total === null || state.total <= 0) {
+  if ((state.status !== 'loading' && state.status !== 'done') || state.total === null || state.total <= 0) {
     return null
   }
   return Math.min(100, Math.round((state.loaded / state.total) * 100))
@@ -654,7 +663,7 @@ const overlayDownloadPercent = computed<number | null>(() => {
 
 const overlayDownloadLabel = computed<string | null>(() => {
   const state = overlayDownloadState.value
-  if (state.status !== 'loading' || state.total === null || state.total <= 0) {
+  if ((state.status !== 'loading' && state.status !== 'done') || state.total === null || state.total <= 0) {
     return null
   }
   const loadedText = formatBytes(state.loaded)
@@ -663,7 +672,7 @@ const overlayDownloadLabel = computed<string | null>(() => {
 
 const overlayDownloadVisible = computed<boolean>(() => {
   const state = overlayDownloadState.value
-  return state.status === 'loading' && state.total !== null && state.total > 0
+  return (state.status === 'loading' || state.status === 'done') && state.total !== null && state.total > 0
 })
 
 const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
@@ -703,28 +712,54 @@ function handleKeydown(event: KeyboardEvent): void {
 
 const overlayRouteId = computed<number | null>(() => resolveOverlayRouteId(route.query[overlayRouteKey]))
 
-watch([overlayRouteId, resolvedFiles], ([routeId, files]) => {
-  if (routeId === null) {
-    if (activeFile.value) {
-      closeOverlay(false)
+watch(
+  [
+    overlayRouteId,
+    resolvedFiles,
+    isHydrated,
+  ],
+  ([
+    routeId,
+    files,
+    hydrated,
+  ]) => {
+    if (!hydrated) {
+      return
     }
-    return
-  }
-  const target = files.find(file => file.id === routeId)
-  if (!target) {
-    if (activeFile.value) {
-      closeOverlay(false)
+    if (routeId === null) {
+      if (activeFile.value) {
+        closeOverlay(false)
+      }
+      return
     }
-    return
-  }
-  if (!activeFile.value || activeFile.value.id !== target.id) {
-    openOverlay(target, false)
-  }
-}, { immediate: true })
+    const target = files.find(file => file.id === routeId)
+    if (!target) {
+      if (activeFile.value) {
+        closeOverlay(false)
+      }
+      return
+    }
+    if (!activeFile.value || activeFile.value.id !== target.id) {
+      openOverlay(target, false)
+    }
+  },
+  { immediate: true },
+)
 
-watch([histogram, histogramCanvasRef], () => {
-  renderHistogram()
-}, { flush: 'post' })
+watch(
+  [
+    histogram,
+    histogramCanvasRef,
+    isHydrated,
+  ],
+  () => {
+    if (!isHydrated.value) {
+      return
+    }
+    renderHistogram()
+  },
+  { flush: 'post' },
+)
 
 function destroyHistogramChart(): void {
   histogramChart.value?.destroy()
@@ -743,7 +778,32 @@ function revokeOverlayObjectUrl(): void {
   }
 }
 
+function clearOverlayDownloadHideTimer(): void {
+  if (overlayDownloadHideTimer.value !== null) {
+    clearTimeout(overlayDownloadHideTimer.value)
+    overlayDownloadHideTimer.value = null
+  }
+}
+
+function scheduleOverlayDownloadReset(): void {
+  clearOverlayDownloadHideTimer()
+  overlayDownloadHideTimer.value = setTimeout(() => {
+    overlayDownloadState.value = {
+      status: 'idle',
+      loaded: 0,
+      total: null,
+    }
+    overlayDownloadHideTimer.value = null
+  }, overlayDownloadHideDelayMs)
+}
+
+function markOverlayDownloadDone(loaded: number, total: number | null): void {
+  overlayDownloadState.value = { status: 'done', loaded, total }
+  scheduleOverlayDownloadReset()
+}
+
 function resetOverlayDownload(): void {
+  clearOverlayDownloadHideTimer()
   overlayDownloadState.value = {
     status: 'idle',
     loaded: 0,
@@ -773,6 +833,9 @@ function navigateOverlay(offset: number): void {
     return
   }
   const target = resolvedFiles.value[nextIndex]
+  if (!target) {
+    return
+  }
   runViewTransition(() => openOverlay(target))
 }
 
@@ -834,12 +897,12 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       const total = typeof parsedTotal === 'number' && Number.isFinite(parsedTotal) ? parsedTotal : null
       if (!response.body) {
         const blob = await response.blob()
-        overlayDownloadState.value = { status: 'done', loaded: blob.size, total: total ?? blob.size }
+        markOverlayDownloadDone(blob.size, total ?? blob.size)
         applyBlobSrc(blob)
         return
       }
       const reader = response.body.getReader()
-      const chunks: Uint8Array[] = []
+      const chunks: ArrayBuffer[] = []
       let loaded = 0
       overlayDownloadState.value = { status: 'loading', loaded, total }
       while (true) {
@@ -848,13 +911,20 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           break
         }
         if (value) {
-          chunks.push(value)
+          const buffer = value.buffer instanceof ArrayBuffer
+            ? value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength)
+            : (() => {
+                const copy = new ArrayBuffer(value.byteLength)
+                new Uint8Array(copy).set(value)
+                return copy
+              })()
+          chunks.push(buffer)
           loaded += value.length
           overlayDownloadState.value = { status: 'loading', loaded, total }
         }
       }
       const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'image/jpeg' })
-      overlayDownloadState.value = { status: 'done', loaded: blob.size, total: total ?? blob.size }
+      markOverlayDownloadDone(blob.size, total ?? blob.size)
       applyBlobSrc(blob)
     }
     catch {
@@ -993,7 +1063,7 @@ function renderHistogram(): void {
 </script>
 
 <template>
-  <div ref="galleryRef" class="relative">
+  <div v-if="isHydrated" ref="galleryRef" class="relative">
     <Waterfall
       :gap="waterfallGap"
       :cols="columns"
@@ -1190,5 +1260,13 @@ function renderHistogram(): void {
         </div>
       </div>
     </Teleport>
+  </div>
+  <div
+    v-else
+    class="flex min-h-[50vh] items-center justify-center text-sm text-muted"
+    aria-live="polite"
+  >
+    <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary-500" />
+    <span>Loading gallery…</span>
   </div>
 </template>

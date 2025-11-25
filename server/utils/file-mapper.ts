@@ -1,4 +1,4 @@
-import type { File, FileKind } from '@prisma/client'
+import type { File, FileKind } from '../../app/generated/prisma/client'
 import type { FileMetadata, FileResponse } from '~/types/file'
 
 export function mapCharacters(characterList: string): string[] {

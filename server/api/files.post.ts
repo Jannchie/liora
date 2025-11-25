@@ -93,7 +93,15 @@ function hammingDistance(first: string, second: string): number | null {
     if (Number.isNaN(left) || Number.isNaN(right)) {
       return null
     }
-    distance += NIBBLE_BIT_COUNTS[left ^ right]
+    const diff = left ^ right
+    if (diff < 0 || diff >= NIBBLE_BIT_COUNTS.length) {
+      return null
+    }
+    const increment = NIBBLE_BIT_COUNTS[diff]
+    if (increment === undefined) {
+      return null
+    }
+    distance += increment
   }
   return distance
 }
@@ -180,13 +188,17 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   const fields: Record<string, string> = {}
 
   for (const entry of form) {
+    const fieldName = entry.name
+    if (!fieldName) {
+      continue
+    }
     if (entry.filename) {
       if (!fileEntry) {
         fileEntry = entry as MultipartEntry
       }
     }
     else {
-      fields[entry.name] = entry.data.toString('utf8')
+      fields[fieldName] = entry.data.toString('utf8')
     }
   }
 

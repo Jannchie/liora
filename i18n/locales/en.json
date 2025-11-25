@@ -349,6 +349,11 @@
           "placeholder": "Intro for the homepage (optional)",
           "help": "Appears on the info card; keep it to 1-2 sentences."
         },
+        "icon": {
+          "label": "Favicon URL",
+          "placeholder": "https://example.com/favicon.ico",
+          "help": "Use an https URL, data:image URI, or a path like /favicon.ico."
+        },
         "github": {
           "placeholder": "https://github.com/username",
           "help": "Use a full URL (with https://). Leave blank to hide."

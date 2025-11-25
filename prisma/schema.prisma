@@ -45,6 +45,7 @@ model SiteSetting {
   id              Int      @id @default(1)
   name            String   @default("Liora Gallery")
   description     String   @default("A minimal gallery for photography and illustrations.")
+  iconUrl         String   @default("/favicon.ico")
   socialGithub    String   @default("")
   socialTwitter   String   @default("")
   socialInstagram String   @default("")
