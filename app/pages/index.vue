@@ -55,7 +55,7 @@ defineOgImageComponent('LioraCard', {
 </script>
 
 <template>
-  <div ref="scrollContainerRef" class="h-screen w-screen overflow-auto">
+  <div ref="scrollContainerRef" class="home-display-font h-screen w-screen overflow-auto">
     <div class="max-w-[2000px] m-auto">
       <div class="flex justify-end p-4">
         <LanguageSwitcher />

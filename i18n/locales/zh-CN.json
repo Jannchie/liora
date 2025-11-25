@@ -43,7 +43,15 @@
     "viewLarge": "查看 {title} 大图",
     "histogram": {
       "title": "直方图",
-      "pending": "计算中…"
+      "pending": "计算中…",
+      "luminance": "亮度",
+      "red": "红色",
+      "green": "绿色",
+      "blue": "蓝色",
+      "shadows": "暗部",
+      "midtones": "中间调",
+      "highlights": "高光",
+      "peak": "峰值"
     },
     "metadata": {
       "title": "标题",
@@ -54,6 +62,10 @@
       "location": "地点",
       "device": "设备",
       "exposure": "参数",
+      "aperture": "光圈",
+      "shutterSpeed": "快门",
+      "iso": "ISO",
+      "focalLength": "焦距",
       "captureTime": "拍摄时间",
       "size": "尺寸",
       "section": "元数据",

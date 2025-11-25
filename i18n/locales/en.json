@@ -43,7 +43,15 @@
     "viewLarge": "View {title} large",
     "histogram": {
       "title": "Histogram",
-      "pending": "Calculating…"
+      "pending": "Calculating…",
+      "luminance": "Luminance",
+      "red": "Red",
+      "green": "Green",
+      "blue": "Blue",
+      "shadows": "Shadows",
+      "midtones": "Midtones",
+      "highlights": "Highlights",
+      "peak": "Peak"
     },
     "metadata": {
       "title": "Title",
@@ -54,6 +62,10 @@
       "location": "Location",
       "device": "Gear",
       "exposure": "Exposure",
+      "aperture": "Aperture",
+      "shutterSpeed": "Shutter",
+      "iso": "ISO",
+      "focalLength": "Focal length",
       "captureTime": "Captured at",
       "size": "Size",
       "section": "Metadata",

@@ -35,7 +35,7 @@ const { t } = useI18n()
   >
     <div class="space-y-3">
       <div class="space-y-1">
-        <h2 class="text-xl font-semibold leading-tight text-highlighted">
+        <h2 class="home-title-font text-xl font-semibold leading-tight text-highlighted">
           {{ siteName }}
         </h2>
         <p class="text-sm leading-relaxed text-muted">

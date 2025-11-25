@@ -68,9 +68,12 @@ const overlayPan = ref<{
   x: number
   y: number
 }>({ x: 0, y: 0 })
-const overlayZoomMin = 1
 const overlayZoomMax = 5
 const overlayZoomStep = 0.2
+const overlayZoomEpsilon = 0.001
+const overlayZoomIndicatorDurationMs = 900
+const overlayZoomIndicatorVisible = ref<boolean>(false)
+const overlayZoomIndicatorTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const overlayDragState = ref<{
   pointerId: number | null
   startX: number
@@ -141,6 +144,22 @@ interface MetadataEntry {
 interface OverlayStat {
   label: string
   icon: string
+}
+
+interface OverlayPointer {
+  clientX: number
+  clientY: number
+}
+
+type HistogramChannel = 'red' | 'green' | 'blue' | 'luminance'
+
+interface HistogramSummary {
+  shadows: number
+  midtones: number
+  highlights: number
+  peakChannel: HistogramChannel
+  peakIndex: number
+  monochrome: boolean
 }
 
 const metadataLabels = computed(() => ({
@@ -471,6 +490,74 @@ function normalizeHistogram(raw: HistogramData | null | undefined): HistogramDat
   return { red, green, blue, luminance }
 }
 
+const histogramSummary = computed<HistogramSummary | null>(() => {
+  const value = histogram.value
+  if (!value) {
+    return null
+  }
+  const total = value.luminance.reduce((sum, entry) => (Number.isFinite(entry) ? sum + entry : sum), 0)
+  if (total <= 0) {
+    return null
+  }
+  const sumRange = (start: number, end: number): number => {
+    let sum = 0
+    for (let index = start; index <= end; index += 1) {
+      sum += value.luminance[index] ?? 0
+    }
+    return sum
+  }
+  const shadows = Math.max(0, Math.min(1, sumRange(0, 63) / total))
+  const midtones = Math.max(0, Math.min(1, sumRange(64, 191) / total))
+  const highlights = Math.max(0, Math.min(1, sumRange(192, 255) / total))
+  const channels: Array<{ key: HistogramLegendEntry['key']; values: number[] }> = [
+    { key: 'luminance', values: value.luminance },
+    { key: 'red', values: value.red },
+    { key: 'green', values: value.green },
+    { key: 'blue', values: value.blue },
+  ]
+  let peak = { key: 'luminance' as HistogramLegendEntry['key'], value: 0, index: 0 }
+  for (const channel of channels) {
+    for (let index = 0; index < channel.values.length; index += 1) {
+      const current = channel.values[index] ?? 0
+      if (current > peak.value) {
+        peak = { key: channel.key, value: current, index }
+      }
+    }
+  }
+  return {
+    shadows: Math.round(shadows * 100),
+    midtones: Math.round(midtones * 100),
+    highlights: Math.round(highlights * 100),
+    peakChannel: peak.key,
+    peakIndex: peak.index,
+    monochrome: isMonochromeHistogram(value),
+  }
+})
+
+function resolveHistogramChannelLabel(key: HistogramChannel): string {
+  switch (key) {
+    case 'luminance':
+      return t('gallery.histogram.luminance')
+    case 'red':
+      return t('gallery.histogram.red')
+    case 'green':
+      return t('gallery.histogram.green')
+    case 'blue':
+      return t('gallery.histogram.blue')
+    default:
+      return key
+  }
+}
+
+const histogramPeakLabel = computed<string | null>(() => {
+  const summary = histogramSummary.value
+  if (!summary) {
+    return null
+  }
+  const label = resolveHistogramChannelLabel(summary.peakChannel)
+  return `${label} · ${summary.peakIndex}`
+})
+
 const resizeObserver = ref<ResizeObserver | null>(null)
 
 function updateColumns(): void {
@@ -504,6 +591,7 @@ onBeforeUnmount(() => {
   }
   destroyHistogramChart()
   clearOverlayDownloadHideTimer()
+  clearOverlayZoomIndicatorTimer()
 })
 
 function resolveOverlayRouteId(value: LocationQueryValue | LocationQueryValue[] | undefined): number | null {
@@ -556,7 +644,7 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
 
 function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
   activeFile.value = file
-  resetOverlayZoom()
+  void nextTick(() => resetOverlayZoom())
   startOverlayImageLoad(file, immediateSrc)
   destroyHistogramChart()
   const cachedHistogram = normalizeHistogram(file.metadata.histogram)
@@ -601,63 +689,94 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const entries: MetadataEntry[] = []
   const title = toDisplayText(displayTitle)
   if (title) {
-    entries.push({ label: metadataLabels.value.title, value: title, icon: 'mdi:format-title' })
+    entries.push({ label: metadataLabels.value.title, value: title, icon: 'carbon:text-font' })
   }
   const description = toDisplayText(file.description)
   if (description) {
-    entries.push({ label: metadataLabels.value.description, value: description, icon: 'mdi:text-box-outline' })
+    entries.push({ label: metadataLabels.value.description, value: description, icon: 'carbon:document' })
   }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {
-    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'mdi:palette-outline' })
+    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'carbon:color-palette' })
   }
   if (metadata.characters.length > 0) {
     entries.push({
       label: metadataLabels.value.characters,
       value: metadata.characters.join(characterSeparator.value),
-      icon: 'mdi:account-multiple-outline',
+      icon: 'carbon:user-multiple',
     })
   }
   const locationName = toDisplayText(metadata.locationName || file.location)
   if (locationName) {
-    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'mdi:map-marker-outline' })
+    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'carbon:location' })
   }
   const cameraModel = toDisplayText(metadata.cameraModel || file.cameraModel)
   if (cameraModel) {
-    entries.push({ label: metadataLabels.value.camera, value: cameraModel, icon: 'mdi:camera-outline' })
-  }
-  const aperture = toDisplayText(metadata.aperture)
-  const focalLength = toDisplayText(metadata.focalLength)
-  const iso = toDisplayText(metadata.iso)
-  const shutterSpeed = toDisplayText(metadata.shutterSpeed)
-  const exposureParts = [aperture, focalLength, iso, shutterSpeed].filter(Boolean) as string[]
-  if (exposureParts.length > 0) {
-    entries.push({ label: metadataLabels.value.exposure, value: exposureParts.join(' · '), icon: 'mdi:tune' })
+    entries.push({ label: metadataLabels.value.camera, value: cameraModel, icon: 'carbon:camera' })
   }
   const captureTime = formatDisplayDateTime(metadata.captureTime)
   if (captureTime) {
-    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'mdi:clock-outline' })
+    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'carbon:time' })
   }
-  entries.push({ label: metadataLabels.value.size, value: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' })
   return entries
 })
+
+const exposureEntries = computed<MetadataEntry[]>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return []
+  }
+  const { metadata } = file
+  const entries: MetadataEntry[] = []
+  const aperture = toDisplayText(metadata.aperture)
+  if (aperture) {
+    entries.push({
+      label: t('gallery.metadata.aperture'),
+      value: aperture,
+      icon: 'carbon:aperture',
+    })
+  }
+  const shutterSpeed = toDisplayText(metadata.shutterSpeed)
+  if (shutterSpeed) {
+    entries.push({
+      label: t('gallery.metadata.shutterSpeed'),
+      value: shutterSpeed,
+      icon: 'carbon:timer',
+    })
+  }
+  const iso = toDisplayText(metadata.iso)
+  if (iso) {
+    entries.push({
+      label: t('gallery.metadata.iso'),
+      value: iso,
+      icon: 'carbon:iso',
+    })
+  }
+  const focalLength = toDisplayText(metadata.focalLength)
+  if (focalLength) {
+    entries.push({
+      label: t('gallery.metadata.focalLength'),
+      value: focalLength,
+      icon: 'carbon:ruler',
+    })
+  }
+  return entries
+})
+
+const hasMetadata = computed<boolean>(() => metadataEntries.value.length > 0 || exposureEntries.value.length > 0)
 
 const overlayStats = computed<OverlayStat[]>(() => {
   const file = activeFile.value
   if (!file) {
     return []
   }
-  const stats: OverlayStat[] = [
-    { label: `${file.width} × ${file.height}`, icon: 'mdi:aspect-ratio' },
-  ]
-  const captureTime = formatDisplayDateTime(file.metadata.captureTime)
-  if (captureTime) {
-    stats.push({ label: captureTime, icon: 'mdi:clock-outline' })
+  const stats: OverlayStat[] = []
+  const resolution = `${file.width} × ${file.height}`
+  stats.push({ label: resolution, icon: 'carbon:crop' })
+  const uploadedAt = formatDisplayDateTime(file.createdAt)
+  if (uploadedAt) {
+    stats.push({ label: uploadedAt, icon: 'carbon:upload' })
   }
-  stats.push({
-    label: resolveKindLabel(file.kind),
-    icon: file.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline',
-  })
   return stats
 })
 
@@ -698,10 +817,35 @@ const overlayDownloadVisible = computed<boolean>(() => {
   return (state.status === 'loading' || state.status === 'done') && state.total !== null && state.total > 0
 })
 
+const overlayBaseScale = computed<number>(() => {
+  const container = overlayViewerRef.value
+  const file = activeFile.value
+  if (!container || !file) {
+    return 1
+  }
+  const naturalWidth = Number.isFinite(file.width) && file.width > 0 ? file.width : container.clientWidth
+  const naturalHeight = Number.isFinite(file.height) && file.height > 0 ? file.height : container.clientHeight
+  if (naturalWidth <= 0 || naturalHeight <= 0) {
+    return 1
+  }
+  const scale = Math.min(container.clientWidth / naturalWidth, container.clientHeight / naturalHeight)
+  if (!Number.isFinite(scale) || scale <= 0) {
+    return 1
+  }
+  return scale
+})
+
+const overlayZoomMin = computed<number>(() => {
+  const base = overlayBaseScale.value
+  const normalized = Number.isFinite(base) && base > 0 ? base : 1
+  return Math.max(0.1, normalized)
+})
+
 const overlayImageTransformStyle = computed<Record<string, string>>(() => {
   const transforms: string[] = []
   const pan = overlayPan.value
-  const scale = overlayZoom.value
+  const baseScale = overlayBaseScale.value
+  const scale = baseScale > 0 ? overlayZoom.value / baseScale : overlayZoom.value
   if (pan.x !== 0 || pan.y !== 0) {
     transforms.push(`translate(${pan.x}px, ${pan.y}px)`)
   }
@@ -718,15 +862,13 @@ const overlayImageTransformStyle = computed<Record<string, string>>(() => {
   }
 })
 
-const overlayZoomed = computed<boolean>(() => overlayZoom.value > overlayZoomMin)
+const overlayScaleDisplay = computed<number>(() => overlayZoom.value)
 
 const overlayZoomLabel = computed<string>(() => {
-  const rounded = Math.min(overlayZoomMax, Math.max(overlayZoomMin, overlayZoom.value))
+  const rounded = Math.min(overlayZoomMax, Math.max(overlayZoomMin.value, overlayScaleDisplay.value))
   const formatted = Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)
   return `${formatted}×`
 })
-
-const overlayZoomIndicatorVisible = computed<boolean>(() => overlayZoomed.value)
 
 const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
   const file = activeFile.value
@@ -814,6 +956,19 @@ watch(
   { flush: 'post' },
 )
 
+watch(
+  overlayBaseScale,
+  (nextBase) => {
+    if (!Number.isFinite(nextBase) || nextBase <= 0) {
+      return
+    }
+    if (overlayZoom.value < nextBase - overlayZoomEpsilon) {
+      overlayZoom.value = nextBase
+      overlayPan.value = { x: 0, y: 0 }
+    }
+  },
+)
+
 function destroyHistogramChart(): void {
   histogramChart.value?.destroy()
   histogramChart.value = null
@@ -836,6 +991,22 @@ function clearOverlayDownloadHideTimer(): void {
     clearTimeout(overlayDownloadHideTimer.value)
     overlayDownloadHideTimer.value = null
   }
+}
+
+function clearOverlayZoomIndicatorTimer(): void {
+  if (overlayZoomIndicatorTimer.value !== null) {
+    clearTimeout(overlayZoomIndicatorTimer.value)
+    overlayZoomIndicatorTimer.value = null
+  }
+}
+
+function showOverlayZoomIndicator(): void {
+  overlayZoomIndicatorVisible.value = true
+  clearOverlayZoomIndicatorTimer()
+  overlayZoomIndicatorTimer.value = setTimeout(() => {
+    overlayZoomIndicatorVisible.value = false
+    overlayZoomIndicatorTimer.value = null
+  }, overlayZoomIndicatorDurationMs)
 }
 
 function scheduleOverlayDownloadReset(): void {
@@ -874,8 +1045,11 @@ function resetOverlayImage(): void {
 }
 
 function resetOverlayZoom(): void {
-  overlayZoom.value = overlayZoomMin
+  const base = overlayZoomMin.value
+  overlayZoom.value = base
   overlayPan.value = { x: 0, y: 0 }
+  overlayZoomIndicatorVisible.value = false
+  clearOverlayZoomIndicatorTimer()
   overlayDragState.value = {
     pointerId: null,
     startX: 0,
@@ -885,15 +1059,51 @@ function resetOverlayZoom(): void {
   }
 }
 
-function setOverlayZoom(next: number): void {
-  const clamped = Math.min(overlayZoomMax, Math.max(overlayZoomMin, next))
+function computeOverlayPanForFocus(point: OverlayPointer, targetZoom: number): {
+  x: number
+  y: number
+} | null {
+  const viewer = overlayViewerRef.value
+  if (!viewer || !Number.isFinite(targetZoom) || targetZoom <= 0) {
+    return null
+  }
+  const base = overlayBaseScale.value
+  const currentScale = overlayZoom.value / base
+  const nextScale = targetZoom / base
+  if (!Number.isFinite(currentScale) || currentScale <= 0 || !Number.isFinite(nextScale) || nextScale <= 0) {
+    return null
+  }
+  const ratio = nextScale / currentScale
+  const rect = viewer.getBoundingClientRect()
+  const centerX = rect.left + rect.width / 2
+  const centerY = rect.top + rect.height / 2
+  const dx = point.clientX - centerX
+  const dy = point.clientY - centerY
+  return {
+    x: overlayPan.value.x - (dx - overlayPan.value.x) * (ratio - 1),
+    y: overlayPan.value.y - (dy - overlayPan.value.y) * (ratio - 1),
+  }
+}
+
+function setOverlayZoom(next: number, focalPoint?: OverlayPointer): void {
+  const minZoom = overlayZoomMin.value
+  const clamped = Math.min(overlayZoomMax, Math.max(minZoom, next))
   if (clamped === overlayZoom.value) {
     return
   }
-  overlayZoom.value = clamped
-  if (clamped === overlayZoomMin) {
-    overlayPan.value = { x: 0, y: 0 }
+  let nextPan = overlayPan.value
+  if (clamped <= minZoom + overlayZoomEpsilon) {
+    nextPan = { x: 0, y: 0 }
   }
+  else if (focalPoint) {
+    const focusedPan = computeOverlayPanForFocus(focalPoint, clamped)
+    if (focusedPan) {
+      nextPan = focusedPan
+    }
+  }
+  overlayZoom.value = clamped
+  overlayPan.value = nextPan
+  showOverlayZoomIndicator()
 }
 
 function handleOverlayWheel(event: WheelEvent): void {
@@ -902,21 +1112,21 @@ function handleOverlayWheel(event: WheelEvent): void {
   }
   event.preventDefault()
   const direction = event.deltaY > 0 ? -overlayZoomStep : overlayZoomStep
-  setOverlayZoom(overlayZoom.value + direction)
+  setOverlayZoom(overlayZoom.value + direction, { clientX: event.clientX, clientY: event.clientY })
 }
 
 function handleOverlayDoubleClick(event: MouseEvent): void {
   event.preventDefault()
-  if (overlayZoomed.value) {
-    resetOverlayZoom()
-  }
-  else {
-    setOverlayZoom(Math.min(overlayZoomMax, 2))
-  }
+  const isAtOriginal = Math.abs(overlayZoom.value - 1) <= overlayZoomEpsilon
+  const target = isAtOriginal ? overlayZoomMin.value : 1
+  const focal = target > overlayZoomMin.value + overlayZoomEpsilon
+    ? { clientX: event.clientX, clientY: event.clientY }
+    : undefined
+  setOverlayZoom(target, focal)
 }
 
 function handleOverlayPointerDown(event: PointerEvent): void {
-  if (overlayZoom.value <= overlayZoomMin) {
+  if (overlayZoom.value <= overlayZoomMin.value + overlayZoomEpsilon) {
     return
   }
   if (!(event.currentTarget instanceof HTMLElement)) {
@@ -941,8 +1151,8 @@ function handleOverlayPointerMove(event: PointerEvent): void {
   const deltaX = event.clientX - state.startX
   const deltaY = event.clientY - state.startY
   overlayPan.value = {
-    x: state.originX + deltaX / overlayZoom.value,
-    y: state.originY + deltaY / overlayZoom.value,
+    x: state.originX + deltaX,
+    y: state.originY + deltaY,
   }
 }
 
@@ -1131,15 +1341,44 @@ function renderHistogram(): void {
   destroyHistogramChart()
   const labels = histogram.value.red.map((_, index) => index)
   const monochrome = isMonochromeHistogram(histogram.value)
+  const toneOverlay = {
+    id: 'toneOverlay',
+    beforeDraw(chartInstance: Chart<'line'>) {
+      const { ctx, chartArea, scales } = chartInstance
+      const xScale = scales.x
+      if (!chartArea || !xScale) {
+        return
+      }
+      const zones = [
+        { start: 0, end: 85, color: 'rgba(255, 255, 255, 0.02)' },
+        { start: 85, end: 170, color: 'rgba(255, 255, 255, 0.03)' },
+        { start: 170, end: 255, color: 'rgba(255, 255, 255, 0.02)' },
+      ]
+      ctx.save()
+      for (const zone of zones) {
+        const startX = xScale.getPixelForValue(zone.start)
+        const endX = xScale.getPixelForValue(zone.end)
+        ctx.fillStyle = zone.color
+        ctx.fillRect(startX, chartArea.top, endX - startX, chartArea.height)
+      }
+      ctx.restore()
+    },
+  }
+  const baseDataset = {
+    pointRadius: 0,
+    tension: 0.35,
+    cubicInterpolationMode: 'monotone' as const,
+    fill: false,
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+  }
   const datasets = monochrome
     ? [
         {
           label: 'Luminance',
           data: histogram.value.luminance,
           borderColor: '#ffffff',
-          pointRadius: 0,
-          tension: 0.2,
-          borderWidth: 1.5,
+          ...baseDataset,
         },
       ]
     : [
@@ -1147,25 +1386,19 @@ function renderHistogram(): void {
           label: 'Red',
           data: histogram.value.red,
           borderColor: histogramColors.value.red,
-          pointRadius: 0,
-          tension: 0.2,
-          borderWidth: 1.5,
+          ...baseDataset,
         },
         {
           label: 'Green',
           data: histogram.value.green,
           borderColor: histogramColors.value.green,
-          pointRadius: 0,
-          tension: 0.2,
-          borderWidth: 1.5,
+          ...baseDataset,
         },
         {
           label: 'Blue',
           data: histogram.value.blue,
           borderColor: histogramColors.value.blue,
-          pointRadius: 0,
-          tension: 0.2,
-          borderWidth: 1.5,
+          ...baseDataset,
         },
       ]
   histogramChart.value = new Chart(context, {
@@ -1179,6 +1412,19 @@ function renderHistogram(): void {
       maintainAspectRatio: false,
       animation: false,
       events: [],
+      layout: {
+        padding: {
+          top: 8,
+          right: 10,
+          bottom: 8,
+          left: 10,
+        },
+      },
+      elements: {
+        line: {
+          borderJoinStyle: 'round',
+        },
+      },
       plugins: {
         legend: {
           display: false,
@@ -1191,17 +1437,22 @@ function renderHistogram(): void {
         x: {
           display: false,
           grid: {
-            display: false,
+            display: true,
+            color: 'rgba(255, 255, 255, 0.06)',
+            drawBorder: false,
           },
         },
         y: {
           display: false,
           grid: {
-            display: false,
+            display: true,
+            color: 'rgba(255, 255, 255, 0.06)',
+            drawBorder: false,
           },
         },
       },
     },
+    plugins: [toneOverlay],
   })
 }
 </script>
@@ -1348,18 +1599,18 @@ function renderHistogram(): void {
                 </div>
               </Transition>
             </div>
-            <div class="flex min-h-0 flex-col gap-5 overflow-y-auto p-4 md:border-l md:border-default/20 md:p-6">
+            <div class="home-display-font flex min-h-0 flex-col gap-5 overflow-y-auto p-4 md:border-l md:border-default/20 md:p-6">
               <div class="space-y-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="space-y-1">
                     <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">
                       <Icon
-                        :name="activeFile.kind === 'PHOTOGRAPHY' ? 'mdi:camera-outline' : 'mdi:brush-outline'"
+                        :name="activeFile.kind === 'PHOTOGRAPHY' ? 'carbon:camera' : 'carbon:brush-freehand'"
                         class="h-4 w-4"
                       />
                       <span>{{ resolveKindLabel(activeFile.kind) }}</span>
                     </p>
-                    <h3 class="text-lg font-semibold leading-snug text-highlighted">
+                    <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
                       {{ activeFile.displayTitle }}
                     </h3>
                   </div>
@@ -1368,7 +1619,7 @@ function renderHistogram(): void {
                     class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
                     @click="handleOverlayClose"
                   >
-                    <Icon name="mdi:close" class="h-4 w-4" />
+                    <Icon name="carbon:close" class="h-4 w-4" />
                     <span>{{ t('common.actions.close') }}</span>
                   </button>
                 </div>
@@ -1386,53 +1637,111 @@ function renderHistogram(): void {
               <div class="rounded-lg border border-default/20 bg-elevated/80">
                 <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
                   <div class="flex items-center gap-2">
-                    <Icon name="mdi:chart-line" class="h-4 w-4" />
+                    <Icon name="carbon:chart-line" class="h-4 w-4" />
                     <span>{{ t('gallery.histogram.title') }}</span>
                   </div>
                 </div>
-                <div class="relative h-32 w-full p-3">
-                  <canvas ref="histogramCanvasRef" class="h-full w-full" />
-                  <div
-                    v-if="!histogram"
-                    class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
-                  >
-                    <Icon name="line-md:loading-loop" class="h-4 w-4" />
-                    <span>{{ t('gallery.histogram.pending') }}</span>
+                <div class="space-y-3 p-3">
+                  <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
+                    <canvas ref="histogramCanvasRef" class="absolute inset-0 h-full w-full" />
+                    <div
+                      v-if="!histogram"
+                      class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
+                    >
+                      <Icon name="line-md:loading-loop" class="h-4 w-4" />
+                      <span>{{ t('gallery.histogram.pending') }}</span>
+                    </div>
+                  </div>
+                  <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-[11px]">
+                    <div class="space-y-1">
+                      <div class="flex items-center justify-between text-muted">
+                        <span>{{ t('gallery.histogram.shadows') }}</span>
+                        <span class="font-semibold text-highlighted">{{ histogramSummary.shadows }}%</span>
+                      </div>
+                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.shadows}%` }" />
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <div class="flex items-center justify-between text-muted">
+                        <span>{{ t('gallery.histogram.midtones') }}</span>
+                        <span class="font-semibold text-highlighted">{{ histogramSummary.midtones }}%</span>
+                      </div>
+                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.midtones}%` }" />
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                      <div class="flex items-center justify-between text-muted">
+                        <span>{{ t('gallery.histogram.highlights') }}</span>
+                        <span class="font-semibold text-highlighted">{{ histogramSummary.highlights }}%</span>
+                      </div>
+                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.highlights}%` }" />
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="histogramPeakLabel" class="flex items-center gap-2 text-[11px] text-muted">
+                    <Icon name="carbon:analytics" class="h-4 w-4" />
+                    <span>{{ t('gallery.histogram.peak') }}</span>
+                    <span class="font-semibold text-highlighted">{{ histogramPeakLabel }}</span>
                   </div>
                 </div>
               </div>
               <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
                 <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
                   <div class="flex items-center gap-2">
-                    <Icon name="mdi:information-outline" class="h-4 w-4" />
+                    <Icon name="carbon:information" class="h-4 w-4" />
                     <span>{{ t('gallery.metadata.section') }}</span>
                   </div>
                   <span class="rounded-full bg-default/60 px-2 py-[2px] text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
-                    {{ metadataEntries.length }}
+                    {{ metadataEntries.length + exposureEntries.length }}
                   </span>
                 </div>
-                <div v-if="metadataEntries.length > 0" class="divide-y divide-default/10">
-                  <div
-                    v-for="item in metadataEntries"
-                    :key="item.label"
-                    class="grid gap-1 px-3 py-3"
-                  >
-                    <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                      <Icon :name="item.icon" class="h-4 w-4" />
-                      <span>{{ item.label }}</span>
-                    </p>
-                    <p class="text-base leading-relaxed text-highlighted">
-                      {{ item.value }}
-                    </p>
+                <div v-if="hasMetadata" class="space-y-2">
+                  <div v-if="exposureEntries.length > 0" class="border-b border-default/10 px-3 pb-3 pt-2">
+                    <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                      <Icon name="carbon:settings-adjust" class="h-4 w-4" />
+                      <span>{{ t('gallery.metadata.exposure') }}</span>
+                    </div>
+                    <div class="mt-3 grid grid-cols-2 gap-2">
+                      <div
+                        v-for="item in exposureEntries"
+                        :key="item.label"
+                        class="flex items-center gap-3 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
+                        :aria-label="`${item.label}: ${item.value}`"
+                      >
+                        <Icon :name="item.icon" class="h-4 w-4 text-muted" />
+                        <div class="flex flex-col leading-tight">
+                          <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
+                          <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-if="metadataEntries.length > 0" class="divide-y divide-default/10">
+                    <div
+                      v-for="item in metadataEntries"
+                      :key="item.label"
+                      class="grid gap-1 px-3 py-3"
+                    >
+                      <p class="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+                        <Icon :name="item.icon" class="h-4 w-4" />
+                        <span>{{ item.label }}</span>
+                      </p>
+                      <p class="text-base leading-relaxed text-highlighted">
+                        {{ item.value }}
+                      </p>
+                    </div>
                   </div>
                 </div>
                 <div v-else class="px-3 py-4 text-sm text-muted">
                   <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    <Icon name="mdi:alert-circle-outline" class="h-4 w-4" />
+                    <Icon name="carbon:warning" class="h-4 w-4" />
                     <span>{{ t('gallery.metadata.section') }}</span>
                   </p>
                   <p class="mt-2 flex items-center gap-2 text-highlighted">
-                    <Icon name="mdi:information-outline" class="h-4 w-4 text-muted" />
+                    <Icon name="carbon:information" class="h-4 w-4 text-muted" />
                     <span>{{ t('gallery.metadata.empty') }}</span>
                   </p>
                 </div>

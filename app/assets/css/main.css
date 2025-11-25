@@ -1,2 +1,85 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@font-face {
+  font-family: "Space Grotesk";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/SpaceGrotesk-Variable.woff2") format("woff2");
+}
+
+:root {
+  --font-display-latin: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", "Heiti SC", sans-serif;
+  --font-display-ja: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-title-latin: "Space Grotesk", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-title-zh: "Noto Serif SC", "Songti SC", "Noto Serif", serif;
+  --font-title-ja: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+}
+
+@font-face {
+  font-family: "Noto Serif SC";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/NotoSerifSC-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Serif SC";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/NotoSerifSC-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/NotoSerifJP-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Noto Serif JP";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/NotoSerifJP-Bold.ttf") format("truetype");
+}
+
+.home-display-font {
+  font-family: var(--font-display-latin);
+  letter-spacing: -0.01em;
+}
+
+:lang(zh-CN) .home-display-font,
+:lang(zh) .home-display-font {
+  font-family: var(--font-display-zh);
+  letter-spacing: -0.005em;
+}
+
+:lang(ja) .home-display-font,
+:lang(ja-JP) .home-display-font {
+  font-family: var(--font-display-ja);
+  letter-spacing: -0.005em;
+}
+
+.home-title-font {
+  font-family: var(--font-title-latin);
+  letter-spacing: -0.01em;
+}
+
+:lang(zh-CN) .home-title-font,
+:lang(zh) .home-title-font {
+  font-family: var(--font-title-zh);
+  letter-spacing: 0;
+}
+
+:lang(ja) .home-title-font,
+:lang(ja-JP) .home-title-font {
+  font-family: var(--font-title-ja);
+  letter-spacing: 0;
+}
