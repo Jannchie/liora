@@ -130,7 +130,7 @@ const genreTranslationMap = computed<Record<string, string>>(() => ({
   landscape: t('admin.files.genreOptions.landscape'),
   documentary: t('admin.files.genreOptions.documentary'),
   architecture: t('admin.files.genreOptions.architecture'),
-  wildlife: t('admin.files.genreOptions.wildlife'),
+  animal: t('admin.files.genreOptions.animal'),
   stilllife: t('admin.files.genreOptions.stillLife'),
   fashion: t('admin.files.genreOptions.fashion'),
   sports: t('admin.files.genreOptions.sports'),

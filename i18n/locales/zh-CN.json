@@ -427,7 +427,7 @@
         "landscape": "风光",
         "documentary": "纪实",
         "architecture": "建筑",
-        "wildlife": "野生动物",
+        "animal": "动物",
         "stillLife": "静物",
         "fashion": "时尚",
         "sports": "体育",
@@ -438,8 +438,7 @@
         "street": "街拍",
         "night": "夜景",
         "abstract": "抽象",
-        "other": "其他",
-        "animal": "动物"
+        "other": "其他"
       },
       "delete": {
         "title": "删除确认",

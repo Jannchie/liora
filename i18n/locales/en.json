@@ -427,7 +427,6 @@
         "landscape": "Landscape",
         "documentary": "Documentary",
         "architecture": "Architecture",
-        "wildlife": "Wildlife",
         "stillLife": "Still life",
         "fashion": "Fashion",
         "sports": "Sports",
@@ -438,8 +437,8 @@
         "street": "Street",
         "night": "Night",
         "abstract": "Abstract",
-        "other": "Other",
-        "animal": "Animals"
+        "animal": "Animals",
+        "other": "Other"
       },
       "delete": {
         "title": "Delete confirmation",

@@ -576,21 +576,20 @@ async function main(): Promise<void> {
       continue
     }
 
-    const existingMetadata = parseMetadata(file.metadata)
-
     const buffer = await fetchImageBuffer(sourceUrl)
     if (!buffer) {
       skipped += 1
       continue
     }
 
+    const existingMetadata = parseMetadata(file.metadata)
     const exif = await readExif(buffer)
-    if (!exif) {
-      skipped += 1
-      continue
+    const mergeResult = exif ? mergeMetadata(existingMetadata, exif) : { metadata: { ...existingMetadata }, cameraModel: null }
+    const mergedMetadata = mergeResult.metadata
+    if (!mergedMetadata.fileSize || Number(mergedMetadata.fileSize) <= 0) {
+      mergedMetadata.fileSize = buffer.length
     }
-
-    const { metadata: mergedMetadata, cameraModel: dedupedCamera } = mergeMetadata(existingMetadata, exif)
+    const dedupedCamera = mergeResult.cameraModel
 
     const data: Record<string, unknown> = {
       metadata: JSON.stringify(mergedMetadata),
