@@ -124,8 +124,12 @@ export default defineNuxtConfig({
       width: 1200,
       height: 630,
     },
-    fonts: ['Noto Serif SC:400', 'Noto Serif SC:700', 'Noto Serif JP:400', 'Noto Serif JP:700'],
-    googleFontMirror: true,
+    fonts: [
+      { name: 'Noto Serif SC', weight: 400, path: '/fonts/NotoSerifSC-Regular.ttf' },
+      { name: 'Noto Serif SC', weight: 700, path: '/fonts/NotoSerifSC-Bold.ttf' },
+      { name: 'Noto Serif JP', weight: 400, path: '/fonts/NotoSerifJP-Regular.ttf' },
+      { name: 'Noto Serif JP', weight: 700, path: '/fonts/NotoSerifJP-Bold.ttf' },
+    ],
   },
   image: {
     domains: resolveDomains(),

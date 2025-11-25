@@ -62,6 +62,28 @@ const overlayDownloadState = ref<OverlayDownloadState>({
 })
 const overlayDownloadHideDelayMs = 500
 const overlayDownloadHideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
+const overlayViewerRef = ref<HTMLElement | null>(null)
+const overlayZoom = ref<number>(1)
+const overlayPan = ref<{
+  x: number
+  y: number
+}>({ x: 0, y: 0 })
+const overlayZoomMin = 1
+const overlayZoomMax = 5
+const overlayZoomStep = 0.2
+const overlayDragState = ref<{
+  pointerId: number | null
+  startX: number
+  startY: number
+  originX: number
+  originY: number
+}>({
+  pointerId: null,
+  startX: 0,
+  startY: 0,
+  originX: 0,
+  originY: 0,
+})
 const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
 const histogramChart = ref<Chart | null>(null)
 
@@ -534,6 +556,7 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
 
 function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
   activeFile.value = file
+  resetOverlayZoom()
   startOverlayImageLoad(file, immediateSrc)
   destroyHistogramChart()
   const cachedHistogram = normalizeHistogram(file.metadata.histogram)
@@ -674,6 +697,36 @@ const overlayDownloadVisible = computed<boolean>(() => {
   const state = overlayDownloadState.value
   return (state.status === 'loading' || state.status === 'done') && state.total !== null && state.total > 0
 })
+
+const overlayImageTransformStyle = computed<Record<string, string>>(() => {
+  const transforms: string[] = []
+  const pan = overlayPan.value
+  const scale = overlayZoom.value
+  if (pan.x !== 0 || pan.y !== 0) {
+    transforms.push(`translate(${pan.x}px, ${pan.y}px)`)
+  }
+  if (scale !== 1) {
+    transforms.push(`scale(${scale})`)
+  }
+  if (transforms.length === 0) {
+    return {}
+  }
+  return {
+    transform: transforms.join(' '),
+    transformOrigin: 'center center',
+    willChange: 'transform',
+  }
+})
+
+const overlayZoomed = computed<boolean>(() => overlayZoom.value > overlayZoomMin)
+
+const overlayZoomLabel = computed<string>(() => {
+  const rounded = Math.min(overlayZoomMax, Math.max(overlayZoomMin, overlayZoom.value))
+  const formatted = Number.isInteger(rounded) ? rounded.toFixed(0) : rounded.toFixed(1)
+  return `${formatted}×`
+})
+
+const overlayZoomIndicatorVisible = computed<boolean>(() => overlayZoomed.value)
 
 const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
   const file = activeFile.value
@@ -817,6 +870,97 @@ function resetOverlayImage(): void {
   overlayImageLoader.value = null
   overlayImageSrc.value = null
   resetOverlayDownload()
+  resetOverlayZoom()
+}
+
+function resetOverlayZoom(): void {
+  overlayZoom.value = overlayZoomMin
+  overlayPan.value = { x: 0, y: 0 }
+  overlayDragState.value = {
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+  }
+}
+
+function setOverlayZoom(next: number): void {
+  const clamped = Math.min(overlayZoomMax, Math.max(overlayZoomMin, next))
+  if (clamped === overlayZoom.value) {
+    return
+  }
+  overlayZoom.value = clamped
+  if (clamped === overlayZoomMin) {
+    overlayPan.value = { x: 0, y: 0 }
+  }
+}
+
+function handleOverlayWheel(event: WheelEvent): void {
+  if (!activeFile.value) {
+    return
+  }
+  event.preventDefault()
+  const direction = event.deltaY > 0 ? -overlayZoomStep : overlayZoomStep
+  setOverlayZoom(overlayZoom.value + direction)
+}
+
+function handleOverlayDoubleClick(event: MouseEvent): void {
+  event.preventDefault()
+  if (overlayZoomed.value) {
+    resetOverlayZoom()
+  }
+  else {
+    setOverlayZoom(Math.min(overlayZoomMax, 2))
+  }
+}
+
+function handleOverlayPointerDown(event: PointerEvent): void {
+  if (overlayZoom.value <= overlayZoomMin) {
+    return
+  }
+  if (!(event.currentTarget instanceof HTMLElement)) {
+    return
+  }
+  event.preventDefault()
+  event.currentTarget.setPointerCapture(event.pointerId)
+  overlayDragState.value = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    originX: overlayPan.value.x,
+    originY: overlayPan.value.y,
+  }
+}
+
+function handleOverlayPointerMove(event: PointerEvent): void {
+  const state = overlayDragState.value
+  if (state.pointerId === null || state.pointerId !== event.pointerId) {
+    return
+  }
+  const deltaX = event.clientX - state.startX
+  const deltaY = event.clientY - state.startY
+  overlayPan.value = {
+    x: state.originX + deltaX / overlayZoom.value,
+    y: state.originY + deltaY / overlayZoom.value,
+  }
+}
+
+function endOverlayPointerDrag(event: PointerEvent): void {
+  const state = overlayDragState.value
+  if (state.pointerId === null || state.pointerId !== event.pointerId) {
+    return
+  }
+  if (event.currentTarget instanceof HTMLElement) {
+    event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+  overlayDragState.value = {
+    pointerId: null,
+    startX: 0,
+    startY: 0,
+    originX: 0,
+    originY: 0,
+  }
 }
 
 function navigateOverlay(offset: number): void {
@@ -1136,7 +1280,17 @@ function renderHistogram(): void {
         <div class="absolute inset-0" @click="handleOverlayClose" />
         <div class="relative flex h-full w-full">
           <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0">
-            <div class="relative flex min-h-0 items-center justify-center overflow-hidden bg-black">
+            <div
+              ref="overlayViewerRef"
+              class="relative flex min-h-0 items-center justify-center overflow-hidden bg-black touch-none"
+              @wheel.prevent="handleOverlayWheel"
+              @dblclick.prevent="handleOverlayDoubleClick"
+              @pointerdown="handleOverlayPointerDown"
+              @pointermove="handleOverlayPointerMove"
+              @pointerup="endOverlayPointerDrag"
+              @pointercancel="endOverlayPointerDrag"
+              @pointerleave="endOverlayPointerDrag"
+            >
               <img
                 :key="activeFile.id"
                 :src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
@@ -1155,16 +1309,44 @@ function renderHistogram(): void {
                   //     backgroundRepeat: 'no-repeat',
                   //   }
                   //   : undefined,
+                  overlayImageTransformStyle,
                 ]"
                 :alt="activeFile.displayTitle"
                 loading="eager"
-                class="h-full w-full object-contain"
+                class="h-full w-full select-none object-contain"
               >
-              <OverlayDownloadBadge
-                :visible="overlayDownloadVisible"
-                :label="overlayDownloadLabel"
-                :percent="overlayDownloadPercent"
-              />
+              <Transition
+                appear
+                enter-active-class="transition duration-200 ease-out"
+                leave-active-class="transition duration-200 ease-in"
+                enter-from-class="opacity-0 translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-1"
+              >
+                <OverlayDownloadBadge
+                  v-if="overlayDownloadVisible"
+                  :visible="true"
+                  :label="overlayDownloadLabel"
+                  :percent="overlayDownloadPercent"
+                />
+              </Transition>
+              <Transition
+                appear
+                enter-active-class="transition duration-150 ease-out"
+                leave-active-class="transition duration-150 ease-in"
+                enter-from-class="opacity-0 translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-1"
+              >
+                <div
+                  v-if="overlayZoomIndicatorVisible"
+                  class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+                >
+                  {{ overlayZoomLabel }}
+                </div>
+              </Transition>
             </div>
             <div class="flex min-h-0 flex-col gap-5 overflow-y-auto p-4 md:border-l md:border-default/20 md:p-6">
               <div class="space-y-3">
