@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { ImageSizes } from '@nuxt/image'
 import type { CSSProperties } from 'vue'
 import type { LocationQueryValue } from 'vue-router'
 import type { FileResponse, HistogramData } from '~/types/file'
+import type { DisplaySize, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile, SocialLink, WaterfallEntry } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
-import { Chart } from 'chart.js/auto'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
@@ -35,12 +34,6 @@ const runtimeConfig = useRuntimeConfig()
 const siteConfig = useSiteConfig()
 const route = useRoute()
 const router = useRouter()
-
-type ImageAttrs = ImageSizes & {
-  src: string
-  width?: number
-  height?: number
-}
 
 function getInitialColumns(): number {
   return 3
@@ -88,35 +81,10 @@ const overlayDragState = ref<{
   originX: 0,
   originY: 0,
 })
-const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
-const histogramChart = ref<Chart | null>(null)
 
 interface ThumbhashInfo {
   dataUrl: string
   aspectRatio: number
-}
-
-interface DisplaySize {
-  width: number
-  height: number
-}
-
-interface SocialLink {
-  label: string
-  url: string
-  icon: string
-}
-
-type ResolvedFile = FileResponse & {
-  coverUrl: string
-  previewUrl: string
-  previewAttrs: ImageAttrs
-  displayTitle: string
-  placeholder?: string
-  placeholderAspectRatio?: number
-  overlayPlaceholderUrl?: string | null
-  displaySize: DisplaySize
-  imageAttrs: ImageAttrs
 }
 
 type OverlayDownloadStatus = 'idle' | 'loading' | 'done' | 'error'
@@ -129,38 +97,9 @@ interface OverlayDownloadState {
 
 const overlayRouteKey = 'photo'
 
-interface InfoEntry {
-  entryType: 'info'
-  displaySize: DisplaySize
-}
-
-type WaterfallEntry = InfoEntry | (ResolvedFile & { entryType: 'file' })
-
-interface MetadataEntry {
-  label: string
-  value: string
-  icon: string
-}
-
-interface OverlayStat {
-  label: string
-  icon: string
-}
-
 interface OverlayPointer {
   clientX: number
   clientY: number
-}
-
-type HistogramChannel = 'red' | 'green' | 'blue' | 'luminance'
-
-interface HistogramSummary {
-  shadows: number
-  midtones: number
-  highlights: number
-  peakChannel: HistogramChannel
-  peakIndex: number
-  monochrome: boolean
 }
 
 const metadataLabels = computed(() => ({
@@ -441,78 +380,6 @@ const waterfallEntries = computed<WaterfallEntry[]>(() => {
 
 const waterfallItems = computed(() => waterfallEntries.value.map(item => item.displaySize))
 
-function getCssColor(name: string, fallback: string): string {
-  if (globalThis.document !== undefined) {
-    const value = getComputedStyle(globalThis.document.documentElement).getPropertyValue(name).trim()
-    if (value.length > 0) {
-      return value
-    }
-  }
-  return fallback
-}
-
-const histogramColors = computed(() => ({
-  red: getCssColor('--ui-color-error-500', '#ef4444'),
-  green: getCssColor('--ui-color-success-500', '#22c55e'),
-  blue: getCssColor('--ui-color-info-500', '#3b82f6'),
-}))
-
-const histogramSmoothingKernel = [1, 4, 6, 4, 1]
-
-function smoothHistogramChannel(values: number[], kernel: number[]): number[] {
-  const result = Array.from({ length: values.length }, () => 0)
-  const radius = Math.floor(kernel.length / 2)
-  const defaultWeight = kernel.reduce((sum, weight) => sum + weight, 0)
-  for (let index = 0; index < values.length; index += 1) {
-    let accumulator = 0
-    let weightSum = 0
-    for (let offset = -radius; offset <= radius; offset += 1) {
-      const kernelIndex = offset + radius
-      const weight = kernel[kernelIndex] ?? 0
-      if (weight <= 0) {
-        continue
-      }
-      const valueIndex = index + offset
-      if (valueIndex < 0 || valueIndex >= values.length) {
-        continue
-      }
-      const value = values[valueIndex]
-      if (!Number.isFinite(value)) {
-        continue
-      }
-      accumulator += value * weight
-      weightSum += weight
-    }
-    const normalizedWeight = weightSum > 0 ? weightSum : defaultWeight
-    result[index] = normalizedWeight > 0 ? accumulator / normalizedWeight : 0
-  }
-  return result
-}
-
-function smoothHistogramData(data: HistogramData): HistogramData {
-  // Light smoothing to reduce jagged edges without altering overall distribution.
-  return {
-    red: smoothHistogramChannel(data.red, histogramSmoothingKernel),
-    green: smoothHistogramChannel(data.green, histogramSmoothingKernel),
-    blue: smoothHistogramChannel(data.blue, histogramSmoothingKernel),
-    luminance: smoothHistogramChannel(data.luminance, histogramSmoothingKernel),
-  }
-}
-
-function isMonochromeHistogram(data: HistogramData): boolean {
-  const length = Math.min(data.red.length, data.green.length, data.blue.length)
-  const tolerance = 1e-6
-  for (let index = 0; index < length; index += 1) {
-    const red = data.red[index] ?? 0
-    const green = data.green[index] ?? 0
-    const blue = data.blue[index] ?? 0
-    if (Math.abs(red - green) > tolerance || Math.abs(red - blue) > tolerance || Math.abs(green - blue) > tolerance) {
-      return false
-    }
-  }
-  return true
-}
-
 function normalizeHistogram(raw: HistogramData | null | undefined): HistogramData | null {
   if (!raw) {
     return null
@@ -538,55 +405,6 @@ function normalizeHistogram(raw: HistogramData | null | undefined): HistogramDat
 
   return { red, green, blue, luminance }
 }
-
-const histogramSummary = computed<HistogramSummary | null>(() => {
-  const value = histogram.value
-  if (!value) {
-    return null
-  }
-  let total = 0
-  for (const entry of value.luminance) {
-    if (Number.isFinite(entry)) {
-      total += entry
-    }
-  }
-  if (total <= 0) {
-    return null
-  }
-  const sumRange = (start: number, end: number): number => {
-    let sum = 0
-    for (let index = start; index <= end; index += 1) {
-      sum += value.luminance[index] ?? 0
-    }
-    return sum
-  }
-  const shadows = Math.max(0, Math.min(1, sumRange(0, 63) / total))
-  const midtones = Math.max(0, Math.min(1, sumRange(64, 191) / total))
-  const highlights = Math.max(0, Math.min(1, sumRange(192, 255) / total))
-  const channels: Array<{ key: HistogramChannel, values: number[] }> = [
-    { key: 'luminance', values: value.luminance },
-    { key: 'red', values: value.red },
-    { key: 'green', values: value.green },
-    { key: 'blue', values: value.blue },
-  ]
-  let peak: { key: HistogramChannel, value: number, index: number } = { key: 'luminance', value: 0, index: 0 }
-  for (const channel of channels) {
-    for (let index = 0; index < channel.values.length; index += 1) {
-      const current = channel.values[index] ?? 0
-      if (current > peak.value) {
-        peak = { key: channel.key, value: current, index }
-      }
-    }
-  }
-  return {
-    shadows: Math.round(shadows * 100),
-    midtones: Math.round(midtones * 100),
-    highlights: Math.round(highlights * 100),
-    peakChannel: peak.key,
-    peakIndex: peak.index,
-    monochrome: isMonochromeHistogram(value),
-  }
-})
 
 const resizeObserver = ref<ResizeObserver | null>(null)
 
@@ -619,7 +437,6 @@ onBeforeUnmount(() => {
   if (globalThis.window !== undefined) {
     globalThis.window.removeEventListener('keydown', handleKeydown)
   }
-  destroyHistogramChart()
   clearOverlayDownloadHideTimer()
   clearOverlayZoomIndicatorTimer()
 })
@@ -676,7 +493,6 @@ function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc
   activeFile.value = file
   void nextTick(() => resetOverlayZoom())
   startOverlayImageLoad(file, immediateSrc)
-  destroyHistogramChart()
   const cachedHistogram = normalizeHistogram(file.metadata.histogram)
   histogram.value = cachedHistogram
   if (syncRoute) {
@@ -686,7 +502,6 @@ function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc
 
 function closeOverlay(syncRoute: boolean = true): void {
   activeFile.value = null
-  destroyHistogramChart()
   histogram.value = null
   resetOverlayImage()
   if (syncRoute) {
@@ -700,6 +515,10 @@ function handleEntryClick(event: MouseEvent, file: ResolvedFile): void {
 
 function handleOverlayClose(): void {
   runViewTransition(() => closeOverlay())
+}
+
+function handleOverlayViewerMounted(element: HTMLElement | null): void {
+  overlayViewerRef.value = element
 }
 
 function toDisplayText(value: string | null | undefined): string | undefined {
@@ -1179,21 +998,6 @@ watch(
 )
 
 watch(
-  [
-    histogram,
-    histogramCanvasRef,
-    isHydrated,
-  ],
-  () => {
-    if (!isHydrated.value) {
-      return
-    }
-    renderHistogram()
-  },
-  { flush: 'post' },
-)
-
-watch(
   overlayBaseScale,
   (nextBase) => {
     if (!Number.isFinite(nextBase) || nextBase <= 0) {
@@ -1205,11 +1009,6 @@ watch(
     }
   },
 )
-
-function destroyHistogramChart(): void {
-  histogramChart.value?.destroy()
-  histogramChart.value = null
-}
 
 function abortOverlayImageFetch(): void {
   overlayImageAbortController.value?.abort()
@@ -1566,137 +1365,6 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   previewLoader.addEventListener('error', handlePreviewError)
   previewLoader.src = previewSrc
 }
-
-function renderHistogram(): void {
-  if (globalThis.document === undefined || !histogramCanvasRef.value || !histogram.value) {
-    return
-  }
-  const context = histogramCanvasRef.value.getContext('2d')
-  if (!context) {
-    return
-  }
-  destroyHistogramChart()
-  const chartHistogram = smoothHistogramData(histogram.value)
-  const labels = chartHistogram.red.map((_, index) => index)
-  const monochrome = isMonochromeHistogram(histogram.value)
-  const toneOverlay = {
-    id: 'toneOverlay',
-    beforeDraw(chartInstance: Chart<'line'>) {
-      const { ctx, chartArea, scales } = chartInstance
-      const xScale = scales.x
-      if (!chartArea || !xScale) {
-        return
-      }
-      const zones = [
-        { start: 0, end: 85, color: 'rgba(255, 255, 255, 0.02)' },
-        { start: 85, end: 170, color: 'rgba(255, 255, 255, 0.03)' },
-        { start: 170, end: 255, color: 'rgba(255, 255, 255, 0.02)' },
-      ]
-      ctx.save()
-      for (const zone of zones) {
-        const startX = xScale.getPixelForValue(zone.start)
-        const endX = xScale.getPixelForValue(zone.end)
-        ctx.fillStyle = zone.color
-        ctx.fillRect(startX, chartArea.top, endX - startX, chartArea.height)
-      }
-      ctx.restore()
-    },
-  }
-  const baseDataset = {
-    pointRadius: 0,
-    tension: 0.35,
-    cubicInterpolationMode: 'monotone' as const,
-    fill: false,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
-  }
-  const datasets = monochrome
-    ? [
-        {
-          label: 'Luminance',
-          data: chartHistogram.luminance,
-          borderColor: '#ffffff',
-          ...baseDataset,
-        },
-      ]
-    : [
-        {
-          label: 'Red',
-          data: chartHistogram.red,
-          borderColor: histogramColors.value.red,
-          ...baseDataset,
-        },
-        {
-          label: 'Green',
-          data: chartHistogram.green,
-          borderColor: histogramColors.value.green,
-          ...baseDataset,
-        },
-        {
-          label: 'Blue',
-          data: chartHistogram.blue,
-          borderColor: histogramColors.value.blue,
-          ...baseDataset,
-        },
-      ]
-  histogramChart.value = new Chart(context, {
-    type: 'line',
-    data: {
-      labels,
-      datasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      animation: false,
-      events: [],
-      layout: {
-        padding: {
-          top: 8,
-          right: 10,
-          bottom: 8,
-          left: 10,
-        },
-      },
-      elements: {
-        line: {
-          borderJoinStyle: 'round',
-        },
-      },
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          enabled: false,
-        },
-      },
-      scales: {
-        x: {
-          display: false,
-          grid: {
-            display: true,
-            color: 'rgba(255, 255, 255, 0.06)',
-          },
-          border: {
-            display: false,
-          },
-        },
-        y: {
-          display: false,
-          grid: {
-            display: true,
-            color: 'rgba(255, 255, 255, 0.06)',
-          },
-          border: {
-            display: false,
-          },
-        },
-      },
-    },
-    plugins: [toneOverlay],
-  })
-}
 </script>
 
 <template>
@@ -1758,230 +1426,33 @@ function renderHistogram(): void {
       </div>
     </div>
     <Teleport to="body">
-      <div
+      <WaterfallOverlay
         v-if="activeFile"
-        class="fixed inset-0 z-50"
-        role="dialog"
-        aria-modal="true"
-      >
-        <div
-          v-if="overlayBackgroundStyle"
-          class="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center blur-3xl"
-          :style="overlayBackgroundStyle"
-          aria-hidden="true"
-        />
-        <div class="absolute inset-0" @click="handleOverlayClose" />
-        <div class="relative flex h-full w-full">
-          <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0">
-            <div
-              ref="overlayViewerRef"
-              class="relative flex min-h-0 items-center justify-center overflow-hidden bg-black touch-none"
-              @wheel.prevent="handleOverlayWheel"
-              @dblclick.prevent="handleOverlayDoubleClick"
-              @pointerdown="handleOverlayPointerDown"
-              @pointermove="handleOverlayPointerMove"
-              @pointerup="endOverlayPointerDrag"
-              @pointercancel="endOverlayPointerDrag"
-              @pointerleave="endOverlayPointerDrag"
-            >
-              <img
-                :key="activeFile.id"
-                :src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
-                :srcset="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.srcset : undefined"
-                :sizes="overlayImageSrc === (activeFile.previewAttrs?.src ?? '') ? activeFile.previewAttrs?.sizes : undefined"
-                crossorigin="anonymous"
-                :width="activeFile.width"
-                :height="activeFile.height"
-                :style="[
-                  viewTransitionStyle(activeFile.id),
-                  // activeFile.placeholder
-                  //   ? {
-                  //     backgroundImage: `url(${activeFile.placeholder})`,
-                  //     backgroundSize: 'cover',
-                  //     backgroundPosition: 'center',
-                  //     backgroundRepeat: 'no-repeat',
-                  //   }
-                  //   : undefined,
-                  overlayImageTransformStyle,
-                ]"
-                :alt="activeFile.displayTitle"
-                loading="eager"
-                class="h-full w-full select-none object-contain"
-              >
-              <Transition
-                appear
-                enter-active-class="transition duration-200 ease-out"
-                leave-active-class="transition duration-200 ease-in"
-                enter-from-class="opacity-0 translate-y-1"
-                enter-to-class="opacity-100 translate-y-0"
-                leave-from-class="opacity-100 translate-y-0"
-                leave-to-class="opacity-0 translate-y-1"
-              >
-                <OverlayDownloadBadge
-                  v-if="overlayDownloadVisible"
-                  :visible="true"
-                  :label="overlayDownloadLabel"
-                  :percent="overlayDownloadPercent"
-                />
-              </Transition>
-              <Transition
-                appear
-                enter-active-class="transition duration-150 ease-out"
-                leave-active-class="transition duration-150 ease-in"
-                enter-from-class="opacity-0 translate-y-1"
-                enter-to-class="opacity-100 translate-y-0"
-                leave-from-class="opacity-100 translate-y-0"
-                leave-to-class="opacity-0 translate-y-1"
-              >
-                <div
-                  v-if="overlayZoomIndicatorVisible"
-                  class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
-                >
-                  {{ overlayZoomLabel }}
-                </div>
-              </Transition>
-            </div>
-            <div class="home-display-font flex min-h-0 flex-col gap-4 overflow-y-auto p-3 md:border-l md:border-default/20 md:p-4">
-              <div class="space-y-2.5">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="space-y-1">
-                    <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
-                      {{ activeFile.displayTitle }}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
-                    @click="handleOverlayClose"
-                  >
-                    <Icon name="carbon:close" class="h-4 w-4" />
-                    <span>{{ t('common.actions.close') }}</span>
-                  </button>
-                </div>
-                <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
-                  <div
-                    v-for="stat in overlayStats"
-                    :key="`${stat.icon}-${stat.label}`"
-                    class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-highlighted ring-1 ring-default/30"
-                  >
-                    <Icon :name="stat.icon" class="h-3.5 w-3.5" />
-                    <span class="leading-none">{{ stat.label }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="space-y-3">
-                <div class="rounded-lg border border-default/20 bg-elevated/80">
-                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
-                    <div class="flex items-center gap-2">
-                      <Icon name="carbon:chart-line" class="h-4 w-4" />
-                      <span>{{ t('gallery.histogram.title') }}</span>
-                    </div>
-                  </div>
-                  <div class="space-y-3 p-3">
-                    <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
-                      <canvas ref="histogramCanvasRef" class="absolute inset-0 h-full w-full" />
-                      <div
-                        v-if="!histogram"
-                        class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
-                      >
-                        <Icon name="line-md:loading-loop" class="h-4 w-4" />
-                        <span>{{ t('gallery.histogram.pending') }}</span>
-                      </div>
-                    </div>
-                    <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-[11px]">
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between text-muted">
-                          <span>{{ t('gallery.histogram.shadows') }}</span>
-                          <span class="font-semibold text-highlighted">{{ histogramSummary.shadows }}%</span>
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.shadows}%` }" />
-                        </div>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between text-muted">
-                          <span>{{ t('gallery.histogram.midtones') }}</span>
-                          <span class="font-semibold text-highlighted">{{ histogramSummary.midtones }}%</span>
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.midtones}%` }" />
-                        </div>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between text-muted">
-                          <span>{{ t('gallery.histogram.highlights') }}</span>
-                          <span class="font-semibold text-highlighted">{{ histogramSummary.highlights }}%</span>
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.highlights}%` }" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
-                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
-                    <div class="flex items-center gap-2">
-                      <Icon name="carbon:information" class="h-4 w-4" />
-                      <span>{{ t('gallery.metadata.section') }}</span>
-                    </div>
-                    <span class="rounded-full bg-default/60 px-2 py-0.5 text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
-                      {{ metadataEntries.length + exposureEntries.length }}
-                    </span>
-                  </div>
-                  <div v-if="hasMetadata" class="space-y-3 p-3">
-                    <div v-if="exposureEntries.length > 0" class="space-y-3">
-                      <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
-                        <Icon name="carbon:settings-adjust" class="h-4 w-4" />
-                        <span>{{ t('gallery.metadata.exposure') }}</span>
-                      </div>
-                      <div class="grid grid-cols-2 gap-2">
-                        <div
-                          v-for="item in exposureEntries"
-                          :key="item.label"
-                          class="flex items-center gap-3 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-                          :aria-label="`${item.label}: ${item.value}`"
-                        >
-                          <Icon :name="item.icon" class="h-4 w-4 text-muted" />
-                          <div class="flex flex-col leading-tight">
-                            <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
-                            <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div v-if="metadataEntries.length > 0" class="space-y-2">
-                      <div
-                        v-for="item in metadataEntries"
-                        :key="item.label"
-                        class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-                      >
-                        <p class="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
-                          <Icon :name="item.icon" class="h-4 w-4" />
-                          <span>{{ item.label }}</span>
-                        </p>
-                        <p class="text-base leading-relaxed text-highlighted">
-                          {{ item.value }}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="px-3 py-4 text-sm text-muted">
-                    <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                      <Icon name="carbon:warning" class="h-4 w-4" />
-                      <span>{{ t('gallery.metadata.section') }}</span>
-                    </p>
-                    <p class="mt-2 flex items-center gap-2 text-highlighted">
-                      <Icon name="carbon:information" class="h-4 w-4 text-muted" />
-                      <span>{{ t('gallery.metadata.empty') }}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+        :file="activeFile"
+        :overlay-background-style="overlayBackgroundStyle"
+        :overlay-image-src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
+        :overlay-image-transform-style="overlayImageTransformStyle"
+        :overlay-download-visible="overlayDownloadVisible"
+        :overlay-download-label="overlayDownloadLabel"
+        :overlay-download-percent="overlayDownloadPercent"
+        :overlay-zoom-label="overlayZoomLabel"
+        :overlay-zoom-indicator-visible="overlayZoomIndicatorVisible"
+        :overlay-stats="overlayStats"
+        :histogram="histogram"
+        :metadata-entries="metadataEntries"
+        :exposure-entries="exposureEntries"
+        :has-metadata="hasMetadata"
+        :preview-attrs="activeFile.previewAttrs"
+        @close="handleOverlayClose"
+        @wheel="handleOverlayWheel"
+        @dblclick="handleOverlayDoubleClick"
+        @pointerdown="handleOverlayPointerDown"
+        @pointermove="handleOverlayPointerMove"
+        @pointerup="endOverlayPointerDrag"
+        @pointercancel="endOverlayPointerDrag"
+        @pointerleave="endOverlayPointerDrag"
+        @viewer-mounted="handleOverlayViewerMounted"
+      />
     </Teleport>
   </div>
   <div

@@ -875,23 +875,18 @@ onBeforeUnmount(() => {
           </template>
           <div class="space-y-4">
             <div class="space-y-3">
-              <div class="w-full overflow-hidden rounded-lg bg-black/5" :style="{ aspectRatio: aspectRatioStyle }">
+              <div
+                class="w-full cursor-pointer overflow-hidden rounded-lg bg-black/5 outline-none ring-primary/40 focus-visible:ring-2"
+                :style="{ aspectRatio: aspectRatioStyle }"
+                role="button"
+                tabindex="0"
+                :aria-label="t('common.actions.changeImage')"
+                @click="fileInputEl?.click()"
+                @keydown.enter.prevent="fileInputEl?.click()"
+                @keydown.space.prevent="fileInputEl?.click()"
+              >
                 <img v-if="previewUrl" :src="previewUrl" :alt="t('admin.upload.sections.preview.alt')" class="h-full w-full object-cover">
               </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              <UButton variant="ghost" color="neutral" @click="fileInputEl?.click()">
-                <span class="flex items-center gap-2">
-                  <Icon name="mdi:image-edit-outline" class="h-4 w-4" />
-                  <span>{{ t('common.actions.changeImage') }}</span>
-                </span>
-              </UButton>
-              <UButton variant="ghost" color="neutral" @click="clearSelectedFile">
-                <span class="flex items-center gap-2">
-                  <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
-                  <span>{{ t('common.actions.remove') }}</span>
-                </span>
-              </UButton>
             </div>
           </div>
         </UCard>
