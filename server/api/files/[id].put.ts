@@ -2,7 +2,7 @@ import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { createError, getRouterParam, readBody } from 'h3'
 import { requireAdmin } from '../../utils/auth'
-import { ensureKind, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
+import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
 import { prisma } from '../../utils/prisma'
 
 type UpdateBody = Partial<FilePayload>
@@ -77,10 +77,22 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     latitude: existing.latitude ?? null,
     longitude: existing.longitude ?? null,
     cameraModel: existing.cameraModel,
+    lensModel: '',
     aperture: existing.aperture,
     focalLength: existing.focalLength,
     iso: existing.iso,
     shutterSpeed: existing.shutterSpeed,
+    exposureBias: '',
+    exposureProgram: '',
+    exposureMode: '',
+    meteringMode: '',
+    whiteBalance: '',
+    flash: '',
+    colorSpace: '',
+    resolutionX: '',
+    resolutionY: '',
+    resolutionUnit: '',
+    software: '',
     captureTime: existing.captureTime,
     notes: '',
     thumbhash: undefined,
@@ -88,7 +100,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     sha256: undefined,
   })
 
-  const kind = ensureKind(body.kind, existing.kind)
   const title = normalizeText(body.title, existing.title)
   const description = normalizeText(body.description, existing.description)
   const width = parsePositiveNumber(body.width, existing.width, 'Width')
@@ -104,10 +115,22 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     latitude: parseNullableNumber(body.latitude, existingMetadata.latitude, 'Latitude'),
     longitude: parseNullableNumber(body.longitude, existingMetadata.longitude, 'Longitude'),
     cameraModel: normalizeText(body.cameraModel, existingMetadata.cameraModel),
+    lensModel: normalizeText(body.lensModel, existingMetadata.lensModel),
     aperture: normalizeText(body.aperture, existingMetadata.aperture),
     focalLength: normalizeText(body.focalLength, existingMetadata.focalLength),
     iso: normalizeText(body.iso, existingMetadata.iso),
     shutterSpeed: normalizeText(body.shutterSpeed, existingMetadata.shutterSpeed),
+    exposureBias: normalizeText(body.exposureBias, existingMetadata.exposureBias),
+    exposureProgram: normalizeText(body.exposureProgram, existingMetadata.exposureProgram),
+    exposureMode: normalizeText(body.exposureMode, existingMetadata.exposureMode),
+    meteringMode: normalizeText(body.meteringMode, existingMetadata.meteringMode),
+    whiteBalance: normalizeText(body.whiteBalance, existingMetadata.whiteBalance),
+    flash: normalizeText(body.flash, existingMetadata.flash),
+    colorSpace: normalizeText(body.colorSpace, existingMetadata.colorSpace),
+    resolutionX: normalizeText(body.resolutionX, existingMetadata.resolutionX),
+    resolutionY: normalizeText(body.resolutionY, existingMetadata.resolutionY),
+    resolutionUnit: normalizeText(body.resolutionUnit, existingMetadata.resolutionUnit),
+    software: normalizeText(body.software, existingMetadata.software),
     captureTime: normalizeText(body.captureTime, existingMetadata.captureTime),
     notes: normalizeText(body.notes, existingMetadata.notes),
   }
@@ -115,7 +138,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const updated = await prisma.file.update({
     where: { id },
     data: {
-      kind,
       title,
       description,
       width,

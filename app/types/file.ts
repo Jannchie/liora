@@ -1,5 +1,3 @@
-export type FileKind = 'PAINTING' | 'PHOTOGRAPHY'
-
 export interface HistogramData {
   red: number[]
   green: number[]
@@ -15,10 +13,22 @@ export interface FileMetadata {
   latitude: number | null
   longitude: number | null
   cameraModel: string
+  lensModel: string
   aperture: string
   focalLength: string
   iso: string
   shutterSpeed: string
+  exposureBias: string
+  exposureProgram: string
+  exposureMode: string
+  meteringMode: string
+  whiteBalance: string
+  flash: string
+  colorSpace: string
+  resolutionX: string
+  resolutionY: string
+  resolutionUnit: string
+  software: string
   captureTime: string
   notes: string
   thumbhash?: string
@@ -28,7 +38,6 @@ export interface FileMetadata {
 }
 
 export interface FilePayload {
-  kind: FileKind
   width: number
   height: number
   title?: string
@@ -40,17 +49,28 @@ export interface FilePayload {
   latitude?: number | null
   longitude?: number | null
   cameraModel?: string
+  lensModel?: string
   aperture?: string
   focalLength?: string
   iso?: string
   shutterSpeed?: string
+  exposureBias?: string
+  exposureProgram?: string
+  exposureMode?: string
+  meteringMode?: string
+  whiteBalance?: string
+  flash?: string
+  colorSpace?: string
+  resolutionX?: string
+  resolutionY?: string
+  resolutionUnit?: string
+  software?: string
   captureTime?: string
   notes?: string
 }
 
 export interface FileResponse {
   id: number
-  kind: FileKind
   title: string
   description: string
   originalName: string

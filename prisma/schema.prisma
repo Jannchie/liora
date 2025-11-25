@@ -10,14 +10,8 @@ datasource db {
   provider = "sqlite"
 }
 
-enum FileKind {
-  PAINTING
-  PHOTOGRAPHY
-}
-
 model File {
   id            Int       @id @default(autoincrement())
-  kind          FileKind
   title         String    @default("")
   description   String    @default("")
   imageUrl      String

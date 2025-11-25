@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
+import type { CSSProperties } from 'vue'
 import type { LocationQueryValue } from 'vue-router'
 import type { FileResponse, HistogramData } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
@@ -169,8 +170,18 @@ const metadataLabels = computed(() => ({
   characters: t('gallery.metadata.characters'),
   location: t('gallery.metadata.location'),
   camera: t('gallery.metadata.device'),
+  lens: t('gallery.metadata.lens'),
   exposure: t('gallery.metadata.exposure'),
   captureTime: t('gallery.metadata.captureTime'),
+  exposureBias: t('gallery.metadata.exposureBias'),
+  exposureProgram: t('gallery.metadata.exposureProgram'),
+  exposureMode: t('gallery.metadata.exposureMode'),
+  meteringMode: t('gallery.metadata.meteringMode'),
+  whiteBalance: t('gallery.metadata.whiteBalance'),
+  flash: t('gallery.metadata.flash'),
+  colorSpace: t('gallery.metadata.colorSpace'),
+  resolution: t('gallery.metadata.resolution'),
+  software: t('gallery.metadata.software'),
   size: t('gallery.metadata.size'),
 }))
 
@@ -230,10 +241,6 @@ function resolveSortTimestamp(file: FileResponse): number {
   const captureTimestamp = toTimestamp(file.metadata.captureTime)
   const createdTimestamp = toTimestamp(file.createdAt) ?? 0
   return captureTimestamp ?? createdTimestamp
-}
-
-function resolveKindLabel(kind: FileResponse['kind']): string {
-  return kind === 'PHOTOGRAPHY' ? t('common.kinds.photography') : t('common.kinds.painting')
 }
 
 function formatDisplayDateTime(value: string | undefined): string | undefined {
@@ -450,6 +457,48 @@ const histogramColors = computed(() => ({
   blue: getCssColor('--ui-color-info-500', '#3b82f6'),
 }))
 
+const histogramSmoothingKernel = [1, 4, 6, 4, 1]
+
+function smoothHistogramChannel(values: number[], kernel: number[]): number[] {
+  const result = Array.from({ length: values.length }, () => 0)
+  const radius = Math.floor(kernel.length / 2)
+  const defaultWeight = kernel.reduce((sum, weight) => sum + weight, 0)
+  for (let index = 0; index < values.length; index += 1) {
+    let accumulator = 0
+    let weightSum = 0
+    for (let offset = -radius; offset <= radius; offset += 1) {
+      const kernelIndex = offset + radius
+      const weight = kernel[kernelIndex] ?? 0
+      if (weight <= 0) {
+        continue
+      }
+      const valueIndex = index + offset
+      if (valueIndex < 0 || valueIndex >= values.length) {
+        continue
+      }
+      const value = values[valueIndex]
+      if (!Number.isFinite(value)) {
+        continue
+      }
+      accumulator += value * weight
+      weightSum += weight
+    }
+    const normalizedWeight = weightSum > 0 ? weightSum : defaultWeight
+    result[index] = normalizedWeight > 0 ? accumulator / normalizedWeight : 0
+  }
+  return result
+}
+
+function smoothHistogramData(data: HistogramData): HistogramData {
+  // Light smoothing to reduce jagged edges without altering overall distribution.
+  return {
+    red: smoothHistogramChannel(data.red, histogramSmoothingKernel),
+    green: smoothHistogramChannel(data.green, histogramSmoothingKernel),
+    blue: smoothHistogramChannel(data.blue, histogramSmoothingKernel),
+    luminance: smoothHistogramChannel(data.luminance, histogramSmoothingKernel),
+  }
+}
+
 function isMonochromeHistogram(data: HistogramData): boolean {
   const length = Math.min(data.red.length, data.green.length, data.blue.length)
   const tolerance = 1e-6
@@ -495,7 +544,12 @@ const histogramSummary = computed<HistogramSummary | null>(() => {
   if (!value) {
     return null
   }
-  const total = value.luminance.reduce((sum, entry) => (Number.isFinite(entry) ? sum + entry : sum), 0)
+  let total = 0
+  for (const entry of value.luminance) {
+    if (Number.isFinite(entry)) {
+      total += entry
+    }
+  }
   if (total <= 0) {
     return null
   }
@@ -509,13 +563,13 @@ const histogramSummary = computed<HistogramSummary | null>(() => {
   const shadows = Math.max(0, Math.min(1, sumRange(0, 63) / total))
   const midtones = Math.max(0, Math.min(1, sumRange(64, 191) / total))
   const highlights = Math.max(0, Math.min(1, sumRange(192, 255) / total))
-  const channels: Array<{ key: HistogramLegendEntry['key']; values: number[] }> = [
+  const channels: Array<{ key: HistogramChannel, values: number[] }> = [
     { key: 'luminance', values: value.luminance },
     { key: 'red', values: value.red },
     { key: 'green', values: value.green },
     { key: 'blue', values: value.blue },
   ]
-  let peak = { key: 'luminance' as HistogramLegendEntry['key'], value: 0, index: 0 }
+  let peak: { key: HistogramChannel, value: number, index: number } = { key: 'luminance', value: 0, index: 0 }
   for (const channel of channels) {
     for (let index = 0; index < channel.values.length; index += 1) {
       const current = channel.values[index] ?? 0
@@ -532,30 +586,6 @@ const histogramSummary = computed<HistogramSummary | null>(() => {
     peakIndex: peak.index,
     monochrome: isMonochromeHistogram(value),
   }
-})
-
-function resolveHistogramChannelLabel(key: HistogramChannel): string {
-  switch (key) {
-    case 'luminance':
-      return t('gallery.histogram.luminance')
-    case 'red':
-      return t('gallery.histogram.red')
-    case 'green':
-      return t('gallery.histogram.green')
-    case 'blue':
-      return t('gallery.histogram.blue')
-    default:
-      return key
-  }
-}
-
-const histogramPeakLabel = computed<string | null>(() => {
-  const summary = histogramSummary.value
-  if (!summary) {
-    return null
-  }
-  const label = resolveHistogramChannelLabel(summary.peakChannel)
-  return `${label} · ${summary.peakIndex}`
 })
 
 const resizeObserver = ref<ResizeObserver | null>(null)
@@ -680,6 +710,151 @@ function toDisplayText(value: string | null | undefined): string | undefined {
   return normalized.length > 0 ? normalized : undefined
 }
 
+function escapeRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
+}
+
+function dedupeCameraLens(
+  camera: string | undefined,
+  lens: string | undefined,
+): { camera?: string, lens?: string } {
+  const cameraText = toDisplayText(camera)
+  const lensText = toDisplayText(lens)
+  const separators = ['·', '|', '/']
+
+  if (cameraText && lensText) {
+    const pattern = new RegExp(`\\s*[·|/,-]?\\s*${escapeRegExp(lensText)}`, 'i')
+    const cleanedCamera = cameraText.replace(pattern, '').trim().replace(/[·|/,-]+$/, '').trim()
+    return {
+      camera: toDisplayText(cleanedCamera) ?? cameraText,
+      lens: lensText,
+    }
+  }
+
+  if (cameraText && !lensText) {
+    for (const separator of separators) {
+      const index = cameraText.lastIndexOf(separator)
+      if (index > 0 && index < cameraText.length - 2) {
+        const base = cameraText.slice(0, index).trim()
+        const extracted = cameraText.slice(index + 1).trim().replace(/^[·|/,-]+/, '').trim()
+        if (base.length > 0 && extracted.length > 0) {
+          return { camera: base, lens: extracted }
+        }
+      }
+    }
+    const dashIndex = cameraText.lastIndexOf(' - ')
+    if (dashIndex > 0 && dashIndex < cameraText.length - 3) {
+      const base = cameraText.slice(0, dashIndex).trim()
+      const extracted = cameraText.slice(dashIndex + 3).trim()
+      if (base.length > 0 && extracted.length > 0) {
+        return { camera: base, lens: extracted }
+      }
+    }
+  }
+
+  return { camera: cameraText ?? undefined, lens: lensText ?? undefined }
+}
+
+function formatResolutionValue(
+  resolutionX: string | undefined,
+  resolutionY: string | undefined,
+  resolutionUnit: string | undefined,
+): string | undefined {
+  const x = toDisplayText(resolutionX)
+  const y = toDisplayText(resolutionY)
+  const unitKey = toDisplayText(resolutionUnit)?.toLowerCase() ?? ''
+  const unitMap: Record<string, string> = {
+    'pixels/inch': t('gallery.metadata.resolutionUnit.inch'),
+    'pixels/in': t('gallery.metadata.resolutionUnit.inch'),
+    'ppi': t('gallery.metadata.resolutionUnit.inch'),
+    'pixels/centimeter': t('gallery.metadata.resolutionUnit.cm'),
+    'pixels/cm': t('gallery.metadata.resolutionUnit.cm'),
+    'ppcm': t('gallery.metadata.resolutionUnit.cm'),
+  }
+  const unit = unitMap[unitKey] ?? toDisplayText(resolutionUnit)
+  if (x && y) {
+    return unit ? `${x} × ${y} ${unit}` : `${x} × ${y}`
+  }
+  if (x && unit) {
+    return `${x} ${unit}`
+  }
+  if (y && unit) {
+    return `${y} ${unit}`
+  }
+  return x ?? y ?? undefined
+}
+
+function translateEnum(value: string | undefined, dictionary: Record<string, string>): string | undefined {
+  const text = toDisplayText(value)
+  if (!text) {
+    return undefined
+  }
+  const key = text.toLowerCase()
+  const translated = dictionary[key]
+  return translated ?? text
+}
+
+function translateExposureProgram(value: string | undefined): string | undefined {
+  return translateEnum(value, {
+    'not defined': t('admin.upload.options.exposureProgram.notDefined'),
+    'manual': t('admin.upload.options.exposureProgram.manual'),
+    'program': t('admin.upload.options.exposureProgram.program'),
+    'normal program': t('admin.upload.options.exposureProgram.program'),
+    'aperture priority': t('admin.upload.options.exposureProgram.aperturePriority'),
+    'shutter priority': t('admin.upload.options.exposureProgram.shutterPriority'),
+    'creative': t('admin.upload.options.exposureProgram.creative'),
+    'action': t('admin.upload.options.exposureProgram.action'),
+    'portrait': t('admin.upload.options.exposureProgram.portrait'),
+    'landscape': t('admin.upload.options.exposureProgram.landscape'),
+  })
+}
+
+function translateExposureMode(value: string | undefined): string | undefined {
+  return translateEnum(value, {
+    'auto': t('admin.upload.options.exposureMode.auto'),
+    'manual': t('admin.upload.options.exposureMode.manual'),
+    'auto bracket': t('admin.upload.options.exposureMode.bracket'),
+    'bracket': t('admin.upload.options.exposureMode.bracket'),
+  })
+}
+
+function translateMeteringMode(value: string | undefined): string | undefined {
+  return translateEnum(value, {
+    'unknown': t('admin.upload.options.metering.unknown'),
+    'average': t('admin.upload.options.metering.average'),
+    'center-weighted': t('admin.upload.options.metering.center'),
+    'center weighted': t('admin.upload.options.metering.center'),
+    'center-weighted average': t('admin.upload.options.metering.center'),
+    'multi-spot': t('admin.upload.options.metering.multiSpot'),
+    'multispot': t('admin.upload.options.metering.multiSpot'),
+    'multi spot': t('admin.upload.options.metering.multiSpot'),
+    'spot': t('admin.upload.options.metering.spot'),
+    'pattern': t('admin.upload.options.metering.pattern'),
+    'matrix': t('admin.upload.options.metering.pattern'),
+    'partial': t('admin.upload.options.metering.partial'),
+    'other': t('admin.upload.options.metering.other'),
+  })
+}
+
+function translateWhiteBalance(value: string | undefined): string | undefined {
+  return translateEnum(value, {
+    auto: t('admin.upload.options.whiteBalance.auto'),
+    manual: t('admin.upload.options.whiteBalance.manual'),
+  })
+}
+
+function translateFlash(value: string | undefined): string | undefined {
+  return translateEnum(value, {
+    'did not fire': t('admin.upload.options.flash.didNotFire'),
+    'auto (did not fire)': t('admin.upload.options.flash.autoDidNotFire'),
+    'auto, did not fire': t('admin.upload.options.flash.autoDidNotFire'),
+    'auto - did not fire': t('admin.upload.options.flash.autoDidNotFire'),
+    'fired': t('admin.upload.options.flash.fired'),
+    'auto (fired)': t('admin.upload.options.flash.autoFired'),
+    'auto, fired': t('admin.upload.options.flash.autoFired'),
+  })
+}
+
 const metadataEntries = computed<MetadataEntry[]>(() => {
   const file = activeFile.value
   if (!file) {
@@ -710,13 +885,28 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   if (locationName) {
     entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'carbon:location' })
   }
-  const cameraModel = toDisplayText(metadata.cameraModel || file.cameraModel)
-  if (cameraModel) {
-    entries.push({ label: metadataLabels.value.camera, value: cameraModel, icon: 'carbon:camera' })
+  const { camera, lens } = dedupeCameraLens(metadata.cameraModel || file.cameraModel, metadata.lensModel)
+  if (camera) {
+    entries.push({ label: metadataLabels.value.camera, value: camera, icon: 'carbon:camera' })
+  }
+  if (lens) {
+    entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'mdi:camera-iris' })
   }
   const captureTime = formatDisplayDateTime(metadata.captureTime)
   if (captureTime) {
     entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'carbon:time' })
+  }
+  const colorSpace = toDisplayText(metadata.colorSpace)
+  if (colorSpace) {
+    entries.push({ label: metadataLabels.value.colorSpace, value: colorSpace, icon: 'carbon:color-palette' })
+  }
+  const resolution = formatResolutionValue(metadata.resolutionX, metadata.resolutionY, metadata.resolutionUnit)
+  if (resolution) {
+    entries.push({ label: metadataLabels.value.resolution, value: resolution, icon: 'carbon:crop' })
+  }
+  const software = toDisplayText(metadata.software)
+  if (software) {
+    entries.push({ label: metadataLabels.value.software, value: software, icon: 'mdi:application' })
   }
   return entries
 })
@@ -758,6 +948,54 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
       label: t('gallery.metadata.focalLength'),
       value: focalLength,
       icon: 'carbon:ruler',
+    })
+  }
+  const exposureBias = toDisplayText(metadata.exposureBias)
+  if (exposureBias) {
+    entries.push({
+      label: metadataLabels.value.exposureBias,
+      value: exposureBias,
+      icon: 'mdi:brightness-5',
+    })
+  }
+  const exposureProgram = toDisplayText(metadata.exposureProgram)
+  if (exposureProgram) {
+    entries.push({
+      label: metadataLabels.value.exposureProgram,
+      value: translateExposureProgram(exposureProgram) ?? exposureProgram,
+      icon: 'mdi:format-list-bulleted',
+    })
+  }
+  const exposureMode = toDisplayText(metadata.exposureMode)
+  if (exposureMode) {
+    entries.push({
+      label: metadataLabels.value.exposureMode,
+      value: translateExposureMode(exposureMode) ?? exposureMode,
+      icon: 'mdi:tune',
+    })
+  }
+  const meteringMode = toDisplayText(metadata.meteringMode)
+  if (meteringMode) {
+    entries.push({
+      label: metadataLabels.value.meteringMode,
+      value: translateMeteringMode(meteringMode) ?? meteringMode,
+      icon: 'mdi:crosshairs-gps',
+    })
+  }
+  const whiteBalance = toDisplayText(metadata.whiteBalance)
+  if (whiteBalance) {
+    entries.push({
+      label: metadataLabels.value.whiteBalance,
+      value: translateWhiteBalance(whiteBalance) ?? whiteBalance,
+      icon: 'mdi:white-balance-auto',
+    })
+  }
+  const flash = toDisplayText(metadata.flash)
+  if (flash) {
+    entries.push({
+      label: metadataLabels.value.flash,
+      value: translateFlash(flash) ?? flash,
+      icon: 'carbon:flash',
     })
   }
   return entries
@@ -841,7 +1079,7 @@ const overlayZoomMin = computed<number>(() => {
   return Math.max(0.1, normalized)
 })
 
-const overlayImageTransformStyle = computed<Record<string, string>>(() => {
+const overlayImageTransformStyle = computed<CSSProperties>(() => {
   const transforms: string[] = []
   const pan = overlayPan.value
   const baseScale = overlayBaseScale.value
@@ -852,14 +1090,13 @@ const overlayImageTransformStyle = computed<Record<string, string>>(() => {
   if (scale !== 1) {
     transforms.push(`scale(${scale})`)
   }
-  if (transforms.length === 0) {
-    return {}
+  const style: CSSProperties = {}
+  if (transforms.length > 0) {
+    style.transform = transforms.join(' ')
+    style.transformOrigin = 'center center'
+    style.willChange = 'transform'
   }
-  return {
-    transform: transforms.join(' '),
-    transformOrigin: 'center center',
-    willChange: 'transform',
-  }
+  return style
 })
 
 const overlayScaleDisplay = computed<number>(() => overlayZoom.value)
@@ -1339,7 +1576,8 @@ function renderHistogram(): void {
     return
   }
   destroyHistogramChart()
-  const labels = histogram.value.red.map((_, index) => index)
+  const chartHistogram = smoothHistogramData(histogram.value)
+  const labels = chartHistogram.red.map((_, index) => index)
   const monochrome = isMonochromeHistogram(histogram.value)
   const toneOverlay = {
     id: 'toneOverlay',
@@ -1376,7 +1614,7 @@ function renderHistogram(): void {
     ? [
         {
           label: 'Luminance',
-          data: histogram.value.luminance,
+          data: chartHistogram.luminance,
           borderColor: '#ffffff',
           ...baseDataset,
         },
@@ -1384,19 +1622,19 @@ function renderHistogram(): void {
     : [
         {
           label: 'Red',
-          data: histogram.value.red,
+          data: chartHistogram.red,
           borderColor: histogramColors.value.red,
           ...baseDataset,
         },
         {
           label: 'Green',
-          data: histogram.value.green,
+          data: chartHistogram.green,
           borderColor: histogramColors.value.green,
           ...baseDataset,
         },
         {
           label: 'Blue',
-          data: histogram.value.blue,
+          data: chartHistogram.blue,
           borderColor: histogramColors.value.blue,
           ...baseDataset,
         },
@@ -1439,7 +1677,9 @@ function renderHistogram(): void {
           grid: {
             display: true,
             color: 'rgba(255, 255, 255, 0.06)',
-            drawBorder: false,
+          },
+          border: {
+            display: false,
           },
         },
         y: {
@@ -1447,7 +1687,9 @@ function renderHistogram(): void {
           grid: {
             display: true,
             color: 'rgba(255, 255, 255, 0.06)',
-            drawBorder: false,
+          },
+          border: {
+            display: false,
           },
         },
       },
@@ -1599,17 +1841,10 @@ function renderHistogram(): void {
                 </div>
               </Transition>
             </div>
-            <div class="home-display-font flex min-h-0 flex-col gap-5 overflow-y-auto p-4 md:border-l md:border-default/20 md:p-6">
-              <div class="space-y-3">
+            <div class="home-display-font flex min-h-0 flex-col gap-4 overflow-y-auto p-3 md:border-l md:border-default/20 md:p-4">
+              <div class="space-y-2.5">
                 <div class="flex items-start justify-between gap-3">
                   <div class="space-y-1">
-                    <p class="flex items-center gap-2 text-xs uppercase tracking-wide text-muted">
-                      <Icon
-                        :name="activeFile.kind === 'PHOTOGRAPHY' ? 'carbon:camera' : 'carbon:brush-freehand'"
-                        class="h-4 w-4"
-                      />
-                      <span>{{ resolveKindLabel(activeFile.kind) }}</span>
-                    </p>
                     <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
                       {{ activeFile.displayTitle }}
                     </h3>
@@ -1627,123 +1862,120 @@ function renderHistogram(): void {
                   <div
                     v-for="stat in overlayStats"
                     :key="`${stat.icon}-${stat.label}`"
-                    class="inline-flex items-center gap-1 rounded-full bg-default/60 px-2 py-1 text-highlighted ring-1 ring-default/20"
+                    class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-highlighted ring-1 ring-default/30"
                   >
                     <Icon :name="stat.icon" class="h-3.5 w-3.5" />
                     <span class="leading-none">{{ stat.label }}</span>
                   </div>
                 </div>
               </div>
-              <div class="rounded-lg border border-default/20 bg-elevated/80">
-                <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
-                  <div class="flex items-center gap-2">
-                    <Icon name="carbon:chart-line" class="h-4 w-4" />
-                    <span>{{ t('gallery.histogram.title') }}</span>
-                  </div>
-                </div>
-                <div class="space-y-3 p-3">
-                  <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
-                    <canvas ref="histogramCanvasRef" class="absolute inset-0 h-full w-full" />
-                    <div
-                      v-if="!histogram"
-                      class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
-                    >
-                      <Icon name="line-md:loading-loop" class="h-4 w-4" />
-                      <span>{{ t('gallery.histogram.pending') }}</span>
+              <div class="space-y-3">
+                <div class="rounded-lg border border-default/20 bg-elevated/80">
+                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                    <div class="flex items-center gap-2">
+                      <Icon name="carbon:chart-line" class="h-4 w-4" />
+                      <span>{{ t('gallery.histogram.title') }}</span>
                     </div>
                   </div>
-                  <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-[11px]">
-                    <div class="space-y-1">
-                      <div class="flex items-center justify-between text-muted">
-                        <span>{{ t('gallery.histogram.shadows') }}</span>
-                        <span class="font-semibold text-highlighted">{{ histogramSummary.shadows }}%</span>
-                      </div>
-                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.shadows}%` }" />
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="flex items-center justify-between text-muted">
-                        <span>{{ t('gallery.histogram.midtones') }}</span>
-                        <span class="font-semibold text-highlighted">{{ histogramSummary.midtones }}%</span>
-                      </div>
-                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.midtones}%` }" />
-                      </div>
-                    </div>
-                    <div class="space-y-1">
-                      <div class="flex items-center justify-between text-muted">
-                        <span>{{ t('gallery.histogram.highlights') }}</span>
-                        <span class="font-semibold text-highlighted">{{ histogramSummary.highlights }}%</span>
-                      </div>
-                      <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                        <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.highlights}%` }" />
-                      </div>
-                    </div>
-                  </div>
-                  <div v-if="histogramPeakLabel" class="flex items-center gap-2 text-[11px] text-muted">
-                    <Icon name="carbon:analytics" class="h-4 w-4" />
-                    <span>{{ t('gallery.histogram.peak') }}</span>
-                    <span class="font-semibold text-highlighted">{{ histogramPeakLabel }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
-                <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
-                  <div class="flex items-center gap-2">
-                    <Icon name="carbon:information" class="h-4 w-4" />
-                    <span>{{ t('gallery.metadata.section') }}</span>
-                  </div>
-                  <span class="rounded-full bg-default/60 px-2 py-[2px] text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
-                    {{ metadataEntries.length + exposureEntries.length }}
-                  </span>
-                </div>
-                <div v-if="hasMetadata" class="space-y-2">
-                  <div v-if="exposureEntries.length > 0" class="border-b border-default/10 px-3 pb-3 pt-2">
-                    <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
-                      <Icon name="carbon:settings-adjust" class="h-4 w-4" />
-                      <span>{{ t('gallery.metadata.exposure') }}</span>
-                    </div>
-                    <div class="mt-3 grid grid-cols-2 gap-2">
+                  <div class="space-y-3 p-3">
+                    <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
+                      <canvas ref="histogramCanvasRef" class="absolute inset-0 h-full w-full" />
                       <div
-                        v-for="item in exposureEntries"
-                        :key="item.label"
-                        class="flex items-center gap-3 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-                        :aria-label="`${item.label}: ${item.value}`"
+                        v-if="!histogram"
+                        class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
                       >
-                        <Icon :name="item.icon" class="h-4 w-4 text-muted" />
-                        <div class="flex flex-col leading-tight">
-                          <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
-                          <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
+                        <Icon name="line-md:loading-loop" class="h-4 w-4" />
+                        <span>{{ t('gallery.histogram.pending') }}</span>
+                      </div>
+                    </div>
+                    <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-[11px]">
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between text-muted">
+                          <span>{{ t('gallery.histogram.shadows') }}</span>
+                          <span class="font-semibold text-highlighted">{{ histogramSummary.shadows }}%</span>
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.shadows}%` }" />
+                        </div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between text-muted">
+                          <span>{{ t('gallery.histogram.midtones') }}</span>
+                          <span class="font-semibold text-highlighted">{{ histogramSummary.midtones }}%</span>
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.midtones}%` }" />
+                        </div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between text-muted">
+                          <span>{{ t('gallery.histogram.highlights') }}</span>
+                          <span class="font-semibold text-highlighted">{{ histogramSummary.highlights }}%</span>
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.highlights}%` }" />
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div v-if="metadataEntries.length > 0" class="divide-y divide-default/10">
-                    <div
-                      v-for="item in metadataEntries"
-                      :key="item.label"
-                      class="grid gap-1 px-3 py-3"
-                    >
-                      <p class="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
-                        <Icon :name="item.icon" class="h-4 w-4" />
-                        <span>{{ item.label }}</span>
-                      </p>
-                      <p class="text-base leading-relaxed text-highlighted">
-                        {{ item.value }}
-                      </p>
+                </div>
+                <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
+                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                    <div class="flex items-center gap-2">
+                      <Icon name="carbon:information" class="h-4 w-4" />
+                      <span>{{ t('gallery.metadata.section') }}</span>
+                    </div>
+                    <span class="rounded-full bg-default/60 px-2 py-0.5 text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
+                      {{ metadataEntries.length + exposureEntries.length }}
+                    </span>
+                  </div>
+                  <div v-if="hasMetadata" class="space-y-3 p-3">
+                    <div v-if="exposureEntries.length > 0" class="space-y-3">
+                      <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                        <Icon name="carbon:settings-adjust" class="h-4 w-4" />
+                        <span>{{ t('gallery.metadata.exposure') }}</span>
+                      </div>
+                      <div class="grid grid-cols-2 gap-2">
+                        <div
+                          v-for="item in exposureEntries"
+                          :key="item.label"
+                          class="flex items-center gap-3 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
+                          :aria-label="`${item.label}: ${item.value}`"
+                        >
+                          <Icon :name="item.icon" class="h-4 w-4 text-muted" />
+                          <div class="flex flex-col leading-tight">
+                            <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
+                            <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div v-if="metadataEntries.length > 0" class="space-y-2">
+                      <div
+                        v-for="item in metadataEntries"
+                        :key="item.label"
+                        class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
+                      >
+                        <p class="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+                          <Icon :name="item.icon" class="h-4 w-4" />
+                          <span>{{ item.label }}</span>
+                        </p>
+                        <p class="text-base leading-relaxed text-highlighted">
+                          {{ item.value }}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div v-else class="px-3 py-4 text-sm text-muted">
-                  <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-                    <Icon name="carbon:warning" class="h-4 w-4" />
-                    <span>{{ t('gallery.metadata.section') }}</span>
-                  </p>
-                  <p class="mt-2 flex items-center gap-2 text-highlighted">
-                    <Icon name="carbon:information" class="h-4 w-4 text-muted" />
-                    <span>{{ t('gallery.metadata.empty') }}</span>
-                  </p>
+                  <div v-else class="px-3 py-4 text-sm text-muted">
+                    <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                      <Icon name="carbon:warning" class="h-4 w-4" />
+                      <span>{{ t('gallery.metadata.section') }}</span>
+                    </p>
+                    <p class="mt-2 flex items-center gap-2 text-highlighted">
+                      <Icon name="carbon:information" class="h-4 w-4 text-muted" />
+                      <span>{{ t('gallery.metadata.empty') }}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

@@ -61,11 +61,25 @@
       "characterSeparator": ", ",
       "location": "Location",
       "device": "Gear",
+      "lens": "Lens",
       "exposure": "Exposure",
       "aperture": "Aperture",
       "shutterSpeed": "Shutter",
       "iso": "ISO",
       "focalLength": "Focal length",
+      "exposureBias": "Exposure comp",
+      "exposureProgram": "Program",
+      "exposureMode": "Exposure mode",
+      "meteringMode": "Metering",
+      "whiteBalance": "White balance",
+      "flash": "Flash",
+      "colorSpace": "Color space",
+      "resolution": "Resolution",
+      "resolutionUnit": {
+        "inch": "PPI",
+        "cm": "PPCM"
+      },
+      "software": "Software",
       "captureTime": "Captured at",
       "size": "Size",
       "section": "Metadata",
@@ -125,7 +139,8 @@
           "title": "Drag or click",
           "description": "Keep the pre-upload view simple with only the entry point.",
           "dropHint": "Drag a photo here or click to pick a file",
-          "supported": "Common formats such as JPG/PNG are supported"
+          "supported": "Common formats such as JPG/PNG are supported",
+          "pasteHint": "You can also paste an image from the clipboard"
         },
         "preview": {
           "label": "Preview & autofill",
@@ -160,9 +175,57 @@
           "label": "Shutter",
           "placeholder": "1/125s"
         },
+        "exposureBias": {
+          "label": "Exposure compensation",
+          "placeholder": "+0.3 EV"
+        },
+        "exposureProgram": {
+          "label": "Exposure program",
+          "placeholder": "Program"
+        },
+        "exposureMode": {
+          "label": "Exposure mode",
+          "placeholder": "Auto / Manual"
+        },
+        "meteringMode": {
+          "label": "Metering",
+          "placeholder": "Pattern"
+        },
+        "whiteBalance": {
+          "label": "White balance",
+          "placeholder": "Auto"
+        },
+        "flash": {
+          "label": "Flash",
+          "placeholder": "Did not fire"
+        },
         "cameraModel": {
           "label": "Camera",
           "placeholder": "Fujifilm X100VI"
+        },
+        "lensModel": {
+          "label": "Lens",
+          "placeholder": "28-200mm F2.8-5.6"
+        },
+        "colorSpace": {
+          "label": "Color space",
+          "placeholder": "sRGB"
+        },
+        "resolutionUnit": {
+          "label": "Resolution unit",
+          "placeholder": "Pixels/Inch"
+        },
+        "resolutionX": {
+          "label": "Resolution X",
+          "placeholder": "300"
+        },
+        "resolutionY": {
+          "label": "Resolution Y",
+          "placeholder": "300"
+        },
+        "software": {
+          "label": "Software",
+          "placeholder": "Adobe Lightroom"
         },
         "location": {
           "label": "Location"
@@ -201,6 +264,44 @@
       },
       "actions": {
         "save": "Save to database"
+      },
+      "options": {
+        "exposureProgram": {
+          "notDefined": "Not defined",
+          "manual": "Manual",
+          "program": "Program",
+          "aperturePriority": "Aperture priority",
+          "shutterPriority": "Shutter priority",
+          "creative": "Creative",
+          "action": "Action",
+          "portrait": "Portrait",
+          "landscape": "Landscape"
+        },
+        "exposureMode": {
+          "auto": "Auto",
+          "manual": "Manual",
+          "bracket": "Auto bracket"
+        },
+        "metering": {
+          "unknown": "Unknown",
+          "average": "Average",
+          "center": "Center-weighted",
+          "spot": "Spot",
+          "multiSpot": "Multi-spot",
+          "pattern": "Pattern",
+          "partial": "Partial",
+          "other": "Other"
+        },
+        "whiteBalance": {
+          "auto": "Auto",
+          "manual": "Manual"
+        },
+        "flash": {
+          "didNotFire": "Did not fire",
+          "autoDidNotFire": "Auto (did not fire)",
+          "fired": "Fired",
+          "autoFired": "Auto (fired)"
+        }
       }
     },
     "files": {

@@ -61,11 +61,25 @@
       "characterSeparator": "、",
       "location": "地点",
       "device": "设备",
+      "lens": "镜头",
       "exposure": "参数",
       "aperture": "光圈",
       "shutterSpeed": "快门",
       "iso": "ISO",
       "focalLength": "焦距",
+      "exposureBias": "曝光补偿",
+      "exposureProgram": "曝光程序",
+      "exposureMode": "曝光模式",
+      "meteringMode": "测光方式",
+      "whiteBalance": "白平衡",
+      "flash": "闪光灯",
+      "colorSpace": "色彩空间",
+      "resolution": "分辨率",
+      "resolutionUnit": {
+        "inch": "PPI",
+        "cm": "PPCM"
+      },
+      "software": "处理软件",
       "captureTime": "拍摄时间",
       "size": "尺寸",
       "section": "元数据",
@@ -125,7 +139,8 @@
           "title": "拖拽或点击",
           "description": "上传前界面保持简洁，仅展示上传入口。",
           "dropHint": "拖拽照片到此或点击选择文件",
-          "supported": "支持 JPG/PNG 等常见格式"
+          "supported": "支持 JPG/PNG 等常见格式",
+          "pasteHint": "也可以直接粘贴剪贴板中的图片"
         },
         "preview": {
           "label": "预览与自动填充",
@@ -160,9 +175,57 @@
           "label": "快门",
           "placeholder": "1/125s"
         },
+        "exposureBias": {
+          "label": "曝光补偿",
+          "placeholder": "+0.3 EV"
+        },
+        "exposureProgram": {
+          "label": "曝光程序",
+          "placeholder": "程序自动"
+        },
+        "exposureMode": {
+          "label": "曝光模式",
+          "placeholder": "自动 / 手动"
+        },
+        "meteringMode": {
+          "label": "测光方式",
+          "placeholder": "矩阵测光"
+        },
+        "whiteBalance": {
+          "label": "白平衡",
+          "placeholder": "自动"
+        },
+        "flash": {
+          "label": "闪光灯",
+          "placeholder": "未触发"
+        },
         "cameraModel": {
           "label": "器材型号",
           "placeholder": "Fujifilm X100VI"
+        },
+        "lensModel": {
+          "label": "镜头",
+          "placeholder": "28-200mm F2.8-5.6"
+        },
+        "colorSpace": {
+          "label": "色彩空间",
+          "placeholder": "sRGB"
+        },
+        "resolutionUnit": {
+          "label": "分辨率单位",
+          "placeholder": "Pixels/Inch"
+        },
+        "resolutionX": {
+          "label": "横向分辨率",
+          "placeholder": "300"
+        },
+        "resolutionY": {
+          "label": "纵向分辨率",
+          "placeholder": "300"
+        },
+        "software": {
+          "label": "处理软件",
+          "placeholder": "Adobe Lightroom"
         },
         "location": {
           "label": "拍摄地点"
@@ -201,6 +264,44 @@
       },
       "actions": {
         "save": "保存到数据库"
+      },
+      "options": {
+        "exposureProgram": {
+          "notDefined": "未定义",
+          "manual": "手动",
+          "program": "程序自动",
+          "aperturePriority": "光圈优先",
+          "shutterPriority": "快门优先",
+          "creative": "创意模式",
+          "action": "动作模式",
+          "portrait": "人像模式",
+          "landscape": "风景模式"
+        },
+        "exposureMode": {
+          "auto": "自动",
+          "manual": "手动",
+          "bracket": "自动包围"
+        },
+        "metering": {
+          "unknown": "未知",
+          "average": "平均测光",
+          "center": "中央重点",
+          "spot": "点测",
+          "multiSpot": "多点测光",
+          "pattern": "矩阵测光",
+          "partial": "部分测光",
+          "other": "其他"
+        },
+        "whiteBalance": {
+          "auto": "自动",
+          "manual": "手动"
+        },
+        "flash": {
+          "didNotFire": "未触发",
+          "autoDidNotFire": "自动（未触发）",
+          "fired": "已触发",
+          "autoFired": "自动（已触发）"
+        }
       }
     },
     "files": {

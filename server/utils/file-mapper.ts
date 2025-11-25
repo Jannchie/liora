@@ -1,4 +1,4 @@
-import type { File, FileKind } from '../../app/generated/prisma/client'
+import type { File } from '../../app/generated/prisma/client'
 import type { FileMetadata, FileResponse } from '~/types/file'
 
 export function mapCharacters(characterList: string): string[] {
@@ -34,10 +34,22 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     latitude: parsed.latitude ?? fallbacks.latitude,
     longitude: parsed.longitude ?? fallbacks.longitude,
     cameraModel: parsed.cameraModel ?? fallbacks.cameraModel,
+    lensModel: parsed.lensModel ?? fallbacks.lensModel,
     aperture: parsed.aperture ?? fallbacks.aperture,
     focalLength: parsed.focalLength ?? fallbacks.focalLength,
     iso: parsed.iso ?? fallbacks.iso,
     shutterSpeed: parsed.shutterSpeed ?? fallbacks.shutterSpeed,
+    exposureBias: parsed.exposureBias ?? fallbacks.exposureBias,
+    exposureProgram: parsed.exposureProgram ?? fallbacks.exposureProgram,
+    exposureMode: parsed.exposureMode ?? fallbacks.exposureMode,
+    meteringMode: parsed.meteringMode ?? fallbacks.meteringMode,
+    whiteBalance: parsed.whiteBalance ?? fallbacks.whiteBalance,
+    flash: parsed.flash ?? fallbacks.flash,
+    colorSpace: parsed.colorSpace ?? fallbacks.colorSpace,
+    resolutionX: parsed.resolutionX ?? fallbacks.resolutionX,
+    resolutionY: parsed.resolutionY ?? fallbacks.resolutionY,
+    resolutionUnit: parsed.resolutionUnit ?? fallbacks.resolutionUnit,
+    software: parsed.software ?? fallbacks.software,
     captureTime: parsed.captureTime ?? fallbacks.captureTime,
     notes: parsed.notes ?? fallbacks.notes,
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
@@ -45,13 +57,6 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     sha256: parsed.sha256 ?? fallbacks.sha256,
     histogram: parsed.histogram ?? fallbacks.histogram,
   }
-}
-
-export function ensureKind(value: FileKind | string | undefined, fallback: FileKind): FileKind {
-  if (value === 'PAINTING' || value === 'PHOTOGRAPHY') {
-    return value
-  }
-  return fallback
 }
 
 export function toFileResponse(file: File): FileResponse {
@@ -64,10 +69,22 @@ export function toFileResponse(file: File): FileResponse {
     latitude: file.latitude ?? null,
     longitude: file.longitude ?? null,
     cameraModel: file.cameraModel,
+    lensModel: '',
     aperture: file.aperture,
     focalLength: file.focalLength,
     iso: file.iso,
     shutterSpeed: file.shutterSpeed,
+    exposureBias: '',
+    exposureProgram: '',
+    exposureMode: '',
+    meteringMode: '',
+    whiteBalance: '',
+    flash: '',
+    colorSpace: '',
+    resolutionX: '',
+    resolutionY: '',
+    resolutionUnit: '',
+    software: '',
     captureTime: file.captureTime,
     notes: '',
     thumbhash: undefined,
@@ -79,7 +96,6 @@ export function toFileResponse(file: File): FileResponse {
 
   return {
     id: file.id,
-    kind: file.kind,
     title: file.title,
     description: file.description,
     originalName: file.originalName,

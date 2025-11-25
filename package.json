@@ -9,7 +9,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "backfill:thumbhash": "tsx scripts/backfill-thumbhash.ts"
+    "backfill:thumbhash": "tsx scripts/backfill-thumbhash.ts",
+    "backfill:exif": "tsx scripts/backfill-exif-metadata.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",

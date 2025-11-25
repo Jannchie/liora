@@ -148,23 +148,28 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     latitude: fields.latitude ? Number(fields.latitude) : null,
     longitude: fields.longitude ? Number(fields.longitude) : null,
     cameraModel: normalizeText(fields.cameraModel),
+    lensModel: normalizeText(fields.lensModel),
     aperture: normalizeText(fields.aperture),
     focalLength: normalizeText(fields.focalLength),
     iso: normalizeText(fields.iso),
     shutterSpeed: normalizeText(fields.shutterSpeed),
+    exposureBias: normalizeText(fields.exposureBias),
+    exposureProgram: normalizeText(fields.exposureProgram),
+    exposureMode: normalizeText(fields.exposureMode),
+    meteringMode: normalizeText(fields.meteringMode),
+    whiteBalance: normalizeText(fields.whiteBalance),
+    flash: normalizeText(fields.flash),
+    colorSpace: normalizeText(fields.colorSpace),
+    resolutionX: normalizeText(fields.resolutionX),
+    resolutionY: normalizeText(fields.resolutionY),
+    resolutionUnit: normalizeText(fields.resolutionUnit),
+    software: normalizeText(fields.software),
     captureTime: normalizeText(fields.captureTime),
     notes: normalizeText(fields.notes),
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
   }
-}
-
-function ensureKind(value: string | undefined): 'PAINTING' | 'PHOTOGRAPHY' {
-  if (value === 'PAINTING' || value === 'PHOTOGRAPHY') {
-    return value
-  }
-  throw createError({ statusCode: 400, statusMessage: 'Invalid file kind.' })
 }
 
 function parseNumbers(fields: Record<string, string>): { width: number, height: number } {
@@ -176,6 +181,49 @@ function parseNumbers(fields: Record<string, string>): { width: number, height: 
   }
 
   return { width, height }
+}
+
+function escapeRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
+}
+
+function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraModel: string, lensModel: string } {
+  const camera = cameraModel.trim()
+  const lens = lensModel.trim()
+  const separators = ['·', '|', '/']
+
+  const tryExtractLens = (): { cameraModel: string, lensModel: string } => {
+    if (lens.length > 0) {
+      const pattern = new RegExp(`\\s*[·|/,-]?\\s*${escapeRegExp(lens)}`, 'gi')
+      const cleaned = camera
+        .replaceAll(pattern, '')
+        .trim()
+        .replace(/[·|/,-]+$/, '')
+        .trim()
+      return { cameraModel: cleaned.length > 0 ? cleaned : camera, lensModel: lens }
+    }
+    for (const separator of separators) {
+      const index = camera.lastIndexOf(separator)
+      if (index > 0 && index < camera.length - 2) {
+        const base = camera.slice(0, index).trim()
+        const extracted = camera.slice(index + 1).trim().replace(/^[·|/,-]+/, '').trim()
+        if (base.length > 0 && extracted.length > 0) {
+          return { cameraModel: base, lensModel: extracted }
+        }
+      }
+    }
+    const dashIndex = camera.lastIndexOf(' - ')
+    if (dashIndex > 0 && dashIndex < camera.length - 3) {
+      const base = camera.slice(0, dashIndex).trim()
+      const extracted = camera.slice(dashIndex + 3).trim()
+      if (base.length > 0 && extracted.length > 0) {
+        return { cameraModel: base, lensModel: extracted }
+      }
+    }
+    return { cameraModel: camera, lensModel: lens }
+  }
+
+  return tryExtractLens()
 }
 
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
@@ -270,11 +318,13 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   requireAdmin(event)
   const { file, fields } = await parseMultipart(event)
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
-  const kind = ensureKind(fields.kind)
   const { width, height } = parseNumbers(fields)
 
   const characters = parseCharacters(fields.characters)
   const metadata = buildMetadata(fields, characters)
+  const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
+  metadata.cameraModel = deduped.cameraModel
+  metadata.lensModel = deduped.lensModel
   const hashes = await computeHashes(file.data)
   metadata.perceptualHash = hashes.perceptualHash ?? undefined
   metadata.sha256 = hashes.sha256
@@ -301,7 +351,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   const created = await prisma.file.create({
     data: {
-      kind,
       title: normalizeText(fields.title),
       description: normalizeText(fields.description),
       originalName,
@@ -327,7 +376,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   return {
     id: created.id,
-    kind: created.kind,
     title: created.title,
     description: created.description,
     originalName: created.originalName,
