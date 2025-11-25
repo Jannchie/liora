@@ -12,7 +12,7 @@ Classify the image into one **primary category** and optionally up to two **seco
 - LANDSCAPE – Depicts natural scenery such as mountains, forests, oceans, or skies.
 - DOCUMENTARY – Records real events or social life with authenticity, often narrative in nature.
 - ARCHITECTURE – Focuses on buildings, interiors, or urban structures, highlighting geometry and design.
-- WILDLIFE – Shows animals in nature or human environments.
+- ANIMAL – Covers animals in any environment (wild or domestic).
 - STILL_LIFE – Depicts inanimate objects such as food, flowers, or tools.
 - FASHION – Highlights clothing, accessories, or stylized poses; often editorial or commercial.
 - SPORTS – Captures athletic activities or fast-moving action.

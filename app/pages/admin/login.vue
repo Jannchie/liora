@@ -54,11 +54,11 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-gray-50/50 px-4">
+  <div class="flex min-h-screen items-center justify-center bg-muted/50 px-4">
     <UCard class="w-full max-w-md">
       <template #header>
         <div class="space-y-1">
-          <p class="flex items-center gap-2 text-sm text-gray-500">
+          <p class="flex items-center gap-2 text-sm text-muted">
             <Icon name="mdi:shield-lock-outline" class="h-4 w-4" />
             <span>{{ t('admin.login.sectionLabel') }}</span>
           </p>
@@ -66,7 +66,7 @@ async function handleSubmit(): Promise<void> {
             <Icon name="mdi:lock-open-check-outline" class="h-5 w-5 text-primary" />
             <span>{{ t('admin.login.heading') }}</span>
           </h1>
-          <p class="text-sm text-gray-500">
+          <p class="text-sm text-muted">
             {{ t('admin.login.subtitle') }}
           </p>
         </div>

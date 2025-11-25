@@ -1,10 +1,11 @@
 import type { H3Event } from 'h3'
-import { createError } from 'h3'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { useRuntimeConfig } from '#imports'
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
-import { useRuntimeConfig } from '#imports'
+import sharp from 'sharp'
+import { createError } from 'h3'
 
 export interface GenreClassificationResult {
   primary: string
@@ -15,8 +16,9 @@ export interface GenreClassificationResult {
   updatedAt: Date
 }
 
-const MODEL_NAME = 'gpt-5.1-nano'
+const MODEL_NAME = 'gpt-5-nano'
 const promptPath = join(process.cwd(), 'prompts', 'PhotographyGenreClassification.md')
+const MAX_DOWNLOAD_BYTES = 40 * 1024 * 1024
 
 let cachedPrompt: string | null = null
 
@@ -72,6 +74,19 @@ function parseClassification(raw: string): GenreClassificationResult | null {
   }
 }
 
+export function deriveGenreLabel(genre: GenreClassificationResult | null): string {
+  if (!genre) {
+    return ''
+  }
+  if (genre.primary.trim().length > 0) {
+    return genre.primary.trim()
+  }
+  if (genre.secondary.length > 0) {
+    return genre.secondary[0]?.trim() ?? ''
+  }
+  return ''
+}
+
 export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Promise<GenreClassificationResult | null> {
   if (!imageUrl.trim()) {
     return null
@@ -79,6 +94,20 @@ export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Prom
   const prompt = await loadPrompt()
   const apiKey = resolveApiKey(event)
   const client = createOpenAI({ apiKey })
+  const response = await fetch(imageUrl)
+  if (!response.ok) {
+    throw createError({ statusCode: 502, statusMessage: `Failed to fetch image: ${response.status}` })
+  }
+  const arrayBuffer = await response.arrayBuffer()
+  if (arrayBuffer.byteLength > MAX_DOWNLOAD_BYTES) {
+    throw createError({ statusCode: 413, statusMessage: 'Image too large for classification.' })
+  }
+  const sourceBuffer = Buffer.from(arrayBuffer)
+  const resized = await sharp(sourceBuffer)
+    .rotate()
+    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer()
   const result = await generateText({
     model: client(MODEL_NAME),
     messages: [
@@ -87,7 +116,7 @@ export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Prom
         role: 'user',
         content: [
           { type: 'text', text: 'Classify this photo and return JSON only.' },
-          { type: 'image', image: { url: imageUrl } },
+          { type: 'image', image: resized, mimeType: 'image/webp' },
         ],
       },
     ],

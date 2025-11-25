@@ -20,6 +20,7 @@ const {
   exposureEntries,
   hasMetadata,
   previewAttrs,
+  genreLabel,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -36,6 +37,7 @@ const {
   exposureEntries: MetadataEntry[]
   hasMetadata: boolean
   previewAttrs?: ImageAttrs
+  genreLabel?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -161,6 +163,12 @@ onBeforeUnmount(() => {
                 <Icon :name="stat.icon" class="h-3.5 w-3.5" />
                 <span class="leading-none">{{ stat.label }}</span>
               </div>
+            </div>
+            <div v-if="genreLabel" class="flex items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20">
+                <Icon name="carbon:classification" class="h-3.5 w-3.5" />
+                <span>{{ genreLabel }}</span>
+              </span>
             </div>
           </div>
           <div class="space-y-3">

@@ -7,7 +7,7 @@ import { basename, extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
-import { classifyPhotoGenre } from '../utils/ai-classifier'
+import { classifyPhotoGenre, deriveGenreLabel } from '../utils/ai-classifier'
 import { computeHistogram } from '../utils/histogram'
 import { joinCharacters, toFileResponse } from '../utils/file-mapper'
 import { prisma } from '../utils/prisma'
@@ -31,19 +31,6 @@ const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
 interface ImageHashes {
   perceptualHash: string | null
   sha256: string
-}
-
-const deriveGenreLabel = (genre: GenreClassificationResult | null): string => {
-  if (!genre) {
-    return ''
-  }
-  if (genre.primary.trim().length > 0) {
-    return genre.primary.trim()
-  }
-  if (genre.secondary.length > 0) {
-    return genre.secondary[0]?.trim() ?? ''
-  }
-  return ''
 }
 
 async function computePerceptualHash(data: Buffer): Promise<string | null> {
@@ -182,6 +169,7 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     software: normalizeText(fields.software),
     captureTime: normalizeText(fields.captureTime),
     notes: normalizeText(fields.notes),
+    fileSize: 0,
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
@@ -341,6 +329,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
   metadata.cameraModel = deduped.cameraModel
   metadata.lensModel = deduped.lensModel
+  metadata.fileSize = file.data.length
   const hashes = await computeHashes(file.data)
   metadata.perceptualHash = hashes.perceptualHash ?? undefined
   metadata.sha256 = hashes.sha256

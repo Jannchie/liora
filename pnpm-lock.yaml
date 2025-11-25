@@ -90,6 +90,9 @@ importers:
         specifier: ^0.7.0
         version: 0.7.0(vue@3.5.25(typescript@5.9.3))
     devDependencies:
+      '@iconify-json/carbon':
+        specifier: ^1.2.14
+        version: 1.2.14
       '@jannchie/eslint-config':
         specifier: ^3.7.1
         version: 3.7.1(@vue/compiler-sfc@3.5.25)(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
@@ -964,6 +967,9 @@ packages:
   '@humanwhocodes/retry@0.4.3':
     resolution: {integrity: sha512-bV0Tgo9K4hfPCek+aMAn81RppFKv2ySDQeMoSZuvTASywNTnVJCArCZE2FWqpvIatKu7VMRLWlR1EazvVhDyhQ==}
     engines: {node: '>=18.18'}
+
+  '@iconify-json/carbon@1.2.14':
+    resolution: {integrity: sha512-33u6uGiYJ79Dfp72peT+PBMcjxzi+NyJLpqYRX8pnw0zchsUW7Us2xecgvkWgD83KYcbe6hufyWlHFU9y7fb/Q==}
 
   '@iconify/collections@1.0.621':
     resolution: {integrity: sha512-md55k0SUK3ICEsqh9lEUVuu2upGCgzT0AqtLCq/74lE8Jp7G1wl8BtyDBls+YqpSFUeIyN082qmVFqFF6a0KYA==}
@@ -8054,6 +8060,10 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/retry@0.4.3': {}
+
+  '@iconify-json/carbon@1.2.14':
+    dependencies:
+      '@iconify/types': 2.0.0
 
   '@iconify/collections@1.0.621':
     dependencies:

@@ -915,10 +915,10 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     基本信息
                   </p>
-                  <p class="text-sm text-neutral-600">
+                  <p class="text-sm text-toned">
                     尺寸、时间与标题描述
                   </p>
                 </div>
@@ -949,10 +949,10 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     拍摄参数
                   </p>
-                  <p class="text-sm text-neutral-600">
+                  <p class="text-sm text-toned">
                     机身、镜头与曝光设定
                   </p>
                 </div>
@@ -1033,10 +1033,10 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     输出与色彩
                   </p>
-                  <p class="text-sm text-neutral-600">
+                  <p class="text-sm text-toned">
                     色彩空间与分辨率
                   </p>
                 </div>
@@ -1064,10 +1064,10 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     位置信息
                   </p>
-                  <p class="text-sm text-neutral-600">
+                  <p class="text-sm text-toned">
                     地理标记与原始地址
                   </p>
                 </div>
@@ -1094,10 +1094,10 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     附加说明
                   </p>
-                  <p class="text-sm text-neutral-600">
+                  <p class="text-sm text-toned">
                     备注信息便于后续检索
                   </p>
                 </div>

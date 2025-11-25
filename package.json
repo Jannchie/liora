@@ -42,6 +42,7 @@
     "vue-wf": "^0.7.0"
   },
   "devDependencies": {
+    "@iconify-json/carbon": "^1.2.14",
     "@jannchie/eslint-config": "^3.7.1",
     "prisma": "^7.0.0",
     "tsx": "^4.20.6"

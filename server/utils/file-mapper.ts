@@ -26,6 +26,7 @@ function parseMetadata(raw: string): Partial<FileMetadata> {
 
 export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }): FileMetadata {
   const parsed = parseMetadata(raw)
+  const parsedFileSize = typeof parsed.fileSize === 'number' ? parsed.fileSize : Number(parsed.fileSize)
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -52,6 +53,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     software: parsed.software ?? fallbacks.software,
     captureTime: parsed.captureTime ?? fallbacks.captureTime,
     notes: parsed.notes ?? fallbacks.notes,
+    fileSize: Number.isFinite(parsedFileSize) && parsedFileSize >= 0 ? parsedFileSize : fallbacks.fileSize,
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
     perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
     sha256: parsed.sha256 ?? fallbacks.sha256,
@@ -87,6 +89,7 @@ export function toFileResponse(file: File): FileResponse {
     software: '',
     captureTime: file.captureTime,
     notes: '',
+    fileSize: 0,
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
@@ -110,6 +113,7 @@ export function toFileResponse(file: File): FileResponse {
     characters,
     metadata,
     genre,
+    fileSize: metadata.fileSize,
     createdAt: file.createdAt.toISOString(),
   }
 }

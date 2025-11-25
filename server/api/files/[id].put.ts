@@ -105,6 +105,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const width = parsePositiveNumber(body.width, existing.width, 'Width')
   const height = parsePositiveNumber(body.height, existing.height, 'Height')
   const characters = normalizeCharacters(body.characters, existingMetadata.characters)
+  const genre = normalizeText(body.genre, existing.genre ?? '')
 
   const mergedMetadata = {
     ...existingMetadata,
@@ -144,6 +145,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       height,
       fanworkTitle: mergedMetadata.fanworkTitle,
       characterList: joinCharacters(mergedMetadata.characters),
+      genre,
       location: mergedMetadata.location,
       locationName: mergedMetadata.locationName,
       latitude: mergedMetadata.latitude,

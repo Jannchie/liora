@@ -81,7 +81,7 @@ defineOgImageComponent('LioraCard', {
           :empty-text="emptyText"
         />
         <template #fallback>
-          <div class="flex h-[50vh] items-center justify-center gap-2 text-sm text-gray-500">
+          <div class="flex h-[50vh] items-center justify-center gap-2 text-sm text-muted">
             <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary" />
             <span>{{ loadingText }}</span>
           </div>

@@ -125,6 +125,46 @@ const metadataLabels = computed(() => ({
   size: t('gallery.metadata.size'),
 }))
 
+const genreTranslationMap = computed<Record<string, string>>(() => ({
+  portrait: t('admin.files.genreOptions.portrait'),
+  landscape: t('admin.files.genreOptions.landscape'),
+  documentary: t('admin.files.genreOptions.documentary'),
+  architecture: t('admin.files.genreOptions.architecture'),
+  wildlife: t('admin.files.genreOptions.wildlife'),
+  stilllife: t('admin.files.genreOptions.stillLife'),
+  fashion: t('admin.files.genreOptions.fashion'),
+  sports: t('admin.files.genreOptions.sports'),
+  aerial: t('admin.files.genreOptions.aerial'),
+  fineart: t('admin.files.genreOptions.fineArt'),
+  commercial: t('admin.files.genreOptions.commercial'),
+  macro: t('admin.files.genreOptions.macro'),
+  street: t('admin.files.genreOptions.street'),
+  night: t('admin.files.genreOptions.night'),
+  abstract: t('admin.files.genreOptions.abstract'),
+  other: t('admin.files.genreOptions.other'),
+}))
+
+function normalizeGenreKey(value: string | undefined): string | null {
+  if (!value) {
+    return null
+  }
+  const normalized = value.trim().toLowerCase().replaceAll(/[\s_-]+/g, '')
+  return normalized.length > 0 ? normalized : null
+}
+
+const genreBadgeLabel = computed<string | null>(() => {
+  const rawGenre = activeFile.value?.genre
+  if (!rawGenre) {
+    return null
+  }
+  const normalized = normalizeGenreKey(rawGenre)
+  if (normalized && genreTranslationMap.value[normalized]) {
+    return genreTranslationMap.value[normalized]
+  }
+  const trimmed = rawGenre.trim()
+  return trimmed.length > 0 ? trimmed : null
+})
+
 const characterSeparator = computed(() => t('gallery.metadata.characterSeparator'))
 const resolvedEmptyText = computed(() => props.emptyText ?? t('gallery.empty'))
 const loadingText = computed(() => t('common.loading'))
@@ -690,14 +730,6 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   if (description) {
     entries.push({ label: metadataLabels.value.description, value: description, icon: 'carbon:document' })
   }
-  const genre = file.genre?.trim()
-  if (genre) {
-    entries.push({
-      label: metadataLabels.value.genre,
-      value: genre,
-      icon: 'carbon:classification',
-    })
-  }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {
     entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'carbon:color-palette' })
@@ -839,6 +871,8 @@ const overlayStats = computed<OverlayStat[]>(() => {
   const stats: OverlayStat[] = []
   const resolution = `${file.width} × ${file.height}`
   stats.push({ label: resolution, icon: 'carbon:crop' })
+  const sizeLabel = formatBytes(file.fileSize ?? null)
+  stats.push({ label: sizeLabel, icon: 'carbon:data-volume' })
   const uploadedAt = formatDisplayDateTime(file.createdAt)
   if (uploadedAt) {
     stats.push({ label: uploadedAt, icon: 'carbon:upload' })
@@ -848,17 +882,11 @@ const overlayStats = computed<OverlayStat[]>(() => {
 
 function formatBytes(value: number | null): string {
   if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
-    return '0 B'
+    return '0 MB'
   }
-  const units = ['B', 'KB', 'MB', 'GB', 'TB']
-  let size = value
-  let unitIndex = 0
-  while (size >= 1024 && unitIndex < units.length - 1) {
-    size /= 1024
-    unitIndex += 1
-  }
-  const precision = size >= 10 || unitIndex === 0 ? 0 : 1
-  return `${size.toFixed(precision)} ${units[unitIndex]}`
+  const megabytes = value / (1024 * 1024)
+  const precision = megabytes >= 10 ? 0 : 1
+  return `${megabytes.toFixed(precision)} MB`
 }
 
 const overlayDownloadPercent = computed<number | null>(() => {
@@ -1430,7 +1458,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       :style="{ backgroundColor: 'color-mix(in oklab, var(--ui-bg) 70%, transparent)' }"
     >
       <div class="flex items-center gap-2 px-3 py-2 text-sm text-default ring-1 ring-default">
-        <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary-500" />
+        <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary" />
         <span>{{ loadingText }}</span>
       </div>
     </div>
@@ -1452,6 +1480,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         :exposure-entries="exposureEntries"
         :has-metadata="hasMetadata"
         :preview-attrs="activeFile.previewAttrs"
+        :genre-label="genreBadgeLabel"
         @close="handleOverlayClose"
         @wheel="handleOverlayWheel"
         @dblclick="handleOverlayDoubleClick"
@@ -1469,7 +1498,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     class="flex min-h-[50vh] items-center justify-center text-sm text-muted"
     aria-live="polite"
   >
-    <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary-500" />
+    <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary" />
     <span>Loading gallery…</span>
   </div>
 </template>

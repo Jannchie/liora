@@ -31,6 +31,7 @@ export interface FileMetadata {
   software: string
   captureTime: string
   notes: string
+  fileSize: number
   thumbhash?: string
   perceptualHash?: string
   sha256?: string
@@ -42,6 +43,7 @@ export interface FilePayload {
   height: number
   title?: string
   description?: string
+  genre?: string
   fanworkTitle?: string
   characters?: string[]
   location?: string
@@ -84,5 +86,6 @@ export interface FileResponse {
   cameraModel: string
   characters: string[]
   genre: string
+  fileSize: number
   createdAt: string
 }

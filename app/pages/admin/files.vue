@@ -23,6 +23,10 @@ const toastMessages = computed(() => ({
   loadFailed: t('common.toast.loadFailed'),
   updateFailedFallback: t('admin.files.toast.updateFailedFallback'),
   deleteFailedFallback: t('admin.files.toast.deleteFailedFallback'),
+  classifySuccess: t('admin.files.toast.classifySuccess'),
+  classifyFailed: t('admin.files.toast.classifyFailed'),
+  classifyFailedFallback: t('admin.files.toast.classifyFailedFallback'),
+  classifySummary: t('admin.files.toast.classifySummary'),
 }))
 
 useSeoMeta({
@@ -138,6 +142,7 @@ function toLocalInputString(isoString: string): string {
 interface EditableForm {
   title: string
   description: string
+  genre: string
   width: number
   height: number
   fanworkTitle: string
@@ -158,6 +163,7 @@ interface EditableForm {
 const editForm = reactive<EditableForm>({
   title: '',
   description: '',
+  genre: '',
   width: 0,
   height: 0,
   fanworkTitle: '',
@@ -180,10 +186,29 @@ const editCharactersText = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
+const genreOptions = computed(() => [
+  { label: t('admin.files.genreOptions.portrait'), value: 'PORTRAIT' },
+  { label: t('admin.files.genreOptions.landscape'), value: 'LANDSCAPE' },
+  { label: t('admin.files.genreOptions.documentary'), value: 'DOCUMENTARY' },
+  { label: t('admin.files.genreOptions.architecture'), value: 'ARCHITECTURE' },
+  { label: t('admin.files.genreOptions.animal'), value: 'ANIMAL' },
+  { label: t('admin.files.genreOptions.stillLife'), value: 'STILL_LIFE' },
+  { label: t('admin.files.genreOptions.fashion'), value: 'FASHION' },
+  { label: t('admin.files.genreOptions.sports'), value: 'SPORTS' },
+  { label: t('admin.files.genreOptions.aerial'), value: 'AERIAL' },
+  { label: t('admin.files.genreOptions.fineArt'), value: 'FINE_ART' },
+  { label: t('admin.files.genreOptions.commercial'), value: 'COMMERCIAL' },
+  { label: t('admin.files.genreOptions.macro'), value: 'MACRO' },
+  { label: t('admin.files.genreOptions.street'), value: 'STREET' },
+  { label: t('admin.files.genreOptions.night'), value: 'NIGHT' },
+  { label: t('admin.files.genreOptions.abstract'), value: 'ABSTRACT' },
+  { label: t('admin.files.genreOptions.other'), value: 'OTHER' },
+])
 
 function resetEditForm(): void {
   editForm.title = ''
   editForm.description = ''
+  editForm.genre = ''
   editForm.width = 0
   editForm.height = 0
   editForm.fanworkTitle = ''
@@ -209,6 +234,7 @@ function fillEditForm(file: FileResponse): void {
   editForm.description = file.description ?? ''
   editForm.width = file.width
   editForm.height = file.height
+  editForm.genre = file.genre || ''
   editForm.fanworkTitle = metadata.fanworkTitle || file.fanworkTitle || ''
   editForm.characters = metadata.characters ?? file.characters ?? []
   editForm.location = metadata.location || file.location || ''
@@ -271,6 +297,38 @@ function openEdit(file: FileResponse): void {
 const deletingId = ref<number | null>(null)
 const deleteTarget = ref<FileResponse | null>(null)
 const deleteModalOpen = ref(false)
+const reclassifying = ref(false)
+const hasFiles = computed(() => files.value.length > 0)
+
+interface ReclassifySummary {
+  total: number
+  updated: number
+  skipped: number
+  failed: number
+}
+
+async function reclassifyMissing(): Promise<void> {
+  if (reclassifying.value) {
+    return
+  }
+  reclassifying.value = true
+  try {
+    const summary = await $fetch<ReclassifySummary>('/api/files/reclassify', { method: 'POST' })
+    await refresh()
+    toast.add({
+      title: toastMessages.value.classifySuccess,
+      description: toastMessages.value.classifySummary.replace('{updated}', summary.updated.toString()).replace('{total}', summary.total.toString()),
+      color: summary.failed > 0 ? 'warning' : 'primary',
+    })
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.classifyFailedFallback
+    toast.add({ title: toastMessages.value.classifyFailed, description: message, color: 'error' })
+  }
+  finally {
+    reclassifying.value = false
+  }
+}
 
 function openDelete(file: FileResponse): void {
   deleteTarget.value = file
@@ -335,6 +393,18 @@ watch(fetchError, (value) => {
               <span>{{ t('admin.files.actions.toUpload') }}</span>
             </span>
           </UButton>
+          <UButton
+            color="primary"
+            variant="ghost"
+            :disabled="!hasFiles || reclassifying"
+            :loading="reclassifying"
+            @click="reclassifyMissing"
+          >
+            <span class="flex items-center gap-2">
+              <Icon name="mdi:magic-wand" class="h-4 w-4" />
+              <span>{{ t('admin.files.actions.reclassify') }}</span>
+            </span>
+          </UButton>
           <UButton color="primary" variant="solid" :loading="isLoading" @click="handleRefresh">
             <span class="flex items-center gap-2">
               <Icon name="mdi:refresh" class="h-4 w-4" />
@@ -356,7 +426,7 @@ watch(fetchError, (value) => {
               <span>{{ t('admin.files.section.title') }}</span>
             </h2>
           </div>
-          <div class="flex items-center gap-2 text-sm text-neutral-500">
+          <div class="flex items-center gap-2 text-sm text-muted">
             <Icon name="mdi:counter" class="h-4 w-4" />
             <span>{{ recordCountText }}</span>
           </div>
@@ -383,26 +453,26 @@ watch(fetchError, (value) => {
                 <p class="font-medium leading-tight">
                   {{ row.original.title || untitledLabel }}
                 </p>
-                <p v-if="row.original.description" class="text-xs text-neutral-500 line-clamp-2">
+                <p v-if="row.original.description" class="text-xs text-muted line-clamp-2">
                   {{ row.original.description }}
                 </p>
               </div>
             </template>
             <template #size-cell="{ row }">
-              <span class="text-sm text-neutral-600">{{ row.original.width }} × {{ row.original.height }}</span>
+              <span class="text-sm text-toned">{{ row.original.width }} × {{ row.original.height }}</span>
             </template>
             <template #location-cell="{ row }">
-              <span class="text-sm text-neutral-600">
+              <span class="text-sm text-toned">
                 {{ row.original.metadata.locationName || row.original.location || unknownLabel }}
               </span>
             </template>
             <template #captureTime-cell="{ row }">
-              <span class="text-sm text-neutral-600">
+              <span class="text-sm text-toned">
                 {{ formatDateTime(row.original.metadata.captureTime || row.original.createdAt) || unknownLabel }}
               </span>
             </template>
             <template #createdAt-cell="{ row }">
-              <span class="text-sm text-neutral-600">
+              <span class="text-sm text-toned">
                 {{ formatDateTime(row.original.createdAt) }}
               </span>
             </template>
@@ -430,7 +500,7 @@ watch(fetchError, (value) => {
             </template>
           </UTable>
           <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="text-sm text-neutral-500">
+            <div class="text-sm text-muted">
               {{ paginationText }}
             </div>
             <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
@@ -455,7 +525,7 @@ watch(fetchError, (value) => {
               <h3 class="text-lg font-semibold">
                 {{ editingFile?.title || t('admin.files.editModal.fallbackTitle') }}
               </h3>
-              <p class="text-xs text-neutral-500">
+              <p class="text-xs text-muted">
                 {{ t('admin.files.editModal.subtitle') }}
               </p>
             </div>
@@ -472,10 +542,10 @@ watch(fetchError, (value) => {
                 <div class="flex items-center gap-2">
                   <Icon name="mdi:calendar-clock-outline" class="h-4 w-4 text-primary" />
                   <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                       时间与标题
                     </p>
-                    <p class="text-sm text-neutral-600">
+                    <p class="text-sm text-toned">
                       拍摄时间与摘要信息
                     </p>
                   </div>
@@ -490,6 +560,15 @@ watch(fetchError, (value) => {
                   <UFormField :label="t('admin.files.form.description.label')" name="description">
                     <UTextarea v-model="editForm.description" :rows="2" :placeholder="t('admin.files.form.description.placeholder')" />
                   </UFormField>
+                  <UFormField :label="t('admin.files.form.genre.label')" name="genre">
+                    <USelect
+                      v-model="editForm.genre"
+                      :items="genreOptions"
+                      option-attribute="label"
+                      value-attribute="value"
+                      :placeholder="t('admin.files.form.genre.placeholder')"
+                    />
+                  </UFormField>
                 </div>
               </section>
 
@@ -497,10 +576,10 @@ watch(fetchError, (value) => {
                 <div class="flex items-center gap-2">
                   <Icon name="mdi:account-music-outline" class="h-4 w-4 text-primary" />
                   <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                       作品归属
                     </p>
-                    <p class="text-sm text-neutral-600">
+                    <p class="text-sm text-toned">
                       同人、角色与说明
                     </p>
                   </div>
@@ -519,10 +598,10 @@ watch(fetchError, (value) => {
                 <div class="flex items-center gap-2">
                   <Icon name="mdi:image-size-select-large" class="h-4 w-4 text-primary" />
                   <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                       尺寸与地点
                     </p>
-                    <p class="text-sm text-neutral-600">
+                    <p class="text-sm text-toned">
                       画幅与地理信息
                     </p>
                   </div>
@@ -553,10 +632,10 @@ watch(fetchError, (value) => {
                 <div class="flex items-center gap-2">
                   <Icon name="mdi:camera-wireless-outline" class="h-4 w-4 text-primary" />
                   <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                       器材与曝光
                     </p>
-                    <p class="text-sm text-neutral-600">
+                    <p class="text-sm text-toned">
                       相机、镜头与曝光数据
                     </p>
                   </div>
@@ -584,10 +663,10 @@ watch(fetchError, (value) => {
                 <div class="flex items-center gap-2">
                   <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
                   <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                       备注
                     </p>
-                    <p class="text-sm text-neutral-600">
+                    <p class="text-sm text-toned">
                       补充记录与检索标签
                     </p>
                   </div>
@@ -622,13 +701,13 @@ watch(fetchError, (value) => {
           <template #header>
             <div class="flex items-start justify-between">
               <div>
-                <p class="text-sm text-error-500">
+                <p class="text-sm text-error">
                   {{ t('admin.files.delete.title') }}
                 </p>
                 <h3 class="text-lg font-semibold">
                   {{ t('admin.files.delete.heading') }}
                 </h3>
-                <p class="text-xs text-neutral-500">
+                <p class="text-xs text-muted">
                   {{ t('admin.files.delete.description') }}
                 </p>
               </div>
@@ -644,7 +723,7 @@ watch(fetchError, (value) => {
             <p class="text-sm">
               {{ t('admin.files.delete.titleLabel') }}<span class="font-medium">{{ deleteTarget?.title || untitledLabel }}</span>
             </p>
-            <p class="text-sm text-neutral-600">
+            <p class="text-sm text-toned">
               {{ t('admin.files.delete.createdAtLabel') }}{{ deleteTarget ? formatDateTime(deleteTarget.createdAt) : '' }}
             </p>
           </div>

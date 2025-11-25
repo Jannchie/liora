@@ -172,7 +172,7 @@ function handleReset(): void {
             <span>{{ t('admin.site.badge') }}</span>
           </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold text-highlighted">
-            <Icon name="mdi:pencil-outline" class="h-6 w-6 text-primary-600" />
+            <Icon name="mdi:pencil-outline" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.site.title') }}</span>
           </h1>
           <p class="text-sm text-muted">

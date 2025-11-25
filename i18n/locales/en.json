@@ -316,12 +316,17 @@
         "deleteSuccess": "Deleted",
         "deleteSuccessDescription": "Record removed.",
         "deleteFailed": "Delete failed",
-        "deleteFailedFallback": "Delete failed"
+        "deleteFailedFallback": "Delete failed",
+        "classifySuccess": "Classification finished",
+        "classifyFailed": "Classification failed",
+        "classifyFailedFallback": "Failed to classify",
+        "classifySummary": "Updated {updated} / {total} items"
       },
       "title": "Records",
       "subtitle": "Review existing entries with edit and delete controls.",
       "actions": {
         "toUpload": "Go to upload",
+        "reclassify": "Classify missing",
         "refresh": "Refresh"
       },
       "section": {
@@ -411,7 +416,30 @@
         "notes": {
           "label": "Notes",
           "placeholder": "Add context or notes"
+        },
+        "genre": {
+          "label": "Genre",
+          "placeholder": "Select genre"
         }
+      },
+      "genreOptions": {
+        "portrait": "Portrait",
+        "landscape": "Landscape",
+        "documentary": "Documentary",
+        "architecture": "Architecture",
+        "wildlife": "Wildlife",
+        "stillLife": "Still life",
+        "fashion": "Fashion",
+        "sports": "Sports",
+        "aerial": "Aerial",
+        "fineArt": "Fine art",
+        "commercial": "Commercial",
+        "macro": "Macro",
+        "street": "Street",
+        "night": "Night",
+        "abstract": "Abstract",
+        "other": "Other",
+        "animal": "Animals"
       },
       "delete": {
         "title": "Delete confirmation",
