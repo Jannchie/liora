@@ -174,21 +174,23 @@ function resolveKindLabel(kind: FileResponse['kind']): string {
 function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined, targetWidth: number): DisplaySize {
   const width = file.width > 0 ? Math.min(file.width, targetWidth) : targetWidth
   const ratio
-    = aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
-      ? aspectRatio
-      : (file.width > 0 && file.height > 0
-          ? file.width / file.height
+    = file.width > 0 && file.height > 0
+      ? file.width / file.height
+      : (aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
+          ? aspectRatio
           : 1)
   const height = Math.round(width / ratio)
   return { width, height }
 }
 
-function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' | 'inside' = 'cover'): ImageAttrs {
-  const modifiers = {
+function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' | 'inside' = 'inside'): ImageAttrs {
+  const modifiers: Record<string, number | string> = {
     width: displaySize.width,
-    height: displaySize.height,
     format: 'webp',
     fit,
+  }
+  if (fit === 'cover') {
+    modifiers.height = displaySize.height
   }
   const sizes = image.getSizes(src, {
     modifiers,
@@ -267,7 +269,7 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
       const imageUrl = (file.imageUrl ?? '').trim()
       const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
       const baseImageUrl = imageUrl.length > 0 ? imageUrl : thumbnailUrl
-      const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize)
+      const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
       const previewSize = computeDisplaySize(
         file,
         decoded?.aspectRatio,
@@ -650,7 +652,7 @@ function navigateOverlay(offset: number): void {
     return
   }
   const currentIndex = resolvedFiles.value.findIndex(file => file.id === currentId)
-  if (currentIndex < 0) {
+  if (currentIndex === -1) {
     return
   }
   const nextIndex = currentIndex + offset
@@ -878,7 +880,7 @@ function renderHistogram(): void {
                 : undefined,
             ]"
             loading="lazy"
-            class="h-full w-full object-cover transition duration-200 group-hover:opacity-90"
+            class="h-full w-full object-contain bg-default transition duration-200 group-hover:opacity-90"
             v-bind="entry.imageAttrs"
           >
         </button>
