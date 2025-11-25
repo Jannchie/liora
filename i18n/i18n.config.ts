@@ -1,5 +1,5 @@
-import en from './i18n/locales/en.json'
-import zhCN from './i18n/locales/zh-CN.json'
+import en from './locales/en.json'
+import zhCN from './locales/zh-CN.json'
 
 export default defineI18nConfig(() => ({
   legacy: false,
