@@ -65,8 +65,7 @@ const form = reactive({
 const submitting = ref(false)
 const selectedFile = ref<File | null>(null)
 const previewUrl = ref<string>('')
-const fileInputEl = ref<HTMLInputElement | null>(null)
-const isDragging = ref(false)
+const fileUploadRef = ref<InstanceType<typeof UFileUpload> | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
 interface SelectOption {
@@ -172,16 +171,33 @@ function resetOptionalFields(): void {
 }
 
 function clearSelectedFile(): void {
+  resetFileState()
+  selectedFile.value = null
+}
+
+function resetFileState(): void {
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value)
   }
   previewUrl.value = ''
-  selectedFile.value = null
   form.width = 0
   form.height = 0
-  if (fileInputEl.value) {
-    fileInputEl.value.value = ''
+  const inputEl = getFileInputElement()
+  if (inputEl) {
+    inputEl.value = ''
   }
+}
+
+function getFileInputElement(): HTMLInputElement | null {
+  const exposed = fileUploadRef.value?.inputRef
+  if (!exposed) {
+    return null
+  }
+  if (exposed instanceof HTMLInputElement) {
+    return exposed
+  }
+  const element = (exposed as { value?: unknown }).value
+  return element instanceof HTMLInputElement ? element : null
 }
 
 async function detectImageSize(): Promise<void> {
@@ -663,25 +679,26 @@ async function refreshMetadata(): Promise<void> {
   await extractExif()
 }
 
+function openFileDialog(): void {
+  getFileInputElement()?.click()
+}
+
 async function handleFileSelect(file: File | null): Promise<void> {
-  clearSelectedFile()
-  if (!file) {
-    return
-  }
+  resetFileState()
   selectedFile.value = file
-  await refreshMetadata()
+  if (file) {
+    await refreshMetadata()
+  }
 }
 
 async function handleFileChange(event: Event): Promise<void> {
-  const target = event.target as HTMLInputElement | null
-  await handleFileSelect(target?.files?.[0] ?? null)
-}
-
-async function handleDrop(event: DragEvent): Promise<void> {
-  event.preventDefault()
-  isDragging.value = false
-  const file = event.dataTransfer?.files?.[0]
-  await handleFileSelect(file ?? null)
+  const target = event.target
+  if (target instanceof HTMLInputElement) {
+    await handleFileSelect(target.files?.[0] ?? null)
+    return
+  }
+  const value = (target as { value?: File | File[] | null } | null)?.value
+  await (Array.isArray(value) ? handleFileSelect(value[0] ?? null) : handleFileSelect(value instanceof File ? value : null))
 }
 
 function extractClipboardImage(event: ClipboardEvent): File | null {
@@ -818,9 +835,7 @@ onBeforeUnmount(() => {
         </div>
       </header>
 
-      <input ref="fileInputEl" type="file" accept="image/*" class="hidden" @change="handleFileChange">
-
-      <div v-if="!selectedFile" class="grid gap-6">
+      <div v-show="!selectedFile" class="grid gap-6">
         <UCard>
           <template #header>
             <div class="space-y-1">
@@ -837,25 +852,16 @@ onBeforeUnmount(() => {
               </p>
             </div>
           </template>
-          <div
-            class="flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed p-10 text-center transition"
-            :class="{ 'opacity-80': isDragging }"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop="handleDrop"
-            @click="fileInputEl?.click()"
-          >
-            <Icon name="mdi:cloud-upload-outline" class="h-10 w-10 text-primary" />
-            <p class="mt-3 text-sm">
-              {{ t('admin.upload.sections.upload.dropHint') }}
-            </p>
-            <p class="text-xs">
-              {{ t('admin.upload.sections.upload.supported') }}
-            </p>
-            <p class="text-xs">
-              {{ t('admin.upload.sections.upload.pasteHint') }}
-            </p>
-          </div>
+          <UFileUpload
+            v-model="selectedFile"
+            ref="fileUploadRef"
+            accept="image/*"
+            :preview="false"
+            :label="t('admin.upload.sections.upload.dropHint')"
+            :description="`${t('admin.upload.sections.upload.supported')} · ${t('admin.upload.sections.upload.pasteHint')}`"
+            class="w-full"
+            @change="handleFileChange"
+          />
         </UCard>
       </div>
 
@@ -881,9 +887,9 @@ onBeforeUnmount(() => {
                 role="button"
                 tabindex="0"
                 :aria-label="t('common.actions.changeImage')"
-                @click="fileInputEl?.click()"
-                @keydown.enter.prevent="fileInputEl?.click()"
-                @keydown.space.prevent="fileInputEl?.click()"
+                @click="openFileDialog()"
+                @keydown.enter.prevent="openFileDialog()"
+                @keydown.space.prevent="openFileDialog()"
               >
                 <img v-if="previewUrl" :src="previewUrl" :alt="t('admin.upload.sections.preview.alt')" class="h-full w-full object-cover">
               </div>
@@ -909,8 +915,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">基本信息</p>
-                  <p class="text-sm text-neutral-600">尺寸、时间与标题描述</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    基本信息
+                  </p>
+                  <p class="text-sm text-neutral-600">
+                    尺寸、时间与标题描述
+                  </p>
                 </div>
               </div>
               <div class="grid gap-3 md:grid-cols-2">
@@ -939,8 +949,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">拍摄参数</p>
-                  <p class="text-sm text-neutral-600">机身、镜头与曝光设定</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    拍摄参数
+                  </p>
+                  <p class="text-sm text-neutral-600">
+                    机身、镜头与曝光设定
+                  </p>
                 </div>
               </div>
               <div class="grid gap-3 md:grid-cols-2">
@@ -1019,8 +1033,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">输出与色彩</p>
-                  <p class="text-sm text-neutral-600">色彩空间与分辨率</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    输出与色彩
+                  </p>
+                  <p class="text-sm text-neutral-600">
+                    色彩空间与分辨率
+                  </p>
                 </div>
               </div>
               <div class="grid gap-3 md:grid-cols-2">
@@ -1046,8 +1064,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">位置信息</p>
-                  <p class="text-sm text-neutral-600">地理标记与原始地址</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    位置信息
+                  </p>
+                  <p class="text-sm text-neutral-600">
+                    地理标记与原始地址
+                  </p>
                 </div>
               </div>
               <div class="grid gap-3 md:grid-cols-2">
@@ -1072,8 +1094,12 @@ onBeforeUnmount(() => {
               <div class="flex items-center gap-2">
                 <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
                 <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">附加说明</p>
-                  <p class="text-sm text-neutral-600">备注信息便于后续检索</p>
+                  <p class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+                    附加说明
+                  </p>
+                  <p class="text-sm text-neutral-600">
+                    备注信息便于后续检索
+                  </p>
                 </div>
               </div>
               <UFormField :label="t('admin.upload.fields.notes.label')" name="notes">

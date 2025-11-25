@@ -83,5 +83,6 @@ export interface FileResponse {
   location: string
   cameraModel: string
   characters: string[]
+  genre: string
   createdAt: string
 }

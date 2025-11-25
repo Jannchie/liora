@@ -32,6 +32,7 @@ model File {
   shutterSpeed  String    @default("")
   captureTime   String    @default("")
   metadata      String    @default("{}")
+  genre        String    @default("")
   createdAt     DateTime  @default(now())
 }
 

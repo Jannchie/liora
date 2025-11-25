@@ -58,6 +58,9 @@ export default defineNuxtConfig({
       password: process.env.ADMIN_PASSWORD ?? process.env.NUXT_ADMIN_PASSWORD ?? '',
       sessionSecret: process.env.ADMIN_SESSION_SECRET ?? process.env.NUXT_ADMIN_SESSION_SECRET ?? '',
     },
+    ai: {
+      openaiApiKey: process.env.OPENAI_API_KEY ?? '',
+    },
     storage: {
       endpoint: process.env.S3_ENDPOINT ?? '',
       bucket: process.env.S3_BUCKET ?? '',

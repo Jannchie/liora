@@ -1,12 +1,15 @@
 import type { H3Event } from 'h3'
 import type { S3Config } from '../utils/s3'
+import type { GenreClassificationResult } from '../utils/ai-classifier'
 import type { FileMetadata, FileResponse } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
 import { basename, extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
+import { classifyPhotoGenre } from '../utils/ai-classifier'
 import { computeHistogram } from '../utils/histogram'
+import { joinCharacters, toFileResponse } from '../utils/file-mapper'
 import { prisma } from '../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
@@ -28,6 +31,19 @@ const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
 interface ImageHashes {
   perceptualHash: string | null
   sha256: string
+}
+
+const deriveGenreLabel = (genre: GenreClassificationResult | null): string => {
+  if (!genre) {
+    return ''
+  }
+  if (genre.primary.trim().length > 0) {
+    return genre.primary.trim()
+  }
+  if (genre.secondary.length > 0) {
+    return genre.secondary[0]?.trim() ?? ''
+  }
+  return ''
 }
 
 async function computePerceptualHash(data: Buffer): Promise<string | null> {
@@ -347,6 +363,14 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.thumbhash = thumbhash
   }
 
+  let genre: GenreClassificationResult | null = null
+  try {
+    genre = await classifyPhotoGenre(event, imageUrl)
+  }
+  catch (error) {
+    console.warn('Photo genre classification failed:', error)
+  }
+
   const originalName = file.filename ? basename(file.filename) : ''
 
   const created = await prisma.file.create({
@@ -358,8 +382,8 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       thumbnailUrl,
       width,
       height,
-      fanworkTitle: '',
-      characterList: '',
+      fanworkTitle: metadata.fanworkTitle,
+      characterList: joinCharacters(characters),
       location: metadata.location,
       locationName: metadata.locationName,
       latitude: metadata.latitude,
@@ -371,23 +395,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       shutterSpeed: metadata.shutterSpeed,
       captureTime: metadata.captureTime,
       metadata: JSON.stringify(metadata),
+      genre: deriveGenreLabel(genre),
     },
   })
 
-  return {
-    id: created.id,
-    title: created.title,
-    description: created.description,
-    originalName: created.originalName,
-    imageUrl: created.imageUrl,
-    thumbnailUrl: created.thumbnailUrl,
-    width: created.width,
-    height: created.height,
-    fanworkTitle: created.fanworkTitle,
-    location: created.location,
-    cameraModel: created.cameraModel,
-    characters,
-    metadata,
-    createdAt: created.createdAt.toISOString(),
-  }
+  return toFileResponse(created)
 })

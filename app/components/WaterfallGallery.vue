@@ -107,6 +107,7 @@ const metadataLabels = computed(() => ({
   description: t('gallery.metadata.description'),
   work: t('gallery.metadata.work'),
   characters: t('gallery.metadata.characters'),
+  genre: t('gallery.metadata.genre'),
   location: t('gallery.metadata.location'),
   camera: t('gallery.metadata.device'),
   lens: t('gallery.metadata.lens'),
@@ -688,6 +689,14 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const description = toDisplayText(file.description)
   if (description) {
     entries.push({ label: metadataLabels.value.description, value: description, icon: 'carbon:document' })
+  }
+  const genre = file.genre?.trim()
+  if (genre) {
+    entries.push({
+      label: metadataLabels.value.genre,
+      value: genre,
+      icon: 'carbon:classification',
+    })
   }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {

@@ -93,6 +93,7 @@ export function toFileResponse(file: File): FileResponse {
     histogram: null,
   })
   const imageUrl = file.imageUrl || file.thumbnailUrl || ''
+  const genre = file.genre?.trim() ?? ''
 
   return {
     id: file.id,
@@ -108,6 +109,7 @@ export function toFileResponse(file: File): FileResponse {
     cameraModel: file.cameraModel,
     characters,
     metadata,
+    genre,
     createdAt: file.createdAt.toISOString(),
   }
 }

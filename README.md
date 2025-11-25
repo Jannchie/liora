@@ -89,6 +89,16 @@ S3_PUBLIC_BASE_URL=https://<public-base>/<bucket-name>
 
 Ensure the token has write permission to the bucket and, if public access is desired, enable public reads or use a custom domain.
 
+## AI classification
+
+Set an OpenAI-compatible key to enable automatic genre classification (prompt: `prompts/PhotographyGenreClassification.md`, model: `gpt-5.1-nano`) during uploads. The final label is stored in the `File.genre` column.
+
+```txt
+OPENAI_API_KEY=<openai-key>
+```
+
+The key is read server-side only; without it uploads still succeed but genre classification is skipped.
+
 ## SEO
 
 This project uses `@nuxtjs/seo` for canonical links, sitemap generation, and social previews. Set your canonical host with `NUXT_SITE_URL` (or `NUXT_PUBLIC_SITE_URL`), and toggle indexing via `NUXT_SITE_INDEXABLE=true|false`. When no URL is provided, local development falls back to `http://localhost:3000`.
