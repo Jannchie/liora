@@ -1,6 +1,9 @@
 <script setup lang="ts">
+import type { MediaFormState } from '~/types/admin'
 import exifr from 'exifr'
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { useExposureOptions } from '~/composables/useExposureOptions'
+import { toLocalInputString } from '~/utils/datetime'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -37,11 +40,14 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const form = reactive({
+const form = reactive<MediaFormState>({
   width: 0,
   height: 0,
   title: '',
   description: '',
+  genre: '',
+  fanworkTitle: '',
+  characters: [],
   location: '',
   cameraModel: '',
   lensModel: '',
@@ -73,65 +79,21 @@ const previewUrl = ref<string>('')
 const fileUploadRef = ref<InstanceType<typeof UFileUpload> | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
-interface SelectOption {
-  label: string
-  value: string
-}
-interface GeocodeResult {
-  id: string
-  name: string
-  placeName: string
-  latitude: number
-  longitude: number
-}
-
-const geocodeQuery = ref('')
-const geocoding = ref(false)
-const geocodeResults = ref<GeocodeResult[]>([])
-
-const exposureProgramOptions = computed<SelectOption[]>(() => [
-  { label: t('admin.upload.options.exposureProgram.notDefined'), value: 'Not defined' },
-  { label: t('admin.upload.options.exposureProgram.manual'), value: 'Manual' },
-  { label: t('admin.upload.options.exposureProgram.program'), value: 'Program' },
-  { label: t('admin.upload.options.exposureProgram.aperturePriority'), value: 'Aperture priority' },
-  { label: t('admin.upload.options.exposureProgram.shutterPriority'), value: 'Shutter priority' },
-  { label: t('admin.upload.options.exposureProgram.creative'), value: 'Creative' },
-  { label: t('admin.upload.options.exposureProgram.action'), value: 'Action' },
-  { label: t('admin.upload.options.exposureProgram.portrait'), value: 'Portrait' },
-  { label: t('admin.upload.options.exposureProgram.landscape'), value: 'Landscape' },
-])
-
-const exposureModeOptions = computed<SelectOption[]>(() => [
-  { label: t('admin.upload.options.exposureMode.auto'), value: 'Auto' },
-  { label: t('admin.upload.options.exposureMode.manual'), value: 'Manual' },
-  { label: t('admin.upload.options.exposureMode.bracket'), value: 'Auto bracket' },
-])
-
-const meteringModeOptions = computed<SelectOption[]>(() => [
-  { label: t('admin.upload.options.metering.unknown'), value: 'Unknown' },
-  { label: t('admin.upload.options.metering.average'), value: 'Average' },
-  { label: t('admin.upload.options.metering.center'), value: 'Center-weighted' },
-  { label: t('admin.upload.options.metering.spot'), value: 'Spot' },
-  { label: t('admin.upload.options.metering.multiSpot'), value: 'Multi-spot' },
-  { label: t('admin.upload.options.metering.pattern'), value: 'Pattern' },
-  { label: t('admin.upload.options.metering.partial'), value: 'Partial' },
-  { label: t('admin.upload.options.metering.other'), value: 'Other' },
-])
-
-const whiteBalanceOptions = computed<SelectOption[]>(() => [
-  { label: t('admin.upload.options.whiteBalance.auto'), value: 'Auto' },
-  { label: t('admin.upload.options.whiteBalance.manual'), value: 'Manual' },
-])
-
-const flashOptions = computed<SelectOption[]>(() => [
-  { label: t('admin.upload.options.flash.didNotFire'), value: 'Did not fire' },
-  { label: t('admin.upload.options.flash.autoDidNotFire'), value: 'Auto (did not fire)' },
-  { label: t('admin.upload.options.flash.fired'), value: 'Fired' },
-  { label: t('admin.upload.options.flash.autoFired'), value: 'Auto (fired)' },
-])
+const charactersText = ref<string>('')
 let pasteListener: ((event: ClipboardEvent) => void) | null = null
+const {
+  exposureProgramOptions,
+  exposureModeOptions,
+  meteringModeOptions,
+  whiteBalanceOptions,
+  flashOptions,
+} = useExposureOptions()
 
-function normalizeToOption(value: string | undefined, options: SelectOption[], aliases: Record<string, string> = {}): string {
+function normalizeToOption(
+  value: string | undefined,
+  options: { label: string, value: string }[],
+  aliases: Record<string, string> = {},
+): string {
   const normalized = value?.trim()
   if (!normalized) {
     return ''
@@ -160,6 +122,9 @@ function normalizeToOption(value: string | undefined, options: SelectOption[], a
 function resetOptionalFields(): void {
   form.title = ''
   form.description = ''
+  form.genre = ''
+  form.fanworkTitle = ''
+  form.characters = []
   form.location = ''
   form.locationName = ''
   form.latitude = null
@@ -184,6 +149,7 @@ function resetOptionalFields(): void {
   form.captureTime = ''
   captureTimeLocal.value = ''
   form.notes = ''
+  charactersText.value = ''
 }
 
 function clearSelectedFile(): void {
@@ -285,12 +251,6 @@ function formatLocation(latitude: number | undefined, longitude: number | undefi
     return ''
   }
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-}
-
-function resolveGeocodeQuery(): string {
-  const candidates = [geocodeQuery.value, form.locationName, form.location].map(value => value.trim())
-  const found = candidates.find(value => value.length > 0)
-  return found ?? ''
 }
 
 function textFrom(value: string | string[] | undefined): string {
@@ -491,8 +451,6 @@ function formatColorSpace(value: number | string | undefined): string {
   return text
 }
 
-const pad = (value: number): string => value.toString().padStart(2, '0')
-
 function formatDate(value: string | Date | undefined): string {
   if (!value) {
     return ''
@@ -502,83 +460,6 @@ function formatDate(value: string | Date | undefined): string {
     return ''
   }
   return date.toISOString()
-}
-
-function toLocalInputString(isoString: string): string {
-  const date = new Date(isoString)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  const year = date.getFullYear()
-  const month = pad(date.getMonth() + 1)
-  const day = pad(date.getDate())
-  const hours = pad(date.getHours())
-  const minutes = pad(date.getMinutes())
-  const seconds = pad(date.getSeconds())
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
-}
-
-function toIsoWithOffset(localString: string): string {
-  const date = new Date(localString)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  const offsetMinutes = -date.getTimezoneOffset()
-  const sign = offsetMinutes >= 0 ? '+' : '-'
-  const abs = Math.abs(offsetMinutes)
-  const offsetHours = pad(Math.floor(abs / 60))
-  const offsetMins = pad(abs % 60)
-  const year = date.getFullYear()
-  const month = pad(date.getMonth() + 1)
-  const day = pad(date.getDate())
-  const hours = pad(date.getHours())
-  const minutes = pad(date.getMinutes())
-  const seconds = pad(date.getSeconds())
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`
-}
-
-async function searchLocation(): Promise<void> {
-  const query = resolveGeocodeQuery()
-  if (!query) {
-    toast.add({ title: toastMessages.value.geocodeMissingQuery, color: 'warning' })
-    return
-  }
-
-  geocoding.value = true
-  geocodeResults.value = []
-  try {
-    const response = await $fetch<{ results?: GeocodeResult[] }>('/api/geocode', {
-      params: { q: query, limit: 5 },
-    })
-    geocodeResults.value = response.results ?? []
-    if (geocodeResults.value.length === 0) {
-      toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
-    }
-  }
-  catch (error) {
-    const description = error instanceof Error ? error.message : toastMessages.value.geocodeFailedFallback
-    toast.add({ title: toastMessages.value.geocodeFailedTitle, description, color: 'error' })
-  }
-  finally {
-    geocoding.value = false
-  }
-}
-
-function applyGeocodeResult(result: GeocodeResult): void {
-  const safeLat = Number.isFinite(result.latitude) ? Number.parseFloat(result.latitude.toFixed(6)) : null
-  const safeLon = Number.isFinite(result.longitude) ? Number.parseFloat(result.longitude.toFixed(6)) : null
-  if (safeLat !== null) {
-    form.latitude = safeLat
-  }
-  if (safeLon !== null) {
-    form.longitude = safeLon
-  }
-  form.locationName = result.placeName
-  if (!form.location) {
-    form.location = result.placeName
-  }
-  geocodeQuery.value = result.name
-  toast.add({ title: toastMessages.value.geocodeAppliedTitle, description: result.placeName, color: 'primary' })
 }
 
 async function extractExif(): Promise<void> {
@@ -757,14 +638,43 @@ async function handleFileSelect(file: File | null): Promise<void> {
   }
 }
 
-async function handleFileChange(event: Event): Promise<void> {
-  const target = event.target
+async function handleFileChange(payload: File | File[] | { files?: File[] } | Event | null): Promise<void> {
+  if (!payload) {
+    await handleFileSelect(null)
+    return
+  }
+
+  if (payload instanceof File) {
+    await handleFileSelect(payload)
+    return
+  }
+
+  if (Array.isArray(payload)) {
+    await handleFileSelect(payload[0] ?? null)
+    return
+  }
+
+  if ('files' in payload && Array.isArray(payload.files)) {
+    await handleFileSelect(payload.files[0] ?? null)
+    return
+  }
+
+  const target = (payload as Event).target
   if (target instanceof HTMLInputElement) {
     await handleFileSelect(target.files?.[0] ?? null)
     return
   }
-  const value = (target as { value?: File | File[] | null } | null)?.value
-  await (Array.isArray(value) ? handleFileSelect(value[0] ?? null) : handleFileSelect(value instanceof File ? value : null))
+
+  const value = (payload as { value?: File | File[] | null } | null)?.value
+  if (value instanceof File) {
+    await handleFileSelect(value)
+    return
+  }
+  if (Array.isArray(value)) {
+    await handleFileSelect(value[0] ?? null)
+    return
+  }
+  await handleFileSelect(null)
 }
 
 function extractClipboardImage(event: ClipboardEvent): File | null {
@@ -790,13 +700,6 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
   event.preventDefault()
   await handleFileSelect(file)
 }
-
-watch(
-  () => captureTimeLocal.value,
-  (value) => {
-    form.captureTime = value ? toIsoWithOffset(value) : ''
-  },
-)
 
 onMounted(() => {
   const target = typeof globalThis.addEventListener === 'function' ? (globalThis as unknown as Window) : null
@@ -828,8 +731,9 @@ async function submit(): Promise<void> {
     formData.append('height', String(form.height))
     formData.append('title', form.title)
     formData.append('description', form.description)
-    formData.append('fanworkTitle', '')
-    formData.append('characters', '')
+    formData.append('genre', form.genre)
+    formData.append('fanworkTitle', form.fanworkTitle)
+    formData.append('characters', charactersText.value)
     formData.append('location', form.location)
     formData.append('locationName', form.locationName)
     formData.append('latitude', form.latitude === null ? '' : String(form.latitude))
@@ -977,244 +881,11 @@ onBeforeUnmount(() => {
             </div>
           </template>
           <UForm :state="form" class="space-y-6" @submit.prevent="submit">
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    基本信息
-                  </p>
-                  <p class="text-sm text-toned">
-                    尺寸、时间与标题描述
-                  </p>
-                </div>
-              </div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')">
-                  <UInput v-model.number="form.width" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')">
-                  <UInput v-model.number="form.height" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
-                </UFormField>
-                <UFormField class="md:col-span-2" :label="t('admin.upload.fields.captureTime.label')" name="captureTime">
-                  <UInput v-model="captureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.upload.fields.captureTime.placeholder')" />
-                  <template #description>
-                    <span class="text-xs">{{ t('admin.upload.fields.captureTime.description') }}</span>
-                  </template>
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.title.label')" name="title">
-                  <UInput v-model="form.title" :placeholder="t('admin.upload.fields.title.placeholder')" />
-                </UFormField>
-                <UFormField class="md:col-span-2" :label="t('admin.upload.fields.description.label')" name="description">
-                  <UTextarea v-model="form.description" :placeholder="t('admin.upload.fields.description.placeholder')" :rows="3" />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    拍摄参数
-                  </p>
-                  <p class="text-sm text-toned">
-                    机身、镜头与曝光设定
-                  </p>
-                </div>
-              </div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel">
-                  <UInput v-model="form.cameraModel" :placeholder="t('admin.upload.fields.cameraModel.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.lensModel.label')" name="lensModel">
-                  <UInput v-model="form.lensModel" :placeholder="t('admin.upload.fields.lensModel.placeholder')" />
-                </UFormField>
-              </div>
-              <div class="grid gap-3 md:grid-cols-3">
-                <UFormField :label="t('admin.upload.fields.aperture.label')" name="aperture">
-                  <UInput v-model="form.aperture" :placeholder="t('admin.upload.fields.aperture.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.shutterSpeed.label')" name="shutterSpeed">
-                  <UInput v-model="form.shutterSpeed" :placeholder="t('admin.upload.fields.shutterSpeed.placeholder')" />
-                </UFormField>
-                <UFormField name="iso" label="ISO">
-                  <UInput v-model="form.iso" placeholder="800" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.focalLength.label')" name="focalLength">
-                  <UInput v-model="form.focalLength" :placeholder="t('admin.upload.fields.focalLength.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.exposureBias.label')" name="exposureBias">
-                  <UInput v-model="form.exposureBias" :placeholder="t('admin.upload.fields.exposureBias.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.exposureProgram.label')" name="exposureProgram">
-                  <USelect
-                    v-model="form.exposureProgram"
-                    :items="exposureProgramOptions"
-                    value-attribute="value"
-                    option-attribute="label"
-                    :placeholder="t('admin.upload.fields.exposureProgram.placeholder')"
-                  />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.exposureMode.label')" name="exposureMode">
-                  <USelect
-                    v-model="form.exposureMode"
-                    :items="exposureModeOptions"
-                    value-attribute="value"
-                    option-attribute="label"
-                    :placeholder="t('admin.upload.fields.exposureMode.placeholder')"
-                  />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.meteringMode.label')" name="meteringMode">
-                  <USelect
-                    v-model="form.meteringMode"
-                    :items="meteringModeOptions"
-                    value-attribute="value"
-                    option-attribute="label"
-                    :placeholder="t('admin.upload.fields.meteringMode.placeholder')"
-                  />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.whiteBalance.label')" name="whiteBalance">
-                  <USelect
-                    v-model="form.whiteBalance"
-                    :items="whiteBalanceOptions"
-                    value-attribute="value"
-                    option-attribute="label"
-                    :placeholder="t('admin.upload.fields.whiteBalance.placeholder')"
-                  />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.flash.label')" name="flash">
-                  <USelect
-                    v-model="form.flash"
-                    :items="flashOptions"
-                    value-attribute="value"
-                    option-attribute="label"
-                    :placeholder="t('admin.upload.fields.flash.placeholder')"
-                  />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    输出与色彩
-                  </p>
-                  <p class="text-sm text-toned">
-                    色彩空间与分辨率
-                  </p>
-                </div>
-              </div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <UFormField :label="t('admin.upload.fields.colorSpace.label')" name="colorSpace">
-                  <UInput v-model="form.colorSpace" :placeholder="t('admin.upload.fields.colorSpace.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.resolutionUnit.label')" name="resolutionUnit">
-                  <UInput v-model="form.resolutionUnit" :placeholder="t('admin.upload.fields.resolutionUnit.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.resolutionX.label')" name="resolutionX">
-                  <UInput v-model="form.resolutionX" :placeholder="t('admin.upload.fields.resolutionX.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.resolutionY.label')" name="resolutionY">
-                  <UInput v-model="form.resolutionY" :placeholder="t('admin.upload.fields.resolutionY.placeholder')" />
-                </UFormField>
-                <UFormField class="md:col-span-2" :label="t('admin.upload.fields.software.label')" name="software">
-                  <UInput v-model="form.software" :placeholder="t('admin.upload.fields.software.placeholder')" />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    位置信息
-                  </p>
-                  <p class="text-sm text-toned">
-                    地理标记与原始地址
-                  </p>
-                </div>
-              </div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName">
-                  <UInput v-model="form.locationName" :placeholder="t('admin.upload.fields.locationName.placeholder')" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw">
-                  <UInput v-model="form.location" :placeholder="t('admin.upload.fields.locationRaw.placeholder')" />
-                </UFormField>
-              </div>
-              <div class="grid gap-3 md:grid-cols-3">
-                <UFormField class="md:col-span-2" :label="t('admin.upload.fields.locationSearch.label')" name="locationSearch">
-                  <UInput
-                    v-model="geocodeQuery"
-                    :placeholder="t('admin.upload.fields.locationSearch.placeholder')"
-                    @keydown.enter.prevent="searchLocation"
-                  />
-                </UFormField>
-                <div class="flex items-end">
-                  <UButton class="w-full md:w-auto" color="primary" :loading="geocoding" @click="searchLocation">
-                    <span class="flex w-full items-center justify-center gap-2">
-                      <Icon name="mdi:map-search-outline" class="h-4 w-4" />
-                      <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
-                    </span>
-                  </UButton>
-                </div>
-              </div>
-              <div v-if="geocodeResults.length > 0" class="space-y-2 rounded-lg bg-muted/50 p-3 ring-1 ring-default/30">
-                <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                  {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
-                </p>
-                <div class="grid gap-2">
-                  <button
-                    v-for="result in geocodeResults"
-                    :key="result.id"
-                    type="button"
-                    class="flex w-full items-start justify-between gap-3 rounded-md bg-elevated/80 p-2 text-left ring-1 ring-default/30 transition hover:bg-default/70"
-                    @click="applyGeocodeResult(result)"
-                  >
-                    <div class="space-y-0.5">
-                      <p class="text-sm font-semibold text-highlighted">
-                        {{ result.name }}
-                      </p>
-                      <p class="text-xs text-muted">
-                        {{ result.placeName }}
-                      </p>
-                    </div>
-                    <span class="text-[11px] font-medium text-primary">
-                      {{ t('admin.upload.fields.locationSearch.apply') }}
-                    </span>
-                  </button>
-                </div>
-              </div>
-              <div class="grid gap-3 md:grid-cols-2">
-                <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
-                  <UInput v-model.number="form.latitude" type="number" step="0.000001" placeholder="39.9087" />
-                </UFormField>
-                <UFormField :label="t('admin.upload.fields.longitude.label')" name="longitude">
-                  <UInput v-model.number="form.longitude" type="number" step="0.000001" placeholder="116.3975" />
-                </UFormField>
-              </div>
-            </section>
-
-            <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-              <div class="flex items-center gap-2">
-                <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
-                <div>
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    附加说明
-                  </p>
-                  <p class="text-sm text-toned">
-                    备注信息便于后续检索
-                  </p>
-                </div>
-              </div>
-              <UFormField :label="t('admin.upload.fields.notes.label')" name="notes">
-                <UTextarea v-model="form.notes" :placeholder="t('admin.upload.fields.notes.placeholder')" :rows="2" />
-              </UFormField>
-            </section>
+            <AdminMetadataForm
+              v-model:form="form"
+              v-model:capture-time-local="captureTimeLocal"
+              v-model:characters-text="charactersText"
+            />
 
             <UButton color="primary" class="w-full" type="submit" :loading="submitting">
               <span class="flex w-full items-center justify-center gap-2">

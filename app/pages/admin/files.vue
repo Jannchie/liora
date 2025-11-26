@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
+import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
 import { computed, reactive, ref, watch } from 'vue'
+import { toLocalInputString } from '~/utils/datetime'
 
 const { t } = useI18n()
 definePageMeta({
@@ -123,42 +125,7 @@ function formatDateTime(value: string): string {
   return date.toLocaleString()
 }
 
-const pad = (value: number): string => value.toString().padStart(2, '0')
-
-function toLocalInputString(isoString: string): string {
-  const date = new Date(isoString)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  const year = date.getFullYear()
-  const month = pad(date.getMonth() + 1)
-  const day = pad(date.getDate())
-  const hours = pad(date.getHours())
-  const minutes = pad(date.getMinutes())
-  const seconds = pad(date.getSeconds())
-  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`
-}
-
-interface EditableForm {
-  title: string
-  description: string
-  genre: string
-  width: number
-  height: number
-  fanworkTitle: string
-  characters: string[]
-  location: string
-  locationName: string
-  latitude: number | null
-  longitude: number | null
-  cameraModel: string
-  aperture: string
-  focalLength: string
-  iso: string
-  shutterSpeed: string
-  captureTime: string
-  notes: string
-}
+type EditableForm = MediaFormState
 
 const editForm = reactive<EditableForm>({
   title: '',
@@ -173,10 +140,22 @@ const editForm = reactive<EditableForm>({
   latitude: null,
   longitude: null,
   cameraModel: '',
+  lensModel: '',
   aperture: '',
   focalLength: '',
   iso: '',
   shutterSpeed: '',
+  exposureBias: '',
+  exposureProgram: '',
+  exposureMode: '',
+  meteringMode: '',
+  whiteBalance: '',
+  flash: '',
+  colorSpace: '',
+  resolutionX: '',
+  resolutionY: '',
+  resolutionUnit: '',
+  software: '',
   captureTime: '',
   notes: '',
 })
@@ -186,25 +165,6 @@ const editCharactersText = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
-const genreOptions = computed(() => [
-  { label: t('admin.files.genreOptions.portrait'), value: 'PORTRAIT' },
-  { label: t('admin.files.genreOptions.landscape'), value: 'LANDSCAPE' },
-  { label: t('admin.files.genreOptions.documentary'), value: 'DOCUMENTARY' },
-  { label: t('admin.files.genreOptions.architecture'), value: 'ARCHITECTURE' },
-  { label: t('admin.files.genreOptions.animal'), value: 'ANIMAL' },
-  { label: t('admin.files.genreOptions.stillLife'), value: 'STILL_LIFE' },
-  { label: t('admin.files.genreOptions.fashion'), value: 'FASHION' },
-  { label: t('admin.files.genreOptions.sports'), value: 'SPORTS' },
-  { label: t('admin.files.genreOptions.aerial'), value: 'AERIAL' },
-  { label: t('admin.files.genreOptions.fineArt'), value: 'FINE_ART' },
-  { label: t('admin.files.genreOptions.commercial'), value: 'COMMERCIAL' },
-  { label: t('admin.files.genreOptions.macro'), value: 'MACRO' },
-  { label: t('admin.files.genreOptions.street'), value: 'STREET' },
-  { label: t('admin.files.genreOptions.night'), value: 'NIGHT' },
-  { label: t('admin.files.genreOptions.abstract'), value: 'ABSTRACT' },
-  { label: t('admin.files.genreOptions.other'), value: 'OTHER' },
-])
-
 function resetEditForm(): void {
   editForm.title = ''
   editForm.description = ''
@@ -218,10 +178,22 @@ function resetEditForm(): void {
   editForm.latitude = null
   editForm.longitude = null
   editForm.cameraModel = ''
+  editForm.lensModel = ''
   editForm.aperture = ''
   editForm.focalLength = ''
   editForm.iso = ''
   editForm.shutterSpeed = ''
+  editForm.exposureBias = ''
+  editForm.exposureProgram = ''
+  editForm.exposureMode = ''
+  editForm.meteringMode = ''
+  editForm.whiteBalance = ''
+  editForm.flash = ''
+  editForm.colorSpace = ''
+  editForm.resolutionX = ''
+  editForm.resolutionY = ''
+  editForm.resolutionUnit = ''
+  editForm.software = ''
   editForm.captureTime = ''
   editCaptureTimeLocal.value = ''
   editForm.notes = ''
@@ -242,10 +214,22 @@ function fillEditForm(file: FileResponse): void {
   editForm.latitude = metadata.latitude
   editForm.longitude = metadata.longitude
   editForm.cameraModel = metadata.cameraModel || file.cameraModel || ''
+  editForm.lensModel = metadata.lensModel || ''
   editForm.aperture = metadata.aperture || ''
   editForm.focalLength = metadata.focalLength || ''
   editForm.iso = metadata.iso || ''
   editForm.shutterSpeed = metadata.shutterSpeed || ''
+  editForm.exposureBias = metadata.exposureBias || ''
+  editForm.exposureProgram = metadata.exposureProgram || ''
+  editForm.exposureMode = metadata.exposureMode || ''
+  editForm.meteringMode = metadata.meteringMode || ''
+  editForm.whiteBalance = metadata.whiteBalance || ''
+  editForm.flash = metadata.flash || ''
+  editForm.colorSpace = metadata.colorSpace || ''
+  editForm.resolutionX = metadata.resolutionX || ''
+  editForm.resolutionY = metadata.resolutionY || ''
+  editForm.resolutionUnit = metadata.resolutionUnit || ''
+  editForm.software = metadata.software || ''
   editForm.captureTime = metadata.captureTime || ''
   editCaptureTimeLocal.value = editForm.captureTime ? toLocalInputString(editForm.captureTime) : ''
   editForm.notes = metadata.notes || ''
@@ -538,143 +522,11 @@ watch(fetchError, (value) => {
           </div>
           <div class="relative flex-1 overflow-y-auto px-5 py-4">
             <UForm :state="editForm" class="space-y-5 pb-16" @submit.prevent="saveEdit">
-              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-                <div class="flex items-center gap-2">
-                  <Icon name="mdi:calendar-clock-outline" class="h-4 w-4 text-primary" />
-                  <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                      时间与标题
-                    </p>
-                    <p class="text-sm text-toned">
-                      拍摄时间与摘要信息
-                    </p>
-                  </div>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <UFormField class="sm:col-span-2" :label="t('admin.files.form.captureTime.label')" name="captureTime">
-                    <UInput v-model="editCaptureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.files.form.captureTime.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.title.label')" name="title">
-                    <UInput v-model="editForm.title" :placeholder="t('admin.files.form.title.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.description.label')" name="description">
-                    <UTextarea v-model="editForm.description" :rows="2" :placeholder="t('admin.files.form.description.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.genre.label')" name="genre">
-                    <USelect
-                      v-model="editForm.genre"
-                      :items="genreOptions"
-                      option-attribute="label"
-                      value-attribute="value"
-                      :placeholder="t('admin.files.form.genre.placeholder')"
-                    />
-                  </UFormField>
-                </div>
-              </section>
-
-              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-                <div class="flex items-center gap-2">
-                  <Icon name="mdi:account-music-outline" class="h-4 w-4 text-primary" />
-                  <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                      作品归属
-                    </p>
-                    <p class="text-sm text-toned">
-                      同人、角色与说明
-                    </p>
-                  </div>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <UFormField :label="t('admin.files.form.fanworkTitle.label')" name="fanworkTitle">
-                    <UInput v-model="editForm.fanworkTitle" :placeholder="t('admin.files.form.fanworkTitle.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.characters.label')" name="characters">
-                    <UTextarea v-model="editCharactersText" :rows="2" :placeholder="t('admin.files.form.characters.placeholder')" />
-                  </UFormField>
-                </div>
-              </section>
-
-              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-                <div class="flex items-center gap-2">
-                  <Icon name="mdi:image-size-select-large" class="h-4 w-4 text-primary" />
-                  <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                      尺寸与地点
-                    </p>
-                    <p class="text-sm text-toned">
-                      画幅与地理信息
-                    </p>
-                  </div>
-                </div>
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <UFormField :label="t('admin.files.form.width.label')" name="width">
-                    <UInput v-model.number="editForm.width" type="number" min="1" :placeholder="t('admin.files.form.width.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.height.label')" name="height">
-                    <UInput v-model.number="editForm.height" type="number" min="1" :placeholder="t('admin.files.form.height.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.locationName.label')" name="locationName">
-                    <UInput v-model="editForm.locationName" :placeholder="t('admin.files.form.locationName.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.location.label')" name="location">
-                    <UInput v-model="editForm.location" :placeholder="t('admin.files.form.location.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.latitude.label')" name="latitude">
-                    <UInput v-model.number="editForm.latitude" type="number" step="0.000001" placeholder="39.9087" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.longitude.label')" name="longitude">
-                    <UInput v-model.number="editForm.longitude" type="number" step="0.000001" placeholder="116.3975" />
-                  </UFormField>
-                </div>
-              </section>
-
-              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-                <div class="flex items-center gap-2">
-                  <Icon name="mdi:camera-wireless-outline" class="h-4 w-4 text-primary" />
-                  <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                      器材与曝光
-                    </p>
-                    <p class="text-sm text-toned">
-                      相机、镜头与曝光数据
-                    </p>
-                  </div>
-                </div>
-                <UFormField :label="t('admin.files.form.cameraModel.label')" name="cameraModel">
-                  <UInput v-model="editForm.cameraModel" :placeholder="t('admin.files.form.cameraModel.placeholder')" />
-                </UFormField>
-                <div class="grid gap-3 sm:grid-cols-2">
-                  <UFormField :label="t('admin.files.form.aperture.label')" name="aperture">
-                    <UInput v-model="editForm.aperture" :placeholder="t('admin.files.form.aperture.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.focalLength.label')" name="focalLength">
-                    <UInput v-model="editForm.focalLength" :placeholder="t('admin.files.form.focalLength.placeholder')" />
-                  </UFormField>
-                  <UFormField :label="t('admin.files.form.shutterSpeed.label')" name="shutterSpeed">
-                    <UInput v-model="editForm.shutterSpeed" :placeholder="t('admin.files.form.shutterSpeed.placeholder')" />
-                  </UFormField>
-                  <UFormField name="iso" label="ISO">
-                    <UInput v-model="editForm.iso" placeholder="800" />
-                  </UFormField>
-                </div>
-              </section>
-
-              <section class="space-y-3 rounded-xl bg-default/70 p-4 shadow-sm backdrop-blur">
-                <div class="flex items-center gap-2">
-                  <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
-                  <div>
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                      备注
-                    </p>
-                    <p class="text-sm text-toned">
-                      补充记录与检索标签
-                    </p>
-                  </div>
-                </div>
-                <UFormField :label="t('admin.files.form.notes.label')" name="notes">
-                  <UTextarea v-model="editForm.notes" :rows="2" :placeholder="t('admin.files.form.notes.placeholder')" />
-                </UFormField>
-              </section>
+              <AdminMetadataForm
+                v-model:form="editForm"
+                v-model:capture-time-local="editCaptureTimeLocal"
+                v-model:characters-text="editCharactersText"
+              />
 
               <div class="sticky bottom-0 flex justify-end gap-2 border-t border-default/30 bg-default/90 px-1 py-3 backdrop-blur">
                 <UButton variant="ghost" color="neutral" @click="closeEdit">
