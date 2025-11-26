@@ -85,7 +85,6 @@ const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
-const charactersText = ref<string>('')
 let pasteListener: ((event: ClipboardEvent) => void) | null = null
 const {
   exposureProgramOptions,
@@ -156,7 +155,6 @@ function resetOptionalFields(): void {
   form.captureTime = ''
   captureTimeLocal.value = ''
   form.notes = ''
-  charactersText.value = ''
 }
 
 function setUploadValue(file: File | null): void {
@@ -694,8 +692,6 @@ async function submit(): Promise<void> {
     formData.append('title', form.title)
     formData.append('description', form.description)
     formData.append('genre', form.genre)
-    formData.append('fanworkTitle', form.fanworkTitle)
-    formData.append('characters', charactersText.value)
     formData.append('location', form.location)
     formData.append('locationName', form.locationName)
     formData.append('latitude', form.latitude === null ? '' : String(form.latitude))
@@ -849,7 +845,6 @@ onBeforeUnmount(() => {
             <AdminMetadataForm
               v-model:form="form"
               v-model:capture-time-local="captureTimeLocal"
-              v-model:characters-text="charactersText"
             />
 
             <UButton color="primary" class="w-full" type="submit" :loading="submitting">

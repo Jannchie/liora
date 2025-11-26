@@ -252,7 +252,6 @@ const editForm = reactive<EditableForm>({
 })
 
 const editCaptureTimeLocal = ref<string>('')
-const editCharactersText = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
@@ -288,7 +287,6 @@ function resetEditForm(): void {
   editForm.captureTime = ''
   editCaptureTimeLocal.value = ''
   editForm.notes = ''
-  editCharactersText.value = ''
 }
 
 function fillEditForm(file: FileResponse): void {
@@ -324,7 +322,6 @@ function fillEditForm(file: FileResponse): void {
   editForm.captureTime = metadata.captureTime || ''
   editCaptureTimeLocal.value = editForm.captureTime ? toLocalInputString(editForm.captureTime) : ''
   editForm.notes = metadata.notes || ''
-  editCharactersText.value = editForm.characters.join(', ')
 }
 
 function closeEdit(): void {
@@ -339,14 +336,10 @@ async function saveEdit(): Promise<void> {
   }
   updating.value = true
   try {
-    const characters = editCharactersText.value.length > 0
-      ? editCharactersText.value.split(/[,，\n]/).map(value => value.trim()).filter(value => value.length > 0)
-      : editForm.characters
     const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`, {
       method: 'PUT',
       body: {
         ...editForm,
-        characters,
         captureTime: editForm.captureTime || undefined,
       },
     })
@@ -643,7 +636,6 @@ watch(fetchError, (value) => {
               <AdminMetadataForm
                 v-model:form="editForm"
                 v-model:capture-time-local="editCaptureTimeLocal"
-                v-model:characters-text="editCharactersText"
               />
 
               <div class="sticky bottom-0 flex justify-end gap-2 border-t border-default/30 bg-default/90 px-1 py-3 backdrop-blur">

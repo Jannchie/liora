@@ -166,6 +166,28 @@
           "title": "完善元数据"
         }
       },
+      "formSections": {
+        "basic": {
+          "label": "基本信息",
+          "description": "尺寸、时间与标题描述"
+        },
+        "camera": {
+          "label": "拍摄参数",
+          "description": "机身、镜头与曝光设定"
+        },
+        "color": {
+          "label": "输出与色彩",
+          "description": "色彩空间与分辨率"
+        },
+        "location": {
+          "label": "位置信息",
+          "description": "地理标记与原始地址"
+        },
+        "notes": {
+          "label": "附加说明",
+          "description": "备注信息便于后续检索"
+        }
+      },
       "fields": {
         "width": {
           "label": "宽度",

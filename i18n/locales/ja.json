@@ -166,6 +166,28 @@
           "title": "メタデータを完成させる"
         }
       },
+      "formSections": {
+        "basic": {
+          "label": "基本情報",
+          "description": "サイズ・時間・タイトル"
+        },
+        "camera": {
+          "label": "撮影設定",
+          "description": "ボディ・レンズ・露出"
+        },
+        "color": {
+          "label": "出力とカラー",
+          "description": "色空間と解像度"
+        },
+        "location": {
+          "label": "位置情報",
+          "description": "ジオタグと元の住所"
+        },
+        "notes": {
+          "label": "補足メモ",
+          "description": "後から探しやすい備考"
+        }
+      },
       "fields": {
         "width": {
           "label": "幅",

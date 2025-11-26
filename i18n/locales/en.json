@@ -166,6 +166,28 @@
           "title": "Complete metadata"
         }
       },
+      "formSections": {
+        "basic": {
+          "label": "Basics",
+          "description": "Dimensions, time, and titles"
+        },
+        "camera": {
+          "label": "Shooting settings",
+          "description": "Body, lens, and exposure"
+        },
+        "color": {
+          "label": "Output & color",
+          "description": "Color space and resolution"
+        },
+        "location": {
+          "label": "Location",
+          "description": "Geo tag and original address"
+        },
+        "notes": {
+          "label": "Additional notes",
+          "description": "Notes to help future search"
+        }
+      },
       "fields": {
         "width": {
           "label": "Width",

@@ -7,7 +7,6 @@ import { toIsoWithOffset } from '~/utils/datetime'
 
 const form = defineModel<MediaFormState>('form', { required: true })
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
-const charactersText = defineModel<string | undefined>('charactersText', { required: false })
 
 const { t } = useI18n()
 const {
@@ -65,10 +64,10 @@ watch(
           <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              基本信息
+              {{ t('admin.upload.formSections.basic.label') }}
             </p>
             <p class="text-sm text-toned">
-              尺寸、时间与标题描述
+              {{ t('admin.upload.formSections.basic.description') }}
             </p>
           </div>
         </div>
@@ -107,37 +106,13 @@ watch(
     <section :class="sectionCard">
       <div :class="sectionLayout">
         <div class="flex items-start gap-2">
-          <Icon name="mdi:account-music-outline" class="h-4 w-4 text-primary" />
-          <div>
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              作品归属
-            </p>
-            <p class="text-sm text-toned">
-              同人、角色与说明
-            </p>
-          </div>
-        </div>
-        <div :class="baseGrid">
-          <UFormField :label="t('admin.files.form.fanworkTitle.label')" name="fanworkTitle" :class="halfCol">
-            <UInput v-model="form.fanworkTitle" :placeholder="t('admin.files.form.fanworkTitle.placeholder')" />
-          </UFormField>
-          <UFormField :label="t('admin.files.form.characters.label')" name="characters" class="col-span-12">
-            <UTextarea v-model="charactersText" :rows="2" :placeholder="t('admin.files.form.characters.placeholder')" />
-          </UFormField>
-        </div>
-      </div>
-    </section>
-
-    <section :class="sectionCard">
-      <div :class="sectionLayout">
-        <div class="flex items-start gap-2">
           <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              拍摄参数
+              {{ t('admin.upload.formSections.camera.label') }}
             </p>
             <p class="text-sm text-toned">
-              机身、镜头与曝光设定
+              {{ t('admin.upload.formSections.camera.description') }}
             </p>
           </div>
         </div>
@@ -218,10 +193,10 @@ watch(
           <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              输出与色彩
+              {{ t('admin.upload.formSections.color.label') }}
             </p>
             <p class="text-sm text-toned">
-              色彩空间与分辨率
+              {{ t('admin.upload.formSections.color.description') }}
             </p>
           </div>
         </div>
@@ -251,10 +226,10 @@ watch(
           <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              位置信息
+              {{ t('admin.upload.formSections.location.label') }}
             </p>
             <p class="text-sm text-toned">
-              地理标记与原始地址
+              {{ t('admin.upload.formSections.location.description') }}
             </p>
           </div>
         </div>
@@ -329,10 +304,10 @@ watch(
           <Icon name="mdi:note-text-outline" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              附加说明
+              {{ t('admin.upload.formSections.notes.label') }}
             </p>
             <p class="text-sm text-toned">
-              备注信息便于后续检索
+              {{ t('admin.upload.formSections.notes.description') }}
             </p>
           </div>
         </div>
