@@ -48,18 +48,37 @@ const isLoading = computed(() => pendingFiles.value)
 
 const page = ref(1)
 const pageSize = ref(10)
+type SortKey = 'title' | 'captureTime' | 'createdAt'
+type SortDirection = 'asc' | 'desc'
+const sortKey = ref<SortKey>('createdAt')
+const sortDirection = ref<SortDirection>('desc')
 
 const totalFiles = computed(() => files.value.length)
 const pageCount = computed(() => Math.max(1, Math.ceil(totalFiles.value / pageSize.value)))
+const sortedFiles = computed<FileResponse[]>(() => {
+  const direction = sortDirection.value === 'asc' ? 1 : -1
+  return [...files.value].sort((a, b) => {
+    const aValue = sortAccessor(a, sortKey.value)
+    const bValue = sortAccessor(b, sortKey.value)
+    const comparison = compareValues(aValue, bValue)
+    return comparison * direction
+  })
+})
 const paginatedFiles = computed<FileResponse[]>(() => {
   const start = (page.value - 1) * pageSize.value
-  return files.value.slice(start, start + pageSize.value)
+  return sortedFiles.value.slice(start, start + pageSize.value)
 })
 const recordCountText = computed(() => t('common.labels.recordCount', { count: totalFiles.value }))
 const paginationText = computed(() => t('common.labels.pageIndicator', { page: page.value, pageCount: pageCount.value }))
 const tableEmptyText = computed(() => t('admin.files.table.empty'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 const unknownLabel = computed(() => t('common.labels.unknown'))
+const tableUi = computed(() => ({
+  wrapper: 'relative overflow-visible',
+  table: 'min-w-0 w-full table-auto',
+  th: 'text-left text-sm font-semibold text-muted',
+  td: 'align-middle whitespace-normal break-words',
+}))
 
 watch(
   () => totalFiles.value,
@@ -75,8 +94,6 @@ watch(
 const tableColumns = computed(() => [
   { id: 'preview', header: t('admin.files.table.headers.preview'), accessorFn: (row: FileResponse) => row.imageUrl },
   { accessorKey: 'title', id: 'title', header: t('admin.files.table.headers.title') },
-  { id: 'size', header: t('admin.files.table.headers.size'), accessorFn: (row: FileResponse) => `${row.width}×${row.height}` },
-  { id: 'location', header: t('admin.files.table.headers.location'), accessorFn: (row: FileResponse) => row.location },
   { id: 'captureTime', header: t('admin.files.table.headers.captureTime'), accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt },
   { accessorKey: 'createdAt', id: 'createdAt', header: t('admin.files.table.headers.createdAt') },
   { id: 'actions', header: t('admin.files.table.headers.actions'), accessorFn: (row: FileResponse) => row.id },
@@ -115,6 +132,65 @@ function resolvePreviewImage(file: FileResponse): ImageAttributes {
     width: 192,
     height: 112,
   }
+}
+
+function normalizeDate(value: string | undefined): number | undefined {
+  if (!value) {
+    return undefined
+  }
+  const parsed = Date.parse(value)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+
+function sortAccessor(file: FileResponse, key: SortKey): string | number | undefined {
+  if (key === 'title') {
+    return file.title?.toLowerCase() ?? ''
+  }
+  if (key === 'captureTime') {
+    return normalizeDate(file.metadata.captureTime || file.createdAt)
+  }
+  return normalizeDate(file.createdAt)
+}
+
+function compareValues(a: string | number | undefined, b: string | number | undefined): number {
+  if (a === b) {
+    return 0
+  }
+  if (a === undefined) {
+    return 1
+  }
+  if (b === undefined) {
+    return -1
+  }
+  if (typeof a === 'number' && typeof b === 'number') {
+    return a - b
+  }
+  return String(a).localeCompare(String(b))
+}
+
+function handleSort(column: SortKey): void {
+  if (sortKey.value === column) {
+    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
+  }
+  else {
+    sortKey.value = column
+    sortDirection.value = column === 'title' ? 'asc' : 'desc'
+  }
+  page.value = 1
+}
+
+function resolveSortIcon(column: SortKey): string {
+  if (sortKey.value !== column) {
+    return 'mdi:swap-vertical'
+  }
+  return sortDirection.value === 'asc' ? 'mdi:arrow-up' : 'mdi:arrow-down'
+}
+
+function resolveAriaSort(column: SortKey): 'ascending' | 'descending' | 'none' {
+  if (sortKey.value !== column) {
+    return 'none'
+  }
+  return sortDirection.value === 'asc' ? 'ascending' : 'descending'
 }
 
 function formatDateTime(value: string): string {
@@ -421,7 +497,41 @@ watch(fetchError, (value) => {
             :data="paginatedFiles"
             :loading="isLoading"
             :empty="tableEmptyText"
+            :ui="tableUi"
           >
+            <template #title-header>
+              <button
+                type="button"
+                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
+                :aria-sort="resolveAriaSort('title')"
+                @click="handleSort('title')"
+              >
+                <span>{{ t('admin.files.table.headers.title') }}</span>
+                <Icon :name="resolveSortIcon('title')" class="h-4 w-4 text-muted" />
+              </button>
+            </template>
+            <template #captureTime-header>
+              <button
+                type="button"
+                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
+                :aria-sort="resolveAriaSort('captureTime')"
+                @click="handleSort('captureTime')"
+              >
+                <span>{{ t('admin.files.table.headers.captureTime') }}</span>
+                <Icon :name="resolveSortIcon('captureTime')" class="h-4 w-4 text-muted" />
+              </button>
+            </template>
+            <template #createdAt-header>
+              <button
+                type="button"
+                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
+                :aria-sort="resolveAriaSort('createdAt')"
+                @click="handleSort('createdAt')"
+              >
+                <span>{{ t('admin.files.table.headers.createdAt') }}</span>
+                <Icon :name="resolveSortIcon('createdAt')" class="h-4 w-4 text-muted" />
+              </button>
+            </template>
             <template #preview-cell="{ row }">
               <div class="h-14 w-24 overflow-hidden rounded-md bg-black/5">
                 <img
@@ -442,14 +552,6 @@ watch(fetchError, (value) => {
                 </p>
               </div>
             </template>
-            <template #size-cell="{ row }">
-              <span class="text-sm text-toned">{{ row.original.width }} × {{ row.original.height }}</span>
-            </template>
-            <template #location-cell="{ row }">
-              <span class="text-sm text-toned">
-                {{ row.original.metadata.locationName || row.original.location || unknownLabel }}
-              </span>
-            </template>
             <template #captureTime-cell="{ row }">
               <span class="text-sm text-toned">
                 {{ formatDateTime(row.original.metadata.captureTime || row.original.createdAt) || unknownLabel }}
@@ -461,7 +563,7 @@ watch(fetchError, (value) => {
               </span>
             </template>
             <template #actions-cell="{ row }">
-              <div class="flex items-center gap-2">
+              <div class="flex flex-wrap items-center gap-2">
                 <UButton size="xs" variant="ghost" color="primary" @click="openEdit(row.original)">
                   <span class="flex items-center gap-1.5">
                     <Icon name="mdi:pencil-outline" class="h-4 w-4" />

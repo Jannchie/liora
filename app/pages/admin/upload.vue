@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
 import exifr from 'exifr'
-import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useExposureOptions } from '~/composables/useExposureOptions'
 import { toLocalInputString } from '~/utils/datetime'
 
@@ -40,6 +40,10 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
+type UploadValue = File | File[] | null
+
+const previewMaxHeight = 480
+const uploadValue = ref<UploadValue>(null)
 const form = reactive<MediaFormState>({
   width: 0,
   height: 0,
@@ -74,9 +78,18 @@ const form = reactive<MediaFormState>({
 })
 
 const submitting = ref(false)
-const selectedFile = ref<File | null>(null)
+const selectedFile = computed<File | null>(() => {
+  const value = uploadValue.value
+  if (!value) {
+    return null
+  }
+  if (Array.isArray(value)) {
+    return value[0] ?? null
+  }
+  return value
+})
 const previewUrl = ref<string>('')
-const fileUploadRef = ref<InstanceType<typeof UFileUpload> | null>(null)
+const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
 const charactersText = ref<string>('')
@@ -88,6 +101,7 @@ const {
   whiteBalanceOptions,
   flashOptions,
 } = useExposureOptions()
+let activeMetadataToken = 0
 
 function normalizeToOption(
   value: string | undefined,
@@ -152,9 +166,18 @@ function resetOptionalFields(): void {
   charactersText.value = ''
 }
 
-function clearSelectedFile(): void {
+function setUploadValue(file: File | null): void {
+  uploadValue.value = file ? [file] : null
+}
+
+function clearFormForNewFile(): void {
   resetFileState()
-  selectedFile.value = null
+  resetOptionalFields()
+}
+
+function clearSelectedFile(): void {
+  clearFormForNewFile()
+  setUploadValue(null)
 }
 
 function resetFileState(): void {
@@ -182,19 +205,15 @@ function getFileInputElement(): HTMLInputElement | null {
   return element instanceof HTMLInputElement ? element : null
 }
 
-async function detectImageSize(): Promise<void> {
+async function detectImageSize(file: File, token: number): Promise<void> {
   if (typeof globalThis.Image !== 'function') {
-    return
-  }
-  if (!selectedFile.value) {
-    toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
     return
   }
 
   if (previewUrl.value) {
     URL.revokeObjectURL(previewUrl.value)
   }
-  const objectUrl = URL.createObjectURL(selectedFile.value)
+  const objectUrl = URL.createObjectURL(file)
   previewUrl.value = objectUrl
 
   try {
@@ -205,10 +224,19 @@ async function detectImageSize(): Promise<void> {
       img.src = objectUrl
     })
 
+    if (token !== activeMetadataToken) {
+      URL.revokeObjectURL(objectUrl)
+      return
+    }
+
     form.width = size.width
     form.height = size.height
   }
   catch (error) {
+    if (token !== activeMetadataToken) {
+      URL.revokeObjectURL(objectUrl)
+      return
+    }
     const message = error instanceof Error ? error.message : toastMessages.value.sizeFailedFallback
     toast.add({ title: toastMessages.value.sizeFailed, description: message, color: 'error' })
     URL.revokeObjectURL(objectUrl)
@@ -462,12 +490,9 @@ function formatDate(value: string | Date | undefined): string {
   return date.toISOString()
 }
 
-async function extractExif(): Promise<void> {
-  if (!selectedFile.value) {
-    return
-  }
+async function extractExif(file: File, token: number): Promise<void> {
   try {
-    const parsed = (await exifr.parse(selectedFile.value, [
+    const parsed = (await exifr.parse(file, [
       'Make',
       'Model',
       'ImageDescription',
@@ -497,7 +522,7 @@ async function extractExif(): Promise<void> {
       'Software',
     ])) as ExifData | undefined
 
-    if (!parsed) {
+    if (!parsed || token !== activeMetadataToken) {
       return
     }
 
@@ -521,6 +546,10 @@ async function extractExif(): Promise<void> {
     const resolutionUnit = formatResolutionUnit(parsed.ResolutionUnit)
     const software = textFrom(parsed.Software)
     const captureTime = formatDate(parsed.DateTimeOriginal ?? parsed.CreateDate)
+
+    if (token !== activeMetadataToken) {
+      return
+    }
 
     if (model) {
       form.cameraModel = model
@@ -584,36 +613,6 @@ async function extractExif(): Promise<void> {
       form.captureTime = captureTime
       captureTimeLocal.value = toLocalInputString(captureTime)
     }
-
-    const parts: string[] = []
-    if (model) {
-      parts.push(model)
-    }
-    if (lens) {
-      parts.push(lens)
-    }
-    if (locationText) {
-      parts.push(locationText)
-    }
-    if (description) {
-      parts.push(description)
-    }
-    const exposureParts: string[] = []
-    if (focal) {
-      exposureParts.push(focal)
-    }
-    if (aperture) {
-      exposureParts.push(aperture)
-    }
-    if (shutter) {
-      exposureParts.push(shutter)
-    }
-    if (iso) {
-      exposureParts.push(`ISO ${iso}`)
-    }
-    if (exposureParts.length > 0) {
-      parts.push(exposureParts.join(' · '))
-    }
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.exifFailedFallback
@@ -621,60 +620,30 @@ async function extractExif(): Promise<void> {
   }
 }
 
-async function refreshMetadata(): Promise<void> {
-  await detectImageSize()
-  await extractExif()
+async function refreshMetadata(file: File, token: number): Promise<void> {
+  await detectImageSize(file, token)
+  await extractExif(file, token)
 }
+
+async function handleSelectedFileChange(file: File | null): Promise<void> {
+  activeMetadataToken += 1
+  const token = activeMetadataToken
+  clearFormForNewFile()
+  if (!file) {
+    return
+  }
+  await refreshMetadata(file, token)
+}
+
+watch(selectedFile, (file, previous) => {
+  if (file === previous) {
+    return
+  }
+  void handleSelectedFileChange(file)
+})
 
 function openFileDialog(): void {
   getFileInputElement()?.click()
-}
-
-async function handleFileSelect(file: File | null): Promise<void> {
-  resetFileState()
-  selectedFile.value = file
-  if (file) {
-    await refreshMetadata()
-  }
-}
-
-async function handleFileChange(payload: File | File[] | { files?: File[] } | Event | null): Promise<void> {
-  if (!payload) {
-    await handleFileSelect(null)
-    return
-  }
-
-  if (payload instanceof File) {
-    await handleFileSelect(payload)
-    return
-  }
-
-  if (Array.isArray(payload)) {
-    await handleFileSelect(payload[0] ?? null)
-    return
-  }
-
-  if ('files' in payload && Array.isArray(payload.files)) {
-    await handleFileSelect(payload.files[0] ?? null)
-    return
-  }
-
-  const target = (payload as Event).target
-  if (target instanceof HTMLInputElement) {
-    await handleFileSelect(target.files?.[0] ?? null)
-    return
-  }
-
-  const value = (payload as { value?: File | File[] | null } | null)?.value
-  if (value instanceof File) {
-    await handleFileSelect(value)
-    return
-  }
-  if (Array.isArray(value)) {
-    await handleFileSelect(value[0] ?? null)
-    return
-  }
-  await handleFileSelect(null)
 }
 
 function extractClipboardImage(event: ClipboardEvent): File | null {
@@ -698,7 +667,7 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     return
   }
   event.preventDefault()
-  await handleFileSelect(file)
+  setUploadValue(file)
 }
 
 onMounted(() => {
@@ -764,7 +733,6 @@ async function submit(): Promise<void> {
     })
     toast.add({ title: toastMessages.value.saveSuccessTitle, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
     clearSelectedFile()
-    resetOptionalFields()
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
@@ -824,13 +792,11 @@ onBeforeUnmount(() => {
           </template>
           <UFileUpload
             ref="fileUploadRef"
-            v-model="selectedFile"
+            v-model="uploadValue"
             accept="image/*"
-            :preview="false"
             :label="t('admin.upload.sections.upload.dropHint')"
             :description="`${t('admin.upload.sections.upload.supported')} · ${t('admin.upload.sections.upload.pasteHint')}`"
             class="w-full"
-            @change="handleFileChange"
           />
         </UCard>
       </div>
@@ -852,8 +818,8 @@ onBeforeUnmount(() => {
           <div class="space-y-4">
             <div class="space-y-3">
               <div
-                class="w-full cursor-pointer overflow-hidden rounded-lg bg-black/5 outline-none ring-primary/40 focus-visible:ring-2"
-                :style="{ aspectRatio: aspectRatioStyle }"
+                class="flex w-full cursor-pointer items-center justify-center rounded-lg bg-black/5 outline-none ring-primary/40 focus-visible:ring-2"
+                :style="{ aspectRatio: aspectRatioStyle, maxHeight: `${previewMaxHeight}px` }"
                 role="button"
                 tabindex="0"
                 :aria-label="t('common.actions.changeImage')"
@@ -861,7 +827,13 @@ onBeforeUnmount(() => {
                 @keydown.enter.prevent="openFileDialog()"
                 @keydown.space.prevent="openFileDialog()"
               >
-                <img v-if="previewUrl" :src="previewUrl" :alt="t('admin.upload.sections.preview.alt')" class="h-full w-full object-cover">
+                <img
+                  v-if="previewUrl"
+                  :src="previewUrl"
+                  :alt="t('admin.upload.sections.preview.alt')"
+                  class="max-h-full max-w-full object-contain"
+                  :style="{ maxHeight: `${previewMaxHeight}px` }"
+                >
               </div>
             </div>
           </div>

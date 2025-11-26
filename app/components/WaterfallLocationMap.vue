@@ -11,7 +11,20 @@ const { t } = useI18n()
 const latitudeText = computed(() => props.location.latitude.toFixed(5))
 const longitudeText = computed(() => props.location.longitude.toFixed(5))
 
-const zoom = 14
+const coordinatePattern = /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/
+
+const formatCoordinateValue = (value: number, positive: string, negative: string): string => {
+  const direction = value >= 0 ? positive : negative
+  const absolute = Math.abs(value).toFixed(4)
+  return `${absolute}° ${direction}`
+}
+
+const formattedCoordinates = computed(() => {
+  const lat = formatCoordinateValue(props.location.latitude, 'N', 'S')
+  const lon = formatCoordinateValue(props.location.longitude, 'E', 'W')
+  return `${lat}, ${lon}`
+})
+
 const embedPadding = 0.01
 const embedUrl = computed(() => {
   const lat = latitudeText.value
@@ -29,36 +42,25 @@ const embedUrl = computed(() => {
   return `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${marker}`
 })
 
-const externalLink = computed(() => {
-  const lat = latitudeText.value
-  const lon = longitudeText.value
-  return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=${zoom}/${lat}/${lon}`
+const locationLabel = computed(() => {
+  const label = props.location.label?.trim()
+  if (label && !coordinatePattern.test(label)) {
+    return label
+  }
+  return formattedCoordinates.value
 })
-
-const locationLabel = computed(() => props.location.label?.trim() || t('gallery.map.defaultLabel'))
 const altText = computed(() => t('gallery.map.alt', { location: locationLabel.value }))
 </script>
 
 <template>
   <section class="rounded-md border border-default/20 bg-elevated/80 p-3">
-    <div class="mb-2 flex items-start justify-between gap-3">
-      <div class="space-y-0.5">
-        <p class="text-sm font-semibold text-highlighted">
-          {{ t('gallery.map.title') }}
-        </p>
-        <p class="text-xs text-muted">
-          {{ locationLabel }}
-        </p>
-      </div>
-      <a
-        class="inline-flex items-center gap-1 rounded px-2 py-1 text-[11px] font-medium text-primary ring-1 ring-primary/30 transition hover:bg-primary/10"
-        :href="externalLink"
-        target="_blank"
-        rel="noreferrer"
-      >
-        <Icon name="carbon:launch" class="h-3.5 w-3.5" />
-        <span>{{ t('gallery.map.openExternal') }}</span>
-      </a>
+    <div class="mb-2 space-y-0.5">
+      <p class="text-sm font-semibold text-highlighted">
+        {{ t('gallery.map.title') }}
+      </p>
+      <p class="text-xs text-muted truncate" :title="locationLabel">
+        {{ locationLabel }}
+      </p>
     </div>
     <div class="overflow-hidden rounded-sm border border-default/20 bg-muted">
       <iframe
