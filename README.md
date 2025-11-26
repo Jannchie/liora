@@ -1,80 +1,51 @@
-# Nuxt Minimal Starter
+# Liora Gallery
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt 4 gallery for photography and illustration uploads with Prisma and S3-compatible storage.
 
-## Setup
-
-Make sure to install dependencies:
+## Local development
 
 ```bash
-# npm
-npm install
-
-# pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
-
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
-
-Build the application for production:
+## Production build
 
 ```bash
-# npm
-npm run build
-
-# pnpm
 pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+pnpm preview
 ```
 
-Locally preview production build:
+## Docker
+
+Build the production image and run it on port `3000`:
 
 ```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+docker build -t liora .
+docker run --rm -p 3000:3000 --env-file .env liora
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+The container listens on `0.0.0.0:3000` by default (`NUXT_HOST`/`NUXT_PORT`/`PORT` can be overridden).
 
-## S3-compatible storage
+## Configuration
+
+### Admin auth
+
+```txt
+ADMIN_USERNAME=<username>
+ADMIN_PASSWORD=<password>
+ADMIN_SESSION_SECRET=<random-secret>
+```
+
+### Database
+
+Defaults to the bundled SQLite file at `prisma/dev.db`. Override with:
+
+```txt
+DATABASE_URL=libsql://<host>/<db>?authToken=<token>
+```
+
+### S3-compatible storage
 
 Set the following environment variables to upload files to an S3-compatible bucket (e.g., Cloudflare R2, MinIO, Wasabi):
 
@@ -89,11 +60,11 @@ S3_PUBLIC_BASE_URL=https://<public-base>/<bucket-name>
 
 Ensure the token has write permission to the bucket and, if public access is desired, enable public reads or use a custom domain.
 
-## Location search
+### Location search
 
 The admin upload form uses the public OpenStreetMap Nominatim API (proxied by `/api/geocode`) to look up place names and fill coordinates. Calls are throttled to one request per second and queued server-side. No extra environment variables are required; keep usage light to respect the free service limits.
 
-## AI classification
+### AI classification
 
 Set an OpenAI-compatible key to enable automatic genre classification (prompt: `prompts/PhotographyGenreClassification.md`, model: `gpt-5.1-nano`) during uploads. The final label is stored in the `File.genre` column.
 
@@ -103,11 +74,11 @@ OPENAI_API_KEY=<openai-key>
 
 The key is read server-side only; without it uploads still succeed but genre classification is skipped.
 
-## SEO
+### SEO
 
 This project uses `@nuxtjs/seo` for canonical links, sitemap generation, and social previews. Set your canonical host with `NUXT_SITE_URL` (or `NUXT_PUBLIC_SITE_URL`), and toggle indexing via `NUXT_SITE_INDEXABLE=true|false`. When no URL is provided, local development falls back to `http://localhost:3000`.
 
-## Social links
+### Social links
 
 Set any of the following environment variables to show social icons in the gallery header card. Only non-empty values render.
 

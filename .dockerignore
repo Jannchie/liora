@@ -1,0 +1,16 @@
+node_modules
+.pnpm-store
+.pnpm-debug.log
+npm-debug.log
+.nuxt
+.output
+.nitro
+.cache
+dist
+logs
+.DS_Store
+.git
+.gitignore
+.env
+.env.*
+prisma/dev.db
