@@ -2,7 +2,16 @@
 import type { CSSProperties } from 'vue'
 import type { LocationQueryValue } from 'vue-router'
 import type { FileResponse, HistogramData } from '~/types/file'
-import type { DisplaySize, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile, SocialLink, WaterfallEntry } from '~/types/gallery'
+import type {
+  DisplaySize,
+  FileLocation,
+  ImageAttrs,
+  MetadataEntry,
+  OverlayStat,
+  ResolvedFile,
+  SocialLink,
+  WaterfallEntry,
+} from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
@@ -570,6 +579,13 @@ function toDisplayText(value: string | null | undefined): string | undefined {
   return normalized.length > 0 ? normalized : undefined
 }
 
+function toNumericCoordinate(value: number | null | undefined): number | null {
+  if (typeof value !== 'number') {
+    return null
+  }
+  return Number.isFinite(value) ? value : null
+}
+
 function escapeRegExp(value: string): string {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
 }
@@ -878,6 +894,23 @@ const overlayStats = computed<OverlayStat[]>(() => {
     stats.push({ label: uploadedAt, icon: 'carbon:upload' })
   }
   return stats
+})
+
+const locationPoint = computed<FileLocation | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  const latitude = toNumericCoordinate(file.metadata.latitude)
+  const longitude = toNumericCoordinate(file.metadata.longitude)
+  if (latitude === null || longitude === null) {
+    return null
+  }
+  return {
+    latitude,
+    longitude,
+    label: toDisplayText(file.metadata.locationName || file.location) ?? t('gallery.map.defaultLabel'),
+  }
 })
 
 function formatBytes(value: number | null): string {
@@ -1480,6 +1513,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         :exposure-entries="exposureEntries"
         :has-metadata="hasMetadata"
         :preview-attrs="activeFile.previewAttrs"
+        :location="locationPoint"
         :genre-label="genreBadgeLabel"
         @close="handleOverlayClose"
         @wheel="handleOverlayWheel"

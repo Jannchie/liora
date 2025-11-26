@@ -89,6 +89,10 @@ S3_PUBLIC_BASE_URL=https://<public-base>/<bucket-name>
 
 Ensure the token has write permission to the bucket and, if public access is desired, enable public reads or use a custom domain.
 
+## Location search
+
+The admin upload form uses the public OpenStreetMap Nominatim API (proxied by `/api/geocode`) to look up place names and fill coordinates. Calls are throttled to one request per second and queued server-side. No extra environment variables are required; keep usage light to respect the free service limits.
+
 ## AI classification
 
 Set an OpenAI-compatible key to enable automatic genre classification (prompt: `prompts/PhotographyGenreClassification.md`, model: `gpt-5.1-nano`) during uploads. The final label is stored in the `File.genre` column.

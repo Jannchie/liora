@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
-import type { ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
+import type { FileLocation, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
 import { onBeforeUnmount, ref, watch } from 'vue'
 
 const {
@@ -21,6 +21,7 @@ const {
   hasMetadata,
   previewAttrs,
   genreLabel,
+  location,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -38,6 +39,7 @@ const {
   hasMetadata: boolean
   previewAttrs?: ImageAttrs
   genreLabel?: string | null
+  location?: FileLocation | null
 }>()
 
 const emit = defineEmits<{
@@ -173,6 +175,7 @@ onBeforeUnmount(() => {
           </div>
           <div class="space-y-3">
             <WaterfallHistogramPanel :histogram="histogram" />
+            <WaterfallLocationMap v-if="location" :location="location" />
             <WaterfallMetadataPanel
               :metadata-entries="metadataEntries"
               :exposure-entries="exposureEntries"

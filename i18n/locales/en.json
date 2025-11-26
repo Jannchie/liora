@@ -87,6 +87,13 @@
       "section": "Metadata",
       "empty": "No metadata"
     },
+    "map": {
+      "title": "Map",
+      "openExternal": "Open in OSM",
+      "alt": "Map preview for {location}",
+      "coordinates": "Coordinates: {value}",
+      "defaultLabel": "Location"
+    },
     "totalWorks": "Total works"
   },
   "admin": {
@@ -131,7 +138,12 @@
         "saveSuccessTitle": "Saved",
         "saveSuccessDescription": "Record written to database.",
         "saveFailedTitle": "Save failed",
-        "saveFailedFallback": "Submit failed"
+        "saveFailedFallback": "Submit failed",
+        "geocodeMissingQuery": "Enter a place keyword first.",
+        "geocodeFailedTitle": "Location search failed",
+        "geocodeFailedFallback": "Unable to search location.",
+        "geocodeNoResult": "No location results.",
+        "geocodeAppliedTitle": "Coordinates filled"
       },
       "title": "Upload work",
       "subtitle": "Fill and validate metadata here; the homepage shows only the waterfall view.",
@@ -239,6 +251,13 @@
         "locationRaw": {
           "label": "Custom name",
           "placeholder": "Use a short or custom label"
+        },
+        "locationSearch": {
+          "label": "Search location (OpenStreetMap)",
+          "placeholder": "Place name, landmark, or address",
+          "action": "Search",
+          "resultsLabel": "Pick a result to fill coordinates",
+          "apply": "Use"
         },
         "latitude": {
           "label": "Latitude"

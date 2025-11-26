@@ -87,6 +87,13 @@
       "section": "メタデータ",
       "empty": "メタデータがありません"
     },
+    "map": {
+      "title": "マップ",
+      "openExternal": "OSMで開く",
+      "alt": "{location} の地図プレビュー",
+      "coordinates": "座標: {value}",
+      "defaultLabel": "位置"
+    },
     "totalWorks": "作品数"
   },
   "admin": {
@@ -131,7 +138,12 @@
         "saveSuccessTitle": "保存しました",
         "saveSuccessDescription": "レコードをデータベースに書き込みました。",
         "saveFailedTitle": "保存に失敗しました",
-        "saveFailedFallback": "送信に失敗しました"
+        "saveFailedFallback": "送信に失敗しました",
+        "geocodeMissingQuery": "まず検索したい場所を入力してください。",
+        "geocodeFailedTitle": "場所の検索に失敗しました",
+        "geocodeFailedFallback": "位置情報を検索できませんでした。",
+        "geocodeNoResult": "場所の候補が見つかりません。",
+        "geocodeAppliedTitle": "座標を入力しました"
       },
       "title": "作品をアップロード",
       "subtitle": "ここでメタデータの入力と検証を行います。ホームではウォーターフォールのみを表示します。",
@@ -239,6 +251,13 @@
         "locationRaw": {
           "label": "カスタム地名",
           "placeholder": "短いラベルや独自の名称"
+        },
+        "locationSearch": {
+          "label": "場所検索（OpenStreetMap）",
+          "placeholder": "地名・ランドマーク・住所を入力",
+          "action": "検索",
+          "resultsLabel": "座標を自動入力する候補を選択",
+          "apply": "使用"
         },
         "latitude": {
           "label": "緯度"

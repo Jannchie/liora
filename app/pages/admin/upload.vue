@@ -22,6 +22,11 @@ const toastMessages = computed(() => ({
   saveSuccessDescription: t('admin.upload.toast.saveSuccessDescription'),
   saveFailedTitle: t('admin.upload.toast.saveFailedTitle'),
   saveFailedFallback: t('admin.upload.toast.saveFailedFallback'),
+  geocodeMissingQuery: t('admin.upload.toast.geocodeMissingQuery'),
+  geocodeFailedTitle: t('admin.upload.toast.geocodeFailedTitle'),
+  geocodeFailedFallback: t('admin.upload.toast.geocodeFailedFallback'),
+  geocodeNoResult: t('admin.upload.toast.geocodeNoResult'),
+  geocodeAppliedTitle: t('admin.upload.toast.geocodeAppliedTitle'),
 }))
 
 useSeoMeta({
@@ -72,6 +77,17 @@ interface SelectOption {
   label: string
   value: string
 }
+interface GeocodeResult {
+  id: string
+  name: string
+  placeName: string
+  latitude: number
+  longitude: number
+}
+
+const geocodeQuery = ref('')
+const geocoding = ref(false)
+const geocodeResults = ref<GeocodeResult[]>([])
 
 const exposureProgramOptions = computed<SelectOption[]>(() => [
   { label: t('admin.upload.options.exposureProgram.notDefined'), value: 'Not defined' },
@@ -269,6 +285,12 @@ function formatLocation(latitude: number | undefined, longitude: number | undefi
     return ''
   }
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+}
+
+function resolveGeocodeQuery(): string {
+  const candidates = [geocodeQuery.value, form.locationName, form.location].map(value => value.trim())
+  const found = candidates.find(value => value.length > 0)
+  return found ?? ''
 }
 
 function textFrom(value: string | string[] | undefined): string {
@@ -513,6 +535,50 @@ function toIsoWithOffset(localString: string): string {
   const minutes = pad(date.getMinutes())
   const seconds = pad(date.getSeconds())
   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${sign}${offsetHours}:${offsetMins}`
+}
+
+async function searchLocation(): Promise<void> {
+  const query = resolveGeocodeQuery()
+  if (!query) {
+    toast.add({ title: toastMessages.value.geocodeMissingQuery, color: 'warning' })
+    return
+  }
+
+  geocoding.value = true
+  geocodeResults.value = []
+  try {
+    const response = await $fetch<{ results?: GeocodeResult[] }>('/api/geocode', {
+      params: { q: query, limit: 5 },
+    })
+    geocodeResults.value = response.results ?? []
+    if (geocodeResults.value.length === 0) {
+      toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
+    }
+  }
+  catch (error) {
+    const description = error instanceof Error ? error.message : toastMessages.value.geocodeFailedFallback
+    toast.add({ title: toastMessages.value.geocodeFailedTitle, description, color: 'error' })
+  }
+  finally {
+    geocoding.value = false
+  }
+}
+
+function applyGeocodeResult(result: GeocodeResult): void {
+  const safeLat = Number.isFinite(result.latitude) ? Number.parseFloat(result.latitude.toFixed(6)) : null
+  const safeLon = Number.isFinite(result.longitude) ? Number.parseFloat(result.longitude.toFixed(6)) : null
+  if (safeLat !== null) {
+    form.latitude = safeLat
+  }
+  if (safeLon !== null) {
+    form.longitude = safeLon
+  }
+  form.locationName = result.placeName
+  if (!form.location) {
+    form.location = result.placeName
+  }
+  geocodeQuery.value = result.name
+  toast.add({ title: toastMessages.value.geocodeAppliedTitle, description: result.placeName, color: 'primary' })
 }
 
 async function extractExif(): Promise<void> {
@@ -853,8 +919,8 @@ onBeforeUnmount(() => {
             </div>
           </template>
           <UFileUpload
-            v-model="selectedFile"
             ref="fileUploadRef"
+            v-model="selectedFile"
             accept="image/*"
             :preview="false"
             :label="t('admin.upload.sections.upload.dropHint')"
@@ -1079,6 +1145,49 @@ onBeforeUnmount(() => {
                 <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw">
                   <UInput v-model="form.location" :placeholder="t('admin.upload.fields.locationRaw.placeholder')" />
                 </UFormField>
+              </div>
+              <div class="grid gap-3 md:grid-cols-3">
+                <UFormField class="md:col-span-2" :label="t('admin.upload.fields.locationSearch.label')" name="locationSearch">
+                  <UInput
+                    v-model="geocodeQuery"
+                    :placeholder="t('admin.upload.fields.locationSearch.placeholder')"
+                    @keydown.enter.prevent="searchLocation"
+                  />
+                </UFormField>
+                <div class="flex items-end">
+                  <UButton class="w-full md:w-auto" color="primary" :loading="geocoding" @click="searchLocation">
+                    <span class="flex w-full items-center justify-center gap-2">
+                      <Icon name="mdi:map-search-outline" class="h-4 w-4" />
+                      <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
+                    </span>
+                  </UButton>
+                </div>
+              </div>
+              <div v-if="geocodeResults.length > 0" class="space-y-2 rounded-lg bg-muted/50 p-3 ring-1 ring-default/30">
+                <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                  {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
+                </p>
+                <div class="grid gap-2">
+                  <button
+                    v-for="result in geocodeResults"
+                    :key="result.id"
+                    type="button"
+                    class="flex w-full items-start justify-between gap-3 rounded-md bg-elevated/80 p-2 text-left ring-1 ring-default/30 transition hover:bg-default/70"
+                    @click="applyGeocodeResult(result)"
+                  >
+                    <div class="space-y-0.5">
+                      <p class="text-sm font-semibold text-highlighted">
+                        {{ result.name }}
+                      </p>
+                      <p class="text-xs text-muted">
+                        {{ result.placeName }}
+                      </p>
+                    </div>
+                    <span class="text-[11px] font-medium text-primary">
+                      {{ t('admin.upload.fields.locationSearch.apply') }}
+                    </span>
+                  </button>
+                </div>
               </div>
               <div class="grid gap-3 md:grid-cols-2">
                 <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">

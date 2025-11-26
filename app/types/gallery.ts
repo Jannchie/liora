@@ -29,6 +29,12 @@ export interface OverlayStat {
   icon: string
 }
 
+export interface FileLocation {
+  latitude: number
+  longitude: number
+  label?: string
+}
+
 export interface MetadataEntry {
   label: string
   value: string

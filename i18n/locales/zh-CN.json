@@ -87,6 +87,13 @@
       "section": "元数据",
       "empty": "暂无元数据"
     },
+    "map": {
+      "title": "地图",
+      "openExternal": "在 OSM 打开",
+      "alt": "{location} 的地图预览",
+      "coordinates": "坐标：{value}",
+      "defaultLabel": "位置"
+    },
     "totalWorks": "作品总数"
   },
   "admin": {
@@ -131,7 +138,12 @@
         "saveSuccessTitle": "已保存",
         "saveSuccessDescription": "记录写入数据库成功。",
         "saveFailedTitle": "保存失败",
-        "saveFailedFallback": "提交失败"
+        "saveFailedFallback": "提交失败",
+        "geocodeMissingQuery": "请先输入要搜索的地点。",
+        "geocodeFailedTitle": "地点搜索失败",
+        "geocodeFailedFallback": "无法查询位置。",
+        "geocodeNoResult": "未找到相关地点。",
+        "geocodeAppliedTitle": "已填充坐标"
       },
       "title": "作品上传",
       "subtitle": "在此完成元数据填写与校验，主页仅展示瀑布流。",
@@ -239,6 +251,13 @@
         "locationRaw": {
           "label": "自定义地名",
           "placeholder": "可写简称或自定义"
+        },
+        "locationSearch": {
+          "label": "地点搜索（OpenStreetMap）",
+          "placeholder": "输入地名、地标或地址",
+          "action": "搜索",
+          "resultsLabel": "选择结果自动填充经纬度",
+          "apply": "使用"
         },
         "latitude": {
           "label": "纬度"
