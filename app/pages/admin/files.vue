@@ -57,12 +57,27 @@ const totalFiles = computed(() => files.value.length)
 const pageCount = computed(() => Math.max(1, Math.ceil(totalFiles.value / pageSize.value)))
 const sortedFiles = computed<FileResponse[]>(() => {
   const direction = sortDirection.value === 'asc' ? 1 : -1
-  return [...files.value].sort((a, b) => {
+  const compare = (a: FileResponse, b: FileResponse): number => {
     const aValue = sortAccessor(a, sortKey.value)
     const bValue = sortAccessor(b, sortKey.value)
     const comparison = compareValues(aValue, bValue)
     return comparison * direction
-  })
+  }
+  const sortableArray = files.value as FileResponse[] & { toSorted?: typeof Array.prototype.toSorted }
+  if (typeof sortableArray.toSorted === 'function') {
+    return sortableArray.toSorted(compare)
+  }
+  const result: FileResponse[] = []
+  for (const item of files.value) {
+    const insertIndex = result.findIndex(existing => compare(item, existing) < 0)
+    if (insertIndex === -1) {
+      result.push(item)
+    }
+    else {
+      result.splice(insertIndex, 0, item)
+    }
+  }
+  return result
 })
 const paginatedFiles = computed<FileResponse[]>(() => {
   const start = (page.value - 1) * pageSize.value
@@ -535,6 +550,7 @@ watch(fetchError, (value) => {
             <template #preview-cell="{ row }">
               <div class="h-14 w-24 overflow-hidden rounded-md bg-black/5">
                 <img
+                  :key="row.original.id"
                   :alt="row.original.title || untitledLabel"
                   loading="lazy"
                   class="h-full w-full object-cover"

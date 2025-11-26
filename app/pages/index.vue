@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SessionState } from '~/types/auth'
 import type { FileResponse } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
@@ -42,6 +43,12 @@ const alertDescription = computed(() => t('home.fetchFailedDescription'))
 const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
 
+const { data: sessionState } = await useFetch<SessionState>('/api/auth/session', {
+  default: () => ({ authenticated: false }),
+})
+
+const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
+
 usePageSeo({
   title: pageTitle,
   description: pageDescription,
@@ -57,7 +64,20 @@ defineOgImageComponent('LioraCard', {
 <template>
   <div ref="scrollContainerRef" class="home-display-font h-screen w-screen overflow-auto">
     <div class="max-w-[2000px] m-auto">
-      <div class="flex justify-end p-4">
+      <div class="flex items-center justify-end gap-2 p-4">
+        <UButton
+          v-if="isAuthenticated"
+          to="/admin"
+          color="primary"
+          variant="ghost"
+          size="sm"
+          class="shrink-0"
+        >
+          <span class="flex items-center gap-1 text-sm font-semibold">
+            <Icon name="mdi:shield-check-outline" class="h-4 w-4" />
+            <span>{{ t('admin.nav.label') }}</span>
+          </span>
+        </UButton>
         <LanguageSwitcher />
       </div>
       <UAlert

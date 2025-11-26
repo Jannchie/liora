@@ -13,7 +13,7 @@ const longitudeText = computed(() => props.location.longitude.toFixed(5))
 
 const coordinatePattern = /^-?\d+(?:\.\d+)?\s*,\s*-?\d+(?:\.\d+)?$/
 
-const formatCoordinateValue = (value: number, positive: string, negative: string): string => {
+function formatCoordinateValue(value: number, positive: string, negative: string): string {
   const direction = value >= 0 ? positive : negative
   const absolute = Math.abs(value).toFixed(4)
   return `${absolute}° ${direction}`

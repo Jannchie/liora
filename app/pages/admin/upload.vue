@@ -40,7 +40,7 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-type UploadValue = File | File[] | null
+type UploadValue = File | null
 
 const previewMaxHeight = 480
 const uploadValue = ref<UploadValue>(null)
@@ -79,14 +79,7 @@ const form = reactive<MediaFormState>({
 
 const submitting = ref(false)
 const selectedFile = computed<File | null>(() => {
-  const value = uploadValue.value
-  if (!value) {
-    return null
-  }
-  if (Array.isArray(value)) {
-    return value[0] ?? null
-  }
-  return value
+  return uploadValue.value ?? null
 })
 const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
@@ -167,7 +160,7 @@ function resetOptionalFields(): void {
 }
 
 function setUploadValue(file: File | null): void {
-  uploadValue.value = file ? [file] : null
+  uploadValue.value = file
 }
 
 function clearFormForNewFile(): void {
