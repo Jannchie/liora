@@ -1,7 +1,8 @@
 {
   "locales": {
     "en": "English",
-    "zh-CN": "Simplified Chinese"
+    "zh-CN": "Simplified Chinese",
+    "ja": "Japanese"
   },
   "common": {
     "loading": "Loading…",

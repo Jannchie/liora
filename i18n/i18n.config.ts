@@ -1,5 +1,6 @@
 import en from './locales/en.json'
 import zhCN from './locales/zh-CN.json'
+import ja from './locales/ja.json'
 
 export default defineI18nConfig(() => ({
   legacy: false,
@@ -11,5 +12,6 @@ export default defineI18nConfig(() => ({
   messages: {
     'en': en,
     'zh-CN': zhCN,
+    'ja': ja,
   },
 }))

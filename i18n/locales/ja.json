@@ -1,0 +1,529 @@
+{
+  "locales": {
+    "en": "English",
+    "zh-CN": "简体中文",
+    "ja": "日本語"
+  },
+  "common": {
+    "loading": "読み込み中…",
+    "labels": {
+      "untitled": "無題",
+      "recordCount": "{count} 件のレコード",
+      "pageIndicator": "ページ {page} / {pageCount}",
+      "unknown": "—"
+    },
+    "actions": {
+      "close": "閉じる",
+      "edit": "編集",
+      "delete": "削除",
+      "save": "保存",
+      "reset": "リセット",
+      "cancel": "キャンセル",
+      "changeImage": "画像を変更",
+      "remove": "削除",
+      "switchLanguage": "言語を切り替える"
+    },
+    "kinds": {
+      "photography": "写真",
+      "painting": "イラスト"
+    },
+    "toast": {
+      "loadFailed": "読み込みに失敗しました"
+    }
+  },
+  "home": {
+    "defaultTitle": "Liora Gallery",
+    "defaultDescription": "写真とイラストのウォーターフォールギャラリーです。",
+    "fetchFailed": "読み込みに失敗しました",
+    "fetchFailedDescription": "データを取得できませんでした。しばらくしてから再試行してください。",
+    "emptyText": "まだ作品がありません。管理画面で追加してください。",
+    "loading": "ギャラリーを読み込み中…"
+  },
+  "gallery": {
+    "empty": "データがありません",
+    "viewLarge": "{title} の大きな画像を見る",
+    "histogram": {
+      "title": "ヒストグラム",
+      "pending": "計算中…",
+      "luminance": "輝度",
+      "red": "赤",
+      "green": "緑",
+      "blue": "青",
+      "shadows": "シャドウ",
+      "midtones": "中間調",
+      "highlights": "ハイライト",
+      "peak": "ピーク"
+    },
+    "metadata": {
+      "title": "タイトル",
+      "description": "説明",
+      "work": "作品",
+      "characters": "キャラクター",
+      "characterSeparator": "、",
+      "genre": "ジャンル",
+      "location": "場所",
+      "device": "機材",
+      "lens": "レンズ",
+      "exposure": "露出",
+      "aperture": "絞り",
+      "shutterSpeed": "シャッター",
+      "iso": "ISO",
+      "focalLength": "焦点距離",
+      "exposureBias": "露出補正",
+      "exposureProgram": "露出プログラム",
+      "exposureMode": "露出モード",
+      "meteringMode": "測光方式",
+      "whiteBalance": "ホワイトバランス",
+      "flash": "フラッシュ",
+      "colorSpace": "カラースペース",
+      "resolution": "解像度",
+      "resolutionUnit": {
+        "inch": "PPI",
+        "cm": "PPCM"
+      },
+      "software": "使用ソフト",
+      "captureTime": "撮影日時",
+      "size": "サイズ",
+      "section": "メタデータ",
+      "empty": "メタデータがありません"
+    },
+    "totalWorks": "作品数"
+  },
+  "admin": {
+    "nav": {
+      "label": "管理",
+      "upload": "アップロード",
+      "files": "レコード",
+      "site": "サイト情報",
+      "viewFrontend": "サイトを表示",
+      "logout": "サインアウト",
+      "logoutSuccess": "サインアウトしました",
+      "logoutFailed": "サインアウトに失敗しました"
+    },
+    "redirecting": "アップロードにリダイレクトしています…",
+    "login": {
+      "seoTitle": "サインイン | Liora 管理",
+      "seoDescription": "管理画面で作品とメタデータを管理します。",
+      "toastSuccess": "サインインしました",
+      "toastFailed": "サインインに失敗しました",
+      "errorFallback": "サインインに失敗しました。再度お試しください。",
+      "sectionLabel": "管理パネル",
+      "heading": "サインイン",
+      "subtitle": "設定済みの管理者アカウントで続行してください。",
+      "usernameLabel": "ユーザー名",
+      "usernamePlaceholder": "ユーザー名を入力",
+      "passwordLabel": "パスワード",
+      "passwordPlaceholder": "パスワードを入力",
+      "errorTitle": "サインインに失敗しました",
+      "submit": "サインイン"
+    },
+    "upload": {
+      "seoTitle": "アップロード | Liora",
+      "seoDescription": "管理画面で作品をアップロードしメタデータを入力します。",
+      "toast": {
+        "selectImage": "先に画像を選択してください",
+        "readSize": "まず画像サイズを取得してください",
+        "sizeFailed": "サイズの取得に失敗しました",
+        "sizeFailedFallback": "読み取りに失敗しました",
+        "sizeReadError": "画像サイズを読み取れません",
+        "exifFailed": "メタデータの取得に失敗しました",
+        "exifFailedFallback": "メタデータを解析できませんでした",
+        "saveSuccessTitle": "保存しました",
+        "saveSuccessDescription": "レコードをデータベースに書き込みました。",
+        "saveFailedTitle": "保存に失敗しました",
+        "saveFailedFallback": "送信に失敗しました"
+      },
+      "title": "作品をアップロード",
+      "subtitle": "ここでメタデータの入力と検証を行います。ホームではウォーターフォールのみを表示します。",
+      "sections": {
+        "upload": {
+          "label": "写真をアップロード",
+          "title": "ドラッグまたはクリック",
+          "description": "アップロード前の画面は入口のみのシンプルな構成にします。",
+          "dropHint": "ここに写真をドラッグするかクリックして選択",
+          "supported": "JPG/PNG など一般的な形式に対応",
+          "pasteHint": "クリップボードの画像を貼り付けても使えます"
+        },
+        "preview": {
+          "label": "プレビューと自動入力",
+          "title": "写真の詳細",
+          "alt": "プレビュー"
+        },
+        "edit": {
+          "label": "編集と保存",
+          "title": "メタデータを完成させる"
+        }
+      },
+      "fields": {
+        "width": {
+          "label": "幅",
+          "description": "単位: px",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "高さ",
+          "description": "単位: px",
+          "placeholder": "1200"
+        },
+        "aperture": {
+          "label": "絞り",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "焦点距離",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "シャッター",
+          "placeholder": "1/125s"
+        },
+        "exposureBias": {
+          "label": "露出補正",
+          "placeholder": "+0.3 EV"
+        },
+        "exposureProgram": {
+          "label": "露出プログラム",
+          "placeholder": "プログラム"
+        },
+        "exposureMode": {
+          "label": "露出モード",
+          "placeholder": "オート / マニュアル"
+        },
+        "meteringMode": {
+          "label": "測光",
+          "placeholder": "パターン"
+        },
+        "whiteBalance": {
+          "label": "ホワイトバランス",
+          "placeholder": "オート"
+        },
+        "flash": {
+          "label": "フラッシュ",
+          "placeholder": "発光せず"
+        },
+        "cameraModel": {
+          "label": "カメラ",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "lensModel": {
+          "label": "レンズ",
+          "placeholder": "28-200mm F2.8-5.6"
+        },
+        "colorSpace": {
+          "label": "カラースペース",
+          "placeholder": "sRGB"
+        },
+        "resolutionUnit": {
+          "label": "解像度単位",
+          "placeholder": "Pixels/Inch"
+        },
+        "resolutionX": {
+          "label": "水平解像度",
+          "placeholder": "300"
+        },
+        "resolutionY": {
+          "label": "垂直解像度",
+          "placeholder": "300"
+        },
+        "software": {
+          "label": "ソフトウェア",
+          "placeholder": "Adobe Lightroom"
+        },
+        "location": {
+          "label": "撮影場所"
+        },
+        "locationName": {
+          "label": "標準の地名",
+          "placeholder": "例：北京・故宮博物院"
+        },
+        "locationRaw": {
+          "label": "カスタム地名",
+          "placeholder": "短いラベルや独自の名称"
+        },
+        "latitude": {
+          "label": "緯度"
+        },
+        "longitude": {
+          "label": "経度"
+        },
+        "captureTime": {
+          "label": "撮影日時",
+          "placeholder": "撮影日時を選択",
+          "description": "ローカル時間を入力してください。秒とタイムゾーンを含む ISO 文字列で保存されます。"
+        },
+        "title": {
+          "label": "タイトル（任意）",
+          "placeholder": "無題の作品"
+        },
+        "description": {
+          "label": "説明（任意）",
+          "placeholder": "一行での説明や撮影メモ"
+        },
+        "notes": {
+          "label": "備考（任意）",
+          "placeholder": "ストーリーやパラメーター、キーワードを追記"
+        }
+      },
+      "actions": {
+        "save": "データベースに保存"
+      },
+      "options": {
+        "exposureProgram": {
+          "notDefined": "未定義",
+          "manual": "マニュアル",
+          "program": "プログラム",
+          "aperturePriority": "絞り優先",
+          "shutterPriority": "シャッター優先",
+          "creative": "クリエイティブ",
+          "action": "アクション",
+          "portrait": "ポートレート",
+          "landscape": "風景"
+        },
+        "exposureMode": {
+          "auto": "オート",
+          "manual": "マニュアル",
+          "bracket": "オートブラケット"
+        },
+        "metering": {
+          "unknown": "不明",
+          "average": "平均",
+          "center": "中央重点",
+          "spot": "スポット",
+          "multiSpot": "マルチスポット",
+          "pattern": "パターン",
+          "partial": "部分",
+          "other": "その他"
+        },
+        "whiteBalance": {
+          "auto": "オート",
+          "manual": "マニュアル"
+        },
+        "flash": {
+          "didNotFire": "発光せず",
+          "autoDidNotFire": "自動（発光せず）",
+          "fired": "発光",
+          "autoFired": "自動（発光）"
+        }
+      }
+    },
+    "files": {
+      "seoTitle": "レコード | Liora",
+      "seoDescription": "アップロード済みの作品を閲覧・管理します。",
+      "toast": {
+        "updateSuccess": "更新しました",
+        "updateSuccessDescription": "レコードを保存しました。",
+        "updateFailed": "更新に失敗しました",
+        "updateFailedFallback": "更新に失敗しました",
+        "deleteSuccess": "削除しました",
+        "deleteSuccessDescription": "レコードを削除しました。",
+        "deleteFailed": "削除に失敗しました",
+        "deleteFailedFallback": "削除に失敗しました",
+        "classifySuccess": "分類が完了しました",
+        "classifyFailed": "分類に失敗しました",
+        "classifyFailedFallback": "分類に失敗しました",
+        "classifySummary": "{total} 件中 {updated} 件を更新しました"
+      },
+      "title": "レコード",
+      "subtitle": "既存のエントリーを確認し、編集・削除できます。",
+      "actions": {
+        "toUpload": "アップロードへ",
+        "reclassify": "未分類を分類",
+        "refresh": "再読み込み"
+      },
+      "section": {
+        "label": "作品",
+        "title": "データ概要"
+      },
+      "table": {
+        "headers": {
+          "preview": "プレビュー",
+          "title": "タイトル",
+          "kind": "タイプ",
+          "size": "サイズ",
+          "location": "場所",
+          "captureTime": "撮影日時",
+          "createdAt": "作成日時",
+          "actions": "操作"
+        },
+        "empty": "データがありません。まずはレコードを追加してください。"
+      },
+      "editModal": {
+        "lead": "編集",
+        "fallbackTitle": "メタデータを調整",
+        "subtitle": "サイズ、撮影情報、備考を更新します。"
+      },
+      "form": {
+        "kind": {
+          "label": "タイプ"
+        },
+        "captureTime": {
+          "label": "撮影日時",
+          "placeholder": "撮影日時を選択"
+        },
+        "title": {
+          "label": "タイトル",
+          "placeholder": "無題の作品"
+        },
+        "description": {
+          "label": "説明",
+          "placeholder": "一行説明"
+        },
+        "fanworkTitle": {
+          "label": "シリーズ / 二次創作",
+          "placeholder": "関連作品やシリーズ名"
+        },
+        "characters": {
+          "label": "キャラクター / タグ",
+          "placeholder": "複数はカンマまたは改行で区切る"
+        },
+        "width": {
+          "label": "幅",
+          "placeholder": "800"
+        },
+        "height": {
+          "label": "高さ",
+          "placeholder": "1200"
+        },
+        "locationName": {
+          "label": "標準の地名",
+          "placeholder": "例：北京・故宮博物院"
+        },
+        "location": {
+          "label": "カスタム地名",
+          "placeholder": "短いラベルや独自の名称"
+        },
+        "latitude": {
+          "label": "緯度"
+        },
+        "longitude": {
+          "label": "経度"
+        },
+        "cameraModel": {
+          "label": "カメラ",
+          "placeholder": "Fujifilm X100VI"
+        },
+        "aperture": {
+          "label": "絞り",
+          "placeholder": "f/1.8"
+        },
+        "focalLength": {
+          "label": "焦点距離",
+          "placeholder": "35mm"
+        },
+        "shutterSpeed": {
+          "label": "シャッター",
+          "placeholder": "1/125s"
+        },
+        "notes": {
+          "label": "備考",
+          "placeholder": "補足やメモを入力"
+        },
+        "genre": {
+          "label": "ジャンル",
+          "placeholder": "ジャンルを選択"
+        }
+      },
+      "genreOptions": {
+        "portrait": "ポートレート",
+        "landscape": "風景",
+        "documentary": "ドキュメンタリー",
+        "architecture": "建築",
+        "stillLife": "静物",
+        "fashion": "ファッション",
+        "sports": "スポーツ",
+        "aerial": "空撮",
+        "fineArt": "ファインアート",
+        "commercial": "コマーシャル",
+        "macro": "マクロ",
+        "street": "ストリート",
+        "night": "夜景",
+        "abstract": "抽象",
+        "animal": "動物",
+        "other": "その他"
+      },
+      "delete": {
+        "title": "削除の確認",
+        "heading": "このレコードを削除しますか？",
+        "description": "この操作は取り消せません。",
+        "titleLabel": "タイトル：",
+        "createdAtLabel": "作成日時：",
+        "confirm": "削除を確定"
+      }
+    },
+    "site": {
+      "seoTitle": "サイト情報 | Liora",
+      "seoDescription": "サイトのタイトル、説明、SNSリンクを設定します。",
+      "toast": {
+        "saveSuccess": "保存しました",
+        "saveSuccessDescription": "サイト情報を更新しました。",
+        "saveFailed": "保存に失敗しました",
+        "saveFailedFallback": "保存に失敗しました。もう一度お試しください",
+        "reset": "リセット",
+        "resetDescription": "保存済みのサイト情報に戻しました。",
+        "loadFailed": "サイト情報の読み込みに失敗しました",
+        "iconUploadSuccess": "アイコンを更新しました",
+        "iconUploadFailed": "アイコンのアップロードに失敗しました",
+        "iconUploadFailedFallback": "アップロードに失敗しました。再試行してください。"
+      },
+      "badge": "サイト情報",
+      "title": "サイト編集",
+      "subtitle": "ホームに表示するサイト名、説明、SNS を設定します。",
+      "lastUpdated": {
+        "label": "最終更新：",
+        "none": "記録なし"
+      },
+      "sections": {
+        "basic": {
+          "label": "基本",
+          "title": "タイトルと説明"
+        },
+        "social": {
+          "label": "ソーシャルリンク",
+          "title": "任意のプラットフォーム",
+          "helper": "空欄なら非表示"
+        }
+      },
+      "fields": {
+        "name": {
+          "label": "サイト名",
+          "placeholder": "例：Liora Gallery",
+          "help": "情報カードとブラウザーのタイトルに表示されます。"
+        },
+        "description": {
+          "label": "サイト説明",
+          "placeholder": "ホームの紹介文（任意）",
+          "help": "情報カードに表示されます。1～2 文に収めてください。"
+        },
+        "icon": {
+          "label": "Favicon URL",
+          "placeholder": "https://example.com/favicon.ico",
+          "help": "https の URL、data:image の URI、/favicon.ico のようなパスを使用できます。",
+          "upload": "アイコンをアップロード",
+          "uploadHelp": "PNG/WebP/ICO/SVG（最大 1MB）に対応。アップロードすると現在のアイコンを自動で置き換えます。",
+          "previewLabel": "現在のアイコン",
+          "previewHelp": "ブラウザーのタブやブックマークに表示されます。"
+        },
+        "github": {
+          "placeholder": "https://github.com/username",
+          "help": "https:// を含む完全な URL を使用。空欄なら非表示。"
+        },
+        "twitter": {
+          "placeholder": "https://twitter.com/username",
+          "help": "X または Twitter の URL。空欄なら非表示。"
+        },
+        "instagram": {
+          "placeholder": "https://instagram.com/username",
+          "help": "任意の公開プロフィール URL。空欄なら非表示。"
+        },
+        "weibo": {
+          "label": "Weibo",
+          "placeholder": "https://weibo.com/username",
+          "help": "到達可能な URL を指定。空欄なら非表示。"
+        }
+      },
+      "actions": {
+        "save": "サイト情報を保存"
+      }
+    }
+  }
+}
