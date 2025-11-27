@@ -436,6 +436,10 @@
         "longitude": {
           "label": "经度"
         },
+        "locationReverse": {
+          "action": "根据经纬度反推地名",
+          "help": "经纬度已填写时，可反查标准地名并填入。"
+        },
         "cameraModel": {
           "label": "器材型号",
           "placeholder": "Fujifilm X100VI"

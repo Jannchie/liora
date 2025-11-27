@@ -436,6 +436,10 @@
         "longitude": {
           "label": "Longitude"
         },
+        "locationReverse": {
+          "action": "Fill name from coordinates",
+          "help": "If latitude/longitude are set, reverse geocode to get a standard place name."
+        },
         "cameraModel": {
           "label": "Camera",
           "placeholder": "Fujifilm X100VI"

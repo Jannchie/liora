@@ -436,6 +436,10 @@
         "longitude": {
           "label": "経度"
         },
+        "locationReverse": {
+          "action": "緯度経度から地名を取得",
+          "help": "緯度・経度が入力されている場合、標準地名を逆引きします。"
+        },
         "cameraModel": {
           "label": "カメラ",
           "placeholder": "Fujifilm X100VI"

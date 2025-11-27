@@ -400,6 +400,17 @@ watch(
               <UInput v-model.number="form.longitude" type="number" step="0.000001" placeholder="116.3975" />
             </UFormField>
           </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <UButton variant="soft" color="primary" :loading="geocoding" @click="searchLocation">
+              <span class="flex items-center gap-1.5">
+                <Icon name="mdi:map-marker-radius-outline" class="h-4 w-4" />
+                <span>{{ t('admin.files.form.locationReverse.action') }}</span>
+              </span>
+            </UButton>
+            <span class="text-xs text-muted">
+              {{ t('admin.files.form.locationReverse.help') }}
+            </span>
+          </div>
         </div>
       </div>
     </section>
