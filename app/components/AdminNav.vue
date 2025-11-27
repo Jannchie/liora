@@ -47,7 +47,7 @@ async function handleTabChange(value: string | number): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default/25 bg-default/90 px-2 py-3 text-sm text-default backdrop-blur">
+  <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default/25 bg-default/90 py-3 text-sm text-default backdrop-blur">
     <div class="flex items-center gap-3">
       <UTabs
         :items="navItems"
@@ -62,14 +62,14 @@ async function handleTabChange(value: string | number): Promise<void> {
     </div>
     <div class="flex items-center gap-2">
       <LanguageSwitcher />
-      <UButton to="/" variant="ghost" color="primary">
+      <UButton to="/" variant="soft" color="primary">
         <span class="flex items-center gap-2">
           <Icon name="mdi:home-outline" class="h-4 w-4" />
           <span>{{ t('admin.nav.viewFrontend') }}</span>
         </span>
       </UButton>
       <UButton
-        variant="ghost"
+        variant="soft"
         color="primary"
         :loading="loggingOut"
         @click="handleLogout"

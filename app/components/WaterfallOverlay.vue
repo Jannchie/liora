@@ -22,6 +22,7 @@ const {
   previewAttrs,
   genreLabel,
   location,
+  canEdit = false,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -40,10 +41,12 @@ const {
   previewAttrs?: ImageAttrs
   genreLabel?: string | null
   location?: FileLocation | null
+  canEdit?: boolean
 }>()
 
 const emit = defineEmits<{
   (event: 'close'): void
+  (event: 'edit'): void
   (event: 'wheel', value: WheelEvent): void
   (event: 'dblclick', value: MouseEvent): void
   (event: 'pointerdown', value: PointerEvent): void
@@ -147,14 +150,25 @@ onBeforeUnmount(() => {
                   {{ file.displayTitle }}
                 </h3>
               </div>
-              <button
-                type="button"
-                class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
-                @click="emit('close')"
-              >
-                <Icon name="carbon:close" class="h-4 w-4" />
-                <span>{{ t('common.actions.close') }}</span>
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  v-if="canEdit"
+                  type="button"
+                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-primary ring-1 ring-primary/30 transition hover:bg-primary/10"
+                  @click="emit('edit')"
+                >
+                  <Icon name="mdi:cog-outline" class="h-4 w-4" />
+                  <span>{{ t('common.actions.edit') }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
+                  @click="emit('close')"
+                >
+                  <Icon name="carbon:close" class="h-4 w-4" />
+                  <span>{{ t('common.actions.close') }}</span>
+                </button>
+              </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
               <div

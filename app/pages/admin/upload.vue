@@ -823,6 +823,7 @@ onBeforeUnmount(() => {
             <AdminMetadataForm
               v-model:form="form"
               v-model:capture-time-local="captureTimeLocal"
+              :classify-source="{ file: selectedFile }"
             />
 
             <UButton color="primary" class="w-full" type="submit" :loading="submitting">

@@ -1,15 +1,13 @@
 import type { H3Event } from 'h3'
 import type { S3Config } from '../utils/s3'
-import type { GenreClassificationResult } from '../utils/ai-classifier'
 import type { FileMetadata, FileResponse } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
 import { basename, extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
-import { classifyPhotoGenre, deriveGenreLabel } from '../utils/ai-classifier'
-import { computeHistogram } from '../utils/histogram'
 import { joinCharacters, toFileResponse } from '../utils/file-mapper'
+import { computeHistogram } from '../utils/histogram'
 import { prisma } from '../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
@@ -352,14 +350,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.thumbhash = thumbhash
   }
 
-  let genre: GenreClassificationResult | null = null
-  try {
-    genre = await classifyPhotoGenre(event, imageUrl)
-  }
-  catch (error) {
-    console.warn('Photo genre classification failed:', error)
-  }
-
   const originalName = file.filename ? basename(file.filename) : ''
 
   const created = await prisma.file.create({
@@ -384,7 +374,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       shutterSpeed: metadata.shutterSpeed,
       captureTime: metadata.captureTime,
       metadata: JSON.stringify(metadata),
-      genre: deriveGenreLabel(genre),
+      genre: normalizeText(fields.genre),
     },
   })
 

@@ -1,14 +1,27 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
-import { computed, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useExposureOptions } from '~/composables/useExposureOptions'
 import { useLocationSearch } from '~/composables/useLocationSearch'
 import { toIsoWithOffset } from '~/utils/datetime'
+
+const props = withDefaults(defineProps<{
+  classifySource?: {
+    file?: File | null
+    imageUrl?: string | null
+  }
+}>(), {
+  classifySource: () => ({
+    file: null,
+    imageUrl: null,
+  }),
+})
 
 const form = defineModel<MediaFormState>('form', { required: true })
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
 
 const { t } = useI18n()
+const toast = useToast()
 const {
   exposureProgramOptions,
   exposureModeOptions,
@@ -17,6 +30,7 @@ const {
   flashOptions,
 } = useExposureOptions()
 const { geocodeQuery, geocoding, geocodeResults, searchLocation, applyGeocodeResult } = useLocationSearch(form.value)
+const classifyingGenre = ref(false)
 
 const formShell = computed(
   () => 'mx-auto flex w-full max-w-3xl flex-col gap-4 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl lg:gap-5',
@@ -44,6 +58,80 @@ const genreOptions = computed(() => [
   { label: t('admin.files.genreOptions.abstract'), value: 'ABSTRACT' },
   { label: t('admin.files.genreOptions.other'), value: 'OTHER' },
 ])
+const classifyMessages = computed(() => ({
+  missing: t('admin.upload.toast.genreAutoMissingSource'),
+  success: t('admin.upload.toast.genreAutoSuccess'),
+  failedTitle: t('admin.upload.toast.genreAutoFailedTitle'),
+  failedFallback: t('admin.upload.toast.genreAutoFailedFallback'),
+}))
+const classificationSource = computed(() => props.classifySource ?? { file: null, imageUrl: null })
+const canAutoClassify = computed(() => {
+  const file = classificationSource.value.file
+  const imageUrl = classificationSource.value.imageUrl
+  const hasFile = typeof File !== 'undefined' && file instanceof File && file.size > 0
+  const hasUrl = typeof imageUrl === 'string' && imageUrl.trim().length > 0
+  return hasFile || hasUrl
+})
+
+interface GenreClassificationPayload {
+  genre?: string
+  result?: {
+    primary: string
+    secondary: string[]
+    confidence: number | null
+    reason: string
+    model: string
+    updatedAt: string
+  } | null
+}
+
+async function autoClassifyGenre(): Promise<void> {
+  if (classifyingGenre.value) {
+    return
+  }
+  if (!canAutoClassify.value) {
+    toast.add({ title: classifyMessages.value.missing, color: 'warning' })
+    return
+  }
+
+  classifyingGenre.value = true
+  const file = classificationSource.value.file
+  const imageUrl = classificationSource.value.imageUrl?.trim() ?? ''
+  try {
+    let response: GenreClassificationPayload
+    if (typeof File !== 'undefined' && file instanceof File && file.size > 0) {
+      const body = new FormData()
+      body.append('file', file)
+      response = await $fetch<GenreClassificationPayload>('/api/files/classify', {
+        method: 'POST',
+        body,
+      })
+    }
+    else {
+      response = await $fetch<GenreClassificationPayload>('/api/files/classify', {
+        method: 'POST',
+        body: { imageUrl },
+      })
+    }
+
+    const genre = response.genre?.trim() ?? ''
+    if (genre) {
+      form.value.genre = genre
+    }
+    toast.add({
+      title: classifyMessages.value.success,
+      description: genre || undefined,
+      color: genre ? 'primary' : 'warning',
+    })
+  }
+  catch (error) {
+    const description = error instanceof Error ? error.message : classifyMessages.value.failedFallback
+    toast.add({ title: classifyMessages.value.failedTitle, description, color: 'error' })
+  }
+  finally {
+    classifyingGenre.value = false
+  }
+}
 
 watch(
   () => captureTimeLocal.value,
@@ -79,13 +167,31 @@ watch(
             <UInput v-model.number="form.height" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
           </UFormField>
           <UFormField :label="t('admin.files.form.genre.label')" name="genre" :class="thirdCol">
-            <USelect
-              v-model="form.genre"
-              :items="genreOptions"
-              value-attribute="value"
-              option-attribute="label"
-              :placeholder="t('admin.files.form.genre.placeholder')"
-            />
+            <div class="flex items-center gap-2">
+              <USelect
+                v-model="form.genre"
+                class="flex-1"
+                :items="genreOptions"
+                value-attribute="value"
+                option-attribute="label"
+                :placeholder="t('admin.files.form.genre.placeholder')"
+              />
+              <UButton
+                variant="soft"
+                color="primary"
+                :disabled="!canAutoClassify"
+                :loading="classifyingGenre"
+                @click="autoClassifyGenre"
+              >
+                <span class="flex items-center gap-1">
+                  <Icon name="mdi:robot-outline" class="h-4 w-4" />
+                  <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
+                </span>
+              </UButton>
+            </div>
+            <template #description>
+              <span class="text-xs text-muted">{{ t('admin.files.form.genre.autoDescription') }}</span>
+            </template>
           </UFormField>
           <UFormField :label="t('admin.upload.fields.captureTime.label')" name="captureTime" class="col-span-12">
             <UInput v-model="captureTimeLocal" type="datetime-local" step="1" :placeholder="t('admin.upload.fields.captureTime.placeholder')" />

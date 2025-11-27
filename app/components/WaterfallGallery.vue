@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { LocationQueryValue } from 'vue-router'
+import type { MediaFormState } from '~/types/admin'
 import type { FileResponse, HistogramData } from '~/types/file'
 import type {
   DisplaySize,
@@ -14,8 +15,9 @@ import type {
 } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, unref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
+import { toLocalInputString } from '~/utils/datetime'
 import { resolveFileTitle } from '~/utils/file'
 
 const props = withDefaults(
@@ -25,15 +27,18 @@ const props = withDefaults(
     emptyText?: string
     scrollElement?: HTMLElement
     siteSettings?: SiteSettings | null
+    isAuthenticated?: boolean
   }>(),
   {
     emptyText: undefined,
     scrollElement: undefined,
     siteSettings: undefined,
+    isAuthenticated: false,
   },
 )
 
 const { t, locale } = useI18n()
+const toast = useToast()
 
 const maxDisplayWidth = 400
 const waterfallGap = 4
@@ -90,6 +95,10 @@ const overlayDragState = ref<{
   originX: 0,
   originY: 0,
 })
+
+const fileOverrides = ref<Record<number, FileResponse>>({})
+const isAdmin = computed(() => props.isAuthenticated ?? false)
+const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
 
 interface ThumbhashInfo {
   dataUrl: string
@@ -334,43 +343,45 @@ const columnWidth = computed(() => {
   return Math.max(140, clamped)
 })
 
+function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile {
+  const displayTitle = resolveFileTitle(file, untitledLabel.value)
+  const decoded = decodeThumbhash(file.metadata.thumbhash)
+  const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
+  const imageUrl = (file.imageUrl ?? '').trim()
+  const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
+  const baseImageUrl = imageUrl.length > 0 ? imageUrl : thumbnailUrl
+  const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
+  const previewSize = computeDisplaySize(
+    file,
+    decoded?.aspectRatio,
+    Math.min(Math.max(displayWidth * 2, 800), Math.min(file.width || Number.MAX_SAFE_INTEGER, 2000)),
+  )
+  const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
+  const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
+  const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
+    thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl,
+    decoded?.aspectRatio,
+  )
+  return {
+    ...file,
+    imageUrl,
+    thumbnailUrl,
+    displayTitle,
+    coverUrl: previewUrl,
+    previewUrl,
+    previewAttrs,
+    placeholder: decoded?.dataUrl,
+    placeholderAspectRatio: decoded?.aspectRatio,
+    overlayPlaceholderUrl,
+    displaySize,
+    imageAttrs,
+  }
+}
+
 const resolvedFiles = computed<ResolvedFile[]>(() => {
   const displayWidth = columnWidth.value
-  return [...props.files]
-    .map((file) => {
-      const displayTitle = resolveFileTitle(file, untitledLabel.value)
-      const decoded = decodeThumbhash(file.metadata.thumbhash)
-      const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
-      const imageUrl = (file.imageUrl ?? '').trim()
-      const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
-      const baseImageUrl = imageUrl.length > 0 ? imageUrl : thumbnailUrl
-      const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
-      const previewSize = computeDisplaySize(
-        file,
-        decoded?.aspectRatio,
-        Math.min(Math.max(displayWidth * 2, 800), Math.min(file.width || Number.MAX_SAFE_INTEGER, 2000)),
-      )
-      const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
-      const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
-      const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
-        thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl,
-        decoded?.aspectRatio,
-      )
-      return {
-        ...file,
-        imageUrl,
-        thumbnailUrl,
-        displayTitle,
-        coverUrl: previewUrl,
-        previewUrl,
-        previewAttrs,
-        placeholder: decoded?.dataUrl,
-        placeholderAspectRatio: decoded?.aspectRatio,
-        overlayPlaceholderUrl,
-        displaySize,
-        imageAttrs,
-      }
-    })
+  return [...filesWithOverrides.value]
+    .map(file => toResolvedFile(file, displayWidth))
     .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
 })
 
@@ -568,7 +579,14 @@ function handleEntryClick(event: MouseEvent, file: ResolvedFile): void {
 }
 
 function handleOverlayClose(): void {
-  runViewTransition(() => closeOverlay())
+  runViewTransition(() => {
+    closeEditModal()
+    closeOverlay()
+  })
+}
+
+function handleOverlayEdit(): void {
+  openEditModal()
 }
 
 function handleOverlayViewerMounted(element: HTMLElement | null): void {
@@ -588,6 +606,172 @@ function toNumericCoordinate(value: number | null | undefined): number | null {
     return null
   }
   return Number.isFinite(value) ? value : null
+}
+
+const editModalOpen = ref(false)
+const editing = ref(false)
+const editingFile = ref<ResolvedFile | null>(null)
+const editCaptureTimeLocal = ref<string>('')
+const editForm = reactive<MediaFormState>({
+  title: '',
+  description: '',
+  genre: '',
+  width: 0,
+  height: 0,
+  fanworkTitle: '',
+  characters: [],
+  location: '',
+  locationName: '',
+  latitude: null,
+  longitude: null,
+  cameraModel: '',
+  lensModel: '',
+  aperture: '',
+  focalLength: '',
+  iso: '',
+  shutterSpeed: '',
+  exposureBias: '',
+  exposureProgram: '',
+  exposureMode: '',
+  meteringMode: '',
+  whiteBalance: '',
+  flash: '',
+  colorSpace: '',
+  resolutionX: '',
+  resolutionY: '',
+  resolutionUnit: '',
+  software: '',
+  captureTime: '',
+  notes: '',
+})
+
+const editToastMessages = computed(() => ({
+  updateSuccess: t('admin.files.toast.updateSuccess'),
+  updateSuccessDescription: t('admin.files.toast.updateSuccessDescription'),
+  updateFailed: t('admin.files.toast.updateFailed'),
+  updateFailedFallback: t('admin.files.toast.updateFailedFallback'),
+}))
+
+function resetEditForm(): void {
+  editForm.title = ''
+  editForm.description = ''
+  editForm.genre = ''
+  editForm.width = 0
+  editForm.height = 0
+  editForm.fanworkTitle = ''
+  editForm.characters = []
+  editForm.location = ''
+  editForm.locationName = ''
+  editForm.latitude = null
+  editForm.longitude = null
+  editForm.cameraModel = ''
+  editForm.lensModel = ''
+  editForm.aperture = ''
+  editForm.focalLength = ''
+  editForm.iso = ''
+  editForm.shutterSpeed = ''
+  editForm.exposureBias = ''
+  editForm.exposureProgram = ''
+  editForm.exposureMode = ''
+  editForm.meteringMode = ''
+  editForm.whiteBalance = ''
+  editForm.flash = ''
+  editForm.colorSpace = ''
+  editForm.resolutionX = ''
+  editForm.resolutionY = ''
+  editForm.resolutionUnit = ''
+  editForm.software = ''
+  editForm.captureTime = ''
+  editCaptureTimeLocal.value = ''
+  editForm.notes = ''
+}
+
+function fillEditForm(file: FileResponse): void {
+  const metadata = file.metadata
+  resetEditForm()
+  editForm.title = file.title ?? ''
+  editForm.description = file.description ?? ''
+  editForm.genre = file.genre || ''
+  editForm.width = file.width
+  editForm.height = file.height
+  editForm.fanworkTitle = metadata.fanworkTitle || file.fanworkTitle || ''
+  editForm.characters = metadata.characters ?? file.characters ?? []
+  editForm.location = metadata.location || file.location || ''
+  editForm.locationName = metadata.locationName
+  editForm.latitude = metadata.latitude
+  editForm.longitude = metadata.longitude
+  editForm.cameraModel = metadata.cameraModel || file.cameraModel || ''
+  editForm.lensModel = metadata.lensModel || ''
+  editForm.aperture = metadata.aperture || ''
+  editForm.focalLength = metadata.focalLength || ''
+  editForm.iso = metadata.iso || ''
+  editForm.shutterSpeed = metadata.shutterSpeed || ''
+  editForm.exposureBias = metadata.exposureBias || ''
+  editForm.exposureProgram = metadata.exposureProgram || ''
+  editForm.exposureMode = metadata.exposureMode || ''
+  editForm.meteringMode = metadata.meteringMode || ''
+  editForm.whiteBalance = metadata.whiteBalance || ''
+  editForm.flash = metadata.flash || ''
+  editForm.colorSpace = metadata.colorSpace || ''
+  editForm.resolutionX = metadata.resolutionX || ''
+  editForm.resolutionY = metadata.resolutionY || ''
+  editForm.resolutionUnit = metadata.resolutionUnit || ''
+  editForm.software = metadata.software || ''
+  editForm.captureTime = metadata.captureTime || ''
+  editCaptureTimeLocal.value = editForm.captureTime ? toLocalInputString(editForm.captureTime) : ''
+  editForm.notes = metadata.notes || ''
+}
+
+function openEditModal(target?: ResolvedFile): void {
+  if (!isAdmin.value) {
+    return
+  }
+  const file = target ?? activeFile.value
+  if (!file) {
+    return
+  }
+  fillEditForm(file)
+  editingFile.value = file
+  editModalOpen.value = true
+  closeOverlay()
+}
+
+function closeEditModal(): void {
+  editModalOpen.value = false
+  editingFile.value = null
+}
+
+async function saveEditFromModal(): Promise<void> {
+  if (!editingFile.value) {
+    return
+  }
+  editing.value = true
+  try {
+    const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`, {
+      method: 'PUT',
+      body: {
+        ...editForm,
+        captureTime: editForm.captureTime || undefined,
+      },
+    })
+    fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
+    const resolved = toResolvedFile(updated, columnWidth.value)
+    activeFile.value = resolved
+    editingFile.value = resolved
+    toast.add({
+      title: editToastMessages.value.updateSuccess,
+      description: editToastMessages.value.updateSuccessDescription,
+      color: 'primary',
+    })
+    closeEditModal()
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : editToastMessages.value.updateFailedFallback
+    toast.add({ title: editToastMessages.value.updateFailed, description: message, color: 'error' })
+  }
+  finally {
+    editing.value = false
+  }
 }
 
 function escapeRegExp(value: string): string {
@@ -1519,7 +1703,9 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         :preview-attrs="activeFile.previewAttrs"
         :location="locationPoint"
         :genre-label="genreBadgeLabel"
+        :can-edit="isAdmin"
         @close="handleOverlayClose"
+        @edit="handleOverlayEdit"
         @wheel="handleOverlayWheel"
         @dblclick="handleOverlayDoubleClick"
         @pointerdown="handleOverlayPointerDown"
@@ -1528,6 +1714,16 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         @pointercancel="endOverlayPointerDrag"
         @pointerleave="endOverlayPointerDrag"
         @viewer-mounted="handleOverlayViewerMounted"
+      />
+      <AdminEditModal
+        v-model:open="editModalOpen"
+        v-model:capture-time-local="editCaptureTimeLocal"
+        v-model:form="editForm"
+        :file="editingFile"
+        :loading="editing"
+        :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
+        @submit="saveEditFromModal"
+        @close="closeEditModal"
       />
     </Teleport>
   </div>

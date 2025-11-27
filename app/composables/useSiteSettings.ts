@@ -1,6 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
-import { computed } from 'vue'
 import type { SiteSettings } from '~/types/site'
+import { computed } from 'vue'
 
 const FALLBACK_ICON_URL = '/favicon.ico'
 

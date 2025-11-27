@@ -139,11 +139,15 @@
         "saveSuccessDescription": "レコードをデータベースに書き込みました。",
         "saveFailedTitle": "保存に失敗しました",
         "saveFailedFallback": "送信に失敗しました",
-        "geocodeMissingQuery": "まず検索したい場所を入力してください。",
+        "geocodeMissingQuery": "地名または緯度経度を入力してください。",
         "geocodeFailedTitle": "場所の検索に失敗しました",
         "geocodeFailedFallback": "位置情報を検索できませんでした。",
         "geocodeNoResult": "場所の候補が見つかりません。",
-        "geocodeAppliedTitle": "座標を入力しました"
+        "geocodeAppliedTitle": "座標を入力しました",
+        "genreAutoMissingSource": "まず画像を選択するか、画像 URL を入力してください。",
+        "genreAutoSuccess": "自動分類を反映しました",
+        "genreAutoFailedTitle": "自動分類に失敗しました",
+        "genreAutoFailedFallback": "この画像を分類できませんでした。"
       },
       "title": "作品をアップロード",
       "sections": {
@@ -275,7 +279,7 @@
           "label": "場所検索（OpenStreetMap）",
           "placeholder": "地名・ランドマーク・住所を入力",
           "action": "検索",
-          "resultsLabel": "座標を自動入力する候補を選択",
+          "resultsLabel": "候補を選ぶと標準地名を更新し、座標が空なら自動入力",
           "apply": "使用"
         },
         "latitude": {
@@ -454,7 +458,9 @@
         },
         "genre": {
           "label": "ジャンル",
-          "placeholder": "ジャンルを選択"
+          "placeholder": "ジャンルを選択",
+          "auto": "自動分類",
+          "autoDescription": "現在の画像を基に GPT でジャンルを提案します。"
         }
       },
       "genreOptions": {

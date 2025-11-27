@@ -69,7 +69,7 @@ defineOgImageComponent('LioraCard', {
           v-if="isAuthenticated"
           to="/admin"
           color="primary"
-          variant="ghost"
+          variant="soft"
           size="sm"
           class="shrink-0"
         >
@@ -99,6 +99,7 @@ defineOgImageComponent('LioraCard', {
           :site-settings="siteSettings ?? undefined"
           :scroll-element="scrollContainerRef"
           :empty-text="emptyText"
+          :is-authenticated="isAuthenticated"
         />
         <template #fallback>
           <div class="flex h-[50vh] items-center justify-center gap-2 text-sm text-muted">

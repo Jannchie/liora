@@ -61,17 +61,21 @@ const { t } = useI18n()
         v-if="socialLinks.length > 0"
         class="flex flex-wrap items-center justify-center gap-3"
       >
-        <a
+        <UButton
           v-for="link in socialLinks"
           :key="link.label"
           :href="link.url"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center justify-center rounded p-3 ring-1 ring-transparent transition hover:text-default hover:ring-default/30"
+          variant="soft"
+          color="neutral"
+          square
+          size="sm"
+          class="text-muted"
           :aria-label="link.label"
         >
-          <Icon :name="link.icon" class="h-5 w-5 text-muted" />
-        </a>
+          <Icon :name="link.icon" class="h-5 w-5" />
+        </UButton>
       </div>
     </div>
   </div>

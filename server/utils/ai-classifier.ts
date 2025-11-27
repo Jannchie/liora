@@ -4,8 +4,8 @@ import { join } from 'node:path'
 import { useRuntimeConfig } from '#imports'
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
-import sharp from 'sharp'
 import { createError } from 'h3'
+import sharp from 'sharp'
 
 export interface GenreClassificationResult {
   primary: string
@@ -87,13 +87,45 @@ export function deriveGenreLabel(genre: GenreClassificationResult | null): strin
   return ''
 }
 
+async function prepareImageBuffer(data: Buffer): Promise<Buffer> {
+  if (data.length === 0) {
+    throw createError({ statusCode: 400, statusMessage: 'Image data is required.' })
+  }
+  if (data.byteLength > MAX_DOWNLOAD_BYTES) {
+    throw createError({ statusCode: 413, statusMessage: 'Image too large for classification.' })
+  }
+  return sharp(data)
+    .rotate()
+    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer()
+}
+
+export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer): Promise<GenreClassificationResult | null> {
+  const prompt = await loadPrompt()
+  const apiKey = resolveApiKey(event)
+  const client = createOpenAI({ apiKey })
+  const preparedImage = await prepareImageBuffer(data)
+  const result = await generateText({
+    model: client(MODEL_NAME),
+    messages: [
+      { role: 'system', content: prompt },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'Classify this photo and return JSON only.' },
+          { type: 'image', image: preparedImage, mimeType: 'image/webp' },
+        ],
+      },
+    ],
+  })
+  return parseClassification(result.text)
+}
+
 export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Promise<GenreClassificationResult | null> {
   if (!imageUrl.trim()) {
     return null
   }
-  const prompt = await loadPrompt()
-  const apiKey = resolveApiKey(event)
-  const client = createOpenAI({ apiKey })
   const response = await fetch(imageUrl)
   if (!response.ok) {
     throw createError({ statusCode: 502, statusMessage: `Failed to fetch image: ${response.status}` })
@@ -103,23 +135,5 @@ export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Prom
     throw createError({ statusCode: 413, statusMessage: 'Image too large for classification.' })
   }
   const sourceBuffer = Buffer.from(arrayBuffer)
-  const resized = await sharp(sourceBuffer)
-    .rotate()
-    .resize(1024, 1024, { fit: 'inside', withoutEnlargement: true })
-    .webp({ quality: 82 })
-    .toBuffer()
-  const result = await generateText({
-    model: client(MODEL_NAME),
-    messages: [
-      { role: 'system', content: prompt },
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: 'Classify this photo and return JSON only.' },
-          { type: 'image', image: resized, mimeType: 'image/webp' },
-        ],
-      },
-    ],
-  })
-  return parseClassification(result.text)
+  return classifyPhotoGenreFromBuffer(event, sourceBuffer)
 }

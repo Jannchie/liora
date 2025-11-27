@@ -139,11 +139,15 @@
         "saveSuccessDescription": "Record written to database.",
         "saveFailedTitle": "Save failed",
         "saveFailedFallback": "Submit failed",
-        "geocodeMissingQuery": "Enter a place keyword first.",
+        "geocodeMissingQuery": "Enter a place keyword or provide coordinates first.",
         "geocodeFailedTitle": "Location search failed",
         "geocodeFailedFallback": "Unable to search location.",
         "geocodeNoResult": "No location results.",
-        "geocodeAppliedTitle": "Coordinates filled"
+        "geocodeAppliedTitle": "Coordinates filled",
+        "genreAutoMissingSource": "Upload an image or provide an image URL first.",
+        "genreAutoSuccess": "Genre updated from AI",
+        "genreAutoFailedTitle": "Auto classify failed",
+        "genreAutoFailedFallback": "Could not classify this image."
       },
       "title": "Upload work",
       "sections": {
@@ -275,7 +279,7 @@
           "label": "Search location (OpenStreetMap)",
           "placeholder": "Place name, landmark, or address",
           "action": "Search",
-          "resultsLabel": "Pick a result to fill coordinates",
+          "resultsLabel": "Pick a result to update the standard name; coordinates fill only if empty",
           "apply": "Use"
         },
         "latitude": {
@@ -454,7 +458,9 @@
         },
         "genre": {
           "label": "Genre",
-          "placeholder": "Select genre"
+          "placeholder": "Select genre",
+          "auto": "Auto classify",
+          "autoDescription": "Use GPT to suggest a genre based on the current image."
         }
       },
       "genreOptions": {

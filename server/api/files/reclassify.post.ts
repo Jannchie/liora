@@ -28,6 +28,7 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
 
   for (const file of targets) {
     processed += 1
+    // eslint-disable-next-line no-console
     console.info(`[reclassify] processing #${file.id} (${processed}/${targets.length})`)
     try {
       const result: GenreClassificationResult | null = await classifyPhotoGenre(event, file.imageUrl)
@@ -40,6 +41,7 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
         where: { id: file.id },
         data: { genre },
       })
+      // eslint-disable-next-line no-console
       console.info(`[reclassify] updated #${file.id} -> ${genre}`)
       updated += 1
     }

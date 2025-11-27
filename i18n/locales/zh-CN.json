@@ -139,11 +139,15 @@
         "saveSuccessDescription": "记录写入数据库成功。",
         "saveFailedTitle": "保存失败",
         "saveFailedFallback": "提交失败",
-        "geocodeMissingQuery": "请先输入要搜索的地点。",
+        "geocodeMissingQuery": "请输入要搜索的地点或提供经纬度。",
         "geocodeFailedTitle": "地点搜索失败",
         "geocodeFailedFallback": "无法查询位置。",
         "geocodeNoResult": "未找到相关地点。",
-        "geocodeAppliedTitle": "已填充坐标"
+        "geocodeAppliedTitle": "已填充坐标",
+        "genreAutoMissingSource": "请先选择图片或提供图片链接。",
+        "genreAutoSuccess": "已应用自动分类",
+        "genreAutoFailedTitle": "自动分类失败",
+        "genreAutoFailedFallback": "暂时无法识别该图片。"
       },
       "title": "作品上传",
       "sections": {
@@ -275,7 +279,7 @@
           "label": "地点搜索（OpenStreetMap）",
           "placeholder": "输入地名、地标或地址",
           "action": "搜索",
-          "resultsLabel": "选择结果自动填充经纬度",
+          "resultsLabel": "选择结果更新标准地名，若经纬度为空则自动填充",
           "apply": "使用"
         },
         "latitude": {
@@ -454,7 +458,9 @@
         },
         "genre": {
           "label": "题材分类",
-          "placeholder": "请选择题材"
+          "placeholder": "请选择题材",
+          "auto": "自动分类",
+          "autoDescription": "使用 GPT 根据当前图片生成推荐类型。"
         }
       },
       "genreOptions": {

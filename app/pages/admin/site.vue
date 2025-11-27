@@ -199,7 +199,7 @@ function handleReset(): void {
               </span>
             </UButton>
             <UButton
-              variant="ghost"
+              variant="soft"
               color="neutral"
               :disabled="saving || loadingSettings"
               @click="handleReset"
@@ -458,7 +458,7 @@ function handleReset(): void {
 
       <div class="flex items-center justify-end gap-2">
         <UButton
-          variant="ghost"
+          variant="soft"
           color="neutral"
           :disabled="saving || loadingSettings"
           @click="handleReset"
