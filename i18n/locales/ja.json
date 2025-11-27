@@ -146,12 +146,9 @@
         "geocodeAppliedTitle": "座標を入力しました"
       },
       "title": "作品をアップロード",
-      "subtitle": "ここでメタデータの入力と検証を行います。ホームではウォーターフォールのみを表示します。",
       "sections": {
         "upload": {
           "label": "写真をアップロード",
-          "title": "ドラッグまたはクリック",
-          "description": "アップロード前の画面は入口のみのシンプルな構成にします。",
           "dropHint": "ここに写真をドラッグするかクリックして選択",
           "supported": "JPG/PNG など一般的な形式に対応",
           "pasteHint": "クリップボードの画像を貼り付けても使えます"
@@ -365,14 +362,12 @@
         "classifySummary": "{total} 件中 {updated} 件を更新しました"
       },
       "title": "レコード",
-      "subtitle": "既存のエントリーを確認し、編集・削除できます。",
       "actions": {
         "toUpload": "アップロードへ",
         "reclassify": "未分類を分類",
         "refresh": "再読み込み"
       },
       "section": {
-        "label": "作品",
         "title": "データ概要"
       },
       "table": {
@@ -389,9 +384,7 @@
         "empty": "データがありません。まずはレコードを追加してください。"
       },
       "editModal": {
-        "lead": "編集",
-        "fallbackTitle": "メタデータを調整",
-        "subtitle": "サイズ、撮影情報、備考を更新します。"
+        "fallbackTitle": "メタデータを調整"
       },
       "form": {
         "kind": {
@@ -508,20 +501,16 @@
       },
       "badge": "サイト情報",
       "title": "サイト編集",
-      "subtitle": "ホームに表示するサイト名、説明、SNS を設定します。",
       "lastUpdated": {
         "label": "最終更新：",
         "none": "記録なし"
       },
       "sections": {
         "basic": {
-          "label": "基本",
           "title": "タイトルと説明"
         },
         "social": {
-          "label": "ソーシャルリンク",
-          "title": "任意のプラットフォーム",
-          "helper": "空欄なら非表示"
+          "title": "任意のプラットフォーム"
         }
       },
       "fields": {
@@ -533,14 +522,14 @@
         "description": {
           "label": "サイト説明",
           "placeholder": "ホームの紹介文（任意）",
-          "help": "情報カードに表示されます。1～2 文に収めてください。"
+          "help": "情報カードに表示されます。短くまとめてください。"
         },
         "icon": {
           "label": "Favicon URL",
           "placeholder": "https://example.com/favicon.ico",
-          "help": "https の URL、data:image の URI、/favicon.ico のようなパスを使用できます。",
+          "help": "https URL、data:image、/favicon.ico などのパスに対応。",
           "upload": "アイコンをアップロード",
-          "uploadHelp": "PNG/WebP/ICO/SVG（最大 1MB）に対応。アップロードすると現在のアイコンを自動で置き換えます。",
+          "uploadHelp": "PNG/WebP/ICO/SVG（最大 1MB）。アップロードで現在のアイコンを置き換えます。",
           "previewLabel": "現在のアイコン",
           "previewHelp": "ブラウザーのタブやブックマークに表示されます。"
         },
@@ -549,12 +538,28 @@
           "help": "https:// を含む完全な URL を使用。空欄なら非表示。"
         },
         "twitter": {
-          "placeholder": "https://twitter.com/username",
-          "help": "X または Twitter の URL。空欄なら非表示。"
+          "placeholder": "https://x.com/username",
+          "help": "X/Twitter の URL。空欄なら非表示。"
         },
         "instagram": {
           "placeholder": "https://instagram.com/username",
           "help": "任意の公開プロフィール URL。空欄なら非表示。"
+        },
+        "youtube": {
+          "placeholder": "https://youtube.com/\\u0040username",
+          "help": "チャンネルまたはプロフィールの URL。空欄なら非表示。"
+        },
+        "bilibili": {
+          "placeholder": "https://space.bilibili.com/123456",
+          "help": "アクセス可能な Bilibili スペースの URL。空欄なら非表示。"
+        },
+        "tiktok": {
+          "placeholder": "https://www.tiktok.com/\\u0040username",
+          "help": "TikTok のプロフィールリンク。空欄なら非表示。"
+        },
+        "linkedin": {
+          "placeholder": "https://www.linkedin.com/in/username",
+          "help": "LinkedIn のプロフィールまたはページ URL。空欄なら非表示。"
         },
         "weibo": {
           "label": "Weibo",

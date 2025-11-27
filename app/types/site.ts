@@ -3,6 +3,10 @@ export interface SiteSocialLinks {
   twitter: string
   instagram: string
   weibo: string
+  youtube: string
+  bilibili: string
+  tiktok: string
+  linkedin: string
 }
 
 export interface SiteSettingsPayload {

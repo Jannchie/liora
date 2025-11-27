@@ -146,12 +146,9 @@
         "geocodeAppliedTitle": "Coordinates filled"
       },
       "title": "Upload work",
-      "subtitle": "Fill and validate metadata here; the homepage shows only the waterfall view.",
       "sections": {
         "upload": {
           "label": "Upload photo",
-          "title": "Drag or click",
-          "description": "Keep the pre-upload view simple with only the entry point.",
           "dropHint": "Drag a photo here or click to pick a file",
           "supported": "Common formats such as JPG/PNG are supported",
           "pasteHint": "You can also paste an image from the clipboard"
@@ -365,14 +362,12 @@
         "classifySummary": "Updated {updated} / {total} items"
       },
       "title": "Records",
-      "subtitle": "Review existing entries with edit and delete controls.",
       "actions": {
         "toUpload": "Go to upload",
         "reclassify": "Classify missing",
         "refresh": "Refresh"
       },
       "section": {
-        "label": "Works",
         "title": "Data overview"
       },
       "table": {
@@ -389,9 +384,7 @@
         "empty": "No data yet. Add your first record."
       },
       "editModal": {
-        "lead": "Edit",
-        "fallbackTitle": "Adjust metadata",
-        "subtitle": "Update size, shooting info, or notes."
+        "fallbackTitle": "Adjust metadata"
       },
       "form": {
         "kind": {
@@ -508,20 +501,16 @@
       },
       "badge": "Site info",
       "title": "Edit site",
-      "subtitle": "Configure the homepage title, description, and social links.",
       "lastUpdated": {
         "label": "Last updated:",
         "none": "Not recorded"
       },
       "sections": {
         "basic": {
-          "label": "Basics",
           "title": "Title & description"
         },
         "social": {
-          "label": "Social links",
-          "title": "Optional platforms",
-          "helper": "Leave blank to hide"
+          "title": "Optional platforms"
         }
       },
       "fields": {
@@ -533,14 +522,14 @@
         "description": {
           "label": "Site description",
           "placeholder": "Intro for the homepage (optional)",
-          "help": "Appears on the info card; keep it to 1-2 sentences."
+          "help": "Appears on the info card; keep it brief."
         },
         "icon": {
           "label": "Favicon URL",
           "placeholder": "https://example.com/favicon.ico",
-          "help": "Paste an https URL, data:image URI, or a path like /favicon.ico.",
+          "help": "Use an https URL, data:image URI, or a path like /favicon.ico.",
           "upload": "Upload icon",
-          "uploadHelp": "PNG/WebP/ICO/SVG up to 1MB are supported. Uploading will replace the current icon automatically.",
+          "uploadHelp": "PNG/WebP/ICO/SVG up to 1MB. Uploading replaces the current icon.",
           "previewLabel": "Current icon",
           "previewHelp": "Displayed in browser tabs and bookmarks."
         },
@@ -549,12 +538,28 @@
           "help": "Use a full URL (with https://). Leave blank to hide."
         },
         "twitter": {
-          "placeholder": "https://twitter.com/username",
+          "placeholder": "https://x.com/username",
           "help": "Link to X or Twitter; blank to hide."
         },
         "instagram": {
           "placeholder": "https://instagram.com/username",
           "help": "Any public profile URL; blank to hide."
+        },
+        "youtube": {
+          "placeholder": "https://youtube.com/\\u0040username",
+          "help": "Use a channel or profile URL; blank to hide."
+        },
+        "bilibili": {
+          "placeholder": "https://space.bilibili.com/123456",
+          "help": "Paste a reachable Bilibili space URL; leave blank to hide."
+        },
+        "tiktok": {
+          "placeholder": "https://www.tiktok.com/\\u0040username",
+          "help": "Add a TikTok profile link; leave blank to hide."
+        },
+        "linkedin": {
+          "placeholder": "https://www.linkedin.com/in/username",
+          "help": "Use a LinkedIn profile or page URL; blank to hide."
         },
         "weibo": {
           "label": "Weibo",

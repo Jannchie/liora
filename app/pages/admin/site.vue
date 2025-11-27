@@ -55,6 +55,10 @@ const form = reactive<SiteSettingsPayload>({
     twitter: '',
     instagram: '',
     weibo: '',
+    youtube: '',
+    bilibili: '',
+    tiktok: '',
+    linkedin: '',
   },
 })
 
@@ -73,6 +77,10 @@ function applySettings(value: SiteSettings | null | undefined): void {
   form.social.twitter = value.social.twitter
   form.social.instagram = value.social.instagram
   form.social.weibo = value.social.weibo
+  form.social.youtube = value.social.youtube
+  form.social.bilibili = value.social.bilibili
+  form.social.tiktok = value.social.tiktok
+  form.social.linkedin = value.social.linkedin
 }
 
 watch(settingsState, applySettings, { immediate: true })
@@ -167,17 +175,10 @@ function handleReset(): void {
 
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p class="flex items-center gap-2 text-sm text-muted">
-            <Icon name="mdi:earth" class="h-4 w-4" />
-            <span>{{ t('admin.site.badge') }}</span>
-          </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold text-highlighted">
             <Icon name="mdi:pencil-outline" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.site.title') }}</span>
           </h1>
-          <p class="text-sm text-muted">
-            {{ t('admin.site.subtitle') }}
-          </p>
         </div>
         <div class="flex flex-col items-end gap-2 text-sm text-muted sm:items-end">
           <div class="flex items-center gap-2">
@@ -228,9 +229,6 @@ function handleReset(): void {
         <UCard>
           <template #header>
             <div class="flex flex-col gap-1">
-              <p class="text-sm text-muted">
-                {{ t('admin.site.sections.basic.label') }}
-              </p>
               <h2 class="text-xl font-semibold text-highlighted">
                 {{ t('admin.site.sections.basic.title') }}
               </h2>
@@ -329,17 +327,9 @@ function handleReset(): void {
 
         <UCard>
           <template #header>
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-muted">
-                  {{ t('admin.site.sections.social.label') }}
-                </p>
-                <h2 class="text-xl font-semibold text-highlighted">
-                  {{ t('admin.site.sections.social.title') }}
-                </h2>
-              </div>
-              <span class="text-sm text-muted">{{ t('admin.site.sections.social.helper') }}</span>
-            </div>
+            <h2 class="text-xl font-semibold text-highlighted">
+              {{ t('admin.site.sections.social.title') }}
+            </h2>
           </template>
 
           <div class="space-y-3">
@@ -360,8 +350,8 @@ function handleReset(): void {
 
             <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:twitter" class="h-4 w-4" />
-                <span>Twitter / X</span>
+                <Icon name="fa6-brands:x-twitter" class="h-4 w-4" />
+                <span>X</span>
               </div>
               <UInput
                 v-model="form.social.twitter"
@@ -385,6 +375,66 @@ function handleReset(): void {
               />
               <p class="text-xs text-muted">
                 {{ t('admin.site.fields.instagram.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:youtube" class="h-4 w-4" />
+                <span>YouTube</span>
+              </div>
+              <UInput
+                v-model="form.social.youtube"
+                :placeholder="t('admin.site.fields.youtube.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.youtube.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="simple-icons:bilibili" class="h-4 w-4" />
+                <span>Bilibili</span>
+              </div>
+              <UInput
+                v-model="form.social.bilibili"
+                :placeholder="t('admin.site.fields.bilibili.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.bilibili.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="fa6-brands:tiktok" class="h-4 w-4" />
+                <span>TikTok</span>
+              </div>
+              <UInput
+                v-model="form.social.tiktok"
+                :placeholder="t('admin.site.fields.tiktok.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.tiktok.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:linkedin" class="h-4 w-4" />
+                <span>LinkedIn</span>
+              </div>
+              <UInput
+                v-model="form.social.linkedin"
+                :placeholder="t('admin.site.fields.linkedin.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.linkedin.help') }}
               </p>
             </div>
 

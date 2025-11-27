@@ -45,5 +45,9 @@ model SiteSetting {
   socialTwitter   String   @default("")
   socialInstagram String   @default("")
   socialWeibo     String   @default("")
+  socialYoutube   String   @default("")
+  socialBilibili  String   @default("")
+  socialTiktok    String   @default("")
+  socialLinkedin  String   @default("")
   updatedAt       DateTime @updatedAt
 }

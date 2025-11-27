@@ -48,6 +48,10 @@ function resolveDefaultSocial(): SiteSocialLinks {
     twitter: normalizeText(social.twitter),
     instagram: normalizeText(social.instagram),
     weibo: normalizeText(social.weibo),
+    youtube: normalizeText(social.youtube),
+    bilibili: normalizeText(social.bilibili),
+    tiktok: normalizeText(social.tiktok),
+    linkedin: normalizeText(social.linkedin),
   }
 }
 
@@ -75,6 +79,10 @@ function serialize(setting: SiteSetting): SiteSettings {
       twitter: setting.socialTwitter,
       instagram: setting.socialInstagram,
       weibo: setting.socialWeibo,
+      youtube: setting.socialYoutube,
+      bilibili: setting.socialBilibili,
+      tiktok: setting.socialTiktok,
+      linkedin: setting.socialLinkedin,
     },
     updatedAt: setting.updatedAt.toISOString(),
   }
@@ -97,6 +105,10 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       socialTwitter: defaults.social.twitter,
       socialInstagram: defaults.social.instagram,
       socialWeibo: defaults.social.weibo,
+      socialYoutube: defaults.social.youtube,
+      socialBilibili: defaults.social.bilibili,
+      socialTiktok: defaults.social.tiktok,
+      socialLinkedin: defaults.social.linkedin,
     },
   })
   return serialize(created)
@@ -119,6 +131,10 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
       twitter: normalizeText(payload.social.twitter),
       instagram: normalizeText(payload.social.instagram),
       weibo: normalizeText(payload.social.weibo),
+      youtube: normalizeText(payload.social.youtube),
+      bilibili: normalizeText(payload.social.bilibili),
+      tiktok: normalizeText(payload.social.tiktok),
+      linkedin: normalizeText(payload.social.linkedin),
     },
   }
 }
@@ -135,6 +151,10 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
       socialWeibo: validated.social.weibo,
+      socialYoutube: validated.social.youtube,
+      socialBilibili: validated.social.bilibili,
+      socialTiktok: validated.social.tiktok,
+      socialLinkedin: validated.social.linkedin,
     },
     create: {
       id: 1,
@@ -145,6 +165,10 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
       socialWeibo: validated.social.weibo,
+      socialYoutube: validated.social.youtube,
+      socialBilibili: validated.social.bilibili,
+      socialTiktok: validated.social.tiktok,
+      socialLinkedin: validated.social.linkedin,
     },
   })
   return serialize(updated)
@@ -165,6 +189,10 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       socialTwitter: defaults.social.twitter,
       socialInstagram: defaults.social.instagram,
       socialWeibo: defaults.social.weibo,
+      socialYoutube: defaults.social.youtube,
+      socialBilibili: defaults.social.bilibili,
+      socialTiktok: defaults.social.tiktok,
+      socialLinkedin: defaults.social.linkedin,
     },
   })
   return serialize(updated)

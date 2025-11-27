@@ -47,12 +47,8 @@ async function handleTabChange(value: string | number): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default/25 bg-default/90 px-4 py-3 text-sm text-default backdrop-blur">
+  <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default/25 bg-default/90 px-2 py-3 text-sm text-default backdrop-blur">
     <div class="flex items-center gap-3">
-      <div class="flex items-center gap-2 rounded-md bg-default/60 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-muted">
-        <Icon name="mdi:shield-crown-outline" class="h-4 w-4" />
-        <span>{{ t('admin.nav.label') }}</span>
-      </div>
       <UTabs
         :items="navItems"
         :model-value="activeTab"

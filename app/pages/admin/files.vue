@@ -2,6 +2,7 @@
 import type { ImageSizes } from '@nuxt/image'
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
+import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, reactive, ref, watch } from 'vue'
 import { toLocalInputString } from '~/utils/datetime'
 
@@ -115,7 +116,11 @@ const tableColumns = computed(() => [
 ])
 
 function resolvePreviewUrl(file: FileResponse): string {
-  return file.imageUrl.trim()
+  const primary = file.imageUrl.trim()
+  if (primary) {
+    return primary
+  }
+  return file.thumbnailUrl.trim() || file.imageUrl
 }
 
 type ImageAttributes = ImageSizes & {
@@ -255,6 +260,44 @@ const editCaptureTimeLocal = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
+const editPreviewSource = computed<string>(() => {
+  if (!editingFile.value) {
+    return ''
+  }
+  return resolvePreviewUrl(editingFile.value)
+})
+const editThumbhashPreview = computed<{ dataUrl: string, aspectRatio: number } | null>(() => {
+  const thumbhash = editingFile.value?.metadata.thumbhash
+  if (!thumbhash) {
+    return null
+  }
+  try {
+    const bytes = typeof atob === 'function'
+      ? Uint8Array.from(atob(thumbhash), char => char.codePointAt(0) || 0)
+      : new Uint8Array(Buffer.from(thumbhash, 'base64'))
+    const aspectRatio = thumbHashToApproximateAspectRatio(bytes)
+    const fallbackRatio = Number.isFinite(aspectRatio) && aspectRatio > 0 ? aspectRatio : 1
+    return {
+      dataUrl: thumbHashToDataURL(bytes),
+      aspectRatio: fallbackRatio,
+    }
+  }
+  catch (error) {
+    console.warn('Failed to decode thumbhash', error)
+    return null
+  }
+})
+const editModalPreview = computed<ImageAttributes | null>(() => {
+  const source = editPreviewSource.value || editThumbhashPreview.value?.dataUrl
+  if (!source) {
+    return null
+  }
+  return {
+    src: source,
+    width: editingFile.value.width > 0 ? editingFile.value.width : undefined,
+    height: editingFile.value.height > 0 ? editingFile.value.height : undefined,
+  }
+})
 function resetEditForm(): void {
   editForm.title = ''
   editForm.description = ''
@@ -361,6 +404,16 @@ function openEdit(file: FileResponse): void {
   fillEditForm(file)
   editModalOpen.value = true
 }
+function handlePreviewError(event: Event): void {
+  const target = event.target as HTMLImageElement | null
+  if (!target || !editingFile.value) {
+    return
+  }
+  const fallback = editThumbhashPreview.value?.dataUrl ?? resolvePreviewUrl(editingFile.value)
+  if (fallback && target.src !== fallback) {
+    target.src = fallback
+  }
+}
 
 const deletingId = ref<number | null>(null)
 const deleteTarget = ref<FileResponse | null>(null)
@@ -442,17 +495,10 @@ watch(fetchError, (value) => {
 
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p class="flex items-center gap-2 text-sm">
-            <Icon name="mdi:eye-outline" class="h-4 w-4 text-primary" />
-            <span>{{ t('admin.nav.label') }}</span>
-          </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold">
             <Icon name="mdi:view-list-outline" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.files.title') }}</span>
           </h1>
-          <p class="text-sm">
-            {{ t('admin.files.subtitle') }}
-          </p>
         </div>
         <div class="flex items-center gap-2">
           <UButton to="/admin/upload" variant="ghost" color="primary">
@@ -485,10 +531,6 @@ watch(fetchError, (value) => {
       <section class="space-y-3">
         <div class="flex items-center justify-between">
           <div>
-            <p class="flex items-center gap-2 text-sm">
-              <Icon name="mdi:database-outline" class="h-4 w-4 text-primary" />
-              <span>{{ t('admin.files.section.label') }}</span>
-            </p>
             <h2 class="flex items-center gap-2 text-xl font-semibold">
               <Icon name="mdi:table" class="h-5 w-5 text-primary" />
               <span>{{ t('admin.files.section.title') }}</span>
@@ -499,7 +541,7 @@ watch(fetchError, (value) => {
             <span>{{ recordCountText }}</span>
           </div>
         </div>
-        <UCard>
+        <div class="rounded-xl bg-default/80 p-4">
           <UTable
             :columns="tableColumns"
             :data="paginatedFiles"
@@ -600,7 +642,7 @@ watch(fetchError, (value) => {
             </div>
             <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
           </div>
-        </UCard>
+        </div>
       </section>
     </UContainer>
 
@@ -612,17 +654,11 @@ watch(fetchError, (value) => {
     >
       <template #content>
         <div class="flex h-full flex-col bg-default/85 backdrop-blur">
-          <div class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-default/40 bg-default/90 px-5 py-4 backdrop-blur">
+          <div class="sticky top-0 z-10 flex items-start justify-between gap-3 bg-default/90 px-5 py-4 backdrop-blur">
             <div>
-              <p class="text-sm">
-                {{ t('admin.files.editModal.lead') }}
-              </p>
               <h3 class="text-lg font-semibold">
                 {{ editingFile?.title || t('admin.files.editModal.fallbackTitle') }}
               </h3>
-              <p class="text-xs text-muted">
-                {{ t('admin.files.editModal.subtitle') }}
-              </p>
             </div>
             <UButton variant="ghost" color="neutral" @click="closeEdit">
               <span class="flex items-center gap-1.5">
@@ -631,56 +667,85 @@ watch(fetchError, (value) => {
               </span>
             </UButton>
           </div>
-          <div class="relative flex-1 overflow-y-auto px-5 py-4">
-            <UForm :state="editForm" class="space-y-5 pb-16" @submit.prevent="saveEdit">
-              <AdminMetadataForm
-                v-model:form="editForm"
-                v-model:capture-time-local="editCaptureTimeLocal"
-              />
+          <div class="relative flex-1 overflow-y-auto">
+            <UContainer class="px-5 py-4">
+              <UForm :state="editForm" class="space-y-5 pb-16" @submit.prevent="saveEdit">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
+                  <div
+                    v-if="editingFile && editModalPreview"
+                    class="w-full space-y-2 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:flex-shrink-0"
+                  >
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                      {{ t('admin.files.table.headers.preview') }}
+                    </p>
+                    <div
+                      class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60"
+                    >
+                      <img
+                        :key="editingFile.id"
+                        :src="editModalPreview?.src || editPreviewSource"
+                        :srcset="editModalPreview?.srcset"
+                        :sizes="editModalPreview?.srcset ? editModalPreview.sizes : undefined"
+                        :alt="editingFile.title || untitledLabel"
+                        :width="editModalPreview?.width"
+                        :height="editModalPreview?.height"
+                        loading="lazy"
+                        class="h-auto max-h-[70vh] w-auto max-w-full object-contain"
+                        @error="handlePreviewError"
+                      >
+                    </div>
+                  </div>
 
-              <div class="sticky bottom-0 flex justify-end gap-2 border-t border-default/30 bg-default/90 px-1 py-3 backdrop-blur">
-                <UButton variant="ghost" color="neutral" @click="closeEdit">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:arrow-left" class="h-4 w-4" />
-                    <span>{{ t('common.actions.cancel') }}</span>
-                  </span>
-                </UButton>
-                <UButton color="primary" type="submit" :loading="updating">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:content-save-outline" class="h-4 w-4" />
-                    <span>{{ t('common.actions.save') }}</span>
-                  </span>
-                </UButton>
-              </div>
-            </UForm>
+                  <div class="flex-1">
+                    <AdminMetadataForm
+                      v-model:form="editForm"
+                      v-model:capture-time-local="editCaptureTimeLocal"
+                    />
+                  </div>
+                </div>
+
+                <div class="sticky bottom-0 flex justify-end gap-2 bg-default/90 px-1 py-3 backdrop-blur">
+                  <UButton variant="ghost" color="neutral" @click="closeEdit">
+                    <span class="flex items-center gap-1.5">
+                      <Icon name="mdi:arrow-left" class="h-4 w-4" />
+                      <span>{{ t('common.actions.cancel') }}</span>
+                    </span>
+                  </UButton>
+                  <UButton color="primary" type="submit" :loading="updating">
+                    <span class="flex items-center gap-1.5">
+                      <Icon name="mdi:content-save-outline" class="h-4 w-4" />
+                      <span>{{ t('common.actions.save') }}</span>
+                    </span>
+                  </UButton>
+                </div>
+              </UForm>
+            </UContainer>
           </div>
         </div>
       </template>
     </UModal>
     <UModal v-model:open="deleteModalOpen">
       <template #content>
-        <UCard class="w-full max-w-xl">
-          <template #header>
-            <div class="flex items-start justify-between">
-              <div>
-                <p class="text-sm text-error">
-                  {{ t('admin.files.delete.title') }}
-                </p>
-                <h3 class="text-lg font-semibold">
-                  {{ t('admin.files.delete.heading') }}
-                </h3>
-                <p class="text-xs text-muted">
-                  {{ t('admin.files.delete.description') }}
-                </p>
-              </div>
-              <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.close') }}</span>
-                </span>
-              </UButton>
+        <div class="w-full max-w-xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <p class="text-sm text-error">
+                {{ t('admin.files.delete.title') }}
+              </p>
+              <h3 class="text-lg font-semibold">
+                {{ t('admin.files.delete.heading') }}
+              </h3>
+              <p class="text-xs text-muted">
+                {{ t('admin.files.delete.description') }}
+              </p>
             </div>
-          </template>
+            <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
+              <span class="flex items-center gap-1.5">
+                <Icon name="mdi:close" class="h-4 w-4" />
+                <span>{{ t('common.actions.close') }}</span>
+              </span>
+            </UButton>
+          </div>
           <div class="space-y-3">
             <p class="text-sm">
               {{ t('admin.files.delete.titleLabel') }}<span class="font-medium">{{ deleteTarget?.title || untitledLabel }}</span>
@@ -689,23 +754,21 @@ watch(fetchError, (value) => {
               {{ t('admin.files.delete.createdAtLabel') }}{{ deleteTarget ? formatDateTime(deleteTarget.createdAt) : '' }}
             </p>
           </div>
-          <template #footer>
-            <div class="flex justify-end gap-2">
-              <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:arrow-left" class="h-4 w-4" />
-                  <span>{{ t('common.actions.cancel') }}</span>
-                </span>
-              </UButton>
-              <UButton color="error" :loading="deletingId !== null" @click="confirmDelete">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
-                  <span>{{ t('admin.files.delete.confirm') }}</span>
-                </span>
-              </UButton>
-            </div>
-          </template>
-        </UCard>
+          <div class="flex justify-end gap-2">
+            <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
+              <span class="flex items-center gap-1.5">
+                <Icon name="mdi:arrow-left" class="h-4 w-4" />
+                <span>{{ t('common.actions.cancel') }}</span>
+              </span>
+            </UButton>
+            <UButton color="error" :loading="deletingId !== null" @click="confirmDelete">
+              <span class="flex items-center gap-1.5">
+                <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                <span>{{ t('admin.files.delete.confirm') }}</span>
+              </span>
+            </UButton>
+          </div>
+        </div>
       </template>
     </UModal>
   </div>

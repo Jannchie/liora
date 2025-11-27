@@ -748,17 +748,10 @@ onBeforeUnmount(() => {
 
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p class="flex items-center gap-2 text-sm">
-            <Icon name="mdi:cog-outline" class="h-4 w-4 text-primary" />
-            <span>{{ t('admin.nav.label') }}</span>
-          </p>
           <h1 class="flex items-center gap-2 text-3xl font-semibold">
             <Icon name="mdi:database-outline" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.upload.title') }}</span>
           </h1>
-          <p class="text-sm">
-            {{ t('admin.upload.subtitle') }}
-          </p>
         </div>
       </header>
 
@@ -766,17 +759,10 @@ onBeforeUnmount(() => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="flex items-center gap-2 text-sm">
-                <Icon name="mdi:upload-outline" class="h-4 w-4 text-primary" />
-                <span>{{ t('admin.upload.sections.upload.label') }}</span>
-              </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
-                <Icon name="mdi:cursor-default-click-outline" class="h-5 w-5 text-primary" />
-                <span>{{ t('admin.upload.sections.upload.title') }}</span>
+                <Icon name="mdi:upload-outline" class="h-5 w-5 text-primary" />
+                <span>{{ t('admin.upload.sections.upload.label') }}</span>
               </h2>
-              <p class="text-sm">
-                {{ t('admin.upload.sections.upload.description') }}
-              </p>
             </div>
           </template>
           <UFileUpload
@@ -794,10 +780,6 @@ onBeforeUnmount(() => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="flex items-center gap-2 text-sm">
-                <Icon name="mdi:image-search-outline" class="h-4 w-4 text-primary" />
-                <span>{{ t('admin.upload.sections.preview.label') }}</span>
-              </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
                 <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary" />
                 <span>{{ t('admin.upload.sections.preview.title') }}</span>
@@ -831,10 +813,6 @@ onBeforeUnmount(() => {
         <UCard>
           <template #header>
             <div class="space-y-1">
-              <p class="flex items-center gap-2 text-sm">
-                <Icon name="mdi:note-edit-outline" class="h-4 w-4 text-primary" />
-                <span>{{ t('admin.upload.sections.edit.label') }}</span>
-              </p>
               <h2 class="flex items-center gap-2 text-xl font-semibold">
                 <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
                 <span>{{ t('admin.upload.sections.edit.title') }}</span>

@@ -412,8 +412,12 @@ const socialLinks = computed<SocialLink[]>(() => {
   }
 
   appendLink('GitHub', social.github, 'mdi:github')
-  appendLink('X', social.twitter, 'mdi:twitter')
+  appendLink('X', social.twitter, 'fa6-brands:x-twitter')
   appendLink('Instagram', social.instagram, 'mdi:instagram')
+  appendLink('YouTube', social.youtube, 'mdi:youtube')
+  appendLink('TikTok', social.tiktok, 'fa6-brands:tiktok')
+  appendLink('Bilibili', social.bilibili, 'simple-icons:bilibili')
+  appendLink('LinkedIn', social.linkedin, 'mdi:linkedin')
   appendLink('Weibo', social.weibo, 'mdi:sina-weibo')
   return links
 })

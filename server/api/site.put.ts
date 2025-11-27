@@ -13,6 +13,10 @@ function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPaylo
       twitter: typeof body.social?.twitter === 'string' ? body.social.twitter : '',
       instagram: typeof body.social?.instagram === 'string' ? body.social.instagram : '',
       weibo: typeof body.social?.weibo === 'string' ? body.social.weibo : '',
+      youtube: typeof body.social?.youtube === 'string' ? body.social.youtube : '',
+      bilibili: typeof body.social?.bilibili === 'string' ? body.social.bilibili : '',
+      tiktok: typeof body.social?.tiktok === 'string' ? body.social.tiktok : '',
+      linkedin: typeof body.social?.linkedin === 'string' ? body.social.linkedin : '',
     },
   }
 }

@@ -146,12 +146,9 @@
         "geocodeAppliedTitle": "已填充坐标"
       },
       "title": "作品上传",
-      "subtitle": "在此完成元数据填写与校验，主页仅展示瀑布流。",
       "sections": {
         "upload": {
           "label": "上传照片",
-          "title": "拖拽或点击",
-          "description": "上传前界面保持简洁，仅展示上传入口。",
           "dropHint": "拖拽照片到此或点击选择文件",
           "supported": "支持 JPG/PNG 等常见格式",
           "pasteHint": "也可以直接粘贴剪贴板中的图片"
@@ -365,14 +362,12 @@
         "classifySummary": "已更新 {updated} / {total} 条"
       },
       "title": "数据列表",
-      "subtitle": "查看已有作品记录，支持编辑和删除。",
       "actions": {
         "toUpload": "去上传",
         "reclassify": "补全分类",
         "refresh": "刷新数据"
       },
       "section": {
-        "label": "作品列表",
         "title": "数据总览"
       },
       "table": {
@@ -389,9 +384,7 @@
         "empty": "暂无数据，先录入一条。"
       },
       "editModal": {
-        "lead": "编辑",
-        "fallbackTitle": "调整元数据",
-        "subtitle": "更新尺寸、拍摄信息或备注。"
+        "fallbackTitle": "调整元数据"
       },
       "form": {
         "kind": {
@@ -508,39 +501,35 @@
       },
       "badge": "站点信息",
       "title": "编辑站点",
-      "subtitle": "配置首页展示的站点名称、描述以及社交链接。",
       "lastUpdated": {
         "label": "上次更新：",
         "none": "尚无记录"
       },
       "sections": {
         "basic": {
-          "label": "基本信息",
           "title": "站点标题与描述"
         },
         "social": {
-          "label": "社交链接",
-          "title": "可选的社交平台",
-          "helper": "留空则不会展示"
+          "title": "可选的社交平台"
         }
       },
       "fields": {
         "name": {
           "label": "站点名称",
           "placeholder": "例如：Liora Gallery",
-          "help": "用于首页信息卡与浏览器标题，保持简短清晰。"
+          "help": "用于信息卡和标题栏。"
         },
         "description": {
           "label": "站点描述",
           "placeholder": "用于首页展示的简介，可留空",
-          "help": "简介会展示在瀑布流信息卡，建议 1-2 句说明站点定位，可留空。"
+          "help": "展示在信息卡，简短即可。"
         },
         "icon": {
           "label": "站点图标",
           "placeholder": "https://example.com/favicon.ico",
-          "help": "支持 https 链接、/ 开头的路径或以 data:image 开头的数据 URI，不填则使用默认图标。",
+          "help": "支持 https 链接、/ 开头路径或 data:image。",
           "upload": "上传图标",
-          "uploadHelp": "支持 PNG/WebP/ICO/SVG，大小不超过 1MB。上传后会自动替换当前图标。",
+          "uploadHelp": "支持 PNG/WebP/ICO/SVG，≤1MB，上传后替换现有图标。",
           "previewLabel": "当前图标",
           "previewHelp": "用于浏览器标签页与收藏夹展示。"
         },
@@ -549,17 +538,33 @@
           "help": "需要完整链接（含 https://），留空则不显示。"
         },
         "twitter": {
-          "placeholder": "https://twitter.com/username",
-          "help": "可填写 X 或 Twitter 链接，留空即隐藏。"
+          "placeholder": "https://x.com/username",
+          "help": "X 或 Twitter 链接，留空不显示。"
         },
         "instagram": {
           "placeholder": "https://instagram.com/username",
-          "help": "支持任何公开主页链接，未填则不展示。"
+          "help": "公开主页链接，未填不展示。"
+        },
+        "youtube": {
+          "placeholder": "https://youtube.com/\\u0040username",
+          "help": "填写频道或主页链接，留空则不显示。"
+        },
+        "bilibili": {
+          "placeholder": "https://space.bilibili.com/123456",
+          "help": "可访问的 B 站空间链接，留空隐藏。"
+        },
+        "tiktok": {
+          "placeholder": "https://www.tiktok.com/\\u0040username",
+          "help": "TikTok 个人页链接，留空不展示。"
+        },
+        "linkedin": {
+          "placeholder": "https://www.linkedin.com/in/username",
+          "help": "LinkedIn 个人或主页链接，留空不显示。"
         },
         "weibo": {
           "label": "微博",
           "placeholder": "https://weibo.com/username",
-          "help": "需要可访问的完整链接，留空则隐藏。"
+          "help": "可访问的完整链接，留空隐藏。"
         }
       },
       "actions": {

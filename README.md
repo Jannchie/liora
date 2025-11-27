@@ -87,4 +87,8 @@ NUXT_PUBLIC_SOCIAL_GITHUB=https://github.com/<username>
 NUXT_PUBLIC_SOCIAL_TWITTER=https://x.com/<username>
 NUXT_PUBLIC_SOCIAL_INSTAGRAM=https://instagram.com/<username>
 NUXT_PUBLIC_SOCIAL_WEIBO=https://weibo.com/<username>
+NUXT_PUBLIC_SOCIAL_YOUTUBE=https://youtube.com/@<username>
+NUXT_PUBLIC_SOCIAL_BILIBILI=https://space.bilibili.com/<id>
+NUXT_PUBLIC_SOCIAL_TIKTOK=https://www.tiktok.com/@<username>
+NUXT_PUBLIC_SOCIAL_LINKEDIN=https://www.linkedin.com/in/<username>
 ```
