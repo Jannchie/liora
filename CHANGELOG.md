@@ -1,3 +1,19 @@
+## v0.1.2
+
+[v0.1.1...v0.1.2](https://github.com/Jannchie/liora/compare/v0.1.1...v0.1.2)
+
+### :adhesive_bandage: Fixes
+
+- **build**: alias @vueuse/core to local shim for compatibility - By [Jannchie](mailto:jannchie@gmail.com) in [d2f55d3](https://github.com/Jannchie/liora/commit/d2f55d3)
+
+### :art: Refactors
+
+- **admin**: use computed models for forms && add iconify mdi dependency - By [Jannchie](mailto:jannchie@gmail.com) in [6eb672b](https://github.com/Jannchie/liora/commit/6eb672b)
+
+### :lipstick: Styles
+
+- **admin-login**: improve admin login layout and accessibility - By [Jannchie](mailto:jannchie@gmail.com) in [43ed48b](https://github.com/Jannchie/liora/commit/43ed48b)
+
 ## v0.1.1
 
 [v0.1.0...v0.1.1](https://github.com/Jannchie/liora/compare/v0.1.0...v0.1.1)
