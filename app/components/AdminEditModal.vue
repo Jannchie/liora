@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
-import type { FileResponse, ImageAttrs } from '~/types/file'
-import type { ResolvedFile } from '~/types/gallery'
+import type { FileResponse } from '~/types/file'
+import type { ImageAttrs, ResolvedFile } from '~/types/gallery'
 import { thumbHashToDataURL } from 'thumbhash'
 import { computed, ref } from 'vue'
 
@@ -54,6 +54,8 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
   }
 
   const src = (props.file.thumbnailUrl || props.file.imageUrl || '').trim()
+  const width = props.file.width || undefined
+  const height = props.file.height || undefined
   if (!src) {
     const thumbhash = props.file.metadata.thumbhash
     if (thumbhash) {
@@ -61,8 +63,10 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
       if (bytes) {
         return {
           src: thumbHashToDataURL(bytes),
-          width: props.file.width || undefined,
-          height: props.file.height || undefined,
+          width,
+          height,
+          srcset: '',
+          sizes: undefined,
         }
       }
     }
@@ -70,8 +74,10 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
   }
   return {
     src,
-    width: props.file.width || undefined,
-    height: props.file.height || undefined,
+    width,
+    height,
+    srcset: '',
+    sizes: undefined,
   }
 })
 
@@ -79,15 +85,18 @@ const classifySource = computed(() => props.classifySource ?? { file: null, imag
 const replacePreviewUrl = ref<string>('')
 const replaceInput = ref<HTMLInputElement | null>(null)
 const replaceFileName = computed(() => replaceFile.value?.name ?? '')
-const effectivePreviewAttrs = computed(() => {
+const effectivePreviewAttrs = computed<ImageAttrs | null>(() => {
+  const baseAttrs = previewAttrs.value
   if (replacePreviewUrl.value) {
     return {
       src: replacePreviewUrl.value,
-      width: form.value.width || previewAttrs.value?.width,
-      height: form.value.height || previewAttrs.value?.height,
+      width: form.value.width ?? baseAttrs?.width,
+      height: form.value.height ?? baseAttrs?.height,
+      srcset: baseAttrs?.srcset ?? '',
+      sizes: baseAttrs?.sizes,
     }
   }
-  return previewAttrs.value
+  return baseAttrs
 })
 
 function handleSubmit(): void {
@@ -172,7 +181,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
               <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
                 <div
                   v-if="file && effectivePreviewAttrs"
-                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:flex-shrink-0"
+                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:shrink-0"
                 >
                   <div class="flex items-center justify-between">
                     <p class="text-xs font-semibold uppercase tracking-wide text-muted">

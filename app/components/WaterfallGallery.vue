@@ -17,9 +17,9 @@ import type { SiteSettings } from '~/types/site'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
+import { useFileEditApi } from '~/composables/useFileEditApi'
 import { toLocalInputString } from '~/utils/datetime'
 import { resolveFileTitle } from '~/utils/file'
-import { useFileEditApi } from '~/composables/useFileEditApi'
 
 const props = withDefaults(
   defineProps<{

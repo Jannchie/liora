@@ -26,6 +26,63 @@ docker run --rm -p 3000:3000 --env-file .env liora
 ```
 
 The container listens on `0.0.0.0:3000` by default (`NUXT_HOST`/`NUXT_PORT`/`PORT` can be overridden).
+At runtime the container runs `pnpm exec prisma migrate deploy` before starting the Nuxt server, so the database schema stays up to date.
+
+### Docker with a mounted SQLite volume
+
+Use an external volume to persist the SQLite database (`DATABASE_URL=file:/data/dev.db` in the examples below).
+
+1) Build the production image:
+
+```bash
+docker build -t liora .
+```
+
+2) Prepare a host directory for the database (e.g., `/srv/liora-db`). You can rely on the container’s startup hook to apply migrations automatically, or run them once ahead of time with the build-stage image (includes Prisma and pnpm):
+
+```bash
+docker build --target build -t liora-build .
+docker run --rm \
+  -e DATABASE_URL=file:/data/dev.db \
+  -v /srv/liora-db:/data \
+  liora-build pnpm exec prisma migrate deploy
+```
+
+3) Start the app container, mounting the same volume and passing required env vars:
+
+```bash
+docker run -d --name liora \
+  -p 3000:3000 \
+  -e DATABASE_URL=file:/data/dev.db \
+  -e S3_ENDPOINT=... \
+  -e S3_BUCKET=... \
+  -e S3_ACCESS_KEY_ID=... \
+  -e S3_SECRET_ACCESS_KEY=... \
+  -v /srv/liora-db:/data \
+  liora
+```
+
+`docker-compose.yml` example:
+
+```yaml
+services:
+  liora:
+    build: .
+    image: liora:latest
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: "file:/data/dev.db"
+      S3_ENDPOINT: ""
+      S3_BUCKET: ""
+      S3_ACCESS_KEY_ID: ""
+      S3_SECRET_ACCESS_KEY: ""
+    volumes:
+      - /srv/liora-db:/data
+    restart: unless-stopped
+```
+
+Whenever you add new migrations, rerun step 2 against the same volume and restart the app container.
 
 ## Configuration
 

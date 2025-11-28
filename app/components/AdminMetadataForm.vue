@@ -198,7 +198,7 @@ watch(
                   <UButton
                     variant="soft"
                     color="primary"
-                    class="w-full whitespace-nowrap sm:w-auto sm:flex-shrink-0"
+                    class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
                     :disabled="!canAutoClassify"
                     :loading="classifyingGenre"
                     @click="autoClassifyGenre"
