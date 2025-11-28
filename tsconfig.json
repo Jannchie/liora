@@ -1,4 +1,12 @@
 {
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@vueuse/core": [
+        "./shims/vueuse-core"
+      ]
+    }
+  },
   "references": [
     {
       "path": "./.nuxt/tsconfig.app.json"
@@ -13,14 +21,6 @@
       "path": "./.nuxt/tsconfig.node.json"
     }
   ],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@vueuse/core": [
-        "./shims/vueuse-core"
-      ]
-    }
-  },
   // https://nuxt.com/docs/guide/concepts/typescript
   "files": []
 }

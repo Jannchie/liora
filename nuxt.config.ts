@@ -145,6 +145,22 @@ export default defineNuxtConfig({
     domains: resolveDomains(),
     format: ['webp', 'avif', 'jpeg'],
   },
+  vite: {
+    resolve: {
+      alias: [
+        {
+          find: /^@vueuse\/core(?:\/index\.js)?$/,
+          replacement: fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
+        },
+      ],
+    },
+  },
+  nitro: {
+    alias: {
+      '@vueuse/core': fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
+      '@vueuse/core/index.js': fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
+    },
+  },
   eslint: {
     config: {
       standalone: false,
