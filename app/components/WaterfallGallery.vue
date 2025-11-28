@@ -55,36 +55,6 @@ function getInitialColumns(): number {
   return 3
 }
 
-function resolveHost(value: string | null | undefined): string | null {
-  const normalized = value?.trim()
-  if (!normalized) {
-    return null
-  }
-  try {
-    const base = globalThis.window?.location?.origin ?? 'http://localhost'
-    const parsed = new URL(normalized, base)
-    return parsed.host || null
-  }
-  catch {
-    return null
-  }
-}
-
-function syncImageDomains(): void {
-  const target = image?.options?.domains
-  if (!Array.isArray(target)) {
-    return
-  }
-  const domains = new Set<string>(target)
-  for (const file of filesWithOverrides.value) {
-    const host = resolveHost(file.thumbnailUrl || file.imageUrl)
-    if (host) {
-      domains.add(host)
-    }
-  }
-  image.options.domains = [...domains]
-}
-
 const galleryRef = ref<HTMLElement | null>(null)
 const columns = ref<number>(getInitialColumns())
 const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
@@ -133,7 +103,6 @@ const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 const fileOverrides = ref<Record<number, FileResponse>>({})
 const isAdmin = computed(() => props.isAuthenticated ?? false)
 const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
-watch(filesWithOverrides, () => syncImageDomains(), { immediate: true, deep: true })
 
 interface ThumbhashInfo {
   dataUrl: string
