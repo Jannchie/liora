@@ -33,5 +33,8 @@ COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/.output ./.output
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 EXPOSE 3000
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node .output/server/index.mjs"]
