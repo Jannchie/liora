@@ -1445,7 +1445,7 @@ function handleOverlayPointerDown(event: PointerEvent): void {
     const [first, second] = [...overlayPointers.value.values()]
     const distance = Math.hypot(second.x - first.x, second.y - first.y)
     overlayPinchBase.value = {
-      distance: distance > 0 ? distance : 0,
+      distance: Math.max(distance, 0),
       zoom: overlayZoom.value,
     }
     overlayDragState.value = {
