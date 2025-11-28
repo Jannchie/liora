@@ -239,6 +239,51 @@ function toTimestamp(value: string | undefined): number | null {
   return Number.isNaN(parsed) ? null : parsed
 }
 
+function resolveUrlOrigin(value: string): string | null {
+  try {
+    const windowRef = globalThis.window
+    const base = windowRef ? windowRef.location.href : undefined
+    return new URL(value, base).origin
+  }
+  catch {
+    return null
+  }
+}
+
+function isCorsFetchableUrl(value: string | null | undefined): boolean {
+  if (value === null || value === undefined) {
+    return false
+  }
+  const normalized = value.trim()
+  if (normalized.length === 0 || normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return false
+  }
+  const windowRef = globalThis.window
+  if (!windowRef) {
+    return false
+  }
+  const origin = resolveUrlOrigin(normalized)
+  return origin !== null && origin === windowRef.location.origin
+}
+
+function resolveCorsSafeUrl(value: string | null | undefined): string | null {
+  const normalized = value?.trim()
+  if (!normalized) {
+    return null
+  }
+  if (normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return normalized
+  }
+  if (isCorsFetchableUrl(normalized)) {
+    return normalized
+  }
+  const proxied = image.getImage(normalized, { modifiers: {} })
+  if (proxied?.url) {
+    return proxied.url
+  }
+  return normalized
+}
+
 function resolveSortTimestamp(file: FileResponse): number {
   const captureTimestamp = toTimestamp(file.metadata.captureTime)
   const createdTimestamp = toTimestamp(file.createdAt) ?? 0
@@ -1442,7 +1487,12 @@ function handleOverlayPointerDown(event: PointerEvent): void {
 
   if (overlayPointers.value.size >= 2) {
     event.preventDefault()
-    const [first, second] = [...overlayPointers.value.values()]
+    const points = [...overlayPointers.value.values()]
+    const first = points[0]
+    const second = points[1]
+    if (!first || !second) {
+      return
+    }
     const distance = Math.hypot(second.x - first.x, second.y - first.y)
     overlayPinchBase.value = {
       distance: Math.max(distance, 0),
@@ -1486,7 +1536,12 @@ function handleOverlayPointerMove(event: PointerEvent): void {
   }
 
   if (overlayPointers.value.size >= 2 && overlayPinchBase.value) {
-    const [first, second] = [...overlayPointers.value.values()]
+    const points = [...overlayPointers.value.values()]
+    const first = points[0]
+    const second = points[1]
+    if (!first || !second) {
+      return
+    }
     const distance = Math.hypot(second.x - first.x, second.y - first.y)
     if (distance > 0 && overlayPinchBase.value.distance > 0) {
       const centerX = (first.x + second.x) / 2
@@ -1561,7 +1616,8 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   resetOverlayDownload()
   overlayImageLoader.value = null
   const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
-  const fullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
+  const rawFullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
+  const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
   const firstAvailable = [
     immediateSrc,
     file.thumbnailUrl,
@@ -1592,7 +1648,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     if (!fullImageSrc) {
       return
     }
-    if (typeof fetch === 'undefined') {
+    if (typeof fetch === 'undefined' || !isCorsFetchableUrl(fullImageSrc)) {
       overlayImageSrc.value = fullImageSrc
       return
     }
@@ -1648,7 +1704,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         return
       }
       overlayDownloadState.value = { status: 'error', loaded: 0, total: null }
-      overlayImageSrc.value = fullImageSrc
+      overlayImageSrc.value = rawFullImageSrc || fullImageSrc
     }
     finally {
       overlayImageAbortController.value = null
@@ -1662,7 +1718,6 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
 
   const previewLoader = new Image()
   overlayImageLoader.value = previewLoader
-  previewLoader.crossOrigin = 'anonymous'
   previewLoader.decoding = 'async'
   const handlePreviewLoad = async (): Promise<void> => {
     if (overlayImageLoader.value !== previewLoader) {
@@ -1772,6 +1827,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         :location="locationPoint"
         :genre-label="genreBadgeLabel"
         :can-edit="isAdmin"
+        :viewer-touch-action="viewerTouchAction"
         @close="handleOverlayClose"
         @edit="handleOverlayEdit"
         @wheel="handleOverlayWheel"

@@ -56,9 +56,9 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   runtimeConfig: {
     admin: {
-      username: process.env.ADMIN_USERNAME ?? process.env.NUXT_ADMIN_USERNAME ?? '',
-      password: process.env.ADMIN_PASSWORD ?? process.env.NUXT_ADMIN_PASSWORD ?? '',
-      sessionSecret: process.env.ADMIN_SESSION_SECRET ?? process.env.NUXT_ADMIN_SESSION_SECRET ?? '',
+      username: process.env.ADMIN_USERNAME ?? '',
+      password: process.env.ADMIN_PASSWORD ?? '',
+      sessionSecret: process.env.ADMIN_SESSION_SECRET ?? '',
     },
     ai: {
       openaiApiKey: process.env.OPENAI_API_KEY ?? '',

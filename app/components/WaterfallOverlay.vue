@@ -104,7 +104,6 @@ onBeforeUnmount(() => {
             :src="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
             :srcset="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.srcset : undefined"
             :sizes="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.sizes : undefined"
-            crossorigin="anonymous"
             :width="file.width"
             :height="file.height"
             :style="overlayImageTransformStyle"

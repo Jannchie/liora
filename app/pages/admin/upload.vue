@@ -836,8 +836,8 @@ onBeforeUnmount(() => {
                 </p>
               </div>
             </div>
-            <div class="hidden flex-shrink-0 items-center gap-2 sm:flex">
-              <UButton variant="soft" color="gray" type="button" @click="clearSelectedFile">
+            <div class="hidden shrink-0 items-center gap-2 sm:flex">
+              <UButton variant="soft" color="neutral" type="button" @click="clearSelectedFile">
                 <span class="flex items-center gap-1.5">
                   <Icon name="mdi:close" class="h-4 w-4" />
                   <span>{{ t('common.actions.cancel') }}</span>
@@ -862,7 +862,7 @@ onBeforeUnmount(() => {
             </span>
           </div>
           <div class="flex flex-col gap-2 sm:hidden">
-            <UButton variant="soft" color="gray" type="button" @click="clearSelectedFile">
+            <UButton variant="soft" color="neutral" type="button" @click="clearSelectedFile">
               <span class="flex items-center justify-center gap-1.5">
                 <Icon name="mdi:close" class="h-4 w-4" />
                 <span>{{ t('common.actions.cancel') }}</span>
@@ -889,7 +889,7 @@ onBeforeUnmount(() => {
                     {{ t('admin.upload.sections.preview.alt') }}
                   </p>
                 </div>
-                <UButton variant="ghost" color="gray" type="button" @click="openFileDialog()">
+                <UButton variant="ghost" color="neutral" type="button" @click="openFileDialog()">
                   <span class="flex items-center gap-1.5">
                     <Icon name="mdi:camera-retake-outline" class="h-4 w-4" />
                     <span>{{ t('common.actions.changeImage') }}</span>
@@ -955,7 +955,7 @@ onBeforeUnmount(() => {
               <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
                 <UButton
                   variant="soft"
-                  color="gray"
+                  color="neutral"
                   type="button"
                   class="w-full sm:w-auto"
                   @click="clearSelectedFile"

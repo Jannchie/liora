@@ -84,13 +84,13 @@ services:
     build: .
     image: liora:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
-      DATABASE_URL: "file:/data/data.db"
-      S3_ENDPOINT: ""
-      S3_BUCKET: ""
-      S3_ACCESS_KEY_ID: ""
-      S3_SECRET_ACCESS_KEY: ""
+      DATABASE_URL: 'file:/data/data.db'
+      S3_ENDPOINT: ''
+      S3_BUCKET: ''
+      S3_ACCESS_KEY_ID: ''
+      S3_SECRET_ACCESS_KEY: ''
     volumes:
       - /srv/liora-db:/data
     restart: unless-stopped
