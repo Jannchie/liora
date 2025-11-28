@@ -4,6 +4,7 @@ import { createError, getRouterParam, readBody } from 'h3'
 import { requireAdmin } from '../../utils/auth'
 import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
 import { prisma } from '../../utils/prisma'
+import replaceImageHandler from './[id]/image.put'
 
 type UpdateBody = Partial<FilePayload>
 
@@ -58,7 +59,15 @@ function normalizeCharacters(value: string | string[] | undefined, fallback: str
     .filter(item => item.length > 0)
 }
 
+function isMultipartRequest(event: H3Event): boolean {
+  const contentType = event.node.req.headers['content-type'] ?? ''
+  return contentType.includes('multipart/form-data')
+}
+
 export default defineEventHandler(async (event): Promise<FileResponse> => {
+  if (isMultipartRequest(event)) {
+    return replaceImageHandler(event)
+  }
   requireAdmin(event)
   const id = parseId(event)
   const body = await readBody<UpdateBody>(event)

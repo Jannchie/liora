@@ -3,7 +3,7 @@ import type { MediaFormState } from '~/types/admin'
 import type { FileResponse, ImageAttrs } from '~/types/file'
 import type { ResolvedFile } from '~/types/gallery'
 import { thumbHashToDataURL } from 'thumbhash'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   file: FileResponse | ResolvedFile | null
@@ -22,8 +22,10 @@ const emit = defineEmits<{
 const open = defineModel<boolean>('open', { required: true })
 const form = defineModel<MediaFormState>('form', { required: true })
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
+const replaceFile = defineModel<File | null>('replaceFile', { default: null })
 
 const { t } = useI18n()
+const toast = useToast()
 
 function decodeThumbhash(value: string): Uint8Array | null {
   try {
@@ -74,6 +76,19 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
 })
 
 const classifySource = computed(() => props.classifySource ?? { file: null, imageUrl: null })
+const replacePreviewUrl = ref<string>('')
+const replaceInput = ref<HTMLInputElement | null>(null)
+const replaceFileName = computed(() => replaceFile.value?.name ?? '')
+const effectivePreviewAttrs = computed(() => {
+  if (replacePreviewUrl.value) {
+    return {
+      src: replacePreviewUrl.value,
+      width: form.value.width || previewAttrs.value?.width,
+      height: form.value.height || previewAttrs.value?.height,
+    }
+  }
+  return previewAttrs.value
+})
 
 function handleSubmit(): void {
   emit('submit')
@@ -81,7 +96,48 @@ function handleSubmit(): void {
 
 function handleClose(): void {
   open.value = false
+  clearReplaceSelection()
   emit('close')
+}
+
+function clearReplaceSelection(): void {
+  if (replacePreviewUrl.value) {
+    URL.revokeObjectURL(replacePreviewUrl.value)
+  }
+  replacePreviewUrl.value = ''
+  replaceFile.value = null
+}
+
+async function detectReplaceSize(file: File): Promise<void> {
+  const objectUrl = URL.createObjectURL(file)
+  replacePreviewUrl.value = objectUrl
+  try {
+    const size = await new Promise<{ width: number, height: number }>((resolve, reject) => {
+      const img = new Image()
+      img.addEventListener('load', () => resolve({ width: img.naturalWidth, height: img.naturalHeight }))
+      img.addEventListener('error', () => reject(new Error(t('admin.upload.toast.sizeReadError'))))
+      img.src = objectUrl
+    })
+    form.value.width = size.width
+    form.value.height = size.height
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : t('admin.upload.toast.sizeFailedFallback')
+    toast.add({ title: t('admin.upload.toast.sizeFailed'), description: message, color: 'error' })
+    clearReplaceSelection()
+  }
+}
+
+async function handleReplaceChange(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement | null
+  const file = target?.files?.[0] ?? null
+  if (!file) {
+    clearReplaceSelection()
+    return
+  }
+  clearReplaceSelection()
+  replaceFile.value = file
+  await detectReplaceSize(file)
 }
 </script>
 
@@ -115,25 +171,56 @@ function handleClose(): void {
             <UForm :state="form" class="space-y-5 pb-16" @submit.prevent="handleSubmit">
               <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
                 <div
-                  v-if="file && previewAttrs"
-                  class="w-full space-y-2 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:flex-shrink-0"
+                  v-if="file && effectivePreviewAttrs"
+                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:flex-shrink-0"
                 >
-                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                    {{ t('admin.files.table.headers.preview') }}
-                  </p>
+                  <div class="flex items-center justify-between">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                      {{ t('admin.files.table.headers.preview') }}
+                    </p>
+                    <div class="flex items-center gap-2">
+                      <UButton color="primary" variant="soft" size="sm" @click="replaceInput?.click()">
+                        <span class="flex items-center gap-1.5">
+                          <Icon name="mdi:camera-retake-outline" class="h-4 w-4" />
+                          <span>{{ t('common.actions.changeImage') }}</span>
+                        </span>
+                      </UButton>
+                      <UButton v-if="replaceFile" variant="ghost" color="neutral" size="sm" @click="clearReplaceSelection">
+                        <Icon name="mdi:close" class="h-4 w-4" />
+                      </UButton>
+                    </div>
+                  </div>
                   <div class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60">
                     <img
-                      :key="file.id"
-                      :src="previewAttrs.src || file.imageUrl"
-                      :srcset="previewAttrs.srcset"
-                      :sizes="previewAttrs.srcset ? previewAttrs.sizes : undefined"
+                      :key="replaceFile?.name || file.id"
+                      :src="effectivePreviewAttrs.src || file.imageUrl"
+                      :srcset="effectivePreviewAttrs.srcset"
+                      :sizes="effectivePreviewAttrs.srcset ? effectivePreviewAttrs.sizes : undefined"
                       :alt="file.title || t('common.labels.untitled')"
-                      :width="previewAttrs.width || file.width"
-                      :height="previewAttrs.height || file.height"
+                      :width="effectivePreviewAttrs.width || file.width"
+                      :height="effectivePreviewAttrs.height || file.height"
                       loading="lazy"
                       class="h-auto max-h-[70vh] w-auto max-w-full object-contain"
                     >
                   </div>
+                  <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
+                    <span class="font-semibold text-highlighted">
+                      {{ replaceFileName || file.originalName || file.title || t('common.labels.untitled') }}
+                    </span>
+                    <span v-if="replaceFile" class="rounded-full bg-default/70 px-2 py-0.5">
+                      {{ (replaceFile.size / 1024 / 1024).toFixed(2) }} MB
+                    </span>
+                    <span v-if="form.width && form.height" class="rounded-full bg-default/70 px-2 py-0.5">
+                      {{ form.width }} × {{ form.height }}
+                    </span>
+                  </div>
+                  <input
+                    ref="replaceInput"
+                    type="file"
+                    accept="image/*"
+                    class="hidden"
+                    @change="handleReplaceChange"
+                  >
                 </div>
 
                 <div class="flex-1">

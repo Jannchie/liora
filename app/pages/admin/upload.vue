@@ -21,15 +21,12 @@ const toastMessages = computed(() => ({
   sizeFailedFallback: t('admin.upload.toast.sizeFailedFallback'),
   exifFailed: t('admin.upload.toast.exifFailed'),
   exifFailedFallback: t('admin.upload.toast.exifFailedFallback'),
-  saveSuccessTitle: t('admin.upload.toast.saveSuccessTitle'),
-  saveSuccessDescription: t('admin.upload.toast.saveSuccessDescription'),
   saveFailedTitle: t('admin.upload.toast.saveFailedTitle'),
   saveFailedFallback: t('admin.upload.toast.saveFailedFallback'),
   geocodeMissingQuery: t('admin.upload.toast.geocodeMissingQuery'),
   geocodeFailedTitle: t('admin.upload.toast.geocodeFailedTitle'),
   geocodeFailedFallback: t('admin.upload.toast.geocodeFailedFallback'),
   geocodeNoResult: t('admin.upload.toast.geocodeNoResult'),
-  geocodeAppliedTitle: t('admin.upload.toast.geocodeAppliedTitle'),
 }))
 
 useSeoMeta({
@@ -85,6 +82,16 @@ const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
+const captureTimeDisplay = computed(() => {
+  if (!captureTimeLocal.value) {
+    return ''
+  }
+  const parsed = new Date(captureTimeLocal.value)
+  if (Number.isNaN(parsed.getTime())) {
+    return ''
+  }
+  return parsed.toLocaleString()
+})
 let pasteListener: ((event: ClipboardEvent) => void) | null = null
 const {
   exposureProgramOptions,
@@ -93,6 +100,7 @@ const {
   whiteBalanceOptions,
   flashOptions,
 } = useExposureOptions()
+const selectedFileName = computed(() => selectedFile.value?.name ?? t('common.labels.untitled'))
 let activeMetadataToken = 0
 
 function normalizeToOption(
@@ -672,6 +680,32 @@ onMounted(() => {
   target.addEventListener('paste', pasteListener)
 })
 
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) {
+    return `${bytes} B`
+  }
+  const kb = bytes / 1024
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB`
+  }
+  const mb = kb / 1024
+  return `${mb.toFixed(1)} MB`
+}
+
+const previewChips = computed(() => {
+  const chips: { icon: string, text: string }[] = []
+  if (form.width > 0 && form.height > 0) {
+    chips.push({ icon: 'mdi:aspect-ratio', text: `${form.width} × ${form.height}` })
+  }
+  if (captureTimeDisplay.value) {
+    chips.push({ icon: 'mdi:calendar-clock', text: captureTimeDisplay.value })
+  }
+  if (selectedFile.value) {
+    chips.push({ icon: 'mdi:file-image-outline', text: formatFileSize(selectedFile.value.size) })
+  }
+  return chips
+})
+
 async function submit(): Promise<void> {
   if (!selectedFile.value) {
     toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
@@ -720,7 +754,6 @@ async function submit(): Promise<void> {
       method: 'POST',
       body: formData,
     })
-    toast.add({ title: toastMessages.value.saveSuccessTitle, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
     clearSelectedFile()
   }
   catch (error) {
@@ -776,65 +809,167 @@ onBeforeUnmount(() => {
         </UCard>
       </div>
 
-      <div v-if="selectedFile" class="grid gap-6 xl:grid-cols-[420px,1fr]">
-        <UCard>
-          <template #header>
-            <div class="space-y-1">
-              <h2 class="flex items-center gap-2 text-xl font-semibold">
-                <Icon name="mdi:image-multiple-outline" class="h-5 w-5 text-primary" />
-                <span>{{ t('admin.upload.sections.preview.title') }}</span>
-              </h2>
-            </div>
-          </template>
-          <div class="space-y-4">
-            <div class="space-y-3">
-              <div
-                class="flex w-full cursor-pointer items-center justify-center rounded-lg bg-black/5 outline-none ring-primary/40 focus-visible:ring-2"
-                :style="{ aspectRatio: aspectRatioStyle, maxHeight: `${previewMaxHeight}px` }"
-                role="button"
-                tabindex="0"
-                :aria-label="t('common.actions.changeImage')"
-                @click="openFileDialog()"
-                @keydown.enter.prevent="openFileDialog()"
-                @keydown.space.prevent="openFileDialog()"
-              >
-                <img
-                  v-if="previewUrl"
-                  :src="previewUrl"
-                  :alt="t('admin.upload.sections.preview.alt')"
-                  class="max-h-full max-w-full object-contain"
-                  :style="{ maxHeight: `${previewMaxHeight}px` }"
-                >
+      <UForm
+        v-if="selectedFile"
+        :state="form"
+        class="space-y-4"
+        @submit.prevent="submit"
+      >
+        <div class="space-y-3 rounded-2xl border border-default/50 bg-default/60 p-4 shadow-sm">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex items-center gap-3">
+              <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/10">
+                <Icon name="mdi:database-edit-outline" class="h-5 w-5" />
+              </div>
+              <div class="space-y-0.5">
+                <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                  {{ t('admin.upload.sections.edit.title') }}
+                </p>
+                <p class="text-base font-semibold text-highlighted">
+                  {{ selectedFileName }}
+                </p>
               </div>
             </div>
-          </div>
-        </UCard>
-
-        <UCard>
-          <template #header>
-            <div class="space-y-1">
-              <h2 class="flex items-center gap-2 text-xl font-semibold">
-                <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
-                <span>{{ t('admin.upload.sections.edit.title') }}</span>
-              </h2>
+            <div class="hidden flex-shrink-0 items-center gap-2 sm:flex">
+              <UButton variant="soft" color="gray" type="button" @click="clearSelectedFile">
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:close" class="h-4 w-4" />
+                  <span>{{ t('common.actions.cancel') }}</span>
+                </span>
+              </UButton>
+              <UButton color="primary" type="submit" :loading="submitting">
+                <span class="flex items-center gap-1.5">
+                  <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                  <span>{{ t('admin.upload.actions.save') }}</span>
+                </span>
+              </UButton>
             </div>
-          </template>
-          <UForm :state="form" class="space-y-6" @submit.prevent="submit">
-            <AdminMetadataForm
-              v-model:form="form"
-              v-model:capture-time-local="captureTimeLocal"
-              :classify-source="{ file: selectedFile }"
-            />
-
-            <UButton color="primary" class="w-full" type="submit" :loading="submitting">
-              <span class="flex w-full items-center justify-center gap-2">
+          </div>
+          <div v-if="previewChips.length > 0" class="flex flex-wrap gap-2">
+            <span
+              v-for="chip in previewChips"
+              :key="chip.text"
+              class="inline-flex items-center gap-2 rounded-full bg-elevated/80 px-3 py-1 text-xs font-medium text-highlighted ring-1 ring-default/50"
+            >
+              <Icon :name="chip.icon" class="h-4 w-4 text-primary" />
+              <span>{{ chip.text }}</span>
+            </span>
+          </div>
+          <div class="flex flex-col gap-2 sm:hidden">
+            <UButton variant="soft" color="gray" type="button" @click="clearSelectedFile">
+              <span class="flex items-center justify-center gap-1.5">
+                <Icon name="mdi:close" class="h-4 w-4" />
+                <span>{{ t('common.actions.cancel') }}</span>
+              </span>
+            </UButton>
+            <UButton color="primary" type="submit" :loading="submitting">
+              <span class="flex items-center justify-center gap-1.5">
                 <Icon name="mdi:content-save-outline" class="h-5 w-5" />
                 <span>{{ t('admin.upload.actions.save') }}</span>
               </span>
             </UButton>
-          </UForm>
-        </UCard>
-      </div>
+          </div>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px),1fr]">
+          <UCard class="border border-default/50 bg-elevated/80">
+            <template #header>
+              <div class="flex items-center justify-between gap-2">
+                <div class="space-y-0.5">
+                  <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                    {{ t('admin.upload.sections.preview.title') }}
+                  </p>
+                  <p class="text-sm text-toned">
+                    {{ t('admin.upload.sections.preview.alt') }}
+                  </p>
+                </div>
+                <UButton variant="ghost" color="gray" type="button" @click="openFileDialog()">
+                  <span class="flex items-center gap-1.5">
+                    <Icon name="mdi:camera-retake-outline" class="h-4 w-4" />
+                    <span>{{ t('common.actions.changeImage') }}</span>
+                  </span>
+                </UButton>
+              </div>
+            </template>
+            <div class="space-y-4">
+              <div class="space-y-3">
+                <div
+                  class="flex w-full cursor-pointer items-center justify-center rounded-xl border border-default/50 bg-black/10 outline-none ring-primary/40 focus-visible:ring-2"
+                  :style="{ aspectRatio: aspectRatioStyle, maxHeight: `${previewMaxHeight}px` }"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="t('common.actions.changeImage')"
+                  @click="openFileDialog()"
+                  @keydown.enter.prevent="openFileDialog()"
+                  @keydown.space.prevent="openFileDialog()"
+                >
+                  <img
+                    v-if="previewUrl"
+                    :src="previewUrl"
+                    :alt="t('admin.upload.sections.preview.alt')"
+                    class="max-h-full max-w-full object-contain"
+                    :style="{ maxHeight: `${previewMaxHeight}px` }"
+                  >
+                </div>
+              </div>
+              <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/50 bg-default/80 px-3 py-2 text-sm">
+                <div class="flex items-center gap-2">
+                  <Icon name="mdi:image-outline" class="h-4 w-4 text-primary" />
+                  <span class="font-semibold text-highlighted">
+                    {{ selectedFileName }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted">
+                  <Icon name="mdi:information-outline" class="h-4 w-4" />
+                  <span>{{ selectedFile?.type || 'image' }}</span>
+                </div>
+              </div>
+            </div>
+          </UCard>
+
+          <UCard class="border border-default/50 bg-default/70">
+            <template #header>
+              <div class="space-y-1">
+                <h2 class="flex items-center gap-2 text-xl font-semibold">
+                  <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
+                  <span>{{ t('admin.upload.sections.edit.title') }}</span>
+                </h2>
+                <p class="text-sm text-muted">
+                  {{ t('admin.upload.sections.upload.pasteHint') }}
+                </p>
+              </div>
+            </template>
+            <div class="space-y-6">
+              <AdminMetadataForm
+                v-model:form="form"
+                v-model:capture-time-local="captureTimeLocal"
+                :classify-source="{ file: selectedFile }"
+              />
+
+              <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                <UButton
+                  variant="soft"
+                  color="gray"
+                  type="button"
+                  class="w-full sm:w-auto"
+                  @click="clearSelectedFile"
+                >
+                  <span class="flex w-full items-center justify-center gap-1.5">
+                    <Icon name="mdi:close" class="h-4 w-4" />
+                    <span>{{ t('common.actions.cancel') }}</span>
+                  </span>
+                </UButton>
+                <UButton color="primary" type="submit" :loading="submitting" class="w-full sm:w-auto">
+                  <span class="flex w-full items-center justify-center gap-2">
+                    <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                    <span>{{ t('admin.upload.actions.save') }}</span>
+                  </span>
+                </UButton>
+              </div>
+            </div>
+          </UCard>
+        </div>
+      </UForm>
     </UContainer>
   </div>
 </template>

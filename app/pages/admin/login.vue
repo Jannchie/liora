@@ -39,7 +39,6 @@ async function handleSubmit(): Promise<void> {
       method: 'POST',
       body: { username: form.username, password: form.password },
     })
-    toast.add({ title: t('admin.login.toastSuccess'), color: 'primary' })
     await navigateTo('/admin')
   }
   catch (error) {

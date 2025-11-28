@@ -14,7 +14,6 @@ export function useLocationSearch(form: MediaFormState) {
     geocodeFailedTitle: t('admin.upload.toast.geocodeFailedTitle'),
     geocodeFailedFallback: t('admin.upload.toast.geocodeFailedFallback'),
     geocodeNoResult: t('admin.upload.toast.geocodeNoResult'),
-    geocodeAppliedTitle: t('admin.upload.toast.geocodeAppliedTitle'),
   }))
 
   const resolveGeocodeQuery = (): string => {
@@ -44,11 +43,10 @@ export function useLocationSearch(form: MediaFormState) {
       form.longitude = safeLon
     }
     form.locationName = result.placeName
-    if (!form.location) {
-      form.location = result.placeName
+    if (result.name) {
+      form.location = result.name
     }
     geocodeQuery.value = result.name
-    toast.add({ title: toastMessages.value.geocodeAppliedTitle, description: result.placeName, color: 'primary' })
   }
 
   const searchLocation = async (): Promise<void> => {

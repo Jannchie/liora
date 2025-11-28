@@ -26,7 +26,6 @@ async function handleLogout(): Promise<void> {
   loggingOut.value = true
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
-    toast.add({ title: t('admin.nav.logoutSuccess'), color: 'primary' })
     await navigateTo('/admin/login')
   }
   catch (error) {

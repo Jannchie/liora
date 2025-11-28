@@ -3,6 +3,7 @@ import type { ImageSizes } from '@nuxt/image'
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
 import { computed, reactive, ref, watch } from 'vue'
+import { useFileEditApi } from '~/composables/useFileEditApi'
 import { toLocalInputString } from '~/utils/datetime'
 
 const { t } = useI18n()
@@ -12,6 +13,7 @@ definePageMeta({
 
 const toast = useToast()
 const image = useImage()
+const { updateFile } = useFileEditApi()
 
 const pageTitle = computed(() => t('admin.files.seoTitle'))
 const pageDescription = computed(() => t('admin.files.seoDescription'))
@@ -259,6 +261,7 @@ const editCaptureTimeLocal = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
+const replaceFile = ref<File | null>(null)
 function resetEditForm(): void {
   editForm.title = ''
   editForm.description = ''
@@ -291,6 +294,7 @@ function resetEditForm(): void {
   editForm.captureTime = ''
   editCaptureTimeLocal.value = ''
   editForm.notes = ''
+  replaceFile.value = null
 }
 
 function fillEditForm(file: FileResponse): void {
@@ -340,13 +344,13 @@ async function saveEdit(): Promise<void> {
   }
   updating.value = true
   try {
-    const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`, {
-      method: 'PUT',
-      body: {
-        ...editForm,
-        captureTime: editForm.captureTime || undefined,
-      },
-    })
+    const updated = await updateFile(
+      editingFile.value.id,
+      editForm,
+      replaceFile.value,
+      editingFile.value.width,
+      editingFile.value.height,
+    )
     filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
     toast.add({ title: toastMessages.value.updateSuccess, description: toastMessages.value.updateSuccessDescription, color: 'primary' })
     closeEdit()
@@ -386,11 +390,13 @@ async function reclassifyMissing(): Promise<void> {
   try {
     const summary = await $fetch<ReclassifySummary>('/api/files/reclassify', { method: 'POST' })
     await refresh()
-    toast.add({
-      title: toastMessages.value.classifySuccess,
-      description: toastMessages.value.classifySummary.replace('{updated}', summary.updated.toString()).replace('{total}', summary.total.toString()),
-      color: summary.failed > 0 ? 'warning' : 'primary',
-    })
+    if (summary.failed > 0) {
+      toast.add({
+        title: toastMessages.value.classifyFailed,
+        description: toastMessages.value.classifyFailedFallback || undefined,
+        color: 'warning',
+      })
+    }
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.classifyFailedFallback
@@ -414,7 +420,6 @@ async function confirmDelete(): Promise<void> {
   try {
     await $fetch(`/api/files/${deleteTarget.value.id}`, { method: 'DELETE' })
     filesData.value = filesData.value?.filter(item => item.id !== deleteTarget.value?.id) ?? []
-    toast.add({ title: toastMessages.value.deleteSuccess, description: toastMessages.value.deleteSuccessDescription, color: 'primary' })
     deleteModalOpen.value = false
   }
   catch (error) {
@@ -600,6 +605,7 @@ watch(fetchError, (value) => {
       v-model:open="editModalOpen"
       v-model:form="editForm"
       v-model:capture-time-local="editCaptureTimeLocal"
+      v-model:replace-file="replaceFile"
       :file="editingFile"
       :loading="updating"
       :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"

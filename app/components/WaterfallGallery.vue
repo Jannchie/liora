@@ -19,6 +19,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, w
 import { Waterfall } from 'vue-wf'
 import { toLocalInputString } from '~/utils/datetime'
 import { resolveFileTitle } from '~/utils/file'
+import { useFileEditApi } from '~/composables/useFileEditApi'
 
 const props = withDefaults(
   defineProps<{
@@ -39,6 +40,7 @@ const props = withDefaults(
 
 const { t, locale } = useI18n()
 const toast = useToast()
+const { updateFile } = useFileEditApi()
 
 const maxDisplayWidth = 400
 const waterfallGap = 4
@@ -612,6 +614,7 @@ const editModalOpen = ref(false)
 const editing = ref(false)
 const editingFile = ref<ResolvedFile | null>(null)
 const editCaptureTimeLocal = ref<string>('')
+const replaceFile = ref<File | null>(null)
 const editForm = reactive<MediaFormState>({
   title: '',
   description: '',
@@ -646,8 +649,6 @@ const editForm = reactive<MediaFormState>({
 })
 
 const editToastMessages = computed(() => ({
-  updateSuccess: t('admin.files.toast.updateSuccess'),
-  updateSuccessDescription: t('admin.files.toast.updateSuccessDescription'),
   updateFailed: t('admin.files.toast.updateFailed'),
   updateFailedFallback: t('admin.files.toast.updateFailedFallback'),
 }))
@@ -684,6 +685,7 @@ function resetEditForm(): void {
   editForm.captureTime = ''
   editCaptureTimeLocal.value = ''
   editForm.notes = ''
+  replaceFile.value = null
 }
 
 function fillEditForm(file: FileResponse): void {
@@ -739,6 +741,7 @@ function openEditModal(target?: ResolvedFile): void {
 function closeEditModal(): void {
   editModalOpen.value = false
   editingFile.value = null
+  replaceFile.value = null
 }
 
 async function saveEditFromModal(): Promise<void> {
@@ -747,22 +750,17 @@ async function saveEditFromModal(): Promise<void> {
   }
   editing.value = true
   try {
-    const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`, {
-      method: 'PUT',
-      body: {
-        ...editForm,
-        captureTime: editForm.captureTime || undefined,
-      },
-    })
+    const updated = await updateFile(
+      editingFile.value.id,
+      editForm,
+      replaceFile.value,
+      editingFile.value.width,
+      editingFile.value.height,
+    )
     fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
     const resolved = toResolvedFile(updated, columnWidth.value)
     activeFile.value = resolved
     editingFile.value = resolved
-    toast.add({
-      title: editToastMessages.value.updateSuccess,
-      description: editToastMessages.value.updateSuccessDescription,
-      color: 'primary',
-    })
     closeEditModal()
   }
   catch (error) {
@@ -1152,8 +1150,10 @@ const overlayBaseScale = computed<number>(() => {
 
 const overlayZoomMin = computed<number>(() => {
   const base = overlayBaseScale.value
-  const normalized = Number.isFinite(base) && base > 0 ? base : 1
-  return Math.max(0.1, normalized)
+  if (!Number.isFinite(base) || base <= 0) {
+    return 1
+  }
+  return Math.max(overlayZoomEpsilon, base)
 })
 
 const overlayImageTransformStyle = computed<CSSProperties>(() => {
@@ -1719,6 +1719,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         v-model:open="editModalOpen"
         v-model:capture-time-local="editCaptureTimeLocal"
         v-model:form="editForm"
+        v-model:replace-file="replaceFile"
         :file="editingFile"
         :loading="editing"
         :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"

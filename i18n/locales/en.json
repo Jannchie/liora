@@ -268,12 +268,12 @@
           "label": "Location"
         },
         "locationName": {
-          "label": "Standard name",
-          "placeholder": "e.g. Palace Museum, Beijing"
+          "label": "Standard address",
+          "placeholder": "e.g. 4 Jingshan Front St, Dongcheng, Beijing"
         },
         "locationRaw": {
-          "label": "Custom name",
-          "placeholder": "Use a short or custom label"
+          "label": "Place name",
+          "placeholder": "Use a spot or POI name only"
         },
         "locationSearch": {
           "label": "Search location (OpenStreetMap)",
@@ -423,12 +423,12 @@
           "placeholder": "1200"
         },
         "locationName": {
-          "label": "Standard location",
-          "placeholder": "e.g. Palace Museum, Beijing"
+          "label": "Standard address",
+          "placeholder": "e.g. 4 Jingshan Front St, Dongcheng, Beijing"
         },
         "location": {
-          "label": "Custom location",
-          "placeholder": "Use a short or custom label"
+          "label": "Place name",
+          "placeholder": "Use a spot or POI name only"
         },
         "latitude": {
           "label": "Latitude"
@@ -438,6 +438,7 @@
         },
         "locationReverse": {
           "action": "Fill name from coordinates",
+          "actionShort": "Reverse",
           "help": "If latitude/longitude are set, reverse geocode to get a standard place name."
         },
         "cameraModel": {

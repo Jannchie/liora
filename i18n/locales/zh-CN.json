@@ -268,12 +268,12 @@
           "label": "拍摄地点"
         },
         "locationName": {
-          "label": "标准地名",
-          "placeholder": "如：北京市东城区故宫博物院"
+          "label": "标准地址",
+          "placeholder": "如：北京市东城区景山前街 4 号"
         },
         "locationRaw": {
-          "label": "自定义地名",
-          "placeholder": "可写简称或自定义"
+          "label": "景点名称",
+          "placeholder": "仅写景点/简称，如：故宫"
         },
         "locationSearch": {
           "label": "地点搜索（OpenStreetMap）",
@@ -423,12 +423,12 @@
           "placeholder": "1200"
         },
         "locationName": {
-          "label": "标准地名",
-          "placeholder": "如：北京市东城区故宫博物院"
+          "label": "标准地址",
+          "placeholder": "如：北京市东城区景山前街 4 号"
         },
         "location": {
-          "label": "自定义地名",
-          "placeholder": "可写简称或自定义"
+          "label": "景点名称",
+          "placeholder": "仅写景点/简称，如：故宫"
         },
         "latitude": {
           "label": "纬度"
@@ -438,6 +438,7 @@
         },
         "locationReverse": {
           "action": "根据经纬度反推地名",
+          "actionShort": "反推",
           "help": "经纬度已填写时，可反查标准地名并填入。"
         },
         "cameraModel": {

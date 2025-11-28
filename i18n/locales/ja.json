@@ -423,12 +423,12 @@
           "placeholder": "1200"
         },
         "locationName": {
-          "label": "標準の地名",
-          "placeholder": "例：北京・故宮博物院"
+          "label": "標準住所",
+          "placeholder": "例：北京市東城区景山前街4号"
         },
         "location": {
-          "label": "カスタム地名",
-          "placeholder": "短いラベルや独自の名称"
+          "label": "スポット名",
+          "placeholder": "スポットや愛称のみ（例：故宮）"
         },
         "latitude": {
           "label": "緯度"
@@ -438,6 +438,7 @@
         },
         "locationReverse": {
           "action": "緯度経度から地名を取得",
+          "actionShort": "逆引き",
           "help": "緯度・経度が入力されている場合、標準地名を逆引きします。"
         },
         "cameraModel": {

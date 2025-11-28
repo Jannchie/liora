@@ -13,14 +13,9 @@ const toast = useToast()
 const pageTitle = computed(() => t('admin.site.seoTitle'))
 const pageDescription = computed(() => t('admin.site.seoDescription'))
 const toastMessages = computed(() => ({
-  saveSuccess: t('admin.site.toast.saveSuccess'),
-  saveSuccessDescription: t('admin.site.toast.saveSuccessDescription'),
   saveFailed: t('admin.site.toast.saveFailed'),
   saveFailedFallback: t('admin.site.toast.saveFailedFallback'),
-  reset: t('admin.site.toast.reset'),
-  resetDescription: t('admin.site.toast.resetDescription'),
   loadFailed: t('admin.site.toast.loadFailed'),
-  iconUploadSuccess: t('admin.site.toast.iconUploadSuccess'),
   iconUploadFailed: t('admin.site.toast.iconUploadFailed'),
   iconUploadFailedFallback: t('admin.site.toast.iconUploadFailedFallback'),
 }))
@@ -114,7 +109,6 @@ async function handleSubmit(): Promise<void> {
       },
     })
     setSettings(updated)
-    toast.add({ title: toastMessages.value.saveSuccess, description: toastMessages.value.saveSuccessDescription, color: 'primary' })
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
@@ -151,7 +145,6 @@ async function handleIconFileChange(event: Event): Promise<void> {
     })
     applySettings(updated)
     setSettings(updated)
-    toast.add({ title: toastMessages.value.iconUploadSuccess, color: 'primary' })
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.iconUploadFailedFallback
@@ -164,7 +157,6 @@ async function handleIconFileChange(event: Event): Promise<void> {
 
 function handleReset(): void {
   applySettings(settingsState.value)
-  toast.add({ title: toastMessages.value.reset, description: toastMessages.value.resetDescription, color: 'neutral' })
 }
 </script>
 
