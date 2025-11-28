@@ -1,3 +1,11 @@
+## v0.1.3
+
+[v0.1.2...v0.1.3](https://github.com/Jannchie/liora/compare/v0.1.2...v0.1.3)
+
+### :art: Refactors
+
+- **gallery**: use Math.max for pinch distance clamping - By [Jannchie](mailto:jannchie@gmail.com) in [1e323b7](https://github.com/Jannchie/liora/commit/1e323b7)
+
 ## v0.1.2
 
 [v0.1.1...v0.1.2](https://github.com/Jannchie/liora/compare/v0.1.1...v0.1.2)
