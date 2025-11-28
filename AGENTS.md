@@ -4,7 +4,7 @@
 
 - `app/pages` holds Nuxt page routes; `app/components` stores shared UI; `app/assets/css/main.css` carries Tailwind-driven styles; `app/types` contains shared TypeScript contracts (e.g., `~/types/file`).
 - `server/api` exposes Nitro endpoints, with file listing/upload flows in `files.get.ts` and `files.post.ts`; `server/utils` wraps Prisma (`prisma.ts`) and S3-compatible storage access (`s3.ts`).
-- `prisma/schema.prisma` defines the LibSQL/SQLite schema; `prisma/migrations` tracks history; `prisma/dev.db` is the local default. Generated Prisma artifacts live under `app/generated/prisma/client`—do not edit by hand.
+- `prisma/schema.prisma` defines the LibSQL/SQLite schema; `prisma/migrations` tracks history; `prisma/data.db` is the local default. Generated Prisma artifacts live under `app/generated/prisma/client`—do not edit by hand.
 - `public/` serves static assets; `nuxt.config.ts` centralizes runtime config (storage credentials, module setup).
 
 ## Build, Test, and Development Commands
@@ -33,5 +33,5 @@
 
 ## Security & Configuration Tips
 
-- Store secrets in `.env`/`.env.local` (never commit). Required variables: `DATABASE_URL` (defaults to `prisma/dev.db`), `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, optional `S3_PUBLIC_BASE_URL`—any S3-compatible service with matching endpoint/keys works.
+- Store secrets in `.env`/`.env.local` (never commit). Required variables: `DATABASE_URL` (defaults to `prisma/data.db`), `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, optional `S3_PUBLIC_BASE_URL`—any S3-compatible service with matching endpoint/keys works.
 - Validate S3-compatible credentials before uploading; when debugging locally, rely on the default SQLite file instead of production URLs.

@@ -6,7 +6,7 @@ import 'dotenv/config'
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
 function createPrismaClient(): PrismaClient {
-  const rawUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'dev.db')}`
+  const rawUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'data.db')}`
   const url = rawUrl.startsWith('file:./') ? `file:${join(process.cwd(), rawUrl.replace('file:', ''))}` : rawUrl
   // Log once to help diagnose missing URL issues in dev.
   if (process.env.NODE_ENV !== 'production') {

@@ -14,3 +14,4 @@ logs
 .env
 .env.*
 prisma/dev.db
+prisma/data.db

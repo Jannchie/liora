@@ -28,9 +28,23 @@ docker run --rm -p 3000:3000 --env-file .env liora
 The container listens on `0.0.0.0:3000` by default (`NUXT_HOST`/`NUXT_PORT`/`PORT` can be overridden).
 At runtime the container runs `pnpm exec prisma migrate deploy` before starting the Nuxt server, so the database schema stays up to date.
 
+### Build helper script
+
+Use `scripts/build-docker.sh` to build the image tagged with the `package.json` version and `latest`. Override the image name via `IMAGE_NAME`.
+
+```bash
+IMAGE_NAME=your-registry.example.com/liora ./scripts/build-docker.sh
+```
+
+To publish to Docker Hub (after `docker login`), use the helper script:
+
+```bash
+./scripts/publish-docker.sh  # defaults to docker.io/jannchie/liora
+```
+
 ### Docker with a mounted SQLite volume
 
-Use an external volume to persist the SQLite database (`DATABASE_URL=file:/data/dev.db` in the examples below).
+Use an external volume to persist the SQLite database (`DATABASE_URL=file:/data/data.db` in the examples below).
 
 1) Build the production image:
 
@@ -43,7 +57,7 @@ docker build -t liora .
 ```bash
 docker build --target build -t liora-build .
 docker run --rm \
-  -e DATABASE_URL=file:/data/dev.db \
+  -e DATABASE_URL=file:/data/data.db \
   -v /srv/liora-db:/data \
   liora-build pnpm exec prisma migrate deploy
 ```
@@ -53,7 +67,7 @@ docker run --rm \
 ```bash
 docker run -d --name liora \
   -p 3000:3000 \
-  -e DATABASE_URL=file:/data/dev.db \
+  -e DATABASE_URL=file:/data/data.db \
   -e S3_ENDPOINT=... \
   -e S3_BUCKET=... \
   -e S3_ACCESS_KEY_ID=... \
@@ -72,7 +86,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "file:/data/dev.db"
+      DATABASE_URL: "file:/data/data.db"
       S3_ENDPOINT: ""
       S3_BUCKET: ""
       S3_ACCESS_KEY_ID: ""
@@ -96,7 +110,7 @@ ADMIN_SESSION_SECRET=<random-secret>
 
 ### Database
 
-Defaults to the bundled SQLite file at `prisma/dev.db`. Override with:
+Defaults to the bundled SQLite file at `prisma/data.db` (auto-created if missing). Override with:
 
 ```txt
 DATABASE_URL=libsql://<host>/<db>?authToken=<token>

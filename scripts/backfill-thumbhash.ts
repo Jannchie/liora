@@ -18,7 +18,7 @@ interface ImageHashes {
   sha256: string
 }
 
-const databaseUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'dev.db')}`
+const databaseUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'data.db')}`
 const adapter = new PrismaLibSql({ url: databaseUrl })
 const prisma = new PrismaClient({ adapter })
 
