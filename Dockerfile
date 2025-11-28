@@ -3,10 +3,8 @@
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/usr/local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
-ENV DATABASE_URL=file:/data/data.db
 RUN corepack enable
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
-RUN mkdir -p /data
 
 FROM base AS deps
 WORKDIR /app
@@ -27,7 +25,9 @@ ENV NODE_ENV=production
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
 ENV PORT=3000
+ENV DATABASE_URL=file:/data/data.db
 WORKDIR /app
+RUN mkdir -p /data
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
