@@ -6,6 +6,8 @@ const { t } = useI18n()
 const toast = useToast()
 const pageTitle = computed(() => t('admin.login.seoTitle'))
 const pageDescription = computed(() => t('admin.login.seoDescription'))
+const usernameId = 'admin-login-username'
+const passwordId = 'admin-login-password'
 
 useSeoMeta({
   title: () => pageTitle.value,
@@ -53,66 +55,76 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-muted/50 px-4">
-    <UCard class="w-full max-w-md">
-      <template #header>
-        <div class="space-y-1">
-          <p class="flex items-center gap-2 text-sm text-muted">
+  <div class="flex min-h-screen items-center justify-center bg-muted/60 px-4 py-10">
+    <UCard
+      class="w-full max-w-md border border-default/60 bg-default shadow-none"
+    >
+      <div class="space-y-6">
+        <div class="space-y-2 text-center">
+          <div class="mx-auto inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Icon name="mdi:shield-lock-outline" class="h-4 w-4" />
             <span>{{ t('admin.login.sectionLabel') }}</span>
-          </p>
-          <h1 class="flex items-center gap-2 text-2xl font-semibold">
-            <Icon name="mdi:lock-open-check-outline" class="h-5 w-5 text-primary" />
-            <span>{{ t('admin.login.heading') }}</span>
+          </div>
+          <h1 class="text-2xl font-semibold">
+            {{ t('admin.login.heading') }}
           </h1>
           <p class="text-sm text-muted">
-            {{ t('admin.login.subtitle') }}
+            {{ pageDescription }}
           </p>
         </div>
-      </template>
 
-      <UForm class="space-y-4" @submit.prevent="handleSubmit">
-        <UFormGroup :label="t('admin.login.usernameLabel')" name="username" required>
-          <UInput
-            v-model="form.username"
-            autocomplete="username"
-            :placeholder="t('admin.login.usernamePlaceholder')"
-          />
-        </UFormGroup>
-        <UFormGroup :label="t('admin.login.passwordLabel')" name="password" required>
-          <UInput
-            v-model="form.password"
-            type="password"
-            autocomplete="current-password"
-            :placeholder="t('admin.login.passwordPlaceholder')"
-          />
-        </UFormGroup>
-
-        <UAlert
-          v-if="errorMessage"
-          color="error"
-          variant="soft"
-          :title="t('admin.login.errorTitle')"
-          :description="errorMessage"
-        >
-          <template #icon>
-            <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
-          </template>
-        </UAlert>
-
-        <UButton
-          type="submit"
-          color="primary"
-          variant="solid"
-          block
-          :loading="submitting"
-        >
-          <div class="flex items-center justify-center gap-2">
-            <Icon name="mdi:login" class="h-5 w-5" />
-            <span>{{ t('admin.login.submit') }}</span>
+        <UForm class="flex flex-col gap-4" @submit.prevent="handleSubmit">
+          <div class="flex flex-col gap-2">
+            <label :for="usernameId" class="text-sm font-medium text-foreground">
+              {{ t('admin.login.usernameLabel') }}
+            </label>
+            <UInput
+              :id="usernameId"
+              v-model="form.username"
+              autocomplete="username"
+              :placeholder="t('admin.login.usernamePlaceholder')"
+            />
           </div>
-        </UButton>
-      </UForm>
+
+          <div class="flex flex-col gap-2">
+            <label :for="passwordId" class="text-sm font-medium text-foreground">
+              {{ t('admin.login.passwordLabel') }}
+            </label>
+            <UInput
+              :id="passwordId"
+              v-model="form.password"
+              type="password"
+              autocomplete="current-password"
+              :placeholder="t('admin.login.passwordPlaceholder')"
+            />
+          </div>
+
+          <UAlert
+            v-if="errorMessage"
+            color="error"
+            variant="soft"
+            :title="t('admin.login.errorTitle')"
+            :description="errorMessage"
+          >
+            <template #icon>
+              <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+            </template>
+          </UAlert>
+
+          <UButton
+            type="submit"
+            color="primary"
+            variant="solid"
+            block
+            :loading="submitting"
+          >
+            <div class="flex items-center justify-center gap-2">
+              <Icon name="mdi:login" class="h-5 w-5" />
+              <span>{{ t('admin.login.submit') }}</span>
+            </div>
+          </UButton>
+        </UForm>
+      </div>
     </UCard>
   </div>
 </template>
