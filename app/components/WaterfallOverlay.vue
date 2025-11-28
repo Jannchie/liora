@@ -84,10 +84,10 @@ onBeforeUnmount(() => {
     />
     <div class="absolute inset-0" @click="emit('close')" />
     <div class="relative flex h-full w-full">
-      <div class="relative z-10 grid h-full w-full grid-cols-1 gap-4 bg-default text-default backdrop-blur md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0">
+      <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0 md:overflow-y-visible">
         <div
           ref="viewerRef"
-          class="relative flex min-h-0 items-center justify-center overflow-hidden bg-black touch-none"
+          class="relative flex min-h-[60vh] w-full flex-shrink-0 items-center justify-center overflow-hidden bg-black touch-none md:h-full md:min-h-0"
           @wheel.prevent="emit('wheel', $event)"
           @dblclick.prevent="emit('dblclick', $event)"
           @pointerdown="emit('pointerdown', $event)"
@@ -107,7 +107,7 @@ onBeforeUnmount(() => {
             :style="overlayImageTransformStyle"
             :alt="file.displayTitle"
             loading="eager"
-            class="h-full w-full select-none object-contain"
+            class="h-auto w-full select-none object-contain md:max-h-[100vh]"
           >
           <Transition
             appear
@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
             </div>
           </Transition>
         </div>
-        <div class="home-display-font flex min-h-0 flex-col gap-4 overflow-y-auto p-3 md:border-l md:border-default/20 md:p-4">
+        <div class="home-display-font flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
           <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">
