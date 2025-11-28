@@ -1,3 +1,15 @@
+## v0.2.0
+
+[v0.1.5...v0.2.0](https://github.com/Jannchie/liora/compare/v0.1.5...v0.2.0)
+
+### :sparkles: Features
+
+- **images**: auto-resolve and sync image domains - By [Jannchie](mailto:jannchie@gmail.com) in [33e96d0](https://github.com/Jannchie/liora/commit/33e96d0)
+
+### :wrench: Chores
+
+- **docker**: move data dir and database env setup to runtime stage - By [Jannchie](mailto:jannchie@gmail.com) in [e32da29](https://github.com/Jannchie/liora/commit/e32da29)
+
 ## v0.1.5
 
 [v0.1.4...v0.1.5](https://github.com/Jannchie/liora/compare/v0.1.4...v0.1.5)
