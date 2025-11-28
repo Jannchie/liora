@@ -1,3 +1,15 @@
+## v0.1.4
+
+[v0.1.3...v0.1.4](https://github.com/Jannchie/liora/compare/v0.1.3...v0.1.4)
+
+### :adhesive_bandage: Fixes
+
+- **overlay**: handle cors-safe image loading && fix pointer handling and UI colors - By [Jannchie](mailto:jannchie@gmail.com) in [5b2931d](https://github.com/Jannchie/liora/commit/5b2931d)
+
+### :wrench: Chores
+
+- **docker**: add entrypoint script and env mapping - By [Jannchie](mailto:jannchie@gmail.com) in [731e652](https://github.com/Jannchie/liora/commit/731e652)
+
 ## v0.1.3
 
 [v0.1.2...v0.1.3](https://github.com/Jannchie/liora/compare/v0.1.2...v0.1.3)
