@@ -1,3 +1,11 @@
+## v0.1.5
+
+[v0.1.4...v0.1.5](https://github.com/Jannchie/liora/compare/v0.1.4...v0.1.5)
+
+### :wrench: Chores
+
+- **docker**: bake default sqlite database mount into image - By [Jannchie](mailto:jannchie@gmail.com) in [78258e2](https://github.com/Jannchie/liora/commit/78258e2)
+
 ## v0.1.4
 
 [v0.1.3...v0.1.4](https://github.com/Jannchie/liora/compare/v0.1.3...v0.1.4)
