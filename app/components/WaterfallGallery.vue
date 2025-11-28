@@ -649,6 +649,12 @@ const editForm = reactive<MediaFormState>({
   captureTime: '',
   notes: '',
 })
+const editFormModel = computed<MediaFormState>({
+  get: () => editForm,
+  set: (value) => {
+    Object.assign(editForm, value)
+  },
+})
 
 const editToastMessages = computed(() => ({
   updateFailed: t('admin.files.toast.updateFailed'),
@@ -1780,7 +1786,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       <AdminEditModal
         v-model:open="editModalOpen"
         v-model:capture-time-local="editCaptureTimeLocal"
-        v-model:form="editForm"
+        v-model:form="editFormModel"
         v-model:replace-file="replaceFile"
         :file="editingFile"
         :loading="editing"

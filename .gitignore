@@ -26,3 +26,4 @@ logs
 /app/generated/prisma
 prisma/data.db
 prisma/dev.db
+data/*

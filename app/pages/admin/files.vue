@@ -256,6 +256,12 @@ const editForm = reactive<EditableForm>({
   captureTime: '',
   notes: '',
 })
+const editFormModel = computed<EditableForm>({
+  get: () => editForm,
+  set: (value) => {
+    Object.assign(editForm, value)
+  },
+})
 
 const editCaptureTimeLocal = ref<string>('')
 const editingFile = ref<FileResponse | null>(null)
@@ -603,7 +609,7 @@ watch(fetchError, (value) => {
 
     <AdminEditModal
       v-model:open="editModalOpen"
-      v-model:form="editForm"
+      v-model:form="editFormModel"
       v-model:capture-time-local="editCaptureTimeLocal"
       v-model:replace-file="replaceFile"
       :file="editingFile"

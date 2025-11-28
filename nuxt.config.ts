@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'node:url'
+
 function resolveDomains(): string[] {
   const domains = new Set<string>()
   const add = (value: string | undefined): void => {

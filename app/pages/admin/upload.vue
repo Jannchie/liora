@@ -73,6 +73,12 @@ const form = reactive<MediaFormState>({
   longitude: null as number | null,
   notes: '',
 })
+const formModel = computed<MediaFormState>({
+  get: () => form,
+  set: (value) => {
+    Object.assign(form, value)
+  },
+})
 
 const submitting = ref(false)
 const selectedFile = computed<File | null>(() => {
@@ -941,7 +947,7 @@ onBeforeUnmount(() => {
             </template>
             <div class="space-y-6">
               <AdminMetadataForm
-                v-model:form="form"
+                v-model:form="formModel"
                 v-model:capture-time-local="captureTimeLocal"
                 :classify-source="{ file: selectedFile }"
               />
