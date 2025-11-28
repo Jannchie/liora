@@ -398,7 +398,7 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
   const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
   const imageUrl = (file.imageUrl ?? '').trim()
   const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
-  const baseImageUrl = imageUrl.length > 0 ? imageUrl : thumbnailUrl
+  const baseImageUrl = thumbnailUrl.length > 0 ? thumbnailUrl : imageUrl
   const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
   const previewSize = computeDisplaySize(
     file,
@@ -1180,7 +1180,10 @@ const overlayDownloadLabel = computed<string | null>(() => {
 
 const overlayDownloadVisible = computed<boolean>(() => {
   const state = overlayDownloadState.value
-  return (state.status === 'loading' || state.status === 'done') && state.total !== null && state.total > 0
+  if (state.total === null || state.total <= 0) {
+    return false
+  }
+  return state.status === 'loading' || state.status === 'done'
 })
 
 const overlayBaseScale = computed<number>(() => {
@@ -1254,8 +1257,8 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
       || file.overlayPlaceholderUrl
       || file.previewUrl
       || file.coverUrl
-      || file.imageUrl
       || file.thumbnailUrl
+      || file.imageUrl
   if (!source) {
     return null
   }
@@ -1615,7 +1618,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   revokeOverlayObjectUrl()
   resetOverlayDownload()
   overlayImageLoader.value = null
-  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl || file.thumbnailUrl
+  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.thumbnailUrl || file.imageUrl
   const rawFullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
   const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
   const firstAvailable = [
@@ -1650,6 +1653,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     }
     if (typeof fetch === 'undefined' || !isCorsFetchableUrl(fullImageSrc)) {
       overlayImageSrc.value = fullImageSrc
+      markOverlayDownloadDone(0, null)
       return
     }
     const controller = new AbortController()

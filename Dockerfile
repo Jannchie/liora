@@ -3,8 +3,10 @@
 FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/usr/local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
+ENV DATABASE_URL=file:/data/data.db
 RUN corepack enable
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN mkdir -p /data
 
 FROM base AS deps
 WORKDIR /app

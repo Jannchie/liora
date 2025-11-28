@@ -27,6 +27,7 @@ docker run --rm -p 3000:3000 --env-file .env liora
 
 The container listens on `0.0.0.0:3000` by default (`NUXT_HOST`/`NUXT_PORT`/`PORT` can be overridden).
 At runtime the container runs `pnpm exec prisma migrate deploy` before starting the Nuxt server, so the database schema stays up to date.
+The image ships with `DATABASE_URL=file:/data/data.db` baked in, so you only need to set it when pointing at an external database; mount `/data` to persist the default SQLite file.
 
 ### Build helper script
 
@@ -57,7 +58,6 @@ docker build -t liora .
 ```bash
 docker build --target build -t liora-build .
 docker run --rm \
-  -e DATABASE_URL=file:/data/data.db \
   -v /srv/liora-db:/data \
   liora-build pnpm exec prisma migrate deploy
 ```
@@ -67,7 +67,6 @@ docker run --rm \
 ```bash
 docker run -d --name liora \
   -p 3000:3000 \
-  -e DATABASE_URL=file:/data/data.db \
   -e S3_ENDPOINT=... \
   -e S3_BUCKET=... \
   -e S3_ACCESS_KEY_ID=... \
@@ -86,7 +85,6 @@ services:
     ports:
       - '3000:3000'
     environment:
-      DATABASE_URL: 'file:/data/data.db'
       S3_ENDPOINT: ''
       S3_BUCKET: ''
       S3_ACCESS_KEY_ID: ''
@@ -110,7 +108,7 @@ ADMIN_SESSION_SECRET=<random-secret>
 
 ### Database
 
-Defaults to the bundled SQLite file at `prisma/data.db` (auto-created if missing). Override with:
+Defaults to SQLite at `file:/data/data.db` inside the container (mount `/data` to persist). Local development without Docker falls back to `prisma/data.db`. Override with:
 
 ```txt
 DATABASE_URL=libsql://<host>/<db>?authToken=<token>
