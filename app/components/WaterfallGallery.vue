@@ -97,6 +97,8 @@ const overlayDragState = ref<{
   originX: 0,
   originY: 0,
 })
+const overlayPointers = ref<Map<number, { x: number, y: number }>>(new Map())
+const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 
 const fileOverrides = ref<Record<number, FileResponse>>({})
 const isAdmin = computed(() => props.isAuthenticated ?? false)
@@ -1156,6 +1158,13 @@ const overlayZoomMin = computed<number>(() => {
   return Math.max(overlayZoomEpsilon, base)
 })
 
+const viewerTouchAction = computed<string>(() => {
+  if (overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon || overlayPointers.value.size >= 2) {
+    return 'none'
+  }
+  return 'pan-y pinch-zoom'
+})
+
 const overlayImageTransformStyle = computed<CSSProperties>(() => {
   const transforms: string[] = []
   const pan = overlayPan.value
@@ -1420,12 +1429,40 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
 }
 
 function handleOverlayPointerDown(event: PointerEvent): void {
-  if (overlayZoom.value <= overlayZoomMin.value + overlayZoomEpsilon) {
-    return
-  }
   if (!(event.currentTarget instanceof HTMLElement)) {
     return
   }
+  overlayPointers.value.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+  if (overlayPointers.value.size >= 2) {
+    event.preventDefault()
+    const [first, second] = [...overlayPointers.value.values()]
+    const distance = Math.hypot(second.x - first.x, second.y - first.y)
+    overlayPinchBase.value = {
+      distance: distance > 0 ? distance : 0,
+      zoom: overlayZoom.value,
+    }
+    overlayDragState.value = {
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      originX: 0,
+      originY: 0,
+    }
+    return
+  }
+
+  if (overlayZoom.value <= overlayZoomMin.value + overlayZoomEpsilon) {
+    overlayDragState.value = {
+      pointerId: null,
+      startX: 0,
+      startY: 0,
+      originX: 0,
+      originY: 0,
+    }
+    return
+  }
+
   event.preventDefault()
   event.currentTarget.setPointerCapture(event.pointerId)
   overlayDragState.value = {
@@ -1438,6 +1475,23 @@ function handleOverlayPointerDown(event: PointerEvent): void {
 }
 
 function handleOverlayPointerMove(event: PointerEvent): void {
+  if (overlayPointers.value.has(event.pointerId)) {
+    overlayPointers.value.set(event.pointerId, { x: event.clientX, y: event.clientY })
+  }
+
+  if (overlayPointers.value.size >= 2 && overlayPinchBase.value) {
+    const [first, second] = [...overlayPointers.value.values()]
+    const distance = Math.hypot(second.x - first.x, second.y - first.y)
+    if (distance > 0 && overlayPinchBase.value.distance > 0) {
+      const centerX = (first.x + second.x) / 2
+      const centerY = (first.y + second.y) / 2
+      const ratio = distance / overlayPinchBase.value.distance
+      const nextZoom = Math.min(overlayZoomMax, Math.max(overlayZoomMin.value, overlayPinchBase.value.zoom * ratio))
+      setOverlayZoom(nextZoom, { clientX: centerX, clientY: centerY })
+    }
+    return
+  }
+
   const state = overlayDragState.value
   if (state.pointerId === null || state.pointerId !== event.pointerId) {
     return
@@ -1451,12 +1505,20 @@ function handleOverlayPointerMove(event: PointerEvent): void {
 }
 
 function endOverlayPointerDrag(event: PointerEvent): void {
+  if (overlayPointers.value.has(event.pointerId)) {
+    overlayPointers.value.delete(event.pointerId)
+  }
+  if (overlayPointers.value.size < 2) {
+    overlayPinchBase.value = null
+  }
+
+  if (event.currentTarget instanceof HTMLElement) {
+    event.currentTarget.releasePointerCapture(event.pointerId)
+  }
+
   const state = overlayDragState.value
   if (state.pointerId === null || state.pointerId !== event.pointerId) {
     return
-  }
-  if (event.currentTarget instanceof HTMLElement) {
-    event.currentTarget.releasePointerCapture(event.pointerId)
   }
   overlayDragState.value = {
     pointerId: null,
