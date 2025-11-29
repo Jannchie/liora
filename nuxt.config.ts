@@ -81,6 +81,7 @@ export default defineNuxtConfig({
         tiktok: process.env.NUXT_PUBLIC_SOCIAL_TIKTOK ?? '',
         linkedin: process.env.NUXT_PUBLIC_SOCIAL_LINKEDIN ?? '',
       },
+      imageDomains: [],
     },
   },
   modules: [
@@ -143,7 +144,7 @@ export default defineNuxtConfig({
   },
   image: {
     domains: resolveDomains(),
-    format: ['webp', 'avif', 'jpeg'],
+    format: ['webp', 'avif', 'jpeg', 'jpg', 'png'],
   },
   vite: {
     resolve: {

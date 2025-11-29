@@ -329,11 +329,11 @@ function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' |
     modifiers,
     sizes: `${maxDisplayWidth}px`,
   })
-  const resolvedSrc
-    = sizes.src
-    ?? image.getImage(src, {
-      modifiers,
-    }).url
+  const imageResult = image.getImage(src, {
+    modifiers,
+  })
+  const resolvedSrc = sizes.src ?? imageResult.url
+
   return {
     ...sizes,
     src: resolvedSrc,
