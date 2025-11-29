@@ -1,3 +1,25 @@
+## v0.4.0
+
+[v0.3.0...v0.4.0](https://github.com/Jannchie/liora/compare/v0.3.0...v0.4.0)
+
+### :sparkles: Features
+
+- **pwa**: add pwa support && extract site metadata - By [Jannchie](mailto:jannchie@gmail.com) in [6953790](https://github.com/Jannchie/liora/commit/6953790)
+- **site**: add social homepage link - By [Jannchie](mailto:jannchie@gmail.com) in [763d42c](https://github.com/Jannchie/liora/commit/763d42c)
+- **ui**: add loading icon component && replace icons with loading-aware variants - By [Jannchie](mailto:jannchie@gmail.com) in [1c23609](https://github.com/Jannchie/liora/commit/1c23609)
+
+### :adhesive_bandage: Fixes
+
+- **files-api**: validate input lengths and file size - By [Jannchie](mailto:jannchie@gmail.com) in [9ebf13f](https://github.com/Jannchie/liora/commit/9ebf13f)
+
+### :lipstick: Styles
+
+- **ogimage**: update liora og image styles and add corner frames - By [Jannchie](mailto:jannchie@gmail.com) in [cd28fad](https://github.com/Jannchie/liora/commit/cd28fad)
+
+### :memo: Documentation
+
+- **readme**: add screenshot to readme - By [Jannchie](mailto:jannchie@gmail.com) in [0d8894b](https://github.com/Jannchie/liora/commit/0d8894b)
+
 ## v0.3.0
 
 [v0.2.0...v0.3.0](https://github.com/Jannchie/liora/compare/v0.2.0...v0.3.0)
