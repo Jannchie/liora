@@ -74,6 +74,7 @@ export default defineNuxtConfig({
     },
     public: {
       social: {
+        homepage: process.env.NUXT_PUBLIC_SOCIAL_HOMEPAGE ?? '',
         github: process.env.NUXT_PUBLIC_SOCIAL_GITHUB ?? '',
         twitter: process.env.NUXT_PUBLIC_SOCIAL_TWITTER ?? '',
         instagram: process.env.NUXT_PUBLIC_SOCIAL_INSTAGRAM ?? '',

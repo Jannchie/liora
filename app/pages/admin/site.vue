@@ -46,6 +46,7 @@ const form = reactive<SiteSettingsPayload>({
   description: '',
   iconUrl: '',
   social: {
+    homepage: '',
     github: '',
     twitter: '',
     instagram: '',
@@ -68,6 +69,7 @@ function applySettings(value: SiteSettings | null | undefined): void {
   form.name = value.name
   form.description = value.description
   form.iconUrl = value.iconUrl
+  form.social.homepage = value.social.homepage
   form.social.github = value.social.github
   form.social.twitter = value.social.twitter
   form.social.instagram = value.social.instagram
@@ -326,6 +328,21 @@ function handleReset(): void {
           </template>
 
           <div class="space-y-3">
+            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:home" class="h-4 w-4" />
+                <span>{{ t('admin.site.fields.homepage.label') }}</span>
+              </div>
+              <UInput
+                v-model="form.social.homepage"
+                :placeholder="t('admin.site.fields.homepage.placeholder')"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.homepage.help') }}
+              </p>
+            </div>
+
             <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:github" class="h-4 w-4" />

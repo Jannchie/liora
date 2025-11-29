@@ -1,4 +1,5 @@
 export interface SiteSocialLinks {
+  homepage: string
   github: string
   twitter: string
   instagram: string

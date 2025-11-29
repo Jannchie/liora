@@ -44,6 +44,7 @@ function resolveDefaultSocial(): SiteSocialLinks {
   const runtimeConfig = useRuntimeConfig()
   const social = runtimeConfig.public.social
   return {
+    homepage: normalizeText(social.homepage),
     github: normalizeText(social.github),
     twitter: normalizeText(social.twitter),
     instagram: normalizeText(social.instagram),
@@ -75,6 +76,7 @@ function serialize(setting: SiteSetting): SiteSettings {
     description: setting.description,
     iconUrl: normalizeIconUrl(setting.iconUrl),
     social: {
+      homepage: setting.socialHomepage,
       github: setting.socialGithub,
       twitter: setting.socialTwitter,
       instagram: setting.socialInstagram,
@@ -101,6 +103,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       name: defaults.name,
       description: defaults.description,
       iconUrl: defaults.iconUrl,
+      socialHomepage: defaults.social.homepage,
       socialGithub: defaults.social.github,
       socialTwitter: defaults.social.twitter,
       socialInstagram: defaults.social.instagram,
@@ -127,6 +130,7 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
     description: trimmedDescription,
     iconUrl: validateIconUrl(payload.iconUrl),
     social: {
+      homepage: normalizeText(payload.social.homepage),
       github: normalizeText(payload.social.github),
       twitter: normalizeText(payload.social.twitter),
       instagram: normalizeText(payload.social.instagram),
@@ -147,6 +151,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       name: validated.name,
       description: validated.description,
       iconUrl: validated.iconUrl,
+      socialHomepage: validated.social.homepage,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
@@ -161,6 +166,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       name: validated.name,
       description: validated.description,
       iconUrl: validated.iconUrl,
+      socialHomepage: validated.social.homepage,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
       socialInstagram: validated.social.instagram,
@@ -185,6 +191,7 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       name: defaults.name,
       description: defaults.description,
       iconUrl: validatedIcon,
+      socialHomepage: defaults.social.homepage,
       socialGithub: defaults.social.github,
       socialTwitter: defaults.social.twitter,
       socialInstagram: defaults.social.instagram,

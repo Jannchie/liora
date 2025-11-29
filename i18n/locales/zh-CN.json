@@ -544,6 +544,11 @@
           "previewLabel": "当前图标",
           "previewHelp": "用于浏览器标签页与收藏夹展示。"
         },
+        "homepage": {
+          "label": "个人主页",
+          "placeholder": "https://example.com",
+          "help": "填写个人主页链接，留空则不显示。"
+        },
         "github": {
           "placeholder": "https://github.com/username",
           "help": "需要完整链接（含 https://），留空则不显示。"

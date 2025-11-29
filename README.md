@@ -152,6 +152,7 @@ This project uses `@nuxtjs/seo` for canonical links, sitemap generation, and soc
 Set any of the following environment variables to show social icons in the gallery header card. Only non-empty values render.
 
 ```txt
+NUXT_PUBLIC_SOCIAL_HOMEPAGE=https://example.com
 NUXT_PUBLIC_SOCIAL_GITHUB=https://github.com/<username>
 NUXT_PUBLIC_SOCIAL_TWITTER=https://x.com/<username>
 NUXT_PUBLIC_SOCIAL_INSTAGRAM=https://instagram.com/<username>

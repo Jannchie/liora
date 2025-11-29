@@ -544,6 +544,11 @@
           "previewLabel": "Current icon",
           "previewHelp": "Displayed in browser tabs and bookmarks."
         },
+        "homepage": {
+          "label": "Homepage",
+          "placeholder": "https://example.com",
+          "help": "Link to your personal site; leave blank to hide."
+        },
         "github": {
           "placeholder": "https://github.com/username",
           "help": "Use a full URL (with https://). Leave blank to hide."

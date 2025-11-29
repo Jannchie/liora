@@ -9,6 +9,7 @@ function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPaylo
     description: typeof body.description === 'string' ? body.description : '',
     iconUrl: typeof body.iconUrl === 'string' ? body.iconUrl : '',
     social: {
+      homepage: typeof body.social?.homepage === 'string' ? body.social.homepage : '',
       github: typeof body.social?.github === 'string' ? body.social.github : '',
       twitter: typeof body.social?.twitter === 'string' ? body.social.twitter : '',
       instagram: typeof body.social?.instagram === 'string' ? body.social.instagram : '',

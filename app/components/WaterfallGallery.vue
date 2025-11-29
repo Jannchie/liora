@@ -471,6 +471,7 @@ const socialLinks = computed<SocialLink[]>(() => {
     }
   }
 
+  appendLink('Homepage', social.homepage, 'mdi:home')
   appendLink('GitHub', social.github, 'mdi:github')
   appendLink('X', social.twitter, 'fa6-brands:x-twitter')
   appendLink('Instagram', social.instagram, 'mdi:instagram')
