@@ -195,20 +195,21 @@ watch(
                       :placeholder="t('admin.files.form.genre.placeholder')"
                     />
                   </div>
-                  <UButton
-                    variant="soft"
-                    color="primary"
-                    class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
-                    :disabled="!canAutoClassify"
-                    :loading="classifyingGenre"
-                    @click="autoClassifyGenre"
-                  >
-                    <span class="flex items-center gap-1">
-                      <Icon name="mdi:robot-outline" class="h-4 w-4" />
-                      <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
-                    </span>
-                  </UButton>
-                </div>
+                <UButton
+                  variant="soft"
+                  color="primary"
+                  class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
+                  :disabled="!canAutoClassify"
+                  :loading="classifyingGenre"
+                  :ui="{ spinner: 'hidden' }"
+                  @click="autoClassifyGenre"
+                >
+                  <span class="flex items-center gap-1">
+                    <LoadingIcon :loading="classifyingGenre" icon="mdi:robot-outline" />
+                    <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
+                  </span>
+                </UButton>
+              </div>
                 <template #description>
                   <span class="text-xs text-muted">{{ t('admin.files.form.genre.autoDescription') }}</span>
                 </template>
@@ -253,9 +254,15 @@ watch(
                 <span class="text-xs text-muted">{{ t('admin.upload.fields.locationSearch.placeholder') }}</span>
               </template>
             </UFormField>
-            <UButton class="w-full md:w-auto" color="primary" :loading="geocoding" @click="searchLocation">
+            <UButton
+              class="w-full md:w-auto"
+              color="primary"
+              :loading="geocoding"
+              :ui="{ spinner: 'hidden' }"
+              @click="searchLocation"
+            >
               <span class="flex w-full items-center justify-center gap-2">
-                <Icon name="mdi:map-search-outline" class="h-4 w-4" />
+                <LoadingIcon :loading="geocoding" icon="mdi:map-search-outline" />
                 <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
               </span>
             </UButton>
@@ -300,10 +307,11 @@ watch(
                 :loading="geocoding"
                 :disabled="!canReverseGeocode"
                 class="w-full sm:w-auto"
+                :ui="{ spinner: 'hidden' }"
                 @click="searchLocation"
               >
                 <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:map-marker-radius-outline" class="h-4 w-4" />
+                  <LoadingIcon :loading="geocoding" icon="mdi:map-marker-radius-outline" />
                   <span>{{ t('admin.files.form.locationReverse.actionShort') }}</span>
                 </span>
               </UButton>

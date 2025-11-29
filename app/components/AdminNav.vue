@@ -71,10 +71,11 @@ async function handleTabChange(value: string | number): Promise<void> {
         variant="soft"
         color="primary"
         :loading="loggingOut"
+        :ui="{ spinner: 'hidden' }"
         @click="handleLogout"
       >
         <span class="flex items-center gap-2">
-          <Icon name="mdi:logout" class="h-4 w-4" />
+          <LoadingIcon :loading="loggingOut" icon="mdi:logout" />
           <span>{{ t('admin.nav.logout') }}</span>
         </span>
       </UButton>

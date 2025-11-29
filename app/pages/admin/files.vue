@@ -473,16 +473,23 @@ watch(fetchError, (value) => {
             variant="soft"
             :disabled="!hasFiles || reclassifying"
             :loading="reclassifying"
+            :ui="{ spinner: 'hidden' }"
             @click="reclassifyMissing"
           >
             <span class="flex items-center gap-2">
-              <Icon name="mdi:magic-wand" class="h-4 w-4" />
+              <LoadingIcon :loading="reclassifying" icon="mdi:magic-wand" />
               <span>{{ t('admin.files.actions.reclassify') }}</span>
             </span>
           </UButton>
-          <UButton color="primary" variant="solid" :loading="isLoading" @click="handleRefresh">
+          <UButton
+            color="primary"
+            variant="solid"
+            :loading="isLoading"
+            :ui="{ spinner: 'hidden' }"
+            @click="handleRefresh"
+          >
             <span class="flex items-center gap-2">
-              <Icon name="mdi:refresh" class="h-4 w-4" />
+              <LoadingIcon :loading="isLoading" icon="mdi:refresh" />
               <span>{{ t('admin.files.actions.refresh') }}</span>
             </span>
           </UButton>
@@ -587,10 +594,11 @@ watch(fetchError, (value) => {
                   variant="soft"
                   color="error"
                   :loading="deletingId === row.original.id"
+                  :ui="{ spinner: 'hidden' }"
                   @click="openDelete(row.original)"
                 >
                   <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                    <LoadingIcon :loading="deletingId === row.original.id" icon="mdi:trash-can-outline" />
                     <span>{{ t('common.actions.delete') }}</span>
                   </span>
                 </UButton>
@@ -655,9 +663,14 @@ watch(fetchError, (value) => {
                 <span>{{ t('common.actions.cancel') }}</span>
               </span>
             </UButton>
-            <UButton color="error" :loading="deletingId !== null" @click="confirmDelete">
+            <UButton
+              color="error"
+              :loading="deletingId !== null"
+              :ui="{ spinner: 'hidden' }"
+              @click="confirmDelete"
+            >
               <span class="flex items-center gap-1.5">
-                <Icon name="mdi:trash-can-outline" class="h-4 w-4" />
+                <LoadingIcon :loading="deletingId !== null" icon="mdi:trash-can-outline" />
                 <span>{{ t('admin.files.delete.confirm') }}</span>
               </span>
             </UButton>

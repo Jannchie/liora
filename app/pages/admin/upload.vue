@@ -843,9 +843,9 @@ onBeforeUnmount(() => {
                   <span>{{ t('common.actions.cancel') }}</span>
                 </span>
               </UButton>
-              <UButton color="primary" type="submit" :loading="submitting">
+              <UButton color="primary" type="submit" :loading="submitting" :ui="{ spinner: 'hidden' }">
                 <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                  <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
                   <span>{{ t('admin.upload.actions.save') }}</span>
                 </span>
               </UButton>
@@ -868,9 +868,9 @@ onBeforeUnmount(() => {
                 <span>{{ t('common.actions.cancel') }}</span>
               </span>
             </UButton>
-            <UButton color="primary" type="submit" :loading="submitting">
+            <UButton color="primary" type="submit" :loading="submitting" :ui="{ spinner: 'hidden' }">
               <span class="flex items-center justify-center gap-1.5">
-                <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
                 <span>{{ t('admin.upload.actions.save') }}</span>
               </span>
             </UButton>
@@ -965,9 +965,15 @@ onBeforeUnmount(() => {
                     <span>{{ t('common.actions.cancel') }}</span>
                   </span>
                 </UButton>
-                <UButton color="primary" type="submit" :loading="submitting" class="w-full sm:w-auto">
+                <UButton
+                  color="primary"
+                  type="submit"
+                  :loading="submitting"
+                  :ui="{ spinner: 'hidden' }"
+                  class="w-full sm:w-auto"
+                >
                   <span class="flex w-full items-center justify-center gap-2">
-                    <Icon name="mdi:content-save-outline" class="h-5 w-5" />
+                    <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
                     <span>{{ t('admin.upload.actions.save') }}</span>
                   </span>
                 </UButton>

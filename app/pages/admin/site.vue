@@ -294,10 +294,11 @@ function handleReset(): void {
                     variant="soft"
                     :loading="uploadingIcon"
                     :disabled="saving || loadingSettings || uploadingIcon"
+                    :ui="{ spinner: 'hidden' }"
                     @click="openIconPicker"
                   >
                     <span class="flex items-center gap-2">
-                      <Icon name="mdi:image-plus" class="h-4 w-4" />
+                      <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
                       <span>{{ t('admin.site.fields.icon.upload') }}</span>
                     </span>
                   </UButton>
@@ -464,10 +465,11 @@ function handleReset(): void {
           color="primary"
           :loading="saving"
           :disabled="saving || loadingSettings"
+          :ui="{ spinner: 'hidden' }"
           @click="handleSubmit"
         >
           <span class="flex items-center gap-2">
-            <Icon name="mdi:content-save-outline" class="h-4 w-4" />
+            <LoadingIcon :loading="saving" icon="mdi:content-save-outline" />
             <span>{{ t('admin.site.actions.save') }}</span>
           </span>
         </UButton>
