@@ -1,3 +1,19 @@
+## v0.3.0
+
+[v0.2.0...v0.3.0](https://github.com/Jannchie/liora/compare/v0.2.0...v0.3.0)
+
+### :sparkles: Features
+
+- **image**: support runtime image domains && add runtime-image plugin - By [Jannchie](mailto:jannchie@gmail.com) in [74df406](https://github.com/Jannchie/liora/commit/74df406)
+
+### :art: Refactors
+
+- **gallery**: remove ipx domain resolution and syncing - By [Jannchie](mailto:jannchie@gmail.com) in [35eadb0](https://github.com/Jannchie/liora/commit/35eadb0)
+
+### :wrench: Chores
+
+- ignore docker-compose.dev.yml - By [Jannchie](mailto:jannchie@gmail.com) in [43c4682](https://github.com/Jannchie/liora/commit/43c4682)
+
 ## v0.2.0
 
 [v0.1.5...v0.2.0](https://github.com/Jannchie/liora/compare/v0.1.5...v0.2.0)
