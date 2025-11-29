@@ -23,6 +23,7 @@ interface ParsedForm {
   fields: Record<string, string>
 }
 
+const MAX_FILE_SIZE_BYTES = 60 * 1024 * 1024
 const SIMILARITY_THRESHOLD = 6
 const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
 
@@ -30,6 +31,37 @@ interface ImageHashes {
   perceptualHash: string | null
   sha256: string
 }
+
+const LENGTH_LIMITS = {
+  title: { max: 256, label: 'Title' },
+  description: { max: 4000, label: 'Description' },
+  genre: { max: 120, label: 'Genre' },
+  fanworkTitle: { max: 256, label: 'Fanwork title' },
+  character: { max: 120, label: 'Character' },
+  characterList: { max: 2000, label: 'Character list' },
+  location: { max: 256, label: 'Location' },
+  locationName: { max: 256, label: 'Location name' },
+  cameraModel: { max: 256, label: 'Camera model' },
+  lensModel: { max: 256, label: 'Lens model' },
+  aperture: { max: 64, label: 'Aperture' },
+  focalLength: { max: 64, label: 'Focal length' },
+  iso: { max: 32, label: 'ISO' },
+  shutterSpeed: { max: 64, label: 'Shutter speed' },
+  exposureBias: { max: 64, label: 'Exposure bias' },
+  exposureProgram: { max: 64, label: 'Exposure program' },
+  exposureMode: { max: 64, label: 'Exposure mode' },
+  meteringMode: { max: 64, label: 'Metering mode' },
+  whiteBalance: { max: 64, label: 'White balance' },
+  flash: { max: 64, label: 'Flash' },
+  colorSpace: { max: 64, label: 'Color space' },
+  resolutionX: { max: 32, label: 'Resolution X' },
+  resolutionY: { max: 32, label: 'Resolution Y' },
+  resolutionUnit: { max: 32, label: 'Resolution unit' },
+  software: { max: 256, label: 'Software' },
+  captureTime: { max: 128, label: 'Capture time' },
+  notes: { max: 4000, label: 'Notes' },
+  originalName: { max: 512, label: 'Original filename' },
+} as const
 
 async function computePerceptualHash(data: Buffer): Promise<string | null> {
   try {
@@ -228,6 +260,57 @@ function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraMo
   return tryExtractLens()
 }
 
+function assertLength(value: string, limit: number, label: string): void {
+  if (value.length > limit) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `${label} exceeds the maximum length of ${limit} characters.`,
+    })
+  }
+}
+
+function validateLengths(payload: {
+  title: string
+  description: string
+  genre: string
+  metadata: FileMetadata
+  characters: string[]
+  originalName: string
+}): void {
+  assertLength(payload.title, LENGTH_LIMITS.title.max, LENGTH_LIMITS.title.label)
+  assertLength(payload.description, LENGTH_LIMITS.description.max, LENGTH_LIMITS.description.label)
+  assertLength(payload.genre, LENGTH_LIMITS.genre.max, LENGTH_LIMITS.genre.label)
+  assertLength(payload.metadata.fanworkTitle, LENGTH_LIMITS.fanworkTitle.max, LENGTH_LIMITS.fanworkTitle.label)
+  assertLength(payload.metadata.location, LENGTH_LIMITS.location.max, LENGTH_LIMITS.location.label)
+  assertLength(payload.metadata.locationName, LENGTH_LIMITS.locationName.max, LENGTH_LIMITS.locationName.label)
+  assertLength(payload.metadata.cameraModel, LENGTH_LIMITS.cameraModel.max, LENGTH_LIMITS.cameraModel.label)
+  assertLength(payload.metadata.lensModel, LENGTH_LIMITS.lensModel.max, LENGTH_LIMITS.lensModel.label)
+  assertLength(payload.metadata.aperture, LENGTH_LIMITS.aperture.max, LENGTH_LIMITS.aperture.label)
+  assertLength(payload.metadata.focalLength, LENGTH_LIMITS.focalLength.max, LENGTH_LIMITS.focalLength.label)
+  assertLength(payload.metadata.iso, LENGTH_LIMITS.iso.max, LENGTH_LIMITS.iso.label)
+  assertLength(payload.metadata.shutterSpeed, LENGTH_LIMITS.shutterSpeed.max, LENGTH_LIMITS.shutterSpeed.label)
+  assertLength(payload.metadata.exposureBias, LENGTH_LIMITS.exposureBias.max, LENGTH_LIMITS.exposureBias.label)
+  assertLength(payload.metadata.exposureProgram, LENGTH_LIMITS.exposureProgram.max, LENGTH_LIMITS.exposureProgram.label)
+  assertLength(payload.metadata.exposureMode, LENGTH_LIMITS.exposureMode.max, LENGTH_LIMITS.exposureMode.label)
+  assertLength(payload.metadata.meteringMode, LENGTH_LIMITS.meteringMode.max, LENGTH_LIMITS.meteringMode.label)
+  assertLength(payload.metadata.whiteBalance, LENGTH_LIMITS.whiteBalance.max, LENGTH_LIMITS.whiteBalance.label)
+  assertLength(payload.metadata.flash, LENGTH_LIMITS.flash.max, LENGTH_LIMITS.flash.label)
+  assertLength(payload.metadata.colorSpace, LENGTH_LIMITS.colorSpace.max, LENGTH_LIMITS.colorSpace.label)
+  assertLength(payload.metadata.resolutionX, LENGTH_LIMITS.resolutionX.max, LENGTH_LIMITS.resolutionX.label)
+  assertLength(payload.metadata.resolutionY, LENGTH_LIMITS.resolutionY.max, LENGTH_LIMITS.resolutionY.label)
+  assertLength(payload.metadata.resolutionUnit, LENGTH_LIMITS.resolutionUnit.max, LENGTH_LIMITS.resolutionUnit.label)
+  assertLength(payload.metadata.software, LENGTH_LIMITS.software.max, LENGTH_LIMITS.software.label)
+  assertLength(payload.metadata.captureTime, LENGTH_LIMITS.captureTime.max, LENGTH_LIMITS.captureTime.label)
+  assertLength(payload.metadata.notes, LENGTH_LIMITS.notes.max, LENGTH_LIMITS.notes.label)
+  assertLength(payload.originalName, LENGTH_LIMITS.originalName.max, LENGTH_LIMITS.originalName.label)
+
+  for (const character of payload.characters) {
+    assertLength(character, LENGTH_LIMITS.character.max, LENGTH_LIMITS.character.label)
+  }
+  const joinedCharacters = joinCharacters(payload.characters)
+  assertLength(joinedCharacters, LENGTH_LIMITS.characterList.max, LENGTH_LIMITS.characterList.label)
+}
+
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   const form = await readMultipartFormData(event)
   if (!form) {
@@ -319,6 +402,12 @@ async function saveFile(file: MultipartEntry, config: S3Config): Promise<{ image
 export default defineEventHandler(async (event): Promise<FileResponse> => {
   requireAdmin(event)
   const { file, fields } = await parseMultipart(event)
+  if (file.data.length > MAX_FILE_SIZE_BYTES) {
+    throw createError({
+      statusCode: 413,
+      statusMessage: `File exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+    })
+  }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
   const { width, height } = parseNumbers(fields)
 
@@ -328,6 +417,18 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   metadata.cameraModel = deduped.cameraModel
   metadata.lensModel = deduped.lensModel
   metadata.fileSize = file.data.length
+  const normalizedTitle = normalizeText(fields.title)
+  const normalizedDescription = normalizeText(fields.description)
+  const normalizedGenre = normalizeText(fields.genre)
+  const originalName = file.filename ? basename(file.filename) : ''
+  validateLengths({
+    title: normalizedTitle,
+    description: normalizedDescription,
+    genre: normalizedGenre,
+    metadata,
+    characters,
+    originalName,
+  })
   const hashes = await computeHashes(file.data)
   metadata.perceptualHash = hashes.perceptualHash ?? undefined
   metadata.sha256 = hashes.sha256
@@ -350,12 +451,10 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.thumbhash = thumbhash
   }
 
-  const originalName = file.filename ? basename(file.filename) : ''
-
   const created = await prisma.file.create({
     data: {
-      title: normalizeText(fields.title),
-      description: normalizeText(fields.description),
+      title: normalizedTitle,
+      description: normalizedDescription,
       originalName,
       imageUrl,
       thumbnailUrl,
@@ -374,7 +473,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       shutterSpeed: metadata.shutterSpeed,
       captureTime: metadata.captureTime,
       metadata: JSON.stringify(metadata),
-      genre: normalizeText(fields.genre),
+      genre: normalizedGenre,
     },
   })
 
