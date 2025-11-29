@@ -2,6 +2,8 @@
 
 Nuxt 4 gallery for photography and illustration uploads with Prisma and S3-compatible storage.
 
+![Liora Gallery screenshot](docs/screenshots/liora-gallery-home.png)
+
 ## Local development
 
 ```bash
