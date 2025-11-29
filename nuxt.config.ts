@@ -43,6 +43,8 @@ function resolveIndexable(siteEnv: string, siteUrl?: string): boolean {
   return siteEnv === 'production' && Boolean(siteUrl)
 }
 
+const siteName = 'Liora Gallery'
+const siteDescription = 'A minimal gallery for photography and illustrations.'
 const defaultLocale = 'zh-CN'
 
 const siteEnv = resolveSiteEnv()
@@ -93,6 +95,7 @@ export default defineNuxtConfig({
     '@nuxt/ui',
     '@nuxt/test-utils',
     '@nuxtjs/i18n',
+    '@vite-pwa/nuxt',
   ],
   i18n: {
     strategy: 'no_prefix',
@@ -112,8 +115,8 @@ export default defineNuxtConfig({
   },
   site: {
     url: siteUrl,
-    name: 'Liora Gallery',
-    description: 'A minimal gallery for photography and illustrations.',
+    name: siteName,
+    description: siteDescription,
     defaultLocale,
     indexable: siteIndexable,
     env: siteEnv,
@@ -145,6 +148,31 @@ export default defineNuxtConfig({
   image: {
     domains: resolveDomains(),
     format: ['webp', 'avif', 'jpeg', 'jpg', 'png'],
+  },
+  pwa: {
+    registerType: 'autoUpdate',
+    manifest: {
+      name: siteName,
+      short_name: 'Liora',
+      description: siteDescription,
+      theme_color: '#0ea5e9',
+      background_color: '#d9d9d9',
+      start_url: '/',
+      scope: '/',
+      display: 'standalone',
+      lang: defaultLocale,
+      icons: [
+        { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
+        { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
+        { src: '/pwa-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+      ],
+    },
+    workbox: {
+      navigateFallback: '/',
+    },
+    devOptions: {
+      enabled: true,
+    },
   },
   vite: {
     resolve: {

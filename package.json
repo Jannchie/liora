@@ -46,6 +46,8 @@
     "@iconify-json/carbon": "^1.2.14",
     "@iconify-json/mdi": "^1.2.3",
     "@jannchie/eslint-config": "^3.7.1",
+    "@vite-pwa/nuxt": "^1.1.0",
+    "png-to-ico": "^3.0.1",
     "prisma": "^7.0.1",
     "tsx": "^4.20.6"
   }
