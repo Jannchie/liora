@@ -27,3 +27,5 @@ logs
 prisma/data.db
 prisma/dev.db
 data/*
+
+docker-compose.dev.yml
