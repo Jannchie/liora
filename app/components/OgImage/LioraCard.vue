@@ -21,7 +21,7 @@ const containerStyle: Record<string, string> = {
   padding: '72px',
   boxSizing: 'border-box',
   background: '#e7e7e7',
-  color: '#1f1f1f',
+  color: '#2a2a2a',
   gap: '32px',
   fontFamily: baseFont,
   position: 'relative',
@@ -44,7 +44,7 @@ const titleStyle: Record<string, string> = {
   fontSize: '68px',
   lineHeight: '1.05',
   fontWeight: '700',
-  color: '#0f0f0f',
+  color: '#2a2a2a',
 }
 
 const descriptionStyle: Record<string, string> = {
@@ -55,13 +55,13 @@ const descriptionStyle: Record<string, string> = {
 }
 
 const frameOffset = 36
-const frameThickness = 6
+const frameThickness = 4
 const frameSize = 170
 const frameCornerBaseStyle: Record<string, string> = {
   position: 'absolute',
   width: `${frameSize}px`,
   height: `${frameSize}px`,
-  border: `${frameThickness}px solid #0f0f0f`,
+  border: `${frameThickness}px solid #2a2a2a`,
   borderRadius: '0',
   boxSizing: 'border-box',
 }
@@ -96,8 +96,8 @@ const framePositions: Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRigh
 const redDotSize = 22
 const redDotStyle: Record<string, string> = {
   position: 'absolute',
-  top: `${frameOffset + frameThickness * 2}px`,
-  right: `${frameOffset + frameThickness * 2}px`,
+  top: `${frameOffset + frameThickness * 8}px`,
+  right: `${frameOffset + frameThickness * 8}px`,
   width: `${redDotSize}px`,
   height: `${redDotSize}px`,
   borderRadius: '9999px',
