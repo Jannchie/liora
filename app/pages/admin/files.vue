@@ -462,12 +462,6 @@ watch(fetchError, (value) => {
           </h1>
         </div>
         <div class="flex items-center gap-2">
-          <UButton to="/admin/upload" variant="soft" color="primary">
-            <span class="flex items-center gap-2">
-              <Icon name="mdi:upload-outline" class="h-4 w-4" />
-              <span>{{ t('admin.files.actions.toUpload') }}</span>
-            </span>
-          </UButton>
           <UButton
             color="primary"
             variant="soft"

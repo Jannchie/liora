@@ -367,7 +367,6 @@
       },
       "title": "数据列表",
       "actions": {
-        "toUpload": "去上传",
         "reclassify": "补全分类",
         "refresh": "刷新数据"
       },

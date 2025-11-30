@@ -367,7 +367,6 @@
       },
       "title": "Records",
       "actions": {
-        "toUpload": "Go to upload",
         "reclassify": "Classify missing",
         "refresh": "Refresh"
       },

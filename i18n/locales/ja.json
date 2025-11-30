@@ -367,7 +367,6 @@
       },
       "title": "レコード",
       "actions": {
-        "toUpload": "アップロードへ",
         "reclassify": "未分類を分類",
         "refresh": "再読み込み"
       },
