@@ -55,7 +55,7 @@ const descriptionStyle: Record<string, string> = {
 }
 
 const frameOffset = 36
-const frameThickness = 8
+const frameThickness = 6
 const frameSize = 170
 const frameCornerBaseStyle: Record<string, string> = {
   position: 'absolute',
@@ -92,6 +92,18 @@ const framePositions: Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRigh
     borderTop: 'none',
   },
 }
+
+const redDotSize = 22
+const redDotStyle: Record<string, string> = {
+  position: 'absolute',
+  top: `${frameOffset + frameThickness * 2}px`,
+  right: `${frameOffset + frameThickness * 2}px`,
+  width: `${redDotSize}px`,
+  height: `${redDotSize}px`,
+  borderRadius: '9999px',
+  background: '#b3214d',
+  zIndex: '2',
+}
 </script>
 
 <template>
@@ -101,6 +113,7 @@ const framePositions: Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRigh
       :key="corner"
       :style="[frameCornerBaseStyle, style]"
     />
+    <div :style="redDotStyle" aria-hidden="true" />
     <div :style="textColumnStyle">
       <h1 :style="titleStyle">
         {{ props.title }}

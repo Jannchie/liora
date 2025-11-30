@@ -1,6 +1,8 @@
-# Liora Gallery
-
-Nuxt 4 gallery for photography and illustration uploads with Prisma and S3-compatible storage.
+<div align="center">
+  <img src="docs/social/liora-icon.png" alt="Liora Gallery icon" width="128" height="128" />
+  <h1 align="center">Liora Gallery</h1>
+  <img href="https://codetime.dev" alt="CodeTime Badge" src="https://shields.jannchie.com/endpoint?style=social&color=222&url=https%3A%2F%2Fapi.codetime.dev%2Fv3%2Fusers%2Fshield%3Fuid%3D2%26project%3Dliora%2B%255BWSL%253A%2BUbuntu-24.04%255D">
+</div>
 
 ![Liora Gallery screenshot](docs/screenshots/liora-gallery-home.png)
 
