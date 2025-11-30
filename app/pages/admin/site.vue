@@ -187,10 +187,10 @@ function handleReset(): void {
               :disabled="saving || loadingSettings"
               @click="handleSubmit"
             >
-              <span class="flex items-center gap-2">
-                <Icon name="mdi:content-save-outline" class="h-4 w-4" />
-                <span>{{ t('common.actions.save') }}</span>
-              </span>
+              <template #leading>
+                <LoadingIcon :loading="saving" icon="mdi:content-save-outline" />
+              </template>
+              <span>{{ t('common.actions.save') }}</span>
             </UButton>
             <UButton
               variant="soft"
@@ -291,22 +291,21 @@ function handleReset(): void {
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <UButton
-                    color="primary"
-                    variant="soft"
-                    :loading="uploadingIcon"
-                    :disabled="saving || loadingSettings || uploadingIcon"
-                    :ui="{ spinner: 'hidden' }"
-                    @click="openIconPicker"
-                  >
-                    <span class="flex items-center gap-2">
-                      <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
-                      <span>{{ t('admin.site.fields.icon.upload') }}</span>
-                    </span>
-                  </UButton>
-                  <input
-                    ref="iconFileInput"
-                    type="file"
+                <UButton
+                  color="primary"
+                  variant="soft"
+                  :loading="uploadingIcon"
+                  :disabled="saving || loadingSettings || uploadingIcon"
+                  @click="openIconPicker"
+                >
+                  <template #leading>
+                    <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
+                  </template>
+                  <span>{{ t('admin.site.fields.icon.upload') }}</span>
+                </UButton>
+                <input
+                  ref="iconFileInput"
+                  type="file"
                     accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
                     class="hidden"
                     @change="handleIconFileChange"
@@ -482,13 +481,12 @@ function handleReset(): void {
           color="primary"
           :loading="saving"
           :disabled="saving || loadingSettings"
-          :ui="{ spinner: 'hidden' }"
           @click="handleSubmit"
         >
-          <span class="flex items-center gap-2">
+          <template #leading>
             <LoadingIcon :loading="saving" icon="mdi:content-save-outline" />
-            <span>{{ t('admin.site.actions.save') }}</span>
-          </span>
+          </template>
+          <span>{{ t('admin.site.actions.save') }}</span>
         </UButton>
       </div>
     </UContainer>

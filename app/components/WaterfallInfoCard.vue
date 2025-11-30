@@ -70,12 +70,11 @@ const { t } = useI18n()
           variant="soft"
           color="neutral"
           square
-          size="sm"
+          size="lg"
           class="text-muted"
+          :icon="link.icon"
           :aria-label="link.label"
-        >
-          <Icon :name="link.icon" class="h-5 w-5" />
-        </UButton>
+        />
       </div>
     </div>
   </div>

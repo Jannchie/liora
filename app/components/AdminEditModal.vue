@@ -248,11 +248,11 @@ async function handleReplaceChange(event: Event): Promise<void> {
                     <span>{{ t('common.actions.cancel') }}</span>
                   </span>
                 </UButton>
-                <UButton color="primary" type="submit" :loading="loading" :ui="{ spinner: 'hidden' }">
-                  <span class="flex items-center gap-1.5">
+                <UButton color="primary" type="submit" :loading="loading">
+                  <template #leading>
                     <LoadingIcon :loading="loading ?? false" icon="mdi:content-save-outline" />
-                    <span>{{ t('common.actions.save') }}</span>
-                  </span>
+                  </template>
+                  <span>{{ t('common.actions.save') }}</span>
                 </UButton>
               </div>
             </UForm>

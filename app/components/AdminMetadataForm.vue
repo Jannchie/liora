@@ -201,13 +201,12 @@ watch(
                   class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
                   :disabled="!canAutoClassify"
                   :loading="classifyingGenre"
-                  :ui="{ spinner: 'hidden' }"
                   @click="autoClassifyGenre"
                 >
-                  <span class="flex items-center gap-1">
+                  <template #leading>
                     <LoadingIcon :loading="classifyingGenre" icon="mdi:robot-outline" />
-                    <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
-                  </span>
+                  </template>
+                  <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
                 </UButton>
               </div>
                 <template #description>
@@ -255,16 +254,15 @@ watch(
               </template>
             </UFormField>
             <UButton
-              class="w-full md:w-auto"
+              class="w-full justify-center md:w-auto"
               color="primary"
               :loading="geocoding"
-              :ui="{ spinner: 'hidden' }"
               @click="searchLocation"
             >
-              <span class="flex w-full items-center justify-center gap-2">
+              <template #leading>
                 <LoadingIcon :loading="geocoding" icon="mdi:map-search-outline" />
-                <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
-              </span>
+              </template>
+              <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
             </UButton>
             <div v-if="geocodeResults.length > 0" class="space-y-2 rounded-md border border-default/40 bg-default/70 p-3">
               <p class="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -307,13 +305,12 @@ watch(
                 :loading="geocoding"
                 :disabled="!canReverseGeocode"
                 class="w-full sm:w-auto"
-                :ui="{ spinner: 'hidden' }"
                 @click="searchLocation"
               >
-                <span class="flex items-center gap-1.5">
+                <template #leading>
                   <LoadingIcon :loading="geocoding" icon="mdi:map-marker-radius-outline" />
-                  <span>{{ t('admin.files.form.locationReverse.actionShort') }}</span>
-                </span>
+                </template>
+                <span>{{ t('admin.files.form.locationReverse.actionShort') }}</span>
               </UButton>
             </div>
           </div>

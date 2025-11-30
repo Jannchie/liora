@@ -843,11 +843,11 @@ onBeforeUnmount(() => {
                   <span>{{ t('common.actions.cancel') }}</span>
                 </span>
               </UButton>
-              <UButton color="primary" type="submit" :loading="submitting" :ui="{ spinner: 'hidden' }">
-                <span class="flex items-center gap-1.5">
+              <UButton color="primary" type="submit" :loading="submitting">
+                <template #leading>
                   <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-                  <span>{{ t('admin.upload.actions.save') }}</span>
-                </span>
+                </template>
+                <span>{{ t('admin.upload.actions.save') }}</span>
               </UButton>
             </div>
           </div>
@@ -868,11 +868,11 @@ onBeforeUnmount(() => {
                 <span>{{ t('common.actions.cancel') }}</span>
               </span>
             </UButton>
-            <UButton color="primary" type="submit" :loading="submitting" :ui="{ spinner: 'hidden' }">
-              <span class="flex items-center justify-center gap-1.5">
+            <UButton color="primary" type="submit" :loading="submitting">
+              <template #leading>
                 <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-                <span>{{ t('admin.upload.actions.save') }}</span>
-              </span>
+              </template>
+              <span>{{ t('admin.upload.actions.save') }}</span>
             </UButton>
           </div>
         </div>
@@ -969,13 +969,12 @@ onBeforeUnmount(() => {
                   color="primary"
                   type="submit"
                   :loading="submitting"
-                  :ui="{ spinner: 'hidden' }"
                   class="w-full sm:w-auto"
                 >
-                  <span class="flex w-full items-center justify-center gap-2">
+                  <template #leading>
                     <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-                    <span>{{ t('admin.upload.actions.save') }}</span>
-                  </span>
+                  </template>
+                  <span>{{ t('admin.upload.actions.save') }}</span>
                 </UButton>
               </div>
             </div>

@@ -117,12 +117,11 @@ async function handleSubmit(): Promise<void> {
             variant="solid"
             block
             :loading="submitting"
-            :ui="{ spinner: 'hidden' }"
           >
-            <div class="flex items-center justify-center gap-2">
+            <template #leading>
               <LoadingIcon :loading="submitting" icon="mdi:login" size="h-5 w-5" />
-              <span>{{ t('admin.login.submit') }}</span>
-            </div>
+            </template>
+            <span>{{ t('admin.login.submit') }}</span>
           </UButton>
         </UForm>
       </div>
