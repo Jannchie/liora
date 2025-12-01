@@ -407,7 +407,7 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
   const previewSize = computeDisplaySize(
     file,
     decoded?.aspectRatio,
-    Math.min(Math.max(displayWidth * 2, 800), Math.min(file.width || Number.MAX_SAFE_INTEGER, 2000)),
+    displayWidth,
   )
   const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
   const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
