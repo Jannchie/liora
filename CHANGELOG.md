@@ -1,3 +1,37 @@
+## v0.5.0
+
+[v0.4.0...v0.5.0](https://github.com/Jannchie/liora/compare/v0.4.0...v0.5.0)
+
+### :sparkles: Features
+
+- **gallery**: add responsive min columns and overlay max height - By [Jannchie](mailto:jannchie@gmail.com) in [8f25eea](https://github.com/Jannchie/liora/commit/8f25eea)
+- **layout**: add optional header site info and social links - By [Jannchie](mailto:jannchie@gmail.com) in [c7b06da](https://github.com/Jannchie/liora/commit/c7b06da)
+- **site**: add site info placement option - By [Jannchie](mailto:jannchie@gmail.com) in [460dc7e](https://github.com/Jannchie/liora/commit/460dc7e)
+- **ui**: enhance README visuals && add og card red indicator - By [Jannchie](mailto:jannchie@gmail.com) in [99173ff](https://github.com/Jannchie/liora/commit/99173ff)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: allow single-column waterfall && fix overlay max-height on mobile viewport units - By [Jannchie](mailto:jannchie@gmail.com) in [1ed0998](https://github.com/Jannchie/liora/commit/1ed0998)
+- **home**: use document scrolling element for list scrolling - By [Jannchie](mailto:jannchie@gmail.com) in [e10b07b](https://github.com/Jannchie/liora/commit/e10b07b)
+
+### :art: Refactors
+
+- **ui-buttons**: use leading slot for loading icons in buttons - By [Jannchie](mailto:jannchie@gmail.com) in [9db111c](https://github.com/Jannchie/liora/commit/9db111c)
+- **viewer**: replace UModal with custom overlay component - By [Jannchie](mailto:jannchie@gmail.com) in [6255676](https://github.com/Jannchie/liora/commit/6255676)
+
+### :lipstick: Styles
+
+- **components**: reorder imports in WaterfallGallery.vue - By [Jannchie](mailto:jannchie@gmail.com) in [cb7fd94](https://github.com/Jannchie/liora/commit/cb7fd94)
+- **ogimage**: tweak liora card colors and frame sizing - By [Jannchie](mailto:jannchie@gmail.com) in [9ac21c8](https://github.com/Jannchie/liora/commit/9ac21c8)
+
+### :memo: Documentation
+
+- **readme**: add comprehensive README and .env.example - By [Jannchie](mailto:jannchie@gmail.com) in [6ec5150](https://github.com/Jannchie/liora/commit/6ec5150)
+
+### :wrench: Chores
+
+- **admin-files**: remove upload button and i18n entries - By [Jannchie](mailto:jannchie@gmail.com) in [8e1324e](https://github.com/Jannchie/liora/commit/8e1324e)
+
 ## v0.4.0
 
 [v0.3.0...v0.4.0](https://github.com/Jannchie/liora/compare/v0.3.0...v0.4.0)
