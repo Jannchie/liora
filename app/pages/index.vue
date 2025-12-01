@@ -104,7 +104,7 @@ defineOgImageComponent('LioraCard', {
   <div class="home-display-font min-h-screen w-full">
     <header
       v-if="showHeaderInfo"
-      class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default/90 backdrop-blur"
+      class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
     >
       <div class="mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-2 md:max-w-[2000px] md:gap-3 md:px-4 md:py-3">
         <div class="flex w-full flex-wrap items-center gap-2 md:flex-1 md:gap-3">
@@ -126,8 +126,8 @@ defineOgImageComponent('LioraCard', {
               :icon="link.icon"
               :aria-label="link.label"
             />
-          </div>
         </div>
+      </div>
         <div class="flex items-center gap-2 md:shrink-0">
           <UButton
             v-if="isAuthenticated"
@@ -142,7 +142,7 @@ defineOgImageComponent('LioraCard', {
               <span>{{ t('admin.nav.label') }}</span>
             </span>
           </UButton>
-          <LanguageSwitcher />
+          <LanguageSwitcher class="hidden md:block" />
         </div>
       </div>
     </header>
@@ -164,7 +164,7 @@ defineOgImageComponent('LioraCard', {
             <span>{{ t('admin.nav.label') }}</span>
           </span>
         </UButton>
-        <LanguageSwitcher />
+        <LanguageSwitcher class="hidden md:block" />
       </div>
       <UAlert
         v-if="fetchError"
