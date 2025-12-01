@@ -43,7 +43,7 @@ const toast = useToast()
 const { updateFile } = useFileEditApi()
 
 const maxDisplayWidth = 400
-const minColumns = 2
+const minColumns = 1
 const waterfallGap = 4
 const infoCardBaseHeight = 260
 const image = useImage()
