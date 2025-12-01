@@ -24,8 +24,6 @@ interface ParsedForm {
 }
 
 const MAX_FILE_SIZE_BYTES = 60 * 1024 * 1024
-const SIMILARITY_THRESHOLD = 6
-const NIBBLE_BIT_COUNTS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4]
 
 interface ImageHashes {
   perceptualHash: string | null
@@ -100,67 +98,6 @@ async function computeHashes(data: Buffer): Promise<ImageHashes> {
     perceptualHash: await computePerceptualHash(data),
     sha256: createHash('sha256').update(data).digest('hex'),
   }
-}
-
-function extractHashes(raw: string): { perceptualHash?: string, sha256?: string } {
-  try {
-    const parsed = JSON.parse(raw) as Partial<FileMetadata>
-    return {
-      perceptualHash: typeof parsed.perceptualHash === 'string' ? parsed.perceptualHash : undefined,
-      sha256: typeof parsed.sha256 === 'string' ? parsed.sha256 : undefined,
-    }
-  }
-  catch {
-    return {}
-  }
-}
-
-function hammingDistance(first: string, second: string): number | null {
-  if (!first || !second || first.length !== second.length) {
-    return null
-  }
-  let distance = 0
-  for (const [index, element] of [...first].entries()) {
-    const left = Number.parseInt(element, 16)
-    const right = Number.parseInt(second[index] ?? '', 16)
-    if (Number.isNaN(left) || Number.isNaN(right)) {
-      return null
-    }
-    const diff = left ^ right
-    if (diff < 0 || diff >= NIBBLE_BIT_COUNTS.length) {
-      return null
-    }
-    const increment = NIBBLE_BIT_COUNTS[diff]
-    if (increment === undefined) {
-      return null
-    }
-    distance += increment
-  }
-  return distance
-}
-
-async function findSimilarFile(hashes: ImageHashes): Promise<{ id: number, title: string, distance: number } | null> {
-  const existing = await prisma.file.findMany({ select: { id: true, title: true, metadata: true } })
-  let closest: { id: number, title: string, distance: number } | null = null
-
-  for (const file of existing) {
-    const parsed = extractHashes(file.metadata)
-    if (parsed.sha256 && parsed.sha256 === hashes.sha256) {
-      return { id: file.id, title: file.title, distance: 0 }
-    }
-    if (!parsed.perceptualHash || !hashes.perceptualHash) {
-      continue
-    }
-    const distance = hammingDistance(parsed.perceptualHash, hashes.perceptualHash)
-    if (distance === null) {
-      continue
-    }
-    if (distance <= SIMILARITY_THRESHOLD && (!closest || distance < closest.distance)) {
-      closest = { id: file.id, title: file.title, distance }
-    }
-  }
-
-  return closest
 }
 
 const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
@@ -432,15 +369,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const hashes = await computeHashes(file.data)
   metadata.perceptualHash = hashes.perceptualHash ?? undefined
   metadata.sha256 = hashes.sha256
-
-  const similar = await findSimilarFile(hashes)
-  if (similar) {
-    throw createError({
-      statusCode: 409,
-      statusMessage: `检测到相似图片，已存在记录 #${similar.id}${similar.distance > 0 ? `（距离 ${similar.distance}）` : ''}`,
-      data: { existingId: similar.id, distance: similar.distance },
-    })
-  }
 
   const histogram = await computeHistogram(file.data)
   if (histogram) {
