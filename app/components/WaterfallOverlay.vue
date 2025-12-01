@@ -102,7 +102,7 @@ onMounted(() => {
       <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0 md:overflow-y-visible">
         <div
           ref="viewerRef"
-          class="relative flex min-h-[60vh] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:min-h-0"
+          class="relative flex max-h-[calc(100vh-100px)] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:min-h-0"
           :style="{ touchAction: viewerTouchAction }"
           @wheel.prevent="emit('wheel', $event)"
           @dblclick.prevent="emit('dblclick', $event)"

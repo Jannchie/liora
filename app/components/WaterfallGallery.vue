@@ -43,6 +43,7 @@ const toast = useToast()
 const { updateFile } = useFileEditApi()
 
 const maxDisplayWidth = 400
+const minColumns = 2
 const waterfallGap = 4
 const infoCardBaseHeight = 260
 const image = useImage()
@@ -52,7 +53,7 @@ const route = useRoute()
 const router = useRouter()
 
 function getInitialColumns(): number {
-  return 3
+  return minColumns
 }
 
 const galleryRef = ref<HTMLElement | null>(null)
@@ -526,7 +527,7 @@ const resizeObserver = ref<ResizeObserver | null>(null)
 function updateColumns(): void {
   const width = galleryRef.value?.clientWidth ?? null
   if (typeof width === 'number' && Number.isFinite(width) && width > 0) {
-    const target = Math.max(1, Math.ceil(width / maxDisplayWidth))
+    const target = Math.max(minColumns, Math.ceil(width / maxDisplayWidth))
     columns.value = target
     wrapperWidth.value = width
   }
