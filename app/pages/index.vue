@@ -9,6 +9,10 @@ import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
 
+definePageMeta({
+  alias: ['/photo/:id'],
+})
+
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })

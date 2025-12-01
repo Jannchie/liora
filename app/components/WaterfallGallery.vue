@@ -118,7 +118,6 @@ interface OverlayDownloadState {
   total: number | null
 }
 
-const overlayRouteName = 'photo-id'
 const baseRouteName = 'index'
 const overlayRouteParam = 'id'
 const legacyOverlayQueryKey = 'photo'
@@ -599,7 +598,7 @@ async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'rep
   if (fileId === null && currentId === null && route.name === baseRouteName) {
     return
   }
-  if (fileId !== null && currentId === fileId && route.name === overlayRouteName) {
+  if (fileId !== null && currentId === fileId && route.path.startsWith('/photo/')) {
     return
   }
   if (fileId === null) {
@@ -607,8 +606,7 @@ async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'rep
     return
   }
   await navigate({
-    name: overlayRouteName,
-    params: { [overlayRouteParam]: String(fileId) },
+    path: `/photo/${fileId}`,
     query: sanitizedQuery,
     hash: route.hash,
   })
@@ -1664,13 +1662,14 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
   const firstAvailable = [
     immediateSrc,
-    file.thumbnailUrl,
-    file.imageAttrs?.src,
-    file.coverUrl,
-    file.previewUrl,
-    file.imageUrl,
     file.placeholder,
     file.overlayPlaceholderUrl,
+    file.previewAttrs?.src,
+    file.previewUrl,
+    file.coverUrl,
+    file.thumbnailUrl,
+    file.imageAttrs?.src,
+    file.imageUrl,
   ].find(value => typeof value === 'string' && value.trim().length > 0)?.trim()
   overlayImageSrc.value = firstAvailable || previewSrc
   if (typeof Image === 'undefined') {
@@ -1757,6 +1756,11 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   }
 
   if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
+    void startFullLoad()
+    return
+  }
+
+  if (overlayImageSrc.value && previewSrc === overlayImageSrc.value) {
     void startFullLoad()
     return
   }
