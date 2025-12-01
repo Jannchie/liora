@@ -1,3 +1,11 @@
+## v0.6.1
+
+[v0.6.0...v0.6.1](https://github.com/Jannchie/liora/compare/v0.6.0...v0.6.1)
+
+### :art: Refactors
+
+- **routing**: replace named overlay route with path-based routing - By [Jannchie](mailto:jannchie@gmail.com) in [d2357de](https://github.com/Jannchie/liora/commit/d2357de)
+
 ## v0.6.0
 
 [v0.5.1...v0.6.0](https://github.com/Jannchie/liora/compare/v0.5.1...v0.6.0)
