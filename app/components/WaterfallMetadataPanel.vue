@@ -68,17 +68,17 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
           <Icon name="carbon:settings-adjust" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
-        <div v-if="mainExposureEntries.length > 0" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div v-if="mainExposureEntries.length > 0" class="grid grid-cols-3 gap-2">
           <div
             v-for="item in mainExposureEntries"
             :key="item.label"
-            class="flex items-center gap-2 rounded-md bg-default/70 px-2 py-2 ring-1 ring-default/15"
+            class="flex items-center gap-2 rounded-md bg-default/70 px-2 py-1.5 ring-1 ring-default/15"
             :aria-label="`${item.label}: ${item.value}`"
           >
             <Icon :name="item.icon" class="h-4 w-4 text-muted" />
             <div class="flex flex-col leading-tight">
               <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
-              <span class="text-base font-semibold text-highlighted">{{ item.value }}</span>
+              <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
             </div>
           </div>
         </div>
