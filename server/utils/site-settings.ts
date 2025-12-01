@@ -99,32 +99,21 @@ function serialize(setting: SiteSetting): SiteSettings {
   }
 }
 
+function serializeDefaults(): SiteSettings {
+  const defaults = resolveDefaultSiteSetting()
+  return {
+    ...defaults,
+    updatedAt: new Date().toISOString(),
+  }
+}
+
 export async function getSiteSettings(): Promise<SiteSettings> {
   const existing = await prisma.siteSetting.findUnique({ where: { id: 1 } })
   if (existing) {
     return serialize(existing)
   }
 
-  const defaults = resolveDefaultSiteSetting()
-  const created = await prisma.siteSetting.create({
-    data: {
-      id: 1,
-      name: defaults.name,
-      description: defaults.description,
-      iconUrl: defaults.iconUrl,
-      socialHomepage: defaults.social.homepage,
-      socialGithub: defaults.social.github,
-      socialTwitter: defaults.social.twitter,
-      socialInstagram: defaults.social.instagram,
-      socialWeibo: defaults.social.weibo,
-      socialYoutube: defaults.social.youtube,
-      socialBilibili: defaults.social.bilibili,
-      socialTiktok: defaults.social.tiktok,
-      socialLinkedin: defaults.social.linkedin,
-      infoPlacement: defaults.infoPlacement,
-    },
-  })
-  return serialize(created)
+  return serializeDefaults()
 }
 
 function validateInfoPlacement(value: string | undefined): SiteInfoPlacement {

@@ -25,6 +25,18 @@ interface ParsedForm {
 
 const MAX_FILE_SIZE_BYTES = 60 * 1024 * 1024
 
+const FORMAT_MIME_MAP: Record<string, string> = {
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  tiff: 'image/tiff',
+  tif: 'image/tiff',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+}
+
 interface ImageHashes {
   perceptualHash: string | null
   sha256: string
@@ -143,15 +155,30 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
   }
 }
 
-function parseNumbers(fields: Record<string, string>): { width: number, height: number } {
-  const width = Number(fields.width)
-  const height = Number(fields.height)
-
-  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Width and height are required.' })
+function resolveContentType(format: string | undefined, fallback: string | undefined): string | undefined {
+  const normalized = format?.toLowerCase()
+  if (normalized && FORMAT_MIME_MAP[normalized]) {
+    return FORMAT_MIME_MAP[normalized]
   }
+  const fallbackType = fallback?.trim()
+  return fallbackType && fallbackType.length > 0 ? fallbackType : undefined
+}
 
-  return { width, height }
+async function validateImage(file: MultipartEntry): Promise<{ width: number, height: number, contentType?: string }> {
+  try {
+    const metadata = await sharp(file.data).metadata()
+    const width = metadata.width ?? 0
+    const height = metadata.height ?? 0
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid image dimensions.' })
+    }
+    const contentType = resolveContentType(metadata.format, file.type)
+    return { width, height, contentType }
+  }
+  catch (error) {
+    console.warn('Image validation failed:', error)
+    throw createError({ statusCode: 400, statusMessage: 'Invalid image file.' })
+  }
 }
 
 function escapeRegExp(value: string): string {
@@ -317,7 +344,7 @@ async function generateThumbhash(data: Buffer): Promise<string | null> {
   }
 }
 
-async function saveFile(file: MultipartEntry, config: S3Config): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, config: S3Config, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = buildBaseName(file.filename)
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -326,7 +353,7 @@ async function saveFile(file: MultipartEntry, config: S3Config): Promise<{ image
   const imageUrl = await uploadBufferToS3({
     key: originalKey,
     data: file.data,
-    contentType: file.type,
+    contentType,
     config,
   })
 
@@ -346,7 +373,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     })
   }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
-  const { width, height } = parseNumbers(fields)
+  const { width, height, contentType } = await validateImage(file)
 
   const characters = parseCharacters(fields.characters)
   const metadata = buildMetadata(fields, characters)
@@ -374,7 +401,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   if (histogram) {
     metadata.histogram = histogram
   }
-  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, storageConfig)
+  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, storageConfig, contentType)
   if (thumbhash) {
     metadata.thumbhash = thumbhash
   }

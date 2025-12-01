@@ -29,6 +29,17 @@ interface ImageHashes {
 }
 
 const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
+const FORMAT_MIME_MAP: Record<string, string> = {
+  jpeg: 'image/jpeg',
+  jpg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+  avif: 'image/avif',
+  tiff: 'image/tiff',
+  tif: 'image/tiff',
+  gif: 'image/gif',
+  svg: 'image/svg+xml',
+}
 
 function parseId(event: H3Event): number {
   const idParam = getRouterParam(event, 'id')
@@ -75,17 +86,6 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   return { file: fileEntry, fields }
 }
 
-function parseNumbers(fields: Record<string, string>): { width: number, height: number } {
-  const width = Number(fields.width?.trim?.() ?? fields.width)
-  const height = Number(fields.height?.trim?.() ?? fields.height)
-
-  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Width and height are required.' })
-  }
-
-  return { width, height }
-}
-
 function parseCharacters(raw: string | undefined): string[] {
   return (raw ?? '')
     .split(/[,，\n]/)
@@ -124,6 +124,32 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
+  }
+}
+
+function resolveContentType(format: string | undefined, fallback: string | undefined): string | undefined {
+  const normalized = format?.toLowerCase()
+  if (normalized && FORMAT_MIME_MAP[normalized]) {
+    return FORMAT_MIME_MAP[normalized]
+  }
+  const fallbackType = fallback?.trim()
+  return fallbackType && fallbackType.length > 0 ? fallbackType : undefined
+}
+
+async function validateImage(file: MultipartEntry): Promise<{ width: number, height: number, contentType?: string }> {
+  try {
+    const metadata = await sharp(file.data).metadata()
+    const width = metadata.width ?? 0
+    const height = metadata.height ?? 0
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      throw createError({ statusCode: 400, statusMessage: 'Invalid image dimensions.' })
+    }
+    const contentType = resolveContentType(metadata.format, file.type)
+    return { width, height, contentType }
+  }
+  catch (error) {
+    console.warn('Image validation failed:', error)
+    throw createError({ statusCode: 400, statusMessage: 'Invalid image file.' })
   }
 }
 
@@ -190,7 +216,7 @@ async function computeHashes(data: Buffer): Promise<ImageHashes> {
   }
 }
 
-async function saveFile(file: MultipartEntry, event: H3Event): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = file.filename ? basename(file.filename).replace(/\.[^/.]+$/, '') : 'image'
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -200,7 +226,7 @@ async function saveFile(file: MultipartEntry, event: H3Event): Promise<{ imageUr
   const imageUrl = await uploadBufferToS3({
     key: originalKey,
     data: file.data,
-    contentType: file.type,
+    contentType,
     config: storageConfig,
   })
 
@@ -219,7 +245,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   }
 
   const { file, fields } = await parseMultipart(event)
-  const { width, height } = parseNumbers(fields)
+  const { width, height, contentType } = await validateImage(file)
   const characters = parseCharacters(fields.characters)
   const existingCharacters = mapCharacters(existing.characterList)
   const existingFileSize = (() => {
@@ -275,7 +301,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.histogram = histogram
   }
 
-  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, event)
+  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, event, contentType)
   if (thumbhash) {
     metadata.thumbhash = thumbhash
   }
