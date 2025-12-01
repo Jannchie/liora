@@ -3,7 +3,7 @@ import type { SessionState } from '~/types/auth'
 import type { FileResponse } from '~/types/file'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
@@ -37,17 +37,24 @@ const files = computed<FileResponse[]>(() => data.value ?? [])
 const totalFiles = computed(() => files.value.length)
 const isLoading = computed(() => pending.value)
 const fetchError = computed(() => error.value)
-const scrollContainerRef = ref<HTMLDivElement | undefined>(undefined)
 const alertTitle = computed(() => fetchError.value?.message ?? t('home.fetchFailed'))
 const alertDescription = computed(() => t('home.fetchFailedDescription'))
 const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
+const scrollElementRef = ref<HTMLElement | undefined>()
 
 const { data: sessionState } = await useFetch<SessionState>('/api/auth/session', {
   default: () => ({ authenticated: false }),
 })
 
 const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
+
+onMounted(() => {
+  const root = document.scrollingElement ?? document.documentElement ?? document.body ?? undefined
+  if (root instanceof HTMLElement) {
+    scrollElementRef.value = root
+  }
+})
 
 usePageSeo({
   title: pageTitle,
@@ -62,7 +69,7 @@ defineOgImageComponent('LioraCard', {
 </script>
 
 <template>
-  <div ref="scrollContainerRef" class="home-display-font h-screen w-screen overflow-auto">
+  <div class="home-display-font min-h-screen w-full">
     <div class="max-w-[2000px] m-auto">
       <div class="flex items-center justify-end gap-2 p-4">
         <UButton
@@ -97,7 +104,7 @@ defineOgImageComponent('LioraCard', {
           :files="files"
           :is-loading="isLoading"
           :site-settings="siteSettings ?? undefined"
-          :scroll-element="scrollContainerRef"
+          :scroll-element="scrollElementRef"
           :empty-text="emptyText"
           :is-authenticated="isAuthenticated"
         />
