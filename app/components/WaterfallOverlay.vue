@@ -166,22 +166,22 @@ onMounted(() => {
                 </h3>
               </div>
               <div class="flex items-center gap-2">
-                <button
+                <UButton
                   v-if="canEdit"
                   type="button"
-                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-primary ring-1 ring-primary/30 transition hover:bg-primary/10"
+                  icon="mdi:cog-outline"
+                  variant="soft"
                   @click="emit('edit')"
                 >
-                  <Icon name="mdi:cog-outline" class="h-4 w-4" />
                   <span>{{ t('common.actions.edit') }}</span>
-                </button>
-                <button
+                </UButton>
+                <UButton
                   type="button"
-                  class="flex items-center justify-center rounded-md p-2 text-default ring-1 ring-default transition hover:bg-muted"
+                  color="neutral"
+                  variant="ghost"
+                  icon="carbon:close"
                   @click="emit('close')"
-                >
-                  <Icon name="carbon:close" class="h-4 w-4" />
-                </button>
+                />
               </div>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-muted">
