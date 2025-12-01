@@ -177,11 +177,10 @@ onMounted(() => {
                 </button>
                 <button
                   type="button"
-                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
+                  class="flex items-center justify-center rounded-md p-2 text-default ring-1 ring-default transition hover:bg-muted"
                   @click="emit('close')"
                 >
                   <Icon name="carbon:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.close') }}</span>
                 </button>
               </div>
             </div>
