@@ -1,3 +1,13 @@
+## v0.5.1
+
+[v0.5.0...v0.5.1](https://github.com/Jannchie/liora/compare/v0.5.0...v0.5.1)
+
+### :lipstick: Styles
+
+- **ui**: adjust header styling and language switcher visibility - By [Jannchie](mailto:jannchie@gmail.com) in [92593f6](https://github.com/Jannchie/liora/commit/92593f6)
+- **waterfall-metadata**: adjust layout and typography for exposure entries - By [Jannchie](mailto:jannchie@gmail.com) in [516d242](https://github.com/Jannchie/liora/commit/516d242)
+- **waterfall-overlay**: simplify close button styling - By [Jannchie](mailto:jannchie@gmail.com) in [5db8cad](https://github.com/Jannchie/liora/commit/5db8cad)
+
 ## v0.5.0
 
 [v0.4.0...v0.5.0](https://github.com/Jannchie/liora/compare/v0.4.0...v0.5.0)
