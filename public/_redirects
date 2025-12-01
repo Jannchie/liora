@@ -1,0 +1,6 @@
+# Keep API and static assets untouched; everything else falls back to the SPA entry
+/_nuxt/*   /_nuxt/:splat   200
+/api/*     /api/:splat     200
+/robots.txt  /robots.txt   200
+/sitemap.xml /sitemap.xml  200
+/*         /index.html     200

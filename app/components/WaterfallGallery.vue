@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import type { LocationQueryValue } from 'vue-router'
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse, HistogramData } from '~/types/file'
 import type {
@@ -119,7 +118,10 @@ interface OverlayDownloadState {
   total: number | null
 }
 
-const overlayRouteKey = 'photo'
+const overlayRouteName = 'photo-id'
+const baseRouteName = 'index'
+const overlayRouteParam = 'id'
+const legacyOverlayQueryKey = 'photo'
 
 interface OverlayPointer {
   clientX: number
@@ -565,7 +567,7 @@ onBeforeUnmount(() => {
   clearOverlayZoomIndicatorTimer()
 })
 
-function resolveOverlayRouteId(value: LocationQueryValue | LocationQueryValue[] | undefined): number | null {
+function resolveOverlayRouteId(value: string | string[] | null | undefined): number | null {
   const normalized = Array.isArray(value)
     ? value.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
     : value
@@ -576,25 +578,40 @@ function resolveOverlayRouteId(value: LocationQueryValue | LocationQueryValue[] 
   return Number.isFinite(parsed) ? parsed : null
 }
 
-async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'replace' = 'push'): Promise<void> {
-  const currentValue = route.query[overlayRouteKey]
-  const currentId = resolveOverlayRouteId(currentValue)
-  const nextValue = fileId === null ? null : String(fileId)
-  if (currentId !== null && nextValue !== null && currentId === fileId) {
-    return
+function getOverlayRouteIdFromRoute(): number | null {
+  const paramId = resolveOverlayRouteId(route.params[overlayRouteParam] as string | string[] | undefined)
+  if (paramId !== null) {
+    return paramId
   }
-  if (currentId === null && nextValue === null) {
-    return
-  }
+  return resolveOverlayRouteId(route.query[legacyOverlayQueryKey] as string | string[] | null | undefined)
+}
+
+function resolveSanitizedQuery(): Record<string, string | string[] | null | undefined> {
   const nextQuery = { ...route.query }
-  if (nextValue === null) {
-    delete nextQuery[overlayRouteKey]
-  }
-  else {
-    nextQuery[overlayRouteKey] = nextValue
-  }
+  delete nextQuery[legacyOverlayQueryKey]
+  return nextQuery
+}
+
+async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'replace' = 'push'): Promise<void> {
   const navigate = navigation === 'replace' ? router.replace : router.push
-  await navigate({ query: nextQuery })
+  const sanitizedQuery = resolveSanitizedQuery()
+  const currentId = getOverlayRouteIdFromRoute()
+  if (fileId === null && currentId === null && route.name === baseRouteName) {
+    return
+  }
+  if (fileId !== null && currentId === fileId && route.name === overlayRouteName) {
+    return
+  }
+  if (fileId === null) {
+    await navigate({ name: baseRouteName, query: sanitizedQuery, hash: route.hash })
+    return
+  }
+  await navigate({
+    name: overlayRouteName,
+    params: { [overlayRouteParam]: String(fileId) },
+    query: sanitizedQuery,
+    hash: route.hash,
+  })
 }
 
 function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: ResolvedFile): string | null {
@@ -1292,7 +1309,21 @@ function handleKeydown(event: KeyboardEvent): void {
   }
 }
 
-const overlayRouteId = computed<number | null>(() => resolveOverlayRouteId(route.query[overlayRouteKey]))
+const overlayRouteId = computed<number | null>(() => getOverlayRouteIdFromRoute())
+
+watch(
+  () => (isHydrated.value ? resolveOverlayRouteId(route.query[legacyOverlayQueryKey] as string | string[] | null | undefined) : null),
+  (legacyId) => {
+    if (legacyId === null) {
+      return
+    }
+    const paramId = resolveOverlayRouteId(route.params[overlayRouteParam] as string | string[] | undefined)
+    if (paramId !== null) {
+      return
+    }
+    void syncOverlayRoute(legacyId, 'replace')
+  },
+)
 
 watch(
   [
