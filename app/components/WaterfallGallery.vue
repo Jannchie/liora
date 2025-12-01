@@ -11,6 +11,7 @@ import type {
   OverlayStat,
   ResolvedFile,
   SocialLink,
+  SiteInfoPlacement,
   WaterfallEntry,
 } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
@@ -43,7 +44,7 @@ const toast = useToast()
 const { updateFile } = useFileEditApi()
 
 const maxDisplayWidth = 400
-const minColumns = 1
+const minColumns = 2
 const waterfallGap = 4
 const infoCardBaseHeight = 260
 const image = useImage()
@@ -436,6 +437,10 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
 })
 
 const resolvedSiteSettings = computed(() => props.siteSettings ?? null)
+const resolvedInfoPlacement = computed<SiteInfoPlacement>(() => {
+  const placement = resolvedSiteSettings.value?.infoPlacement?.trim()
+  return placement === 'header' ? 'header' : 'waterfall'
+})
 const resolvedSiteConfig = computed(() => unref(siteConfig))
 const siteName = computed(() => {
   const customized = resolvedSiteSettings.value?.name?.trim()
@@ -491,6 +496,9 @@ const infoCardDisplaySize = computed<DisplaySize>(() => ({
 
 const waterfallEntries = computed<WaterfallEntry[]>(() => {
   const fileEntries = resolvedFiles.value.map(file => ({ ...file, entryType: 'file' as const }))
+  if (resolvedInfoPlacement.value === 'header') {
+    return fileEntries
+  }
   return [{ entryType: 'info', displaySize: infoCardDisplaySize.value }, ...fileEntries]
 })
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SessionState } from '~/types/auth'
 import type { FileResponse } from '~/types/file'
+import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
 import { computed, onMounted, ref } from 'vue'
@@ -42,6 +43,37 @@ const alertDescription = computed(() => t('home.fetchFailedDescription'))
 const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
 const scrollElementRef = ref<HTMLElement | undefined>()
+const runtimeConfig = useRuntimeConfig()
+
+const infoPlacement = computed<SiteInfoPlacement>(() => {
+  const placement = siteSettings.value?.infoPlacement?.trim()
+  return placement === 'header' ? 'header' : 'waterfall'
+})
+
+const showHeaderInfo = computed(() => infoPlacement.value === 'header')
+
+const headerSocialLinks = computed<SocialLink[]>(() => {
+  const links: SocialLink[] = []
+  const social = siteSettings.value?.social ?? runtimeConfig.public.social
+
+  const appendLink = (label: string, url: string | undefined, icon: string): void => {
+    const normalized = (url ?? '').trim()
+    if (normalized.length > 0) {
+      links.push({ label, url: normalized, icon })
+    }
+  }
+
+  appendLink('Homepage', social?.homepage, 'mdi:home')
+  appendLink('GitHub', social?.github, 'mdi:github')
+  appendLink('X', social?.twitter, 'fa6-brands:x-twitter')
+  appendLink('Instagram', social?.instagram, 'mdi:instagram')
+  appendLink('YouTube', social?.youtube, 'mdi:youtube')
+  appendLink('TikTok', social?.tiktok, 'fa6-brands:tiktok')
+  appendLink('Bilibili', social?.bilibili, 'simple-icons:bilibili')
+  appendLink('LinkedIn', social?.linkedin, 'mdi:linkedin')
+  appendLink('Weibo', social?.weibo, 'mdi:sina-weibo')
+  return links
+})
 
 const { data: sessionState } = await useFetch<SessionState>('/api/auth/session', {
   default: () => ({ authenticated: false }),
@@ -70,8 +102,55 @@ defineOgImageComponent('LioraCard', {
 
 <template>
   <div class="home-display-font min-h-screen w-full">
+    <header
+      v-if="showHeaderInfo"
+      class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default/90 backdrop-blur"
+    >
+      <div class="mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-2 md:max-w-[2000px] md:gap-3 md:px-4 md:py-3">
+        <div class="flex w-full flex-wrap items-center gap-2 md:flex-1 md:gap-3">
+          <h1 class="home-title-font text-base font-semibold leading-tight text-highlighted md:text-lg">
+            {{ pageTitle }}
+          </h1>
+          <div class="flex flex-wrap items-center gap-2 text-muted">
+            <UButton
+              v-for="link in headerSocialLinks"
+              :key="link.label"
+              :href="link.url"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="soft"
+              color="neutral"
+              square
+              size="lg"
+              class="text-muted"
+              :icon="link.icon"
+              :aria-label="link.label"
+            />
+          </div>
+        </div>
+        <div class="flex items-center gap-2 md:shrink-0">
+          <UButton
+            v-if="isAuthenticated"
+            to="/admin"
+            color="primary"
+            variant="soft"
+            size="sm"
+            class="shrink-0"
+          >
+            <span class="flex items-center gap-1 text-sm font-semibold">
+              <Icon name="mdi:shield-check-outline" class="h-4 w-4" />
+              <span>{{ t('admin.nav.label') }}</span>
+            </span>
+          </UButton>
+          <LanguageSwitcher />
+        </div>
+      </div>
+    </header>
     <div class="max-w-[2000px] m-auto">
-      <div class="flex items-center justify-end gap-2 p-4">
+      <div
+        v-if="!showHeaderInfo"
+        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-[2000px] md:flex-nowrap md:gap-3 md:px-4 md:py-3"
+      >
         <UButton
           v-if="isAuthenticated"
           to="/admin"
