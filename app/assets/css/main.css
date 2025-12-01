@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "tailwindcss-safe-area";
 
 @font-face {
   font-family: "Space Grotesk";
@@ -82,4 +83,8 @@
 :lang(ja-JP) .home-title-font {
   font-family: var(--font-title-ja);
   letter-spacing: 0;
+}
+
+html,body {
+  touch-action: manipulation;
 }

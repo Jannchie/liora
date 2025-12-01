@@ -1,3 +1,5 @@
+import type { SiteInfoPlacement } from './gallery'
+
 export interface SiteSocialLinks {
   homepage: string
   github: string
@@ -15,6 +17,7 @@ export interface SiteSettingsPayload {
   description: string
   iconUrl: string
   social: SiteSocialLinks
+  infoPlacement: SiteInfoPlacement
 }
 
 export interface SiteSettings extends SiteSettingsPayload {

@@ -6,7 +6,6 @@ import { onBeforeUnmount, ref, watch } from 'vue'
 
 const {
   file,
-  overlayBackgroundStyle,
   overlayImageSrc,
   overlayImageTransformStyle,
   overlayDownloadVisible,
@@ -26,7 +25,6 @@ const {
   viewerTouchAction = 'none',
 } = defineProps<{
   file: ResolvedFile
-  overlayBackgroundStyle: Record<string, string> | null
   overlayImageSrc: string | null
   overlayImageTransformStyle: CSSProperties
   overlayDownloadVisible: boolean
@@ -60,6 +58,7 @@ const emit = defineEmits<{
 }>()
 
 const viewerRef = ref<HTMLElement | null>(null)
+const modalOpen = ref<boolean>(true)
 
 const { t } = useI18n()
 
@@ -74,132 +73,151 @@ watch(
 onBeforeUnmount(() => {
   emit('viewerMounted', null)
 })
+
+function handleModalUpdate(value: boolean): void {
+  modalOpen.value = value
+  if (!value) {
+    emit('close')
+  }
+}
+
+function handleModalClose(): void {
+  modalOpen.value = false
+  emit('close')
+}
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50" role="dialog" aria-modal="true">
-    <div
-      v-if="overlayBackgroundStyle"
-      class="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center blur-3xl"
-      :style="overlayBackgroundStyle"
-      aria-hidden="true"
-    />
-    <div class="absolute inset-0" @click="emit('close')" />
-    <div class="relative flex h-full w-full">
-      <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0 md:overflow-y-visible">
-        <div
-          ref="viewerRef"
-          class="relative flex min-h-[60vh] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:min-h-0"
-          :style="{ touchAction: viewerTouchAction }"
-          @wheel.prevent="emit('wheel', $event)"
-          @dblclick.prevent="emit('dblclick', $event)"
-          @pointerdown="emit('pointerdown', $event)"
-          @pointermove="emit('pointermove', $event)"
-          @pointerup="emit('pointerup', $event)"
-          @pointercancel="emit('pointercancel', $event)"
-          @pointerleave="emit('pointerleave', $event)"
-        >
-          <img
-            :key="file.id"
-            :src="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
-            :srcset="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.srcset : undefined"
-            :sizes="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.sizes : undefined"
-            :width="file.width"
-            :height="file.height"
-            :style="overlayImageTransformStyle"
-            :alt="file.displayTitle"
-            loading="eager"
-            class="h-auto w-full select-none object-contain md:max-h-screen"
-          >
-          <Transition
-            appear
-            enter-active-class="transition duration-200 ease-out"
-            leave-active-class="transition duration-200 ease-in"
-            enter-from-class="opacity-0 translate-y-1"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-1"
-          >
-            <OverlayDownloadBadge
-              v-if="overlayDownloadVisible"
-              :visible="true"
-              :label="overlayDownloadLabel"
-              :percent="overlayDownloadPercent"
-            />
-          </Transition>
-          <Transition
-            appear
-            enter-active-class="transition duration-150 ease-out"
-            leave-active-class="transition duration-150 ease-in"
-            enter-from-class="opacity-0 translate-y-1"
-            enter-to-class="opacity-100 translate-y-0"
-            leave-from-class="opacity-100 translate-y-0"
-            leave-to-class="opacity-0 translate-y-1"
-          >
+  <UModal
+    v-model:open="modalOpen"
+    fullscreen
+    :portal="false"
+    :close="false"
+    :dismissible="true"
+    :ui="{
+      overlay: 'bg-elevated',
+    }"
+    @update:open="handleModalUpdate"
+  >
+    <template #content>
+      <div class="relative w-full h-full min-h-100dvh">
+        <div class="relative flex h-full w-full">
+          <div class="relative z-10 flex h-full w-full min-h-100dvh flex-col gap-4 overflow-y-auto pb-safe bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0 md:overflow-y-visible">
             <div
-              v-if="overlayZoomIndicatorVisible"
-              class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+              ref="viewerRef"
+              class="relative flex min-h-[60vh] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:min-h-0"
+              :style="{ touchAction: viewerTouchAction }"
+              @wheel.prevent="emit('wheel', $event)"
+              @dblclick.prevent="emit('dblclick', $event)"
+              @pointerdown="emit('pointerdown', $event)"
+              @pointermove="emit('pointermove', $event)"
+              @pointerup="emit('pointerup', $event)"
+              @pointercancel="emit('pointercancel', $event)"
+              @pointerleave="emit('pointerleave', $event)"
             >
-              {{ overlayZoomLabel }}
-            </div>
-          </Transition>
-        </div>
-        <div class="home-display-font flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
-          <div class="space-y-2.5">
-            <div class="flex items-start justify-between gap-3">
-              <div class="space-y-1">
-                <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
-                  {{ file.displayTitle }}
-                </h3>
-              </div>
-              <div class="flex items-center gap-2">
-                <button
-                  v-if="canEdit"
-                  type="button"
-                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-primary ring-1 ring-primary/30 transition hover:bg-primary/10"
-                  @click="emit('edit')"
-                >
-                  <Icon name="mdi:cog-outline" class="h-4 w-4" />
-                  <span>{{ t('common.actions.edit') }}</span>
-                </button>
-                <button
-                  type="button"
-                  class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
-                  @click="emit('close')"
-                >
-                  <Icon name="carbon:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.close') }}</span>
-                </button>
-              </div>
-            </div>
-            <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
-              <div
-                v-for="stat in overlayStats"
-                :key="`${stat.icon}-${stat.label}`"
-                class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-highlighted ring-1 ring-default/30"
+              <img
+                :key="file.id"
+                :src="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
+                :srcset="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.srcset : undefined"
+                :sizes="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.sizes : undefined"
+                :width="file.width"
+                :height="file.height"
+                :style="overlayImageTransformStyle"
+                :alt="file.displayTitle"
+                loading="eager"
+                class="h-auto w-full select-none object-contain md:max-h-screen"
               >
-                <Icon :name="stat.icon" class="h-3.5 w-3.5" />
-                <span class="leading-none">{{ stat.label }}</span>
+              <Transition
+                appear
+                enter-active-class="transition duration-200 ease-out"
+                leave-active-class="transition duration-200 ease-in"
+                enter-from-class="opacity-0 translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-1"
+              >
+                <OverlayDownloadBadge
+                  v-if="overlayDownloadVisible"
+                  :visible="true"
+                  :label="overlayDownloadLabel"
+                  :percent="overlayDownloadPercent"
+                />
+              </Transition>
+              <Transition
+                appear
+                enter-active-class="transition duration-150 ease-out"
+                leave-active-class="transition duration-150 ease-in"
+                enter-from-class="opacity-0 translate-y-1"
+                enter-to-class="opacity-100 translate-y-0"
+                leave-from-class="opacity-100 translate-y-0"
+                leave-to-class="opacity-0 translate-y-1"
+              >
+                <div
+                  v-if="overlayZoomIndicatorVisible"
+                  class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+                >
+                  {{ overlayZoomLabel }}
+                </div>
+              </Transition>
+            </div>
+            <div class="home-display-font flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
+              <div class="space-y-2.5">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="space-y-1">
+                    <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
+                      {{ file.displayTitle }}
+                    </h3>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="canEdit"
+                      type="button"
+                      class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-primary ring-1 ring-primary/30 transition hover:bg-primary/10"
+                      @click="emit('edit')"
+                    >
+                      <Icon name="mdi:cog-outline" class="h-4 w-4" />
+                      <span>{{ t('common.actions.edit') }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="flex items-center gap-2 rounded-md px-3 py-1 text-sm text-default ring-1 ring-default transition hover:bg-muted"
+                      @click="handleModalClose"
+                    >
+                      <Icon name="carbon:close" class="h-4 w-4" />
+                      <span>{{ t('common.actions.close') }}</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
+                  <div
+                    v-for="stat in overlayStats"
+                    :key="`${stat.icon}-${stat.label}`"
+                    class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-highlighted ring-1 ring-default/30"
+                  >
+                    <Icon :name="stat.icon" class="h-3.5 w-3.5" />
+                    <span class="leading-none">{{ stat.label }}</span>
+                  </div>
+                </div>
+                <div v-if="genreLabel" class="flex items-center gap-2">
+                  <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20">
+                    <Icon name="carbon:classification" class="h-3.5 w-3.5" />
+                    <span>{{ genreLabel }}</span>
+                  </span>
+                </div>
+              </div>
+              <div class="space-y-3">
+                <WaterfallHistogramPanel :histogram="histogram" />
+                <WaterfallLocationMap v-if="location" :location="location" />
+                <WaterfallMetadataPanel
+                  :metadata-entries="metadataEntries"
+                  :exposure-entries="exposureEntries"
+                  :has-metadata="hasMetadata"
+                />
               </div>
             </div>
-            <div v-if="genreLabel" class="flex items-center gap-2">
-              <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20">
-                <Icon name="carbon:classification" class="h-3.5 w-3.5" />
-                <span>{{ genreLabel }}</span>
-              </span>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <WaterfallHistogramPanel :histogram="histogram" />
-            <WaterfallLocationMap v-if="location" :location="location" />
-            <WaterfallMetadataPanel
-              :metadata-entries="metadataEntries"
-              :exposure-entries="exposureEntries"
-              :has-metadata="hasMetadata"
-            />
           </div>
         </div>
       </div>
-    </div>
-  </div>
+    </template>
+  </UModal>
 </template>

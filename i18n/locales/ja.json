@@ -37,7 +37,12 @@
     "fetchFailed": "読み込みに失敗しました",
     "fetchFailedDescription": "データを取得できませんでした。しばらくしてから再試行してください。",
     "emptyText": "まだ作品がありません。管理画面で追加してください。",
-    "loading": "ギャラリーを読み込み中…"
+    "loading": "ギャラリーを読み込み中…",
+    "infoPlacement": {
+      "label": "情報の表示位置",
+      "header": "ヘッダー",
+      "waterfall": "ウォーターフローのカード"
+    }
   },
   "gallery": {
     "empty": "データがありません",
@@ -533,6 +538,12 @@
           "label": "サイト説明",
           "placeholder": "ホームの紹介文（任意）",
           "help": "情報カードに表示されます。短くまとめてください。"
+        },
+        "infoPlacement": {
+          "label": "情報の表示位置",
+          "help": "サイト名と説明をどこに表示するか選択します。",
+          "header": "ヘッダー",
+          "waterfall": "ウォーターフローのカード"
         },
         "icon": {
           "label": "Favicon URL",

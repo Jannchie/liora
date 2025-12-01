@@ -50,5 +50,6 @@ model SiteSetting {
   socialBilibili  String   @default("")
   socialTiktok    String   @default("")
   socialLinkedin  String   @default("")
+  infoPlacement   String   @default("header")
   updatedAt       DateTime @updatedAt
 }

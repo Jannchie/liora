@@ -37,7 +37,12 @@
     "fetchFailed": "加载失败",
     "fetchFailedDescription": "无法加载数据，请稍后重试。",
     "emptyText": "还没有作品，去后台录入吧。",
-    "loading": "画廊加载中…"
+    "loading": "画廊加载中…",
+    "infoPlacement": {
+      "label": "信息展示位置",
+      "header": "页头",
+      "waterfall": "瀑布流卡片"
+    }
   },
   "gallery": {
     "empty": "暂无数据",
@@ -533,6 +538,12 @@
           "label": "站点描述",
           "placeholder": "用于首页展示的简介，可留空",
           "help": "展示在信息卡，简短即可。"
+        },
+        "infoPlacement": {
+          "label": "信息展示位置",
+          "help": "选择站点标题和描述放在页头或瀑布流卡片中。",
+          "header": "页头",
+          "waterfall": "瀑布流卡片"
         },
         "icon": {
           "label": "站点图标",

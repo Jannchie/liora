@@ -1,10 +1,12 @@
 import type { SiteSetting } from '../../app/generated/prisma/client'
+import type { SiteInfoPlacement } from '~/types/gallery'
 import type { SiteSettings, SiteSettingsPayload, SiteSocialLinks } from '~/types/site'
 import { prisma } from './prisma'
 
 const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'
 const FALLBACK_ICON_URL = '/favicon.ico'
+const FALLBACK_INFO_PLACEMENT: SiteInfoPlacement = 'header'
 
 function normalizeText(value: string | undefined): string {
   return value?.trim() ?? ''
@@ -13,6 +15,10 @@ function normalizeText(value: string | undefined): string {
 function normalizeIconUrl(value: string | undefined): string {
   const trimmed = normalizeText(value)
   return trimmed.length > 0 ? trimmed : FALLBACK_ICON_URL
+}
+
+function normalizeInfoPlacement(value: string | undefined): SiteInfoPlacement {
+  return value === 'waterfall' ? 'waterfall' : FALLBACK_INFO_PLACEMENT
 }
 
 function validateIconUrl(value: string): string {
@@ -61,12 +67,14 @@ function resolveDefaultSiteSetting(): {
   description: string
   iconUrl: string
   social: SiteSocialLinks
+  infoPlacement: SiteInfoPlacement
 } {
   return {
     name: FALLBACK_NAME,
     description: FALLBACK_DESCRIPTION,
     iconUrl: FALLBACK_ICON_URL,
     social: resolveDefaultSocial(),
+    infoPlacement: FALLBACK_INFO_PLACEMENT,
   }
 }
 
@@ -86,6 +94,7 @@ function serialize(setting: SiteSetting): SiteSettings {
       tiktok: setting.socialTiktok,
       linkedin: setting.socialLinkedin,
     },
+    infoPlacement: normalizeInfoPlacement(setting.infoPlacement),
     updatedAt: setting.updatedAt.toISOString(),
   }
 }
@@ -112,9 +121,21 @@ export async function getSiteSettings(): Promise<SiteSettings> {
       socialBilibili: defaults.social.bilibili,
       socialTiktok: defaults.social.tiktok,
       socialLinkedin: defaults.social.linkedin,
+      infoPlacement: defaults.infoPlacement,
     },
   })
   return serialize(created)
+}
+
+function validateInfoPlacement(value: string | undefined): SiteInfoPlacement {
+  const normalized = normalizeText(value).toLowerCase()
+  if (normalized === 'waterfall') {
+    return 'waterfall'
+  }
+  if (normalized === 'header' || normalized.length === 0) {
+    return FALLBACK_INFO_PLACEMENT
+  }
+  throw createError({ statusCode: 400, statusMessage: 'Invalid info placement.' })
 }
 
 function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
@@ -129,6 +150,7 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
     name: trimmedName,
     description: trimmedDescription,
     iconUrl: validateIconUrl(payload.iconUrl),
+    infoPlacement: validateInfoPlacement(payload.infoPlacement),
     social: {
       homepage: normalizeText(payload.social.homepage),
       github: normalizeText(payload.social.github),
@@ -151,6 +173,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       name: validated.name,
       description: validated.description,
       iconUrl: validated.iconUrl,
+      infoPlacement: validated.infoPlacement,
       socialHomepage: validated.social.homepage,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
@@ -166,6 +189,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       name: validated.name,
       description: validated.description,
       iconUrl: validated.iconUrl,
+      infoPlacement: validated.infoPlacement,
       socialHomepage: validated.social.homepage,
       socialGithub: validated.social.github,
       socialTwitter: validated.social.twitter,
@@ -191,6 +215,7 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       name: defaults.name,
       description: defaults.description,
       iconUrl: validatedIcon,
+      infoPlacement: defaults.infoPlacement,
       socialHomepage: defaults.social.homepage,
       socialGithub: defaults.social.github,
       socialTwitter: defaults.social.twitter,

@@ -56,6 +56,17 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+  app: {
+    head: {
+      meta: [
+        {
+          key: 'viewport',
+          name: 'viewport',
+          content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+        },
+      ],
+    },
+  },
   runtimeConfig: {
     admin: {
       username: process.env.ADMIN_USERNAME ?? '',

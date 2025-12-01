@@ -47,6 +47,8 @@ export interface SocialLink {
   icon: string
 }
 
+export type SiteInfoPlacement = 'header' | 'waterfall'
+
 export interface InfoEntry {
   entryType: 'info'
   displaySize: DisplaySize

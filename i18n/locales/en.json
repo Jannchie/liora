@@ -37,7 +37,12 @@
     "fetchFailed": "Load failed",
     "fetchFailedDescription": "Unable to fetch data, please try again later.",
     "emptyText": "No works yet. Add one in the admin panel.",
-    "loading": "Loading gallery…"
+    "loading": "Loading gallery…",
+    "infoPlacement": {
+      "label": "Info placement",
+      "header": "Header",
+      "waterfall": "Waterfall card"
+    }
   },
   "gallery": {
     "empty": "No data yet",
@@ -533,6 +538,12 @@
           "label": "Site description",
           "placeholder": "Intro for the homepage (optional)",
           "help": "Appears on the info card; keep it brief."
+        },
+        "infoPlacement": {
+          "label": "Info placement",
+          "help": "Choose where to show the site title and description.",
+          "header": "Header",
+          "waterfall": "Waterfall card"
         },
         "icon": {
           "label": "Favicon URL",

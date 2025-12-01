@@ -45,6 +45,7 @@ const form = reactive<SiteSettingsPayload>({
   name: '',
   description: '',
   iconUrl: '',
+  infoPlacement: 'header',
   social: {
     homepage: '',
     github: '',
@@ -69,6 +70,7 @@ function applySettings(value: SiteSettings | null | undefined): void {
   form.name = value.name
   form.description = value.description
   form.iconUrl = value.iconUrl
+  form.infoPlacement = value.infoPlacement ?? 'header'
   form.social.homepage = value.social.homepage
   form.social.github = value.social.github
   form.social.twitter = value.social.twitter
@@ -98,6 +100,11 @@ const resolvedIconPreview = computed(() => {
   return '/favicon.ico'
 })
 
+const infoPlacementOptions = computed(() => ([
+  { label: t('admin.site.fields.infoPlacement.header'), value: 'header' as const },
+  { label: t('admin.site.fields.infoPlacement.waterfall'), value: 'waterfall' as const },
+]))
+
 async function handleSubmit(): Promise<void> {
   saving.value = true
   try {
@@ -107,6 +114,7 @@ async function handleSubmit(): Promise<void> {
         name: form.name,
         description: form.description,
         iconUrl: form.iconUrl,
+        infoPlacement: form.infoPlacement,
         social: { ...form.social },
       },
     })
@@ -263,6 +271,21 @@ function handleReset(): void {
 
             <div class="space-y-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:view-dashboard-outline" class="h-4 w-4" />
+                <span>{{ t('admin.site.fields.infoPlacement.label') }}</span>
+              </div>
+              <USelect
+                v-model="form.infoPlacement"
+                :items="infoPlacementOptions"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.infoPlacement.help') }}
+              </p>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:link-variant" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.icon.label') }}</span>
               </div>
@@ -291,21 +314,21 @@ function handleReset(): void {
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                <UButton
-                  color="primary"
-                  variant="soft"
-                  :loading="uploadingIcon"
-                  :disabled="saving || loadingSettings || uploadingIcon"
-                  @click="openIconPicker"
-                >
-                  <template #leading>
-                    <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
-                  </template>
-                  <span>{{ t('admin.site.fields.icon.upload') }}</span>
-                </UButton>
-                <input
-                  ref="iconFileInput"
-                  type="file"
+                  <UButton
+                    color="primary"
+                    variant="soft"
+                    :loading="uploadingIcon"
+                    :disabled="saving || loadingSettings || uploadingIcon"
+                    @click="openIconPicker"
+                  >
+                    <template #leading>
+                      <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
+                    </template>
+                    <span>{{ t('admin.site.fields.icon.upload') }}</span>
+                  </UButton>
+                  <input
+                    ref="iconFileInput"
+                    type="file"
                     accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
                     class="hidden"
                     @change="handleIconFileChange"

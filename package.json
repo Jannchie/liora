@@ -14,10 +14,10 @@
     "backfill:exif": "tsx scripts/backfill-exif-metadata.ts"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.73",
+    "@ai-sdk/openai": "^2.0.75",
     "@aws-sdk/client-s3": "^3.940.0",
     "@libsql/client": "^0.15.15",
-    "@nuxt/eslint": "1.10.0",
+    "@nuxt/eslint": "1.11.0",
     "@nuxt/hints": "1.0.0-alpha.2",
     "@nuxt/icon": "^2.1.0",
     "@nuxt/image": "2.0.0",
@@ -27,8 +27,8 @@
     "@nuxtjs/seo": "^3.2.2",
     "@prisma/adapter-libsql": "^7.0.1",
     "@prisma/client": "^7.0.1",
-    "@vueuse/core": "^14.0.0",
-    "ai": "^5.0.102",
+    "@vueuse/core": "^14.1.0",
+    "ai": "^5.0.105",
     "chart.js": "^4.5.1",
     "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
@@ -49,6 +49,7 @@
     "@vite-pwa/nuxt": "^1.1.0",
     "png-to-ico": "^3.0.1",
     "prisma": "^7.0.1",
-    "tsx": "^4.20.6"
+    "tailwindcss-safe-area": "1.2.0",
+    "tsx": "^4.21.0"
   }
 }
