@@ -35,21 +35,12 @@ function resolveSiteUrl(siteEnv: string): string | undefined {
   return undefined
 }
 
-function resolveIndexable(siteEnv: string, siteUrl?: string): boolean {
-  const flag = process.env.NUXT_SITE_INDEXABLE ?? process.env.NUXT_PUBLIC_SITE_INDEXABLE
-  if (flag !== undefined) {
-    return flag !== 'false'
-  }
-  return siteEnv === 'production' && Boolean(siteUrl)
-}
-
 const siteName = 'Liora Gallery'
 const siteDescription = 'A minimal gallery for photography and illustrations.'
 const defaultLocale = 'zh-CN'
 
 const siteEnv = resolveSiteEnv()
 const siteUrl = resolveSiteUrl(siteEnv)
-const siteIndexable = resolveIndexable(siteEnv, siteUrl)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -130,7 +121,7 @@ export default defineNuxtConfig({
     name: siteName,
     description: siteDescription,
     defaultLocale,
-    indexable: siteIndexable,
+    indexable: true,
     env: siteEnv,
   },
   sitemap: {
