@@ -589,7 +589,7 @@ function getOverlayRouteIdFromRoute(): number | null {
 function resolveSanitizedQuery(): Record<string, string | string[] | null | undefined> {
   const nextQuery = { ...route.query }
   delete nextQuery[legacyOverlayQueryKey]
-  return nextQuery
+  return nextQuery as Record<string, string | string[] | null | undefined>
 }
 
 async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'replace' = 'push'): Promise<void> {

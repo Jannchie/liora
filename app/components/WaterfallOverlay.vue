@@ -170,6 +170,7 @@ onMounted(() => {
                   v-if="canEdit"
                   type="button"
                   icon="mdi:cog-outline"
+                  size="md"
                   variant="soft"
                   @click="emit('edit')"
                 >
@@ -177,9 +178,10 @@ onMounted(() => {
                 </UButton>
                 <UButton
                   type="button"
+                  size="md"
                   color="neutral"
                   variant="ghost"
-                  icon="carbon:close"
+                  icon="mdi:close"
                   @click="emit('close')"
                 />
               </div>
