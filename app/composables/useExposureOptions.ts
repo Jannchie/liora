@@ -1,3 +1,4 @@
+import type { ComputedRef } from 'vue'
 import { computed } from 'vue'
 
 interface SelectOption {
@@ -6,11 +7,11 @@ interface SelectOption {
 }
 
 export function useExposureOptions(): {
-  exposureProgramOptions: Readonly<ReturnType<typeof computed<SelectOption[]>>>
-  exposureModeOptions: Readonly<ReturnType<typeof computed<SelectOption[]>>>
-  meteringModeOptions: Readonly<ReturnType<typeof computed<SelectOption[]>>>
-  whiteBalanceOptions: Readonly<ReturnType<typeof computed<SelectOption[]>>>
-  flashOptions: Readonly<ReturnType<typeof computed<SelectOption[]>>>
+  exposureProgramOptions: ComputedRef<SelectOption[]>
+  exposureModeOptions: ComputedRef<SelectOption[]>
+  meteringModeOptions: ComputedRef<SelectOption[]>
+  whiteBalanceOptions: ComputedRef<SelectOption[]>
+  flashOptions: ComputedRef<SelectOption[]>
 } {
   const { t } = useI18n()
 

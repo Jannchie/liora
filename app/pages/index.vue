@@ -126,8 +126,8 @@ defineOgImageComponent('LioraCard', {
               :icon="link.icon"
               :aria-label="link.label"
             />
+          </div>
         </div>
-      </div>
         <div class="flex items-center gap-2 md:shrink-0">
           <UButton
             v-if="isAuthenticated"

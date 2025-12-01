@@ -1,3 +1,7 @@
-<script lang="ts">
-export { default } from '../index.vue'
+<script setup lang="ts">
+import IndexPage from '../index.vue'
 </script>
+
+<template>
+  <IndexPage />
+</template>

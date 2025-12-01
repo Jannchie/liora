@@ -654,17 +654,17 @@ watch(fetchError, (value) => {
                 <span>{{ t('common.actions.cancel') }}</span>
               </span>
             </UButton>
-        <UButton
-          color="error"
-          :loading="deletingId !== null"
-          @click="confirmDelete"
-        >
-          <template #leading>
-            <LoadingIcon :loading="deletingId !== null" icon="mdi:trash-can-outline" />
-          </template>
-          <span>{{ t('admin.files.delete.confirm') }}</span>
-        </UButton>
-      </div>
+            <UButton
+              color="error"
+              :loading="deletingId !== null"
+              @click="confirmDelete"
+            >
+              <template #leading>
+                <LoadingIcon :loading="deletingId !== null" icon="mdi:trash-can-outline" />
+              </template>
+              <span>{{ t('admin.files.delete.confirm') }}</span>
+            </UButton>
+          </div>
         </div>
       </template>
     </UModal>

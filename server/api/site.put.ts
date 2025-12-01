@@ -1,14 +1,17 @@
 import type { H3Event } from 'h3'
+import type { SiteInfoPlacement } from '~/types/gallery'
 import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
 import { requireAdmin } from '../utils/auth'
 import { updateSiteSettings } from '../utils/site-settings'
+
+const normalizeInfoPlacement = (value: string | undefined): SiteInfoPlacement => (value === 'waterfall' ? 'waterfall' : 'header')
 
 function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPayload {
   return {
     name: typeof body.name === 'string' ? body.name : '',
     description: typeof body.description === 'string' ? body.description : '',
     iconUrl: typeof body.iconUrl === 'string' ? body.iconUrl : '',
-    infoPlacement: typeof body.infoPlacement === 'string' ? body.infoPlacement : '',
+    infoPlacement: normalizeInfoPlacement(typeof body.infoPlacement === 'string' ? body.infoPlacement : undefined),
     social: {
       homepage: typeof body.social?.homepage === 'string' ? body.social.homepage : '',
       github: typeof body.social?.github === 'string' ? body.social.github : '',

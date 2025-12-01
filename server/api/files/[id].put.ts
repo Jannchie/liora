@@ -104,9 +104,11 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     software: '',
     captureTime: existing.captureTime,
     notes: '',
+    fileSize: 0,
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
+    histogram: null,
   })
 
   const title = normalizeText(body.title, existing.title)

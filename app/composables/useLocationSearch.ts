@@ -75,8 +75,11 @@ export function useLocationSearch(form: MediaFormState) {
       if (geocodeResults.value.length === 0) {
         toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
       }
-      if (useReverseGeocode && geocodeResults.value.length > 0) {
-        applyGeocodeResult(geocodeResults.value[0])
+      if (useReverseGeocode) {
+        const [firstResult] = geocodeResults.value
+        if (firstResult) {
+          applyGeocodeResult(firstResult)
+        }
       }
     }
     catch (error) {

@@ -114,7 +114,7 @@ export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer)
         role: 'user',
         content: [
           { type: 'text', text: 'Classify this photo and return JSON only.' },
-          { type: 'image', image: preparedImage, mimeType: 'image/webp' },
+          { type: 'image', image: preparedImage },
         ],
       },
     ],

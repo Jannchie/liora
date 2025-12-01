@@ -3,12 +3,9 @@ import type { FileResponse } from '~/types/file'
 import { useRequestFetch } from '#imports'
 
 function normalizeDimensions(form: MediaFormState, fallbackWidth: number, fallbackHeight: number): { width: number, height: number } {
-  const width = form.width > 0 ? form.width : fallbackWidth
-  const height = form.height > 0 ? form.height : fallbackHeight
-  return {
-    width: width > 0 ? width : 0,
-    height: height > 0 ? height : 0,
-  }
+  const width = Math.max(form.width, fallbackWidth, 0)
+  const height = Math.max(form.height, fallbackHeight, 0)
+  return { width, height }
 }
 
 function buildMultipartBody(form: MediaFormState, file: File, width: number, height: number): FormData {

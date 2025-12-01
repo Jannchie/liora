@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { MetadataEntry } from '~/types/gallery'
+import { computed } from 'vue'
 
 const props = defineProps<{
   hasMetadata: boolean
   metadataEntries: MetadataEntry[]
   exposureEntries: MetadataEntry[]
 }>()
+
+function isMetadataEntry(value: MetadataEntry | null | undefined): value is MetadataEntry {
+  return value != null
+}
 
 const { t } = useI18n()
 
@@ -31,7 +35,7 @@ const mainExposureEntries = computed<MetadataEntry[]>(() => {
   ]
   return order
     .map(label => exposureEntries.value.find(entry => entry.label === label))
-    .filter((entry): entry is MetadataEntry => Boolean(entry))
+    .filter(entry => isMetadataEntry(entry))
 })
 
 const halfWidthExposureEntries = computed<MetadataEntry[]>(() => {
@@ -42,7 +46,7 @@ const halfWidthExposureEntries = computed<MetadataEntry[]>(() => {
   ]
   return order
     .map(label => exposureEntries.value.find(entry => entry.label === label))
-    .filter((entry): entry is MetadataEntry => Boolean(entry))
+    .filter(entry => isMetadataEntry(entry))
 })
 
 const secondaryExposureEntries = computed<MetadataEntry[]>(() => {

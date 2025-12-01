@@ -195,20 +195,20 @@ watch(
                       :placeholder="t('admin.files.form.genre.placeholder')"
                     />
                   </div>
-                <UButton
-                  variant="soft"
-                  color="primary"
-                  class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
-                  :disabled="!canAutoClassify"
-                  :loading="classifyingGenre"
-                  @click="autoClassifyGenre"
-                >
-                  <template #leading>
-                    <LoadingIcon :loading="classifyingGenre" icon="mdi:robot-outline" />
-                  </template>
-                  <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
-                </UButton>
-              </div>
+                  <UButton
+                    variant="soft"
+                    color="primary"
+                    class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
+                    :disabled="!canAutoClassify"
+                    :loading="classifyingGenre"
+                    @click="autoClassifyGenre"
+                  >
+                    <template #leading>
+                      <LoadingIcon :loading="classifyingGenre" icon="mdi:robot-outline" />
+                    </template>
+                    <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
+                  </UButton>
+                </div>
                 <template #description>
                   <span class="text-xs text-muted">{{ t('admin.files.form.genre.autoDescription') }}</span>
                 </template>
