@@ -10,8 +10,8 @@ import type {
   MetadataEntry,
   OverlayStat,
   ResolvedFile,
-  SocialLink,
   SiteInfoPlacement,
+  SocialLink,
   WaterfallEntry,
 } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
