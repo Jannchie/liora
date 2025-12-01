@@ -237,8 +237,8 @@ function handleReset(): void {
             </div>
           </template>
 
-          <div class="space-y-4">
-            <div class="space-y-1.5">
+          <div class="flex flex-wrap gap-4">
+            <div class="flex min-w-[260px] flex-1 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:format-title" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.name.label') }}</span>
@@ -253,7 +253,22 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-1.5">
+            <div class="flex min-w-[220px] flex-1 flex-col gap-1.5">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:view-dashboard-outline" class="h-4 w-4" />
+                <span>{{ t('admin.site.fields.infoPlacement.label') }}</span>
+              </div>
+              <USelect
+                v-model="form.infoPlacement"
+                :items="infoPlacementOptions"
+                :disabled="saving || loadingSettings"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.infoPlacement.help') }}
+              </p>
+            </div>
+
+            <div class="flex basis-full flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:text" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.description.label') }}</span>
@@ -269,22 +284,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-1.5">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:view-dashboard-outline" class="h-4 w-4" />
-                <span>{{ t('admin.site.fields.infoPlacement.label') }}</span>
-              </div>
-              <USelect
-                v-model="form.infoPlacement"
-                :items="infoPlacementOptions"
-                :disabled="saving || loadingSettings"
-              />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.infoPlacement.help') }}
-              </p>
-            </div>
-
-            <div class="space-y-1.5">
+            <div class="flex min-w-[320px] flex-1 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:link-variant" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.icon.label') }}</span>
@@ -349,8 +349,8 @@ function handleReset(): void {
             </h2>
           </template>
 
-          <div class="space-y-3">
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+          <div class="flex flex-wrap gap-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:home" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.homepage.label') }}</span>
@@ -365,7 +365,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:github" class="h-4 w-4" />
                 <span>GitHub</span>
@@ -380,7 +380,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="fa6-brands:x-twitter" class="h-4 w-4" />
                 <span>X</span>
@@ -395,7 +395,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:instagram" class="h-4 w-4" />
                 <span>Instagram</span>
@@ -410,7 +410,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:youtube" class="h-4 w-4" />
                 <span>YouTube</span>
@@ -425,7 +425,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="simple-icons:bilibili" class="h-4 w-4" />
                 <span>Bilibili</span>
@@ -440,7 +440,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="fa6-brands:tiktok" class="h-4 w-4" />
                 <span>TikTok</span>
@@ -455,7 +455,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:linkedin" class="h-4 w-4" />
                 <span>LinkedIn</span>
@@ -470,7 +470,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="space-y-2 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:sina-weibo" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.weibo.label') }}</span>
