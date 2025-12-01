@@ -151,7 +151,7 @@ onMounted(() => {
           >
             <div
               v-if="overlayZoomIndicatorVisible"
-              class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-[11px] font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+              class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10 backdrop-blur"
             >
               {{ overlayZoomLabel }}
             </div>
@@ -184,7 +184,7 @@ onMounted(() => {
                 </button>
               </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-[11px] font-medium text-muted">
+            <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-muted">
               <div
                 v-for="stat in overlayStats"
                 :key="`${stat.icon}-${stat.label}`"
@@ -195,7 +195,7 @@ onMounted(() => {
               </div>
             </div>
             <div v-if="genreLabel" class="flex items-center gap-2">
-              <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary ring-1 ring-primary/20">
+              <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
                 <Icon name="carbon:classification" class="h-3.5 w-3.5" />
                 <span>{{ genreLabel }}</span>
               </span>

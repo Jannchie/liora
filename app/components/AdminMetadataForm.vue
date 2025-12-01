@@ -284,7 +284,7 @@ watch(
                       {{ result.placeName }}
                     </p>
                   </div>
-                  <span class="text-[11px] font-medium text-primary">
+                  <span class="text-xs font-medium text-primary">
                     {{ t('admin.upload.fields.locationSearch.apply') }}
                   </span>
                 </button>
@@ -346,7 +346,7 @@ watch(
               :key="highlight.label"
               class="rounded-xl border border-default/50 bg-elevated/70 p-3 text-center"
             >
-              <div class="flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <div class="flex items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
                 <Icon :name="highlight.icon" class="h-4 w-4 text-primary" />
                 <span>{{ highlight.label }}</span>
               </div>

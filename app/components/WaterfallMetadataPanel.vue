@@ -58,13 +58,13 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
         <Icon name="carbon:information" class="h-4 w-4" />
         <span>{{ t('gallery.metadata.section') }}</span>
       </div>
-      <span class="rounded-full bg-default/60 px-2 py-0.5 text-[11px] font-semibold text-highlighted ring-1 ring-default/15">
+      <span class="rounded-full bg-default/60 px-2 py-0.5 text-xs font-semibold text-highlighted ring-1 ring-default/15">
         {{ metadataEntries.length + exposureEntries.length }}
       </span>
     </div>
     <div v-if="hasMetadata" class="space-y-3 p-3">
       <div v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
           <Icon name="carbon:settings-adjust" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
@@ -103,7 +103,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
           :key="item.label"
           class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
-          <p class="flex items-center gap-2 text-[11px] font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
             <Icon :name="item.icon" class="h-4 w-4" />
             <span>{{ item.label }}</span>
           </p>
@@ -113,7 +113,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
         </div>
       </div>
       <div v-if="secondaryExposureEntries.length > 0" class="space-y-2 border-t border-default/10 pt-3">
-        <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
           <Icon name="carbon:settings-adjust" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
@@ -121,7 +121,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
           <div
             v-for="item in secondaryExposureEntries"
             :key="item.label"
-            class="inline-flex items-center gap-1.5 rounded-full bg-default/30 px-2.5 py-1 text-[11px] text-muted ring-1 ring-default/10"
+            class="inline-flex items-center gap-1.5 rounded-full bg-default/30 px-2.5 py-1 text-xs text-muted ring-1 ring-default/10"
             :aria-label="`${item.label}: ${item.value}`"
           >
             <Icon :name="item.icon" class="h-3.5 w-3.5 text-muted" />

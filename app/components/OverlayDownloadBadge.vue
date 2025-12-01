@@ -18,14 +18,14 @@ const safePercent = computed<number | null>(() => {
 <template>
   <div
     v-if="visible && label"
-    class="home-display-font pointer-events-none absolute bottom-4 right-4 min-w-40 max-w-[320px] rounded-md border border-white/10 bg-black/80 px-3.5 py-3 text-[11px] text-white backdrop-blur-sm ring-1 ring-white/5"
+    class="home-display-font pointer-events-none absolute bottom-4 right-4 min-w-40 max-w-[320px] rounded-md border border-white/10 bg-black/80 px-3.5 py-3 text-xs text-white backdrop-blur-sm ring-1 ring-white/5"
   >
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <Icon name="mdi:download" class="h-4 w-4 text-white/70" />
         <span class="font-semibold">{{ label }}</span>
       </div>
-      <span v-if="safePercent !== null" class="text-[11px] font-semibold text-white/80">
+      <span v-if="safePercent !== null" class="text-xs font-semibold text-white/80">
         {{ safePercent }}%
       </span>
     </div>

@@ -128,7 +128,7 @@ function smoothHistogramChannel(values: number[], kernel: number[]): number[] {
         continue
       }
       const value = values[valueIndex]
-      if (!Number.isFinite(value)) {
+      if (value === undefined || !Number.isFinite(value)) {
         continue
       }
       accumulator += value * weight
@@ -319,7 +319,7 @@ function renderHistogram(): void {
           <span>{{ t('gallery.histogram.pending') }}</span>
         </div>
       </div>
-      <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-[11px]">
+      <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-xs">
         <div class="space-y-1">
           <div class="flex items-center justify-between text-muted">
             <span>{{ t('gallery.histogram.shadows') }}</span>
