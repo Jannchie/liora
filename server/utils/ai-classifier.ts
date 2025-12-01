@@ -19,6 +19,7 @@ export interface GenreClassificationResult {
 const MODEL_NAME = 'gpt-5-nano'
 const promptPath = join(process.cwd(), 'prompts', 'PhotographyGenreClassification.md')
 const MAX_DOWNLOAD_BYTES = 40 * 1024 * 1024
+const FETCH_TIMEOUT_MS = 10_000
 
 let cachedPrompt: string | null = null
 
@@ -122,18 +123,55 @@ export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer)
   return parseClassification(result.text)
 }
 
+function assertHttpUrl(rawUrl: string): URL {
+  try {
+    const parsed = new URL(rawUrl)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw createError({ statusCode: 400, statusMessage: 'Only http(s) image URLs are allowed.' })
+    }
+    return parsed
+  }
+  catch {
+    throw createError({ statusCode: 400, statusMessage: 'Invalid image URL.' })
+  }
+}
+
+async function fetchImageBuffer(rawUrl: string): Promise<{ buffer: Buffer, contentType: string }> {
+  const url = assertHttpUrl(rawUrl)
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
+
+  try {
+    const response = await fetch(url, { signal: controller.signal })
+    if (!response.ok) {
+      throw createError({ statusCode: 502, statusMessage: `Failed to fetch image: ${response.status}` })
+    }
+    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+    if (!contentType.startsWith('image/')) {
+      throw createError({ statusCode: 415, statusMessage: 'URL must point to an image resource.' })
+    }
+    const arrayBuffer = await response.arrayBuffer()
+    return { buffer: Buffer.from(arrayBuffer), contentType }
+  }
+  catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw createError({ statusCode: 504, statusMessage: 'Image fetch timed out.' })
+    }
+    throw error
+  }
+  finally {
+    clearTimeout(timeout)
+  }
+}
+
 export async function classifyPhotoGenre(event: H3Event, imageUrl: string): Promise<GenreClassificationResult | null> {
   if (!imageUrl.trim()) {
     return null
   }
-  const response = await fetch(imageUrl)
-  if (!response.ok) {
-    throw createError({ statusCode: 502, statusMessage: `Failed to fetch image: ${response.status}` })
-  }
-  const arrayBuffer = await response.arrayBuffer()
-  if (arrayBuffer.byteLength > MAX_DOWNLOAD_BYTES) {
+  const trimmedUrl = imageUrl.trim()
+  const { buffer } = await fetchImageBuffer(trimmedUrl)
+  if (buffer.byteLength > MAX_DOWNLOAD_BYTES) {
     throw createError({ statusCode: 413, statusMessage: 'Image too large for classification.' })
   }
-  const sourceBuffer = Buffer.from(arrayBuffer)
-  return classifyPhotoGenreFromBuffer(event, sourceBuffer)
+  return classifyPhotoGenreFromBuffer(event, buffer)
 }
