@@ -1,3 +1,38 @@
+## v0.6.0
+
+[v0.5.1...v0.6.0](https://github.com/Jannchie/liora/compare/v0.5.1...v0.6.0)
+
+### :sparkles: Features
+
+- **config**: add icon cssLayer configuration - By [Jannchie](mailto:jannchie@gmail.com) in [cec1df9](https://github.com/Jannchie/liora/commit/cec1df9)
+
+### :adhesive_bandage: Fixes
+
+- **ai-classifier**: add robust image fetch with timeout and validation - By [Jannchie](mailto:jannchie@gmail.com) in [7243368](https://github.com/Jannchie/liora/commit/7243368)
+- **files**: validate image metadata and preserve content-type - By [Jannchie](mailto:jannchie@gmail.com) in [1e9f5ce](https://github.com/Jannchie/liora/commit/1e9f5ce)
+- **ui**: fix types and button props in waterfall components - By [Jannchie](mailto:jannchie@gmail.com) in [4a8fc28](https://github.com/Jannchie/liora/commit/4a8fc28)
+
+### :art: Refactors
+
+- **files-api**: remove image similarity detection logic - By [Jannchie](mailto:jannchie@gmail.com) in [6336520](https://github.com/Jannchie/liora/commit/6336520)
+- **routing**: migrate gallery overlay routing to route params - By [Jannchie](mailto:jannchie@gmail.com) in [967454d](https://github.com/Jannchie/liora/commit/967454d)
+- clean up type hints and null checks && format templates - By [Jannchie](mailto:jannchie@gmail.com) in [4d51fbb](https://github.com/Jannchie/liora/commit/4d51fbb)
+
+### :zap: Performance Improvements
+
+- **gallery**: simplify preview size calculation - By [Jannchie](mailto:jannchie@gmail.com) in [c3e8a27](https://github.com/Jannchie/liora/commit/c3e8a27)
+
+### :lipstick: Styles
+
+- **admin-site**: update layout and form field arrangement - By [Jannchie](mailto:jannchie@gmail.com) in [5d03be0](https://github.com/Jannchie/liora/commit/5d03be0)
+- **ui**: standardize text sizing to text-xs across components - By [Jannchie](mailto:jannchie@gmail.com) in [2866713](https://github.com/Jannchie/liora/commit/2866713)
+- **ui-theme**: set soft default variants for form controls - By [Jannchie](mailto:jannchie@gmail.com) in [2612742](https://github.com/Jannchie/liora/commit/2612742)
+
+### :wrench: Chores
+
+- **ci**: add github actions workflow for lint and typecheck - By [Jannchie](mailto:jannchie@gmail.com) in [3f6d1e8](https://github.com/Jannchie/liora/commit/3f6d1e8)
+- **config**: simplify site indexable config - By [Jannchie](mailto:jannchie@gmail.com) in [ee49115](https://github.com/Jannchie/liora/commit/ee49115)
+
 ## v0.5.1
 
 [v0.5.0...v0.5.1](https://github.com/Jannchie/liora/compare/v0.5.0...v0.5.1)
