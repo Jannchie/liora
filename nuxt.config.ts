@@ -128,6 +128,7 @@ export default defineNuxtConfig({
     '@nuxt/test-utils',
     '@nuxtjs/i18n',
     '@vite-pwa/nuxt',
+    '@sentry/nuxt/module',
   ],
   i18n: {
     strategy: 'no_prefix',
@@ -226,5 +227,14 @@ export default defineNuxtConfig({
     config: {
       standalone: false,
     },
+  },
+  sentry: {
+    sourceMapsUploadOptions: {
+      org: 'jannchie-studio',
+      project: 'liora',
+    },
+  },
+  sourcemap: {
+    client: 'hidden',
   },
 })

@@ -29,3 +29,5 @@ prisma/dev.db
 data/*
 
 docker-compose.dev.yml
+# Sentry Config File
+.env.sentry-build-plugin
