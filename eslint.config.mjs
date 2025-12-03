@@ -6,4 +6,6 @@ export default withNuxt(jannchie({ rules: {
   'node/prefer-global/process': 'off',
   'node/prefer-global/buffer': 'off',
   'unicorn/import-style': 'off',
-} }))
+} }), {
+  ignores: ['app/generated/prisma/**'],
+})
