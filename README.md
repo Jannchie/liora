@@ -8,29 +8,7 @@
 
 Liora Gallery is a minimal, self-hosted gallery for photography and illustrations. It pairs a public waterfall grid with an admin workspace for uploads, metadata curation, SEO, and S3-backed storage. Built on Nuxt 4, Prisma, and any S3-compatible bucket.
 
-## Contents
-
-- [Contents](#contents)
-- [What is Liora?](#what-is-liora)
-- [Features](#features)
-- [Requirements](#requirements)
-- [Quickstart](#quickstart)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Database](#database)
-- [Deployment](#deployment)
-  - [Production build (without Docker)](#production-build-without-docker)
-  - [Docker](#docker)
-- [Operations](#operations)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
-
-## What is Liora?
-
-Liora is a lightweight, multi-language gallery for photographers and illustrators. It ships with a public-facing waterfall layout, an admin console for uploads and edits, and sensible defaults for SEO and social sharing. Files live in S3-compatible storage; metadata and settings live in SQLite/LibSQL via Prisma.
-
-## Features
+## Key Features
 
 - Public gallery with thumbhash placeholders, lazy loading, and i18n (zh-CN, en, ja) backed by Nuxt UI and Tailwind.
 - Admin workspace with login: EXIF/metadata autofill, location search via an OpenStreetMap Nominatim proxy, optional AI genre classification (OpenAI-compatible), duplicate detection (perceptual hash + SHA-256), and bulk reclassify.
@@ -45,7 +23,7 @@ Liora is a lightweight, multi-language gallery for photographers and illustrator
 - SQLite/LibSQL database URL (defaults to a local SQLite file)
 - Optional: OpenAI-compatible API key for genre classification
 
-## Quickstart
+## Getting Started
 
 1. Copy envs and fill required values:
 
@@ -53,15 +31,19 @@ Liora is a lightweight, multi-language gallery for photographers and illustrator
    cp .env.example .env
    ```
 
-2. Install deps and start dev server:
+2. Install dependencies:
 
    ```bash
    pnpm install
+   ```
+
+3. Start the dev server:
+
+   ```bash
    pnpm dev
    ```
 
-3. Visit <http://localhost:3000> (admin console at `/admin`).
-4. Local data lives in `prisma/data.db`; migrations are required if you change the schema.
+4. Visit <http://localhost:3000> (admin console at `/admin`). Local data lives in `prisma/data.db`; run migrations if you change the schema.
 
 ## Configuration
 
@@ -78,13 +60,15 @@ Core environment variables:
 | `S3_ACCESS_KEY_ID`     | Yes         | Access key                                                                                         | `AKIA...`                        |
 | `S3_SECRET_ACCESS_KEY` | Yes         | Secret key                                                                                         | `...`                            |
 | `S3_PUBLIC_BASE_URL`   | Optional    | Public base URL/CDN prefix for serving files                                                       | `https://cdn.example.com/liora`  |
-| `NUXT_SITE_URL`        | Recommended | Canonical site URL for SEO/sitemap                                                                 | `https://gallery.example.com`    |
-| `NUXT_SITE_INDEXABLE`  | Optional    | `true`/`false` to control robots/sitemap                                                           | `true`                           |
+| `SITE_URL`             | Recommended | Canonical site URL for SEO/sitemap                                                                 | `https://gallery.example.com`    |
+| `SITE_INDEXABLE`       | Optional    | `true`/`false` to control robots/sitemap                                                           | `true`                           |
 | `OPENAI_API_KEY`       | Optional    | Enables AI genre classification                                                                    | `sk-...`                         |
 
-Social links (rendered only when set): `NUXT_PUBLIC_SOCIAL_HOMEPAGE`, `NUXT_PUBLIC_SOCIAL_GITHUB`, `NUXT_PUBLIC_SOCIAL_TWITTER`, `NUXT_PUBLIC_SOCIAL_INSTAGRAM`, `NUXT_PUBLIC_SOCIAL_WEIBO`, `NUXT_PUBLIC_SOCIAL_YOUTUBE`, `NUXT_PUBLIC_SOCIAL_BILIBILI`, `NUXT_PUBLIC_SOCIAL_TIKTOK`, `NUXT_PUBLIC_SOCIAL_LINKEDIN`.
+Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCIAL_TWITTER`, `SOCIAL_INSTAGRAM`, `SOCIAL_WEIBO`, `SOCIAL_YOUTUBE`, `SOCIAL_BILIBILI`, `SOCIAL_TIKTOK`, `SOCIAL_LINKEDIN`.
 
-## Development
+Legacy `NUXT_*` variants continue to work for backward compatibility, but prefer the prefix-less names above.
+
+## Local Development
 
 - Dev server: `pnpm dev`
 - Lint: `pnpm exec eslint .`
@@ -104,58 +88,51 @@ Social links (rendered only when set): `NUXT_PUBLIC_SOCIAL_HOMEPAGE`, `NUXT_PUBL
 
 ## Deployment
 
-### Production build (without Docker)
+### Manual build
 
-```bash
-pnpm install
-pnpm build
-pnpm preview
-```
+- Install dependencies: `pnpm install`
+- Build and preview: `pnpm build && pnpm preview`
 
 ### Docker
 
-Build and run the production image on port 3000:
+- Build and run:
 
-```bash
-docker build -t liora .
-docker run --rm -p 3000:3000 --env-file .env liora
-```
+  ```bash
+  docker build -t liora .
+  docker run --rm -p 3000:3000 --env-file .env liora
+  ```
 
-- Listens on `0.0.0.0:3000`; override with `NUXT_HOST`/`NUXT_PORT`/`PORT`.
-- Prisma migrations (`pnpm exec prisma migrate deploy`) run on container start.
-- The image defaults to `DATABASE_URL=file:/data/data.db`; mount `/data` to persist SQLite or override the URL for LibSQL.
+- Defaults: listens on `0.0.0.0:3000`; `DATABASE_URL=file:/data/data.db`. Override `HOST`/`PORT` or mount `/data` to persist SQLite.
+- Prisma migrations (`pnpm exec prisma migrate deploy`) run at container start. Use `scripts/build-docker.sh` and `scripts/publish-docker.sh` to tag/push images (`IMAGE_NAME` overridable).
+- Persist SQLite with a host directory (example: `/srv/liora-db`):
 
-Use `scripts/build-docker.sh` to build tags for the current package version and `latest` (override the image name via `IMAGE_NAME`). Publish with `scripts/publish-docker.sh` (defaults to `docker.io/jannchie/liora`).
+  ```bash
+  docker run -d --name liora \
+    -p 3000:3000 \
+    --env-file .env \
+    -v /srv/liora-db:/data \
+    liora:latest
+  ```
 
-To persist SQLite with a host directory (e.g., `/srv/liora-db`):
+- Compose example:
 
-```bash
-docker run -d --name liora \
-  -p 3000:3000 \
-  --env-file .env \
-  -v /srv/liora-db:/data \
-  liora:latest
-```
-
-Compose example:
-
-```yaml
-services:
-  liora:
-    build: .
-    image: liora:latest
-    ports:
-      - '3000:3000'
-    env_file: .env
-    volumes:
-      - /srv/liora-db:/data
-    restart: unless-stopped
-```
+  ```yaml
+  services:
+    liora:
+      build: .
+      image: liora:latest
+      ports:
+        - '3000:3000'
+      env_file: .env
+      volumes:
+        - /srv/liora-db:/data
+      restart: unless-stopped
+  ```
 
 ## Operations
 
 - Back up the SQLite file (`prisma/data.db` locally or `/data` in Docker) and your S3 bucket regularly.
-- Set `NUXT_SITE_URL`/`NUXT_SITE_INDEXABLE` appropriately before exposing to crawlers.
+- Set `SITE_URL`/`SITE_INDEXABLE` appropriately before exposing to crawlers.
 - Geocoding uses a proxied Nominatim API; calls are throttled server-side (1 request/second).
 - AI classification is optional; uploads still succeed without `OPENAI_API_KEY`.
 

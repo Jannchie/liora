@@ -22,10 +22,10 @@ function resolveDomains(): string[] {
   return [...domains]
 }
 
-const resolveSiteEnv = (): string => process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development'
+const resolveSiteEnv = (): string => process.env.SITE_ENV ?? process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development'
 
 function resolveSiteUrl(siteEnv: string): string | undefined {
-  const envUrl = process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL
+  const envUrl = process.env.SITE_URL ?? process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
     return envUrl
   }
@@ -35,12 +35,27 @@ function resolveSiteUrl(siteEnv: string): string | undefined {
   return undefined
 }
 
+function parseBoolean(value: string | undefined, defaultValue: boolean): boolean {
+  if (value === undefined) {
+    return defaultValue
+  }
+  const normalized = value.trim().toLowerCase()
+  if (['1', 'true', 'yes', 'on'].includes(normalized)) {
+    return true
+  }
+  if (['0', 'false', 'no', 'off'].includes(normalized)) {
+    return false
+  }
+  return defaultValue
+}
+
 const siteName = 'Liora Gallery'
 const siteDescription = 'A minimal gallery for photography and illustrations.'
 const defaultLocale = 'zh-CN'
 
 const siteEnv = resolveSiteEnv()
 const siteUrl = resolveSiteUrl(siteEnv)
+const siteIndexable = parseBoolean(process.env.SITE_INDEXABLE ?? process.env.NUXT_SITE_INDEXABLE, true)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -76,15 +91,15 @@ export default defineNuxtConfig({
     },
     public: {
       social: {
-        homepage: process.env.NUXT_PUBLIC_SOCIAL_HOMEPAGE ?? '',
-        github: process.env.NUXT_PUBLIC_SOCIAL_GITHUB ?? '',
-        twitter: process.env.NUXT_PUBLIC_SOCIAL_TWITTER ?? '',
-        instagram: process.env.NUXT_PUBLIC_SOCIAL_INSTAGRAM ?? '',
-        weibo: process.env.NUXT_PUBLIC_SOCIAL_WEIBO ?? '',
-        youtube: process.env.NUXT_PUBLIC_SOCIAL_YOUTUBE ?? '',
-        bilibili: process.env.NUXT_PUBLIC_SOCIAL_BILIBILI ?? '',
-        tiktok: process.env.NUXT_PUBLIC_SOCIAL_TIKTOK ?? '',
-        linkedin: process.env.NUXT_PUBLIC_SOCIAL_LINKEDIN ?? '',
+        homepage: process.env.SOCIAL_HOMEPAGE ?? process.env.NUXT_PUBLIC_SOCIAL_HOMEPAGE ?? '',
+        github: process.env.SOCIAL_GITHUB ?? process.env.NUXT_PUBLIC_SOCIAL_GITHUB ?? '',
+        twitter: process.env.SOCIAL_TWITTER ?? process.env.NUXT_PUBLIC_SOCIAL_TWITTER ?? '',
+        instagram: process.env.SOCIAL_INSTAGRAM ?? process.env.NUXT_PUBLIC_SOCIAL_INSTAGRAM ?? '',
+        weibo: process.env.SOCIAL_WEIBO ?? process.env.NUXT_PUBLIC_SOCIAL_WEIBO ?? '',
+        youtube: process.env.SOCIAL_YOUTUBE ?? process.env.NUXT_PUBLIC_SOCIAL_YOUTUBE ?? '',
+        bilibili: process.env.SOCIAL_BILIBILI ?? process.env.NUXT_PUBLIC_SOCIAL_BILIBILI ?? '',
+        tiktok: process.env.SOCIAL_TIKTOK ?? process.env.NUXT_PUBLIC_SOCIAL_TIKTOK ?? '',
+        linkedin: process.env.SOCIAL_LINKEDIN ?? process.env.NUXT_PUBLIC_SOCIAL_LINKEDIN ?? '',
       },
       imageDomains: [],
     },
@@ -121,7 +136,7 @@ export default defineNuxtConfig({
     name: siteName,
     description: siteDescription,
     defaultLocale,
-    indexable: true,
+    indexable: siteIndexable,
     env: siteEnv,
   },
   sitemap: {
