@@ -1,3 +1,20 @@
+## v0.7.0
+
+[v0.6.2...v0.7.0](https://github.com/Jannchie/liora/compare/v0.6.2...v0.7.0)
+
+### :sparkles: Features
+
+- **sentry**: add sentry integration and config - By [Jannchie](mailto:jannchie@gmail.com) in [6b26ccf](https://github.com/Jannchie/liora/commit/6b26ccf)
+
+### :lipstick: Styles
+
+- **server-api**: reorder imports in files.get.ts - By [Jannchie](mailto:jannchie@gmail.com) in [f9d392e](https://github.com/Jannchie/liora/commit/f9d392e)
+
+### :wrench: Chores
+
+- **ci**: generate prisma client in ci && add pwa theme-color support && type prisma file in api - By [Jannchie](mailto:jannchie@gmail.com) in [01b109e](https://github.com/Jannchie/liora/commit/01b109e)
+- **eslint**: ignore generated prisma files - By [Jannchie](mailto:jannchie@gmail.com) in [c228f2e](https://github.com/Jannchie/liora/commit/c228f2e)
+
 ## v0.6.2
 
 [v0.6.1...v0.6.2](https://github.com/Jannchie/liora/compare/v0.6.1...v0.6.2)
