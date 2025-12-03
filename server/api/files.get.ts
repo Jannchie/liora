@@ -1,4 +1,5 @@
 import type { FileResponse } from '~/types/file'
+import type { File as PrismaFile } from '../../app/generated/prisma/client'
 import { toFileResponse } from '../utils/file-mapper'
 import { prisma } from '../utils/prisma'
 
@@ -7,5 +8,5 @@ export default defineEventHandler(async (): Promise<FileResponse[]> => {
     orderBy: [{ captureTime: 'desc' }, { createdAt: 'desc' }],
   })
 
-  return files.map(file => toFileResponse(file))
+  return files.map((file: PrismaFile) => toFileResponse(file))
 })

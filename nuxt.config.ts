@@ -52,6 +52,8 @@ function parseBoolean(value: string | undefined, defaultValue: boolean): boolean
 const siteName = 'Liora Gallery'
 const siteDescription = 'A minimal gallery for photography and illustrations.'
 const defaultLocale = 'zh-CN'
+const pwaBackgroundColorLight = '#d9d9d9'
+const pwaBackgroundColorDark = '#0f172a'
 
 const siteEnv = resolveSiteEnv()
 const siteUrl = resolveSiteUrl(siteEnv)
@@ -69,6 +71,18 @@ export default defineNuxtConfig({
           key: 'viewport',
           name: 'viewport',
           content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+        },
+        {
+          key: 'theme-color-light',
+          name: 'theme-color',
+          content: pwaBackgroundColorLight,
+          media: '(prefers-color-scheme: light)',
+        },
+        {
+          key: 'theme-color-dark',
+          name: 'theme-color',
+          content: pwaBackgroundColorDark,
+          media: '(prefers-color-scheme: dark)',
         },
       ],
     },
@@ -173,8 +187,8 @@ export default defineNuxtConfig({
       name: siteName,
       short_name: 'Liora',
       description: siteDescription,
-      theme_color: '#0ea5e9',
-      background_color: '#d9d9d9',
+      theme_color: pwaBackgroundColorLight,
+      background_color: pwaBackgroundColorLight,
       start_url: '/',
       scope: '/',
       display: 'standalone',
