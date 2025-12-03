@@ -152,21 +152,21 @@ defineOgImageComponent('LioraCard', {
       <div
         v-if="!showHeaderInfo"
         class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-[2000px] md:flex-nowrap md:gap-3 md:px-4 md:py-3"
+      >
+        <UButton
+          v-if="isAuthenticated"
+          to="/admin"
+          color="primary"
+          variant="soft"
+          size="sm"
+          class="shrink-0"
+          icon="mdi:shield-check-outline"
         >
-          <UButton
-            v-if="isAuthenticated"
-            to="/admin"
-            color="primary"
-            variant="soft"
-            size="sm"
-            class="shrink-0"
-            icon="mdi:shield-check-outline"
-          >
-            {{ t('admin.nav.label') }}
-          </UButton>
-          <LanguageSwitcher class="hidden md:block" />
-        </div>
-        <UAlert
+          {{ t('admin.nav.label') }}
+        </UButton>
+        <LanguageSwitcher class="hidden md:block" />
+      </div>
+      <UAlert
         v-if="fetchError"
         color="error"
         variant="soft"
