@@ -1,5 +1,5 @@
-import type { FileResponse } from '~/types/file'
 import type { File as PrismaFile } from '../../app/generated/prisma/client'
+import type { FileResponse } from '~/types/file'
 import { toFileResponse } from '../utils/file-mapper'
 import { prisma } from '../utils/prisma'
 
