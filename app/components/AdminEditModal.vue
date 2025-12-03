@@ -168,11 +168,8 @@ async function handleReplaceChange(event: Event): Promise<void> {
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="soft" color="neutral" @click="handleClose">
-            <span class="flex items-center gap-1.5">
-              <Icon name="mdi:close" class="h-4 w-4" />
-              <span>{{ t('common.actions.close') }}</span>
-            </span>
+          <UButton variant="soft" color="neutral" icon="mdi:close" @click="handleClose">
+            {{ t('common.actions.close') }}
           </UButton>
         </div>
         <div class="relative flex-1 overflow-y-auto">
@@ -188,15 +185,23 @@ async function handleReplaceChange(event: Event): Promise<void> {
                       {{ t('admin.files.table.headers.preview') }}
                     </p>
                     <div class="flex items-center gap-2">
-                      <UButton color="primary" variant="soft" size="sm" @click="replaceInput?.click()">
-                        <span class="flex items-center gap-1.5">
-                          <Icon name="mdi:camera-retake-outline" class="h-4 w-4" />
-                          <span>{{ t('common.actions.changeImage') }}</span>
-                        </span>
+                      <UButton
+                        color="primary"
+                        variant="soft"
+                        size="sm"
+                        icon="mdi:camera-retake-outline"
+                        @click="replaceInput?.click()"
+                      >
+                        {{ t('common.actions.changeImage') }}
                       </UButton>
-                      <UButton v-if="replaceFile" variant="ghost" color="neutral" size="sm" @click="clearReplaceSelection">
-                        <Icon name="mdi:close" class="h-4 w-4" />
-                      </UButton>
+                      <UButton
+                        v-if="replaceFile"
+                        variant="ghost"
+                        color="neutral"
+                        size="sm"
+                        icon="mdi:close"
+                        @click="clearReplaceSelection"
+                      />
                     </div>
                   </div>
                   <div class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60">
@@ -242,17 +247,16 @@ async function handleReplaceChange(event: Event): Promise<void> {
               </div>
 
               <div class="sticky bottom-0 flex justify-end gap-2 bg-default/90 px-1 py-3 backdrop-blur">
-                <UButton variant="soft" color="neutral" @click="handleClose">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:arrow-left" class="h-4 w-4" />
-                    <span>{{ t('common.actions.cancel') }}</span>
-                  </span>
+                <UButton variant="soft" color="neutral" icon="mdi:arrow-left" @click="handleClose">
+                  {{ t('common.actions.cancel') }}
                 </UButton>
-                <UButton color="primary" type="submit" :loading="loading">
-                  <template #leading>
-                    <LoadingIcon :loading="loading ?? false" icon="mdi:content-save-outline" />
-                  </template>
-                  <span>{{ t('common.actions.save') }}</span>
+                <UButton
+                  color="primary"
+                  type="submit"
+                  :loading="loading"
+                  icon="mdi:content-save-outline"
+                >
+                  {{ t('common.actions.save') }}
                 </UButton>
               </div>
             </UForm>

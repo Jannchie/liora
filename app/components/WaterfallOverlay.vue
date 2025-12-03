@@ -174,7 +174,7 @@ onMounted(() => {
                   variant="soft"
                   @click="emit('edit')"
                 >
-                  <span>{{ t('common.actions.edit') }}</span>
+                  {{ t('common.actions.edit') }}
                 </UButton>
                 <UButton
                   type="button"

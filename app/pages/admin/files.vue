@@ -467,23 +467,19 @@ watch(fetchError, (value) => {
             variant="soft"
             :disabled="!hasFiles || reclassifying"
             :loading="reclassifying"
+            icon="mdi:magic-wand"
             @click="reclassifyMissing"
           >
-            <template #leading>
-              <LoadingIcon :loading="reclassifying" icon="mdi:magic-wand" />
-            </template>
-            <span>{{ t('admin.files.actions.reclassify') }}</span>
+            {{ t('admin.files.actions.reclassify') }}
           </UButton>
           <UButton
             color="primary"
             variant="solid"
             :loading="isLoading"
+            icon="mdi:refresh"
             @click="handleRefresh"
           >
-            <template #leading>
-              <LoadingIcon :loading="isLoading" icon="mdi:refresh" />
-            </template>
-            <span>{{ t('admin.files.actions.refresh') }}</span>
+            {{ t('admin.files.actions.refresh') }}
           </UButton>
         </div>
       </header>
@@ -575,23 +571,24 @@ watch(fetchError, (value) => {
             </template>
             <template #actions-cell="{ row }">
               <div class="flex flex-wrap items-center gap-2">
-                <UButton size="xs" variant="soft" color="primary" @click="openEdit(row.original)">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:pencil-outline" class="h-4 w-4" />
-                    <span>{{ t('common.actions.edit') }}</span>
-                  </span>
+                <UButton
+                  size="xs"
+                  variant="soft"
+                  color="primary"
+                  icon="mdi:pencil-outline"
+                  @click="openEdit(row.original)"
+                >
+                  {{ t('common.actions.edit') }}
                 </UButton>
                 <UButton
                   size="xs"
                   variant="soft"
                   color="error"
                   :loading="deletingId === row.original.id"
+                  icon="mdi:trash-can-outline"
                   @click="openDelete(row.original)"
                 >
-                  <template #leading>
-                    <LoadingIcon :loading="deletingId === row.original.id" icon="mdi:trash-can-outline" />
-                  </template>
-                  <span>{{ t('common.actions.delete') }}</span>
+                  {{ t('common.actions.delete') }}
                 </UButton>
               </div>
             </template>
@@ -632,11 +629,8 @@ watch(fetchError, (value) => {
                 {{ t('admin.files.delete.description') }}
               </p>
             </div>
-            <UButton variant="soft" color="neutral" @click="deleteModalOpen = false">
-              <span class="flex items-center gap-1.5">
-                <Icon name="mdi:close" class="h-4 w-4" />
-                <span>{{ t('common.actions.close') }}</span>
-              </span>
+            <UButton variant="soft" color="neutral" icon="mdi:close" @click="deleteModalOpen = false">
+              {{ t('common.actions.close') }}
             </UButton>
           </div>
           <div class="space-y-3">
@@ -648,21 +642,16 @@ watch(fetchError, (value) => {
             </p>
           </div>
           <div class="flex justify-end gap-2">
-            <UButton variant="soft" color="neutral" @click="deleteModalOpen = false">
-              <span class="flex items-center gap-1.5">
-                <Icon name="mdi:arrow-left" class="h-4 w-4" />
-                <span>{{ t('common.actions.cancel') }}</span>
-              </span>
+            <UButton variant="soft" color="neutral" icon="mdi:arrow-left" @click="deleteModalOpen = false">
+              {{ t('common.actions.cancel') }}
             </UButton>
             <UButton
               color="error"
               :loading="deletingId !== null"
+              icon="mdi:trash-can-outline"
               @click="confirmDelete"
             >
-              <template #leading>
-                <LoadingIcon :loading="deletingId !== null" icon="mdi:trash-can-outline" />
-              </template>
-              <span>{{ t('admin.files.delete.confirm') }}</span>
+              {{ t('admin.files.delete.confirm') }}
             </UButton>
           </div>
         </div>

@@ -837,17 +837,22 @@ onBeforeUnmount(() => {
               </div>
             </div>
             <div class="hidden shrink-0 items-center gap-2 sm:flex">
-              <UButton variant="soft" color="neutral" type="button" @click="clearSelectedFile">
-                <span class="flex items-center gap-1.5">
-                  <Icon name="mdi:close" class="h-4 w-4" />
-                  <span>{{ t('common.actions.cancel') }}</span>
-                </span>
+              <UButton
+                variant="soft"
+                color="neutral"
+                type="button"
+                icon="mdi:close"
+                @click="clearSelectedFile"
+              >
+                {{ t('common.actions.cancel') }}
               </UButton>
-              <UButton color="primary" type="submit" :loading="submitting">
-                <template #leading>
-                  <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-                </template>
-                <span>{{ t('admin.upload.actions.save') }}</span>
+              <UButton
+                color="primary"
+                type="submit"
+                :loading="submitting"
+                icon="mdi:content-save-outline"
+              >
+                {{ t('admin.upload.actions.save') }}
               </UButton>
             </div>
           </div>
@@ -862,17 +867,22 @@ onBeforeUnmount(() => {
             </span>
           </div>
           <div class="flex flex-col gap-2 sm:hidden">
-            <UButton variant="soft" color="neutral" type="button" @click="clearSelectedFile">
-              <span class="flex items-center justify-center gap-1.5">
-                <Icon name="mdi:close" class="h-4 w-4" />
-                <span>{{ t('common.actions.cancel') }}</span>
-              </span>
+            <UButton
+              variant="soft"
+              color="neutral"
+              type="button"
+              icon="mdi:close"
+              @click="clearSelectedFile"
+            >
+              {{ t('common.actions.cancel') }}
             </UButton>
-            <UButton color="primary" type="submit" :loading="submitting">
-              <template #leading>
-                <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-              </template>
-              <span>{{ t('admin.upload.actions.save') }}</span>
+            <UButton
+              color="primary"
+              type="submit"
+              :loading="submitting"
+              icon="mdi:content-save-outline"
+            >
+              {{ t('admin.upload.actions.save') }}
             </UButton>
           </div>
         </div>
@@ -889,11 +899,14 @@ onBeforeUnmount(() => {
                     {{ t('admin.upload.sections.preview.alt') }}
                   </p>
                 </div>
-                <UButton variant="ghost" color="neutral" type="button" @click="openFileDialog()">
-                  <span class="flex items-center gap-1.5">
-                    <Icon name="mdi:camera-retake-outline" class="h-4 w-4" />
-                    <span>{{ t('common.actions.changeImage') }}</span>
-                  </span>
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  type="button"
+                  icon="mdi:camera-retake-outline"
+                  @click="openFileDialog()"
+                >
+                  {{ t('common.actions.changeImage') }}
                 </UButton>
               </div>
             </template>
@@ -958,23 +971,19 @@ onBeforeUnmount(() => {
                   color="neutral"
                   type="button"
                   class="w-full sm:w-auto"
+                  icon="mdi:close"
                   @click="clearSelectedFile"
                 >
-                  <span class="flex w-full items-center justify-center gap-1.5">
-                    <Icon name="mdi:close" class="h-4 w-4" />
-                    <span>{{ t('common.actions.cancel') }}</span>
-                  </span>
+                  {{ t('common.actions.cancel') }}
                 </UButton>
                 <UButton
                   color="primary"
                   type="submit"
                   :loading="submitting"
                   class="w-full sm:w-auto"
+                  icon="mdi:content-save-outline"
                 >
-                  <template #leading>
-                    <LoadingIcon :loading="submitting" icon="mdi:content-save-outline" size="h-5 w-5" />
-                  </template>
-                  <span>{{ t('admin.upload.actions.save') }}</span>
+                  {{ t('admin.upload.actions.save') }}
                 </UButton>
               </div>
             </div>

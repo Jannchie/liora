@@ -61,22 +61,22 @@ async function handleTabChange(value: string | number): Promise<void> {
     </div>
     <div class="flex items-center gap-2">
       <LanguageSwitcher />
-      <UButton to="/" variant="soft" color="primary">
-        <span class="flex items-center gap-2">
-          <Icon name="mdi:home-outline" class="h-4 w-4" />
-          <span>{{ t('admin.nav.viewFrontend') }}</span>
-        </span>
+      <UButton
+        to="/"
+        variant="soft"
+        color="primary"
+        icon="mdi:home-outline"
+      >
+        {{ t('admin.nav.viewFrontend') }}
       </UButton>
       <UButton
         variant="soft"
         color="primary"
         :loading="loggingOut"
+        icon="mdi:logout"
         @click="handleLogout"
       >
-        <template #leading>
-          <LoadingIcon :loading="loggingOut" icon="mdi:logout" />
-        </template>
-        <span>{{ t('admin.nav.logout') }}</span>
+        {{ t('admin.nav.logout') }}
       </UButton>
     </div>
   </div>

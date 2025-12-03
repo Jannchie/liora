@@ -193,23 +193,19 @@ function handleReset(): void {
               color="primary"
               :loading="saving"
               :disabled="saving || loadingSettings"
+              icon="mdi:content-save-outline"
               @click="handleSubmit"
             >
-              <template #leading>
-                <LoadingIcon :loading="saving" icon="mdi:content-save-outline" />
-              </template>
-              <span>{{ t('common.actions.save') }}</span>
+              {{ t('common.actions.save') }}
             </UButton>
             <UButton
               variant="soft"
               color="neutral"
               :disabled="saving || loadingSettings"
+              icon="mdi:restore"
               @click="handleReset"
             >
-              <span class="flex items-center gap-2">
-                <Icon name="mdi:restore" class="h-4 w-4" />
-                <span>{{ t('common.actions.reset') }}</span>
-              </span>
+              {{ t('common.actions.reset') }}
             </UButton>
           </div>
         </div>
@@ -319,12 +315,10 @@ function handleReset(): void {
                     variant="soft"
                     :loading="uploadingIcon"
                     :disabled="saving || loadingSettings || uploadingIcon"
+                    icon="mdi:image-plus"
                     @click="openIconPicker"
                   >
-                    <template #leading>
-                      <LoadingIcon :loading="uploadingIcon" icon="mdi:image-plus" />
-                    </template>
-                    <span>{{ t('admin.site.fields.icon.upload') }}</span>
+                    {{ t('admin.site.fields.icon.upload') }}
                   </UButton>
                   <input
                     ref="iconFileInput"
@@ -493,23 +487,19 @@ function handleReset(): void {
           variant="soft"
           color="neutral"
           :disabled="saving || loadingSettings"
+          icon="mdi:restore"
           @click="handleReset"
         >
-          <span class="flex items-center gap-2">
-            <Icon name="mdi:restore" class="h-4 w-4" />
-            <span>{{ t('common.actions.reset') }}</span>
-          </span>
+          {{ t('common.actions.reset') }}
         </UButton>
         <UButton
           color="primary"
           :loading="saving"
           :disabled="saving || loadingSettings"
+          icon="mdi:content-save-outline"
           @click="handleSubmit"
         >
-          <template #leading>
-            <LoadingIcon :loading="saving" icon="mdi:content-save-outline" />
-          </template>
-          <span>{{ t('admin.site.actions.save') }}</span>
+          {{ t('admin.site.actions.save') }}
         </UButton>
       </div>
     </UContainer>

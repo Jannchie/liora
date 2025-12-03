@@ -201,12 +201,10 @@ watch(
                     class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
                     :disabled="!canAutoClassify"
                     :loading="classifyingGenre"
+                    icon="mdi:robot-outline"
                     @click="autoClassifyGenre"
                   >
-                    <template #leading>
-                      <LoadingIcon :loading="classifyingGenre" icon="mdi:robot-outline" />
-                    </template>
-                    <span class="hidden sm:inline">{{ t('admin.files.form.genre.auto') }}</span>
+                    {{ t('admin.files.form.genre.auto') }}
                   </UButton>
                 </div>
                 <template #description>
@@ -257,12 +255,10 @@ watch(
               class="w-full justify-center md:w-auto"
               color="primary"
               :loading="geocoding"
+              icon="mdi:map-search-outline"
               @click="searchLocation"
             >
-              <template #leading>
-                <LoadingIcon :loading="geocoding" icon="mdi:map-search-outline" />
-              </template>
-              <span>{{ t('admin.upload.fields.locationSearch.action') }}</span>
+              {{ t('admin.upload.fields.locationSearch.action') }}
             </UButton>
             <div v-if="geocodeResults.length > 0" class="space-y-2 rounded-md border border-default/40 bg-default/70 p-3">
               <p class="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -305,12 +301,10 @@ watch(
                 :loading="geocoding"
                 :disabled="!canReverseGeocode"
                 class="w-full sm:w-auto"
+                icon="mdi:map-marker-radius-outline"
                 @click="searchLocation"
               >
-                <template #leading>
-                  <LoadingIcon :loading="geocoding" icon="mdi:map-marker-radius-outline" />
-                </template>
-                <span>{{ t('admin.files.form.locationReverse.actionShort') }}</span>
+                {{ t('admin.files.form.locationReverse.actionShort') }}
               </UButton>
             </div>
           </div>

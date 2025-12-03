@@ -296,7 +296,7 @@
         "captureTime": {
           "label": "拍摄时间",
           "placeholder": "选择拍摄时间",
-          "description": "输入本地时间，保存时会转换为含秒与时区的 ISO 字符串。"
+          "description": "输入本地时间，保存时自动转换为标准 ISO 时间。"
         },
         "title": {
           "label": "标题（可留空）",

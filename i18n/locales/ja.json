@@ -296,7 +296,7 @@
         "captureTime": {
           "label": "撮影日時",
           "placeholder": "撮影日時を選択",
-          "description": "ローカル時間を入力してください。秒とタイムゾーンを含む ISO 文字列で保存されます。"
+          "description": "ローカル時間で入力し、標準的な ISO 形式で保存されます。"
         },
         "title": {
           "label": "タイトル（任意）",

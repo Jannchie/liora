@@ -296,7 +296,7 @@
         "captureTime": {
           "label": "Capture time",
           "placeholder": "Select capture time",
-          "description": "Use local time; it will be stored as an ISO string with seconds and timezone."
+          "description": "Use local time; it is stored as a standard ISO datetime."
         },
         "title": {
           "label": "Title (optional)",
