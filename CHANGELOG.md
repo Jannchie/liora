@@ -1,3 +1,21 @@
+## v0.6.2
+
+[v0.6.1...v0.6.2](https://github.com/Jannchie/liora/compare/v0.6.1...v0.6.2)
+
+### :adhesive_bandage: Fixes
+
+- **ui**: fix template indentation and tag nesting - By [Jannchie](mailto:jannchie@gmail.com) in [97484bc](https://github.com/Jannchie/liora/commit/97484bc)
+
+### :art: Refactors
+
+- **config**: standardize env var names and parsing - By [Jannchie](mailto:jannchie@gmail.com) in [f7f7e4d](https://github.com/Jannchie/liora/commit/f7f7e4d)
+- **ui-buttons**: standardize ubutton icon prop and simplify slots - By [Jannchie](mailto:jannchie@gmail.com) in [5e95ba4](https://github.com/Jannchie/liora/commit/5e95ba4)
+
+### :wrench: Chores
+
+- **.github-workflows**: add docker release workflow - By [Jannchie](mailto:jannchie@gmail.com) in [5657bf4](https://github.com/Jannchie/liora/commit/5657bf4)
+- **ci**: remove pnpm version pin from ci workflow - By [Jannchie](mailto:jannchie@gmail.com) in [79a4f8c](https://github.com/Jannchie/liora/commit/79a4f8c)
+
 ## v0.6.1
 
 [v0.6.0...v0.6.1](https://github.com/Jannchie/liora/compare/v0.6.0...v0.6.1)
