@@ -5,6 +5,7 @@ ENV PNPM_HOME="/usr/local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
 RUN corepack enable
 RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+ENV DATABASE_URL=file:/data/data.db
 
 FROM base AS deps
 WORKDIR /app
@@ -18,6 +19,7 @@ COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY . .
+RUN pnpm exec prisma generate
 RUN pnpm run build
 
 FROM base AS runner
@@ -25,13 +27,13 @@ ENV NODE_ENV=production
 ENV NUXT_HOST=0.0.0.0
 ENV NUXT_PORT=3000
 ENV PORT=3000
-ENV DATABASE_URL=file:/data/data.db
 WORKDIR /app
 RUN mkdir -p /data
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
+COPY --from=build /app/app/generated ./app/generated
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY --from=build /app/.output ./.output
