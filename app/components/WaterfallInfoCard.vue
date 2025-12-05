@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
+import { computed } from 'vue'
+
 interface SocialLink {
   label: string
   url: string
@@ -24,6 +27,10 @@ withDefaults(
     socialLinks: () => [],
   },
 )
+
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMobile = breakpoints.smaller('md')
+const socialButtonSize = computed(() => (isMobile.value ? 'md' : 'lg'))
 
 const { t } = useI18n()
 </script>
@@ -70,7 +77,7 @@ const { t } = useI18n()
           variant="soft"
           color="neutral"
           square
-          size="lg"
+          :size="socialButtonSize"
           class="text-muted"
           :icon="link.icon"
           :aria-label="link.label"

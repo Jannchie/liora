@@ -39,6 +39,8 @@ export interface MetadataEntry {
   label: string
   value: string
   icon: string
+  valueIcon?: string
+  valueIconLabel?: string
 }
 
 export interface SocialLink {

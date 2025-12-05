@@ -4,6 +4,7 @@ import type { FileResponse } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed, onMounted, ref } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
@@ -48,6 +49,9 @@ const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
 const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isMobile = breakpoints.smaller('md')
+const socialButtonSize = computed(() => (isMobile.value ? 'md' : 'lg'))
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
   const placement = siteSettings.value?.infoPlacement?.trim()
@@ -112,7 +116,7 @@ defineOgImageComponent('LioraCard', {
     >
       <div class="mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-2 md:max-w-[2000px] md:gap-3 md:px-4 md:py-3">
         <div class="flex w-full flex-wrap items-center gap-2 md:flex-1 md:gap-3">
-          <h1 class="home-title-font text-base font-semibold leading-tight text-highlighted md:text-lg">
+          <h1 class="home-title-font text-sm font-semibold leading-tight text-highlighted md:text-lg">
             {{ pageTitle }}
           </h1>
           <div class="flex flex-wrap items-center gap-2 text-muted">
@@ -125,7 +129,7 @@ defineOgImageComponent('LioraCard', {
               variant="soft"
               color="neutral"
               square
-              size="lg"
+              :size="socialButtonSize"
               class="text-muted"
               :icon="link.icon"
               :aria-label="link.label"

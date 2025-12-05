@@ -111,7 +111,16 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
             <Icon :name="item.icon" class="h-4 w-4" />
             <span>{{ item.label }}</span>
           </p>
-          <p class="text-sm leading-snug text-highlighted">
+          <p
+            v-if="item.valueIcon"
+            class="flex items-center gap-2 text-sm leading-snug text-highlighted"
+          >
+            <Icon :name="item.valueIcon" class="h-[1em] w-auto text-highlighted" />
+            <Icon name="simple-icons:sony" class="h-[1em] w-auto text-highlighted" />
+            <span v-if="item.valueIconLabel" class="sr-only">{{ item.valueIconLabel }}</span>
+            <span>{{ item.value }}</span>
+          </p>
+          <p v-else class="text-sm leading-snug text-highlighted">
             {{ item.value }}
           </p>
         </div>

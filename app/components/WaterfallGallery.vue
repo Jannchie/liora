@@ -854,6 +854,72 @@ function escapeRegExp(value: string): string {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
 }
 
+interface CameraBrandRule {
+  icon: string
+  keywords: string[]
+  label: string
+  patterns?: RegExp[]
+}
+
+const cameraBrandRules: CameraBrandRule[] = [
+  { icon: 'simple-icons:canon', keywords: ['canon', 'eos'], label: 'Canon' },
+  { icon: 'simple-icons:nikon', keywords: ['nikon'], label: 'Nikon' },
+  { icon: 'simple-icons:sony', keywords: ['sony', 'ilce', 'alpha'], label: 'Sony' },
+  { icon: 'simple-icons:fujifilm', keywords: ['fujifilm', 'fuji'], label: 'Fujifilm' },
+  { icon: 'simple-icons:panasonic', keywords: ['panasonic', 'lumix'], label: 'Panasonic' },
+  { icon: 'simple-icons:olympus', keywords: ['olympus', 'om system', 'om-system', 'omd'], label: 'Olympus' },
+  { icon: 'simple-icons:leica', keywords: ['leica'], label: 'Leica' },
+  { icon: 'simple-icons:pentax', keywords: ['pentax'], label: 'Pentax' },
+  {
+    icon: 'simple-icons:ricoh',
+    keywords: ['ricoh'],
+    label: 'Ricoh',
+    patterns: [/\bgr\s?(digital\s*)?(i{1,3}|\d)\b/],
+  },
+  { icon: 'simple-icons:sigma', keywords: ['sigma'], label: 'Sigma' },
+  { icon: 'simple-icons:hasselblad', keywords: ['hasselblad'], label: 'Hasselblad' },
+  { icon: 'simple-icons:dji', keywords: ['dji'], label: 'DJI' },
+  { icon: 'simple-icons:gopro', keywords: ['gopro', 'hero'], label: 'GoPro' },
+]
+
+function normalizeCameraText(value: string): string {
+  return value.toLowerCase().replaceAll(/[-_/]+/g, ' ').replaceAll(/\s+/g, ' ').trim()
+}
+
+function matchesCameraBrand(value: string, rule: CameraBrandRule): boolean {
+  if (rule.keywords.some(keyword => value.includes(keyword))) {
+    return true
+  }
+  return (rule.patterns ?? []).some(pattern => pattern.test(value))
+}
+
+function stripCameraBrand(cameraText: string, rule: CameraBrandRule): string {
+  for (const keyword of rule.keywords) {
+    const pattern = new RegExp(`^\\s*${escapeRegExp(keyword)}[\\s·|/,-]*`, 'i')
+    const next = cameraText.replace(pattern, '').trim()
+    if (next.length > 0 && next !== cameraText) {
+      return next
+    }
+  }
+  return cameraText.trim()
+}
+
+function resolveCameraBrand(
+  camera: string | undefined,
+): { model: string | undefined, brandIcon: string | null, brandLabel: string | null } {
+  const cameraText = toDisplayText(camera)
+  if (!cameraText) {
+    return { model: undefined, brandIcon: null, brandLabel: null }
+  }
+  const normalized = normalizeCameraText(cameraText)
+  const rule = cameraBrandRules.find(entry => matchesCameraBrand(normalized, entry))
+  if (!rule) {
+    return { model: cameraText, brandIcon: null, brandLabel: null }
+  }
+  const model = toDisplayText(stripCameraBrand(cameraText, rule)) ?? cameraText
+  return { model, brandIcon: rule.icon, brandLabel: rule.label }
+}
+
 function dedupeCameraLens(
   camera: string | undefined,
   lens: string | undefined,
@@ -1027,7 +1093,14 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   }
   const { camera, lens } = dedupeCameraLens(metadata.cameraModel || file.cameraModel, metadata.lensModel)
   if (camera) {
-    entries.push({ label: metadataLabels.value.camera, value: camera, icon: 'carbon:camera' })
+    const { model, brandIcon, brandLabel } = resolveCameraBrand(camera)
+    entries.push({
+      label: metadataLabels.value.camera,
+      value: model ?? camera,
+      icon: 'carbon:camera',
+      valueIcon: brandIcon ?? undefined,
+      valueIconLabel: brandLabel ?? undefined,
+    })
   }
   if (lens) {
     entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'mdi:camera-iris' })
