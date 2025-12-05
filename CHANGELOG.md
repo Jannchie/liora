@@ -1,3 +1,16 @@
+## v0.8.0
+
+[v0.7.0...v0.8.0](https://github.com/Jannchie/liora/compare/v0.7.0...v0.8.0)
+
+### :sparkles: Features
+
+- **metadata**: show camera brand icons and responsive social buttons - By [Jannchie](mailto:jannchie@gmail.com) in [87fbd33](https://github.com/Jannchie/liora/commit/87fbd33)
+- **ui**: add brand icons component && detect/display camera phone brands - By [Jannchie](mailto:jannchie@gmail.com) in [a780bfe](https://github.com/Jannchie/liora/commit/a780bfe)
+
+### :adhesive_bandage: Fixes
+
+- **waterfall-overlay**: also toggle body class to hide page overflow - By [Jannchie](mailto:jannchie@gmail.com) in [c52c063](https://github.com/Jannchie/liora/commit/c52c063)
+
 ## v0.7.0
 
 [v0.6.2...v0.7.0](https://github.com/Jannchie/liora/compare/v0.6.2...v0.7.0)
