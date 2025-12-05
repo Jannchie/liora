@@ -79,12 +79,16 @@ onBeforeUnmount(() => {
     if (root.classList.contains(overlayHiddenClass)) {
       root.classList.remove(overlayHiddenClass)
     }
+    if (document.body.classList.contains(overlayHiddenClass)) {
+      document.body.classList.remove(overlayHiddenClass)
+    }
   }
 })
 
 onMounted(() => {
   if (typeof document !== 'undefined') {
     document.documentElement.classList.add(overlayHiddenClass)
+    document.body.classList.add(overlayHiddenClass)
   }
 })
 </script>
@@ -237,5 +241,11 @@ onMounted(() => {
 :global(.overlay-content-hidden #__nuxt) {
   visibility: hidden;
   pointer-events: none;
+}
+
+:global(html.overlay-content-hidden),
+:global(body.overlay-content-hidden),
+:global(html.overlay-content-hidden body) {
+  overflow: hidden;
 }
 </style>
