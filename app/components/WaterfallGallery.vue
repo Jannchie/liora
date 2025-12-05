@@ -18,6 +18,7 @@ import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
 import { useFileEditApi } from '~/composables/useFileEditApi'
+import { brandIconSet } from '~/constants/brand-icons'
 import { toLocalInputString } from '~/utils/datetime'
 import { resolveFileTitle } from '~/utils/file'
 
@@ -880,6 +881,47 @@ const cameraBrandRules: CameraBrandRule[] = [
   { icon: 'simple-icons:hasselblad', keywords: ['hasselblad'], label: 'Hasselblad' },
   { icon: 'simple-icons:dji', keywords: ['dji'], label: 'DJI' },
   { icon: 'simple-icons:gopro', keywords: ['gopro', 'hero'], label: 'GoPro' },
+  { icon: 'simple-icons:apple', keywords: ['apple', 'iphone', 'ipad', 'ipod'], label: 'Apple' },
+  {
+    icon: 'simple-icons:samsung',
+    keywords: ['samsung'],
+    label: 'Samsung',
+    patterns: [/\bsm\s?[a-z0-9]{3,}/],
+  },
+  { icon: 'simple-icons:huawei', keywords: ['huawei'], label: 'Huawei' },
+  {
+    icon: 'simple-icons:xiaomi',
+    keywords: ['xiaomi', 'redmi', 'mi '],
+    label: 'Xiaomi',
+    patterns: [/\bmi\s?\d{1,2}\b/],
+  },
+  {
+    icon: 'simple-icons:oppo',
+    keywords: ['oppo'],
+    label: 'Oppo',
+    patterns: [/\bcph\d{3,}/],
+  },
+  { icon: 'simple-icons:vivo', keywords: ['vivo', 'iqoo'], label: 'Vivo' },
+  { icon: 'simple-icons:oneplus', keywords: ['oneplus'], label: 'OnePlus' },
+  { icon: 'simple-icons:google', keywords: ['pixel', 'google'], label: 'Google' },
+  {
+    icon: 'simple-icons:motorola',
+    keywords: ['motorola', 'moto'],
+    label: 'Motorola',
+    patterns: [/\bxt\d{3,}/],
+  },
+  { icon: 'simple-icons:nokia', keywords: ['nokia'], label: 'Nokia' },
+  { icon: 'simple-icons:honor', keywords: ['honor'], label: 'Honor' },
+  { icon: 'simple-icons:meizu', keywords: ['meizu'], label: 'Meizu' },
+  { icon: 'simple-icons:lenovo', keywords: ['lenovo'], label: 'Lenovo' },
+  { icon: 'simple-icons:asus', keywords: ['asus', 'zenfone', 'rog phone', 'rog'], label: 'Asus' },
+  { icon: 'simple-icons:sharp', keywords: ['sharp', 'aquos'], label: 'Sharp' },
+  {
+    icon: 'simple-icons:lg',
+    keywords: ['lg '],
+    label: 'LG',
+    patterns: [/\blg\s?[a-z0-9]{2,}/],
+  },
 ]
 
 function normalizeCameraText(value: string): string {
@@ -894,14 +936,42 @@ function matchesCameraBrand(value: string, rule: CameraBrandRule): boolean {
 }
 
 function stripCameraBrand(cameraText: string, rule: CameraBrandRule): string {
-  for (const keyword of rule.keywords) {
-    const pattern = new RegExp(`^\\s*${escapeRegExp(keyword)}[\\s·|/,-]*`, 'i')
+  const candidates = [...rule.keywords, rule.label]
+  for (const keyword of candidates) {
+    if (!keyword || keyword.trim().length === 0) {
+      continue
+    }
+    const pattern = new RegExp(String.raw`^\s*${escapeRegExp(keyword)}[\s·|/,:-]*`, 'i')
     const next = cameraText.replace(pattern, '').trim()
     if (next.length > 0 && next !== cameraText) {
       return next
     }
   }
   return cameraText.trim()
+}
+
+function stripBrandPrefixForDisplay(cameraText: string, rule: CameraBrandRule): string | undefined {
+  let output = cameraText.trim()
+  if (output.length === 0) {
+    return undefined
+  }
+  const prefixes = [...rule.keywords, rule.label].filter(entry => entry && entry.trim().length > 0)
+  if (prefixes.length === 0) {
+    return output
+  }
+  const patterns = prefixes.map(prefix => new RegExp(String.raw`^\s*${escapeRegExp(prefix)}[\s·|/,:-]*`, 'i'))
+  let mutated = true
+  while (mutated && output.length > 0) {
+    mutated = false
+    for (const pattern of patterns) {
+      const next = output.replace(pattern, '').trim()
+      if (next.length > 0 && next !== output) {
+        output = next
+        mutated = true
+      }
+    }
+  }
+  return output.length > 0 ? output : undefined
 }
 
 function resolveCameraBrand(
@@ -916,8 +986,13 @@ function resolveCameraBrand(
   if (!rule) {
     return { model: cameraText, brandIcon: null, brandLabel: null }
   }
+  const brandIcon = (() => {
+    const normalizedIcon = rule.icon.replace(/^simple-icons:/, '')
+    return brandIconSet.has(normalizedIcon) ? rule.icon : null
+  })()
   const model = toDisplayText(stripCameraBrand(cameraText, rule)) ?? cameraText
-  return { model, brandIcon: rule.icon, brandLabel: rule.label }
+  const displayModel = brandIcon ? stripBrandPrefixForDisplay(model, rule) ?? rule.label ?? model : model
+  return { model: displayModel, brandIcon, brandLabel: rule.label }
 }
 
 function dedupeCameraLens(
@@ -929,7 +1004,7 @@ function dedupeCameraLens(
   const separators = ['·', '|', '/']
 
   if (cameraText && lensText) {
-    const pattern = new RegExp(`\\s*[·|/,-]?\\s*${escapeRegExp(lensText)}`, 'i')
+    const pattern = new RegExp(String.raw`\s*[·|/,-]?\s*${escapeRegExp(lensText)}`, 'i')
     const cleanedCamera = cameraText.replace(pattern, '').trim().replace(/[·|/,-]+$/, '').trim()
     return {
       camera: toDisplayText(cleanedCamera) ?? cameraText,

@@ -192,7 +192,7 @@ function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraMo
 
   const tryExtractLens = (): { cameraModel: string, lensModel: string } => {
     if (lens.length > 0) {
-      const pattern = new RegExp(`\\s*[·|/,-]?\\s*${escapeRegExp(lens)}`, 'gi')
+      const pattern = new RegExp(String.raw`\s*[·|/,-]?\s*${escapeRegExp(lens)}`, 'gi')
       const cleaned = camera
         .replaceAll(pattern, '')
         .trim()

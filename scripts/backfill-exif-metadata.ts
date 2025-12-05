@@ -27,9 +27,9 @@ function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraMo
     if (lensIndex === -1) {
       return null
     }
-    const beforeLens = camera.slice(0, lensIndex).replace(new RegExp(`\\s*${separatorClass}\\s*$`, 'u'), '')
-    const afterLens = camera.slice(lensIndex + lens.length).replace(new RegExp(`^${separatorClass}\\s*`, 'u'), '')
-    const cleaned = `${beforeLens} ${afterLens}`.trim().replace(new RegExp(`${separatorClass}+$`, 'u'), '').trim()
+    const beforeLens = camera.slice(0, lensIndex).replace(new RegExp(String.raw`\s*${separatorClass}\s*$`, 'u'), '')
+    const afterLens = camera.slice(lensIndex + lens.length).replace(new RegExp(String.raw`^${separatorClass}\s*`, 'u'), '')
+    const cleaned = `${beforeLens} ${afterLens}`.trim().replace(new RegExp(String.raw`${separatorClass}+$`, 'u'), '').trim()
     return { cameraModel: cleaned.length > 0 ? cleaned : camera, lensModel: lens }
   }
 
