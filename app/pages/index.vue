@@ -11,7 +11,7 @@ import { useSiteSettingsState } from '~/composables/useSiteSettings'
 const { t } = useI18n()
 
 definePageMeta({
-  path: '/:rest(.*)?',
+  path: '/:rest(photo/\\d+)?',
   validate: (route) => {
     const rest = Array.isArray(route.params.rest)
       ? route.params.rest.join('/')

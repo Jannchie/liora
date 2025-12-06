@@ -64,8 +64,8 @@ catalogs:
       specifier: ^14.1.0
       version: 14.1.0
     ai:
-      specifier: ^5.0.107
-      version: 5.0.107
+      specifier: ^5.0.108
+      version: 5.0.108
     chart.js:
       specifier: ^4.5.1
       version: 4.5.1
@@ -73,11 +73,11 @@ catalogs:
       specifier: ^17.2.3
       version: 17.2.3
     drizzle-kit:
-      specifier: ^0.30.5
-      version: 0.30.6
+      specifier: ^0.31.8
+      version: 0.31.8
     drizzle-orm:
-      specifier: ^0.38.3
-      version: 0.38.4
+      specifier: ^0.45.0
+      version: 0.45.0
     eslint:
       specifier: ^9.39.1
       version: 9.39.1
@@ -142,34 +142,34 @@ importers:
         version: 1.11.0(@typescript-eslint/utils@8.48.1(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.25)(eslint@9.39.1(jiti@2.6.1))(magicast@0.5.1)(typescript@5.9.3)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/hints':
         specifier: 'catalog:'
-        version: 1.0.0-alpha.3(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(magicast@0.5.1)(mysql2@3.15.3)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+        version: 1.0.0-alpha.3(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(magicast@0.5.1)(mysql2@3.15.3)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
       '@nuxt/icon':
         specifier: 'catalog:'
         version: 2.1.0(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
       '@nuxt/image':
         specifier: 'catalog:'
-        version: 2.0.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)
+        version: 2.0.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)
       '@nuxt/test-utils':
         specifier: 'catalog:'
         version: 3.21.0(magicast@0.5.1)(playwright-core@1.57.0)(typescript@5.9.3)
       '@nuxt/ui':
         specifier: 'catalog:'
-        version: 4.2.1(@babel/parser@7.28.5)(change-case@5.4.4)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.8.2)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)(valibot@1.2.0(typescript@5.9.3))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)
+        version: 4.2.1(@babel/parser@7.28.5)(change-case@5.4.4)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.8.2)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)(valibot@1.2.0(typescript@5.9.3))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)
       '@nuxtjs/i18n':
         specifier: 'catalog:'
-        version: 10.2.1(@vue/compiler-dom@3.5.25)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
+        version: 10.2.1(@vue/compiler-dom@3.5.25)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
       '@nuxtjs/seo':
         specifier: 'catalog:'
-        version: 3.2.2(470185a0a516c1f98aebb2e862f6ea2c)
+        version: 3.2.2(7666a90fd96c654e6fb61297cb9f3c48)
       '@sentry/nuxt':
         specifier: 'catalog:'
-        version: 10.29.0(magicast@0.5.1)(nuxt@4.2.1(3c04f0c22b81ccf2340c475fdee64242))(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
+        version: 10.29.0(magicast@0.5.1)(nuxt@4.2.1(40daf78a012ea33bc01de112322d9e2f))(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
       '@vueuse/core':
         specifier: 'catalog:'
         version: 14.1.0(vue@3.5.25(typescript@5.9.3))
       ai:
         specifier: 'catalog:'
-        version: 5.0.107(zod@4.1.13)
+        version: 5.0.108(zod@4.1.13)
       chart.js:
         specifier: 'catalog:'
         version: 4.5.1
@@ -178,7 +178,7 @@ importers:
         version: 17.2.3
       drizzle-orm:
         specifier: 'catalog:'
-        version: 0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0)
+        version: 0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))
       eslint:
         specifier: 'catalog:'
         version: 9.39.1(jiti@2.6.1)
@@ -190,7 +190,7 @@ importers:
         version: 2.0.0
       nuxt:
         specifier: 'catalog:'
-        version: 4.2.1(3c04f0c22b81ccf2340c475fdee64242)
+        version: 4.2.1(40daf78a012ea33bc01de112322d9e2f)
       sharp:
         specifier: 'catalog:'
         version: 0.34.5
@@ -233,7 +233,7 @@ importers:
         version: 1.1.0(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(workbox-build@7.4.0)(workbox-window@7.4.0)
       drizzle-kit:
         specifier: 'catalog:'
-        version: 0.30.6
+        version: 0.31.8
       png-to-ico:
         specifier: 'catalog:'
         version: 3.0.1
@@ -1119,12 +1119,6 @@ packages:
     resolution: {integrity: sha512-FxEMIkJKnodyA1OaCUoEvbYRkoZlLZ4d/eXFu9Fh8CbBBgP5EmZxrfTRyN0qpXZ4vOvqnE5YdRdcrmUUXuU+dA==}
     deprecated: 'Merged into tsx: https://tsx.is'
 
-  '@esbuild/aix-ppc64@0.19.12':
-    resolution: {integrity: sha512-bmoCYyWdEL3wDQIVbcyzRyeKLgk2WtWLTWz1ZIAZF/EGbNOwSA6ew3PftJ1PqMiOOGu0OyFMzG53L0zqIpPeNA==}
-    engines: {node: '>=12'}
-    cpu: [ppc64]
-    os: [aix]
-
   '@esbuild/aix-ppc64@0.25.12':
     resolution: {integrity: sha512-Hhmwd6CInZ3dwpuGTF8fJG6yoWmsToE+vYgD4nytZVxcu1ulHpUQRAB1UJ8+N1Am3Mz4+xOByoQoSZf4D+CpkA==}
     engines: {node: '>=18'}
@@ -1139,12 +1133,6 @@ packages:
 
   '@esbuild/android-arm64@0.18.20':
     resolution: {integrity: sha512-Nz4rJcchGDtENV0eMKUNa6L12zz2zBDXuhj/Vjh18zGqB44Bi7MBMSXjgunJgjRhCmKOjnPuZp4Mb6OKqtMHLQ==}
-    engines: {node: '>=12'}
-    cpu: [arm64]
-    os: [android]
-
-  '@esbuild/android-arm64@0.19.12':
-    resolution: {integrity: sha512-P0UVNGIienjZv3f5zq0DP3Nt2IE/3plFzuaS96vihvD0Hd6H/q4WXUGpCxD/E8YrSXfNyRPbpTq+T8ZQioSuPA==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [android]
@@ -1167,12 +1155,6 @@ packages:
     cpu: [arm]
     os: [android]
 
-  '@esbuild/android-arm@0.19.12':
-    resolution: {integrity: sha512-qg/Lj1mu3CdQlDEEiWrlC4eaPZ1KztwGJ9B6J+/6G+/4ewxJg7gqj8eVYWvao1bXrqGiW2rsBZFSX3q2lcW05w==}
-    engines: {node: '>=12'}
-    cpu: [arm]
-    os: [android]
-
   '@esbuild/android-arm@0.25.12':
     resolution: {integrity: sha512-VJ+sKvNA/GE7Ccacc9Cha7bpS8nyzVv0jdVgwNDaR4gDMC/2TTRc33Ip8qrNYUcpkOHUT5OZ0bUcNNVZQ9RLlg==}
     engines: {node: '>=18'}
@@ -1187,12 +1169,6 @@ packages:
 
   '@esbuild/android-x64@0.18.20':
     resolution: {integrity: sha512-8GDdlePJA8D6zlZYJV/jnrRAi6rOiNaCC/JclcXpB+KIuvfBN4owLtgzY2bsxnx666XjJx2kDPUmnTtR8qKQUg==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [android]
-
-  '@esbuild/android-x64@0.19.12':
-    resolution: {integrity: sha512-3k7ZoUW6Q6YqhdhIaq/WZ7HwBpnFBlW905Fa4s4qWJyiNOgT1dOqDiVAQFwBH7gBRZr17gLrlFCRzF6jFh7Kew==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [android]
@@ -1215,12 +1191,6 @@ packages:
     cpu: [arm64]
     os: [darwin]
 
-  '@esbuild/darwin-arm64@0.19.12':
-    resolution: {integrity: sha512-B6IeSgZgtEzGC42jsI+YYu9Z3HKRxp8ZT3cqhvliEHovq8HSX2YX8lNocDn79gCKJXOSaEot9MVYky7AKjCs8g==}
-    engines: {node: '>=12'}
-    cpu: [arm64]
-    os: [darwin]
-
   '@esbuild/darwin-arm64@0.25.12':
     resolution: {integrity: sha512-N3zl+lxHCifgIlcMUP5016ESkeQjLj/959RxxNYIthIg+CQHInujFuXeWbWMgnTo4cp5XVHqFPmpyu9J65C1Yg==}
     engines: {node: '>=18'}
@@ -1235,12 +1205,6 @@ packages:
 
   '@esbuild/darwin-x64@0.18.20':
     resolution: {integrity: sha512-pc5gxlMDxzm513qPGbCbDukOdsGtKhfxD1zJKXjCCcU7ju50O7MeAZ8c4krSJcOIJGFR+qx21yMMVYwiQvyTyQ==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [darwin]
-
-  '@esbuild/darwin-x64@0.19.12':
-    resolution: {integrity: sha512-hKoVkKzFiToTgn+41qGhsUJXFlIjxI/jSYeZf3ugemDYZldIXIxhvwN6erJGlX4t5h417iFuheZ7l+YVn05N3A==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [darwin]
@@ -1263,12 +1227,6 @@ packages:
     cpu: [arm64]
     os: [freebsd]
 
-  '@esbuild/freebsd-arm64@0.19.12':
-    resolution: {integrity: sha512-4aRvFIXmwAcDBw9AueDQ2YnGmz5L6obe5kmPT8Vd+/+x/JMVKCgdcRwH6APrbpNXsPz+K653Qg8HB/oXvXVukA==}
-    engines: {node: '>=12'}
-    cpu: [arm64]
-    os: [freebsd]
-
   '@esbuild/freebsd-arm64@0.25.12':
     resolution: {integrity: sha512-gA0Bx759+7Jve03K1S0vkOu5Lg/85dou3EseOGUes8flVOGxbhDDh/iZaoek11Y8mtyKPGF3vP8XhnkDEAmzeg==}
     engines: {node: '>=18'}
@@ -1283,12 +1241,6 @@ packages:
 
   '@esbuild/freebsd-x64@0.18.20':
     resolution: {integrity: sha512-tgWRPPuQsd3RmBZwarGVHZQvtzfEBOreNuxEMKFcd5DaDn2PbBxfwLcj4+aenoh7ctXcbXmOQIn8HI6mCSw5MQ==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [freebsd]
-
-  '@esbuild/freebsd-x64@0.19.12':
-    resolution: {integrity: sha512-EYoXZ4d8xtBoVN7CEwWY2IN4ho76xjYXqSXMNccFSx2lgqOG/1TBPW0yPx1bJZk94qu3tX0fycJeeQsKovA8gg==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [freebsd]
@@ -1311,12 +1263,6 @@ packages:
     cpu: [arm64]
     os: [linux]
 
-  '@esbuild/linux-arm64@0.19.12':
-    resolution: {integrity: sha512-EoTjyYyLuVPfdPLsGVVVC8a0p1BFFvtpQDB/YLEhaXyf/5bczaGeN15QkR+O4S5LeJ92Tqotve7i1jn35qwvdA==}
-    engines: {node: '>=12'}
-    cpu: [arm64]
-    os: [linux]
-
   '@esbuild/linux-arm64@0.25.12':
     resolution: {integrity: sha512-8bwX7a8FghIgrupcxb4aUmYDLp8pX06rGh5HqDT7bB+8Rdells6mHvrFHHW2JAOPZUbnjUpKTLg6ECyzvas2AQ==}
     engines: {node: '>=18'}
@@ -1331,12 +1277,6 @@ packages:
 
   '@esbuild/linux-arm@0.18.20':
     resolution: {integrity: sha512-/5bHkMWnq1EgKr1V+Ybz3s1hWXok7mDFUMQ4cG10AfW3wL02PSZi5kFpYKrptDsgb2WAJIvRcDm+qIvXf/apvg==}
-    engines: {node: '>=12'}
-    cpu: [arm]
-    os: [linux]
-
-  '@esbuild/linux-arm@0.19.12':
-    resolution: {integrity: sha512-J5jPms//KhSNv+LO1S1TX1UWp1ucM6N6XuL6ITdKWElCu8wXP72l9MM0zDTzzeikVyqFE6U8YAV9/tFyj0ti+w==}
     engines: {node: '>=12'}
     cpu: [arm]
     os: [linux]
@@ -1359,12 +1299,6 @@ packages:
     cpu: [ia32]
     os: [linux]
 
-  '@esbuild/linux-ia32@0.19.12':
-    resolution: {integrity: sha512-Thsa42rrP1+UIGaWz47uydHSBOgTUnwBwNq59khgIwktK6x60Hivfbux9iNR0eHCHzOLjLMLfUMLCypBkZXMHA==}
-    engines: {node: '>=12'}
-    cpu: [ia32]
-    os: [linux]
-
   '@esbuild/linux-ia32@0.25.12':
     resolution: {integrity: sha512-0y9KrdVnbMM2/vG8KfU0byhUN+EFCny9+8g202gYqSSVMonbsCfLjUO+rCci7pM0WBEtz+oK/PIwHkzxkyharA==}
     engines: {node: '>=18'}
@@ -1379,12 +1313,6 @@ packages:
 
   '@esbuild/linux-loong64@0.18.20':
     resolution: {integrity: sha512-nXW8nqBTrOpDLPgPY9uV+/1DjxoQ7DoB2N8eocyq8I9XuqJ7BiAMDMf9n1xZM9TgW0J8zrquIb/A7s3BJv7rjg==}
-    engines: {node: '>=12'}
-    cpu: [loong64]
-    os: [linux]
-
-  '@esbuild/linux-loong64@0.19.12':
-    resolution: {integrity: sha512-LiXdXA0s3IqRRjm6rV6XaWATScKAXjI4R4LoDlvO7+yQqFdlr1Bax62sRwkVvRIrwXxvtYEHHI4dm50jAXkuAA==}
     engines: {node: '>=12'}
     cpu: [loong64]
     os: [linux]
@@ -1407,12 +1335,6 @@ packages:
     cpu: [mips64el]
     os: [linux]
 
-  '@esbuild/linux-mips64el@0.19.12':
-    resolution: {integrity: sha512-fEnAuj5VGTanfJ07ff0gOA6IPsvrVHLVb6Lyd1g2/ed67oU1eFzL0r9WL7ZzscD+/N6i3dWumGE1Un4f7Amf+w==}
-    engines: {node: '>=12'}
-    cpu: [mips64el]
-    os: [linux]
-
   '@esbuild/linux-mips64el@0.25.12':
     resolution: {integrity: sha512-iyRrM1Pzy9GFMDLsXn1iHUm18nhKnNMWscjmp4+hpafcZjrr2WbT//d20xaGljXDBYHqRcl8HnxbX6uaA/eGVw==}
     engines: {node: '>=18'}
@@ -1427,12 +1349,6 @@ packages:
 
   '@esbuild/linux-ppc64@0.18.20':
     resolution: {integrity: sha512-WHPyeScRNcmANnLQkq6AfyXRFr5D6N2sKgkFo2FqguP44Nw2eyDlbTdZwd9GYk98DZG9QItIiTlFLHJHjxP3FA==}
-    engines: {node: '>=12'}
-    cpu: [ppc64]
-    os: [linux]
-
-  '@esbuild/linux-ppc64@0.19.12':
-    resolution: {integrity: sha512-nYJA2/QPimDQOh1rKWedNOe3Gfc8PabU7HT3iXWtNUbRzXS9+vgB0Fjaqr//XNbd82mCxHzik2qotuI89cfixg==}
     engines: {node: '>=12'}
     cpu: [ppc64]
     os: [linux]
@@ -1455,12 +1371,6 @@ packages:
     cpu: [riscv64]
     os: [linux]
 
-  '@esbuild/linux-riscv64@0.19.12':
-    resolution: {integrity: sha512-2MueBrlPQCw5dVJJpQdUYgeqIzDQgw3QtiAHUC4RBz9FXPrskyyU3VI1hw7C0BSKB9OduwSJ79FTCqtGMWqJHg==}
-    engines: {node: '>=12'}
-    cpu: [riscv64]
-    os: [linux]
-
   '@esbuild/linux-riscv64@0.25.12':
     resolution: {integrity: sha512-Zr7KR4hgKUpWAwb1f3o5ygT04MzqVrGEGXGLnj15YQDJErYu/BGg+wmFlIDOdJp0PmB0lLvxFIOXZgFRrdjR0w==}
     engines: {node: '>=18'}
@@ -1479,12 +1389,6 @@ packages:
     cpu: [s390x]
     os: [linux]
 
-  '@esbuild/linux-s390x@0.19.12':
-    resolution: {integrity: sha512-+Pil1Nv3Umes4m3AZKqA2anfhJiVmNCYkPchwFJNEJN5QxmTs1uzyy4TvmDrCRNT2ApwSari7ZIgrPeUx4UZDg==}
-    engines: {node: '>=12'}
-    cpu: [s390x]
-    os: [linux]
-
   '@esbuild/linux-s390x@0.25.12':
     resolution: {integrity: sha512-MsKncOcgTNvdtiISc/jZs/Zf8d0cl/t3gYWX8J9ubBnVOwlk65UIEEvgBORTiljloIWnBzLs4qhzPkJcitIzIg==}
     engines: {node: '>=18'}
@@ -1499,12 +1403,6 @@ packages:
 
   '@esbuild/linux-x64@0.18.20':
     resolution: {integrity: sha512-UYqiqemphJcNsFEskc73jQ7B9jgwjWrSayxawS6UVFZGWrAAtkzjxSqnoclCXxWtfwLdzU+vTpcNYhpn43uP1w==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [linux]
-
-  '@esbuild/linux-x64@0.19.12':
-    resolution: {integrity: sha512-B71g1QpxfwBvNrfyJdVDexenDIt1CiDN1TIXLbhOw0KhJzE78KIFGX6OJ9MrtC0oOqMWf+0xop4qEU8JrJTwCg==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [linux]
@@ -1539,12 +1437,6 @@ packages:
     cpu: [x64]
     os: [netbsd]
 
-  '@esbuild/netbsd-x64@0.19.12':
-    resolution: {integrity: sha512-3ltjQ7n1owJgFbuC61Oj++XhtzmymoCihNFgT84UAmJnxJfm4sYCiSLTXZtE00VWYpPMYc+ZQmB6xbSdVh0JWA==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [netbsd]
-
   '@esbuild/netbsd-x64@0.25.12':
     resolution: {integrity: sha512-Ld5pTlzPy3YwGec4OuHh1aCVCRvOXdH8DgRjfDy/oumVovmuSzWfnSJg+VtakB9Cm0gxNO9BzWkj6mtO1FMXkQ==}
     engines: {node: '>=18'}
@@ -1571,12 +1463,6 @@ packages:
 
   '@esbuild/openbsd-x64@0.18.20':
     resolution: {integrity: sha512-e5e4YSsuQfX4cxcygw/UCPIEP6wbIL+se3sxPdCiMbFLBWu0eiZOJ7WoD+ptCLrmjZBK1Wk7I6D/I3NglUGOxg==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [openbsd]
-
-  '@esbuild/openbsd-x64@0.19.12':
-    resolution: {integrity: sha512-RbrfTB9SWsr0kWmb9srfF+L933uMDdu9BIzdA7os2t0TXhCRjrQyCeOt6wVxr79CKD4c+p+YhCj31HBkYcXebw==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [openbsd]
@@ -1611,12 +1497,6 @@ packages:
     cpu: [x64]
     os: [sunos]
 
-  '@esbuild/sunos-x64@0.19.12':
-    resolution: {integrity: sha512-HKjJwRrW8uWtCQnQOz9qcU3mUZhTUQvi56Q8DPTLLB+DawoiQdjsYq+j+D3s9I8VFtDr+F9CjgXKKC4ss89IeA==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [sunos]
-
   '@esbuild/sunos-x64@0.25.12':
     resolution: {integrity: sha512-3wGSCDyuTHQUzt0nV7bocDy72r2lI33QL3gkDNGkod22EsYl04sMf0qLb8luNKTOmgF/eDEDP5BFNwoBKH441w==}
     engines: {node: '>=18'}
@@ -1631,12 +1511,6 @@ packages:
 
   '@esbuild/win32-arm64@0.18.20':
     resolution: {integrity: sha512-ddYFR6ItYgoaq4v4JmQQaAI5s7npztfV4Ag6NrhiaW0RrnOXqBkgwZLofVTlq1daVTQNhtI5oieTvkRPfZrePg==}
-    engines: {node: '>=12'}
-    cpu: [arm64]
-    os: [win32]
-
-  '@esbuild/win32-arm64@0.19.12':
-    resolution: {integrity: sha512-URgtR1dJnmGvX864pn1B2YUYNzjmXkuJOIqG2HdU62MVS4EHpU2946OZoTMnRUHklGtJdJZ33QfzdjGACXhn1A==}
     engines: {node: '>=12'}
     cpu: [arm64]
     os: [win32]
@@ -1659,12 +1533,6 @@ packages:
     cpu: [ia32]
     os: [win32]
 
-  '@esbuild/win32-ia32@0.19.12':
-    resolution: {integrity: sha512-+ZOE6pUkMOJfmxmBZElNOx72NKpIa/HFOMGzu8fqzQJ5kgf6aTGrcJaFsNiVMH4JKpMipyK+7k0n2UXN7a8YKQ==}
-    engines: {node: '>=12'}
-    cpu: [ia32]
-    os: [win32]
-
   '@esbuild/win32-ia32@0.25.12':
     resolution: {integrity: sha512-HkqnmmBoCbCwxUKKNPBixiWDGCpQGVsrQfJoVGYLPT41XWF8lHuE5N6WhVia2n4o5QK5M4tYr21827fNhi4byQ==}
     engines: {node: '>=18'}
@@ -1679,12 +1547,6 @@ packages:
 
   '@esbuild/win32-x64@0.18.20':
     resolution: {integrity: sha512-kTdfRcSiDfQca/y9QIkng02avJ+NCaQvrMejlsB3RRv5sE9rRoeBPISaZpKxHELzRxZyLvNts1P27W3wV+8geQ==}
-    engines: {node: '>=12'}
-    cpu: [x64]
-    os: [win32]
-
-  '@esbuild/win32-x64@0.19.12':
-    resolution: {integrity: sha512-T1QyPSDCyMXaO3pzBkF96E8xMkiRYbUEZADd29SyPGabqxMViNoii+NcK7eWJAEoU6RZyEm5lVSIjTmcdoB9HA==}
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
@@ -4673,8 +4535,8 @@ packages:
     resolution: {integrity: sha512-MnA+YT8fwfJPgBx3m60MNqakm30XOkyIoH1y6huTQvC0PwZG7ki8NacLBcrPbNoo8vEZy7Jpuk7+jMO+CUovTQ==}
     engines: {node: '>= 14'}
 
-  ai@5.0.107:
-    resolution: {integrity: sha512-laZlS9ZC/DZfSaxPgrBqI4mM+kxRvTPBBQfa74ceBFskkunZKEsaGVFNEs4cfyGa3nCCCl1WO/fjxixp4V8Zag==}
+  ai@5.0.108:
+    resolution: {integrity: sha512-Jex3Lb7V41NNpuqJHKgrwoU6BCLHdI1Pg4qb4GJH4jRIDRXUBySJErHjyN4oTCwbiYCeb/8II9EnqSRPq9EifA==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -5335,12 +5197,12 @@ packages:
     resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
-  drizzle-kit@0.30.6:
-    resolution: {integrity: sha512-U4wWit0fyZuGuP7iNmRleQyK2V8wCuv57vf5l3MnG4z4fzNTjY/U13M8owyQ5RavqvqxBifWORaR3wIUzlN64g==}
+  drizzle-kit@0.31.8:
+    resolution: {integrity: sha512-O9EC/miwdnRDY10qRxM8P3Pg8hXe3LyU4ZipReKOgTwn4OqANmftj8XJz1UPUAS6NMHf0E2htjsbQujUTkncCg==}
     hasBin: true
 
-  drizzle-orm@0.38.4:
-    resolution: {integrity: sha512-s7/5BpLKO+WJRHspvpqTydxFob8i1vo2rEx4pY6TGY7QSMuUfWUuzaY0DIpXCkgHOo37BaFC+SJQb99dDUXT3Q==}
+  drizzle-orm@0.45.0:
+    resolution: {integrity: sha512-lyd9VRk3SXKRjV/gQckQzmJgkoYMvVG3A2JAV0vh3L+Lwk+v9+rK5Gj0H22y+ZBmxsrRBgJ5/RbQCN7DWd1dtQ==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -5350,25 +5212,25 @@ packages:
       '@neondatabase/serverless': '>=0.10.0'
       '@op-engineering/op-sqlite': '>=2'
       '@opentelemetry/api': ^1.4.1
-      '@planetscale/database': '>=1'
+      '@planetscale/database': '>=1.13'
       '@prisma/client': '*'
       '@tidbcloud/serverless': '*'
       '@types/better-sqlite3': '*'
       '@types/pg': '*'
-      '@types/react': '>=18'
       '@types/sql.js': '*'
+      '@upstash/redis': '>=1.34.7'
       '@vercel/postgres': '>=0.8.0'
       '@xata.io/client': '*'
       better-sqlite3: '>=7'
       bun-types: '*'
       expo-sqlite: '>=14.0.0'
+      gel: '>=2'
       knex: '*'
       kysely: '*'
       mysql2: '>=2'
       pg: '>=8'
       postgres: '>=3'
       prisma: '*'
-      react: '>=18'
       sql.js: '>=1'
       sqlite3: '>=5'
     peerDependenciesMeta:
@@ -5398,9 +5260,9 @@ packages:
         optional: true
       '@types/pg':
         optional: true
-      '@types/react':
-        optional: true
       '@types/sql.js':
+        optional: true
+      '@upstash/redis':
         optional: true
       '@vercel/postgres':
         optional: true
@@ -5411,6 +5273,8 @@ packages:
       bun-types:
         optional: true
       expo-sqlite:
+        optional: true
+      gel:
         optional: true
       knex:
         optional: true
@@ -5423,8 +5287,6 @@ packages:
       postgres:
         optional: true
       prisma:
-        optional: true
-      react:
         optional: true
       sql.js:
         optional: true
@@ -5569,11 +5431,6 @@ packages:
 
   esbuild@0.18.20:
     resolution: {integrity: sha512-ceqxoedUrcayh7Y7ZX6NdbbDzGROiyVBgC4PriJThBKSVPWnnFHZAkfI1lJT8QFkOwH4qOS2SJkS4wvpGl8BpA==}
-    engines: {node: '>=12'}
-    hasBin: true
-
-  esbuild@0.19.12:
-    resolution: {integrity: sha512-aARqgq8roFBj054KvQr5f1sFu0D65G+miZRCuJyJ0G13Zwx7vRar5Zhn2tkQNzIXcBrNVsv/8stehpj+GAjgbg==}
     engines: {node: '>=12'}
     hasBin: true
 
@@ -10465,9 +10322,6 @@ snapshots:
       '@esbuild-kit/core-utils': 3.3.2
       get-tsconfig: 4.13.0
 
-  '@esbuild/aix-ppc64@0.19.12':
-    optional: true
-
   '@esbuild/aix-ppc64@0.25.12':
     optional: true
 
@@ -10475,9 +10329,6 @@ snapshots:
     optional: true
 
   '@esbuild/android-arm64@0.18.20':
-    optional: true
-
-  '@esbuild/android-arm64@0.19.12':
     optional: true
 
   '@esbuild/android-arm64@0.25.12':
@@ -10489,9 +10340,6 @@ snapshots:
   '@esbuild/android-arm@0.18.20':
     optional: true
 
-  '@esbuild/android-arm@0.19.12':
-    optional: true
-
   '@esbuild/android-arm@0.25.12':
     optional: true
 
@@ -10499,9 +10347,6 @@ snapshots:
     optional: true
 
   '@esbuild/android-x64@0.18.20':
-    optional: true
-
-  '@esbuild/android-x64@0.19.12':
     optional: true
 
   '@esbuild/android-x64@0.25.12':
@@ -10513,9 +10358,6 @@ snapshots:
   '@esbuild/darwin-arm64@0.18.20':
     optional: true
 
-  '@esbuild/darwin-arm64@0.19.12':
-    optional: true
-
   '@esbuild/darwin-arm64@0.25.12':
     optional: true
 
@@ -10523,9 +10365,6 @@ snapshots:
     optional: true
 
   '@esbuild/darwin-x64@0.18.20':
-    optional: true
-
-  '@esbuild/darwin-x64@0.19.12':
     optional: true
 
   '@esbuild/darwin-x64@0.25.12':
@@ -10537,9 +10376,6 @@ snapshots:
   '@esbuild/freebsd-arm64@0.18.20':
     optional: true
 
-  '@esbuild/freebsd-arm64@0.19.12':
-    optional: true
-
   '@esbuild/freebsd-arm64@0.25.12':
     optional: true
 
@@ -10547,9 +10383,6 @@ snapshots:
     optional: true
 
   '@esbuild/freebsd-x64@0.18.20':
-    optional: true
-
-  '@esbuild/freebsd-x64@0.19.12':
     optional: true
 
   '@esbuild/freebsd-x64@0.25.12':
@@ -10561,9 +10394,6 @@ snapshots:
   '@esbuild/linux-arm64@0.18.20':
     optional: true
 
-  '@esbuild/linux-arm64@0.19.12':
-    optional: true
-
   '@esbuild/linux-arm64@0.25.12':
     optional: true
 
@@ -10571,9 +10401,6 @@ snapshots:
     optional: true
 
   '@esbuild/linux-arm@0.18.20':
-    optional: true
-
-  '@esbuild/linux-arm@0.19.12':
     optional: true
 
   '@esbuild/linux-arm@0.25.12':
@@ -10585,9 +10412,6 @@ snapshots:
   '@esbuild/linux-ia32@0.18.20':
     optional: true
 
-  '@esbuild/linux-ia32@0.19.12':
-    optional: true
-
   '@esbuild/linux-ia32@0.25.12':
     optional: true
 
@@ -10595,9 +10419,6 @@ snapshots:
     optional: true
 
   '@esbuild/linux-loong64@0.18.20':
-    optional: true
-
-  '@esbuild/linux-loong64@0.19.12':
     optional: true
 
   '@esbuild/linux-loong64@0.25.12':
@@ -10609,9 +10430,6 @@ snapshots:
   '@esbuild/linux-mips64el@0.18.20':
     optional: true
 
-  '@esbuild/linux-mips64el@0.19.12':
-    optional: true
-
   '@esbuild/linux-mips64el@0.25.12':
     optional: true
 
@@ -10619,9 +10437,6 @@ snapshots:
     optional: true
 
   '@esbuild/linux-ppc64@0.18.20':
-    optional: true
-
-  '@esbuild/linux-ppc64@0.19.12':
     optional: true
 
   '@esbuild/linux-ppc64@0.25.12':
@@ -10633,9 +10448,6 @@ snapshots:
   '@esbuild/linux-riscv64@0.18.20':
     optional: true
 
-  '@esbuild/linux-riscv64@0.19.12':
-    optional: true
-
   '@esbuild/linux-riscv64@0.25.12':
     optional: true
 
@@ -10645,9 +10457,6 @@ snapshots:
   '@esbuild/linux-s390x@0.18.20':
     optional: true
 
-  '@esbuild/linux-s390x@0.19.12':
-    optional: true
-
   '@esbuild/linux-s390x@0.25.12':
     optional: true
 
@@ -10655,9 +10464,6 @@ snapshots:
     optional: true
 
   '@esbuild/linux-x64@0.18.20':
-    optional: true
-
-  '@esbuild/linux-x64@0.19.12':
     optional: true
 
   '@esbuild/linux-x64@0.25.12':
@@ -10675,9 +10481,6 @@ snapshots:
   '@esbuild/netbsd-x64@0.18.20':
     optional: true
 
-  '@esbuild/netbsd-x64@0.19.12':
-    optional: true
-
   '@esbuild/netbsd-x64@0.25.12':
     optional: true
 
@@ -10691,9 +10494,6 @@ snapshots:
     optional: true
 
   '@esbuild/openbsd-x64@0.18.20':
-    optional: true
-
-  '@esbuild/openbsd-x64@0.19.12':
     optional: true
 
   '@esbuild/openbsd-x64@0.25.12':
@@ -10711,9 +10511,6 @@ snapshots:
   '@esbuild/sunos-x64@0.18.20':
     optional: true
 
-  '@esbuild/sunos-x64@0.19.12':
-    optional: true
-
   '@esbuild/sunos-x64@0.25.12':
     optional: true
 
@@ -10721,9 +10518,6 @@ snapshots:
     optional: true
 
   '@esbuild/win32-arm64@0.18.20':
-    optional: true
-
-  '@esbuild/win32-arm64@0.19.12':
     optional: true
 
   '@esbuild/win32-arm64@0.25.12':
@@ -10735,9 +10529,6 @@ snapshots:
   '@esbuild/win32-ia32@0.18.20':
     optional: true
 
-  '@esbuild/win32-ia32@0.19.12':
-    optional: true
-
   '@esbuild/win32-ia32@0.25.12':
     optional: true
 
@@ -10745,9 +10536,6 @@ snapshots:
     optional: true
 
   '@esbuild/win32-x64@0.18.20':
-    optional: true
-
-  '@esbuild/win32-x64@0.19.12':
     optional: true
 
   '@esbuild/win32-x64@0.25.12':
@@ -11442,7 +11230,7 @@ snapshots:
       - utf-8-validate
       - vite
 
-  '@nuxt/fonts@0.12.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
+  '@nuxt/fonts@0.12.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))':
     dependencies:
       '@nuxt/devtools-kit': 3.1.1(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
@@ -11451,7 +11239,7 @@ snapshots:
       defu: 6.1.4
       esbuild: 0.25.12
       fontaine: 0.7.0
-      fontless: 0.1.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+      fontless: 0.1.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       h3: 1.15.4
       jiti: 2.6.1
       magic-regexp: 0.10.0
@@ -11464,7 +11252,7 @@ snapshots:
       ufo: 1.6.1
       unifont: 0.6.0
       unplugin: 2.3.11
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -11488,14 +11276,14 @@ snapshots:
       - uploadthing
       - vite
 
-  '@nuxt/hints@1.0.0-alpha.3(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(magicast@0.5.1)(mysql2@3.15.3)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
+  '@nuxt/hints@1.0.0-alpha.3(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(magicast@0.5.1)(mysql2@3.15.3)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))':
     dependencies:
       '@nuxt/devtools-kit': 3.1.1(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
       h3: 1.15.4
       knitwork: 1.3.0
       magic-string: 0.30.21
-      nitropack: 2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3)
+      nitropack: 2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3)
       oxc-parser: 0.99.0
       shiki: 3.19.0
       sirv: 3.0.2
@@ -11557,7 +11345,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxt/image@2.0.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)':
+  '@nuxt/image@2.0.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)':
     dependencies:
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
       consola: 3.4.2
@@ -11570,7 +11358,7 @@ snapshots:
       std-env: 3.10.0
       ufo: 1.6.1
     optionalDependencies:
-      ipx: 3.1.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      ipx: 3.1.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -11644,7 +11432,7 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@nuxt/nitro-server@4.2.1(ab8854c820c9ffee8744ebbe9ea0b130)':
+  '@nuxt/nitro-server@4.2.1(5faea99a0826d8cc4d8a68f3293df9cf)':
     dependencies:
       '@nuxt/devalue': 2.0.2
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
@@ -11661,15 +11449,15 @@ snapshots:
       impound: 1.0.0
       klona: 2.0.6
       mocked-exports: 0.1.1
-      nitropack: 2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3)
-      nuxt: 4.2.1(3c04f0c22b81ccf2340c475fdee64242)
+      nitropack: 2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3)
+      nuxt: 4.2.1(40daf78a012ea33bc01de112322d9e2f)
       pathe: 2.0.3
       pkg-types: 2.3.0
       radix3: 1.1.2
       std-env: 3.10.0
       ufo: 1.6.1
       unctx: 2.4.1
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
       vue: 3.5.25(typescript@5.9.3)
       vue-bundle-renderer: 2.2.0
       vue-devtools-stub: 0.1.0
@@ -11766,12 +11554,12 @@ snapshots:
       - magicast
       - typescript
 
-  '@nuxt/ui@4.2.1(@babel/parser@7.28.5)(change-case@5.4.4)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.8.2)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)(valibot@1.2.0(typescript@5.9.3))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)':
+  '@nuxt/ui@4.2.1(@babel/parser@7.28.5)(change-case@5.4.4)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(embla-carousel@8.6.0)(ioredis@5.8.2)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)(valibot@1.2.0(typescript@5.9.3))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))(zod@4.1.13)':
     dependencies:
       '@iconify/vue': 5.0.0(vue@3.5.25(typescript@5.9.3))
       '@internationalized/date': 3.10.0
       '@internationalized/number': 3.6.5
-      '@nuxt/fonts': 0.12.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
+      '@nuxt/fonts': 0.12.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/icon': 2.1.0(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
       '@nuxt/schema': 4.2.1
@@ -11859,7 +11647,7 @@ snapshots:
       - vite
       - vue
 
-  '@nuxt/vite-builder@4.2.1(@types/node@24.10.1)(eslint@9.39.1(jiti@2.6.1))(lightningcss@1.30.2)(magicast@0.5.1)(nuxt@4.2.1(3c04f0c22b81ccf2340c475fdee64242))(optionator@0.9.4)(rollup@4.53.3)(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))(yaml@2.8.2)':
+  '@nuxt/vite-builder@4.2.1(@types/node@24.10.1)(eslint@9.39.1(jiti@2.6.1))(lightningcss@1.30.2)(magicast@0.5.1)(nuxt@4.2.1(40daf78a012ea33bc01de112322d9e2f))(optionator@0.9.4)(rollup@4.53.3)(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))(yaml@2.8.2)':
     dependencies:
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
       '@rollup/plugin-replace': 6.0.3(rollup@4.53.3)
@@ -11879,7 +11667,7 @@ snapshots:
       magic-string: 0.30.21
       mlly: 1.8.0
       mocked-exports: 0.1.1
-      nuxt: 4.2.1(3c04f0c22b81ccf2340c475fdee64242)
+      nuxt: 4.2.1(40daf78a012ea33bc01de112322d9e2f)
       pathe: 2.0.3
       pkg-types: 2.3.0
       postcss: 8.5.6
@@ -11927,7 +11715,7 @@ snapshots:
     transitivePeerDependencies:
       - magicast
 
-  '@nuxtjs/i18n@10.2.1(@vue/compiler-dom@3.5.25)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))':
+  '@nuxtjs/i18n@10.2.1(@vue/compiler-dom@3.5.25)(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(eslint@9.39.1(jiti@2.6.1))(ioredis@5.8.2)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))':
     dependencies:
       '@intlify/core': 11.2.2
       '@intlify/h3': 0.7.4
@@ -11954,7 +11742,7 @@ snapshots:
       ufo: 1.6.1
       unplugin: 2.3.11
       unplugin-vue-router: 0.16.2(@vue/compiler-sfc@3.5.25)(typescript@5.9.3)(vue-router@4.6.3(vue@3.5.25(typescript@5.9.3)))(vue@3.5.25(typescript@5.9.3))
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
       vue-i18n: 11.2.2(vue@3.5.25(typescript@5.9.3))
       vue-router: 4.6.3(vue@3.5.25(typescript@5.9.3))
     transitivePeerDependencies:
@@ -12002,13 +11790,13 @@ snapshots:
       - magicast
       - vue
 
-  '@nuxtjs/seo@3.2.2(470185a0a516c1f98aebb2e862f6ea2c)':
+  '@nuxtjs/seo@3.2.2(7666a90fd96c654e6fb61297cb9f3c48)':
     dependencies:
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
       '@nuxtjs/robots': 5.6.1(h3@1.15.4)(magicast@0.5.1)(vue@3.5.25(typescript@5.9.3))
       '@nuxtjs/sitemap': 7.4.8(h3@1.15.4)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
-      nuxt-link-checker: 4.3.9(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(h3@1.15.4)(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
-      nuxt-og-image: 5.1.12(@unhead/vue@2.0.19(vue@3.5.25(typescript@5.9.3)))(h3@1.15.4)(magicast@0.5.1)(unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+      nuxt-link-checker: 4.3.9(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(h3@1.15.4)(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
+      nuxt-og-image: 5.1.12(@unhead/vue@2.0.19(vue@3.5.25(typescript@5.9.3)))(h3@1.15.4)(magicast@0.5.1)(unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
       nuxt-schema-org: 5.0.9(@unhead/vue@2.0.19(vue@3.5.25(typescript@5.9.3)))(h3@1.15.4)(magicast@0.5.1)(unhead@2.0.19)(vue@3.5.25(typescript@5.9.3))
       nuxt-seo-utils: 7.0.19(h3@1.15.4)(magicast@0.5.1)(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))
       nuxt-site-config: 3.2.11(h3@1.15.4)(magicast@0.5.1)(vue@3.5.25(typescript@5.9.3))
@@ -12653,7 +12441,8 @@ snapshots:
       '@parcel/watcher-win32-ia32': 2.5.1
       '@parcel/watcher-win32-x64': 2.5.1
 
-  '@petamoriken/float16@3.9.3': {}
+  '@petamoriken/float16@3.9.3':
+    optional: true
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
@@ -13162,7 +12951,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@sentry/nuxt@10.29.0(magicast@0.5.1)(nuxt@4.2.1(3c04f0c22b81ccf2340c475fdee64242))(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))':
+  '@sentry/nuxt@10.29.0(magicast@0.5.1)(nuxt@4.2.1(40daf78a012ea33bc01de112322d9e2f))(rollup@4.53.3)(vue@3.5.25(typescript@5.9.3))':
     dependencies:
       '@nuxt/kit': 3.20.1(magicast@0.5.1)
       '@sentry/browser': 10.29.0
@@ -13172,7 +12961,7 @@ snapshots:
       '@sentry/rollup-plugin': 4.6.1(rollup@4.53.3)
       '@sentry/vite-plugin': 4.6.1
       '@sentry/vue': 10.29.0(vue@3.5.25(typescript@5.9.3))
-      nuxt: 4.2.1(3c04f0c22b81ccf2340c475fdee64242)
+      nuxt: 4.2.1(40daf78a012ea33bc01de112322d9e2f)
     transitivePeerDependencies:
       - '@cloudflare/workers-types'
       - encoding
@@ -14294,7 +14083,7 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.107(zod@4.1.13):
+  ai@5.0.108(zod@4.1.13):
     dependencies:
       '@ai-sdk/gateway': 2.0.18(zod@4.1.13)
       '@ai-sdk/provider': 2.0.0
@@ -14860,11 +14649,11 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3):
+  db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3):
     optionalDependencies:
       '@electric-sql/pglite': 0.3.2
       '@libsql/client': 0.15.15
-      drizzle-orm: 0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0)
+      drizzle-orm: 0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))
       mysql2: 3.15.3
 
   debug@4.4.3:
@@ -14959,28 +14748,26 @@ snapshots:
 
   dotenv@17.2.3: {}
 
-  drizzle-kit@0.30.6:
+  drizzle-kit@0.31.8:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
-      esbuild: 0.19.12
-      esbuild-register: 3.6.0(esbuild@0.19.12)
-      gel: 2.2.0
+      esbuild: 0.25.12
+      esbuild-register: 3.6.0(esbuild@0.25.12)
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0):
+  drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)):
     optionalDependencies:
       '@electric-sql/pglite': 0.3.2
       '@libsql/client': 0.15.15
       '@opentelemetry/api': 1.9.0
       '@prisma/client': 7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)
       '@types/pg': 8.15.6
-      '@types/react': 19.2.6
+      gel: 2.2.0
       mysql2: 3.15.3
       postgres: 3.4.7
       prisma: 7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
-      react: 19.2.0
 
   dunder-proto@1.0.1:
     dependencies:
@@ -15060,7 +14847,8 @@ snapshots:
 
   entities@4.5.0: {}
 
-  env-paths@3.0.0: {}
+  env-paths@3.0.0:
+    optional: true
 
   error-stack-parser-es@1.0.5: {}
 
@@ -15146,10 +14934,10 @@ snapshots:
       is-date-object: 1.1.0
       is-symbol: 1.1.1
 
-  esbuild-register@3.6.0(esbuild@0.19.12):
+  esbuild-register@3.6.0(esbuild@0.25.12):
     dependencies:
       debug: 4.4.3
-      esbuild: 0.19.12
+      esbuild: 0.25.12
     transitivePeerDependencies:
       - supports-color
 
@@ -15177,32 +14965,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.18.20
       '@esbuild/win32-ia32': 0.18.20
       '@esbuild/win32-x64': 0.18.20
-
-  esbuild@0.19.12:
-    optionalDependencies:
-      '@esbuild/aix-ppc64': 0.19.12
-      '@esbuild/android-arm': 0.19.12
-      '@esbuild/android-arm64': 0.19.12
-      '@esbuild/android-x64': 0.19.12
-      '@esbuild/darwin-arm64': 0.19.12
-      '@esbuild/darwin-x64': 0.19.12
-      '@esbuild/freebsd-arm64': 0.19.12
-      '@esbuild/freebsd-x64': 0.19.12
-      '@esbuild/linux-arm': 0.19.12
-      '@esbuild/linux-arm64': 0.19.12
-      '@esbuild/linux-ia32': 0.19.12
-      '@esbuild/linux-loong64': 0.19.12
-      '@esbuild/linux-mips64el': 0.19.12
-      '@esbuild/linux-ppc64': 0.19.12
-      '@esbuild/linux-riscv64': 0.19.12
-      '@esbuild/linux-s390x': 0.19.12
-      '@esbuild/linux-x64': 0.19.12
-      '@esbuild/netbsd-x64': 0.19.12
-      '@esbuild/openbsd-x64': 0.19.12
-      '@esbuild/sunos-x64': 0.19.12
-      '@esbuild/win32-arm64': 0.19.12
-      '@esbuild/win32-ia32': 0.19.12
-      '@esbuild/win32-x64': 0.19.12
 
   esbuild@0.25.12:
     optionalDependencies:
@@ -15758,7 +15520,7 @@ snapshots:
       unicode-properties: 1.4.1
       unicode-trie: 2.0.0
 
-  fontless@0.1.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
+  fontless@0.1.0(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)):
     dependencies:
       consola: 3.4.2
       css-tree: 3.1.0
@@ -15772,7 +15534,7 @@ snapshots:
       pathe: 2.0.3
       ufo: 1.6.1
       unifont: 0.6.0
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
     optionalDependencies:
       vite: 7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2)
     transitivePeerDependencies:
@@ -15863,6 +15625,7 @@ snapshots:
       which: 4.0.0
     transitivePeerDependencies:
       - supports-color
+    optional: true
 
   generate-function@2.3.1:
     dependencies:
@@ -16187,7 +15950,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  ipx@3.1.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2):
+  ipx@3.1.1(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2):
     dependencies:
       '@fastify/accept-negotiator': 2.0.1
       citty: 0.1.6
@@ -16203,7 +15966,7 @@ snapshots:
       sharp: 0.34.5
       svgo: 4.0.0
       ufo: 1.6.1
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
       xss: 1.0.15
     transitivePeerDependencies:
       - '@azure/app-configuration'
@@ -17137,7 +16900,7 @@ snapshots:
 
   natural-orderby@5.0.0: {}
 
-  nitropack@2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3):
+  nitropack@2.12.9(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.4.1
       '@rollup/plugin-alias': 5.1.1(rollup@4.53.3)
@@ -17158,7 +16921,7 @@ snapshots:
       cookie-es: 2.0.0
       croner: 9.1.0
       crossws: 0.3.5
-      db0: 0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3)
+      db0: 0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3)
       defu: 6.1.4
       destr: 2.0.5
       dot-prop: 10.1.0
@@ -17204,7 +16967,7 @@ snapshots:
       unenv: 2.0.0-rc.24
       unimport: 5.5.0
       unplugin-utils: 0.3.1
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
       untyped: 2.0.0
       unwasm: 0.3.11
       youch: 4.1.0-beta.13
@@ -17286,7 +17049,7 @@ snapshots:
 
   nuxt-define@1.0.0: {}
 
-  nuxt-link-checker@4.3.9(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(h3@1.15.4)(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
+  nuxt-link-checker@4.3.9(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(h3@1.15.4)(ioredis@5.8.2)(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
     dependencies:
       '@nuxt/devtools-kit': 3.1.1(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
@@ -17304,7 +17067,7 @@ snapshots:
       std-env: 3.10.0
       ufo: 1.6.1
       ultrahtml: 1.6.0
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -17330,7 +17093,7 @@ snapshots:
       - vite
       - vue
 
-  nuxt-og-image@5.1.12(@unhead/vue@2.0.19(vue@3.5.25(typescript@5.9.3)))(h3@1.15.4)(magicast@0.5.1)(unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
+  nuxt-og-image@5.1.12(@unhead/vue@2.0.19(vue@3.5.25(typescript@5.9.3)))(h3@1.15.4)(magicast@0.5.1)(unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2))(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3)):
     dependencies:
       '@nuxt/devtools-kit': 2.7.0(magicast@0.5.1)(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
@@ -17361,7 +17124,7 @@ snapshots:
       strip-literal: 3.1.0
       ufo: 1.6.1
       unplugin: 2.3.11
-      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2)
+      unstorage: 1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2)
       unwasm: 0.3.11
       yoga-wasm-web: 0.3.3
     transitivePeerDependencies:
@@ -17436,16 +17199,16 @@ snapshots:
       - magicast
       - vue
 
-  nuxt@4.2.1(3c04f0c22b81ccf2340c475fdee64242):
+  nuxt@4.2.1(40daf78a012ea33bc01de112322d9e2f):
     dependencies:
       '@dxup/nuxt': 0.2.2(magicast@0.5.1)
       '@nuxt/cli': 3.31.1(cac@6.7.14)(magicast@0.5.1)
       '@nuxt/devtools': 3.1.1(vite@7.2.6(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(terser@5.44.1)(tsx@4.21.0)(yaml@2.8.2))(vue@3.5.25(typescript@5.9.3))
       '@nuxt/kit': 4.2.1(magicast@0.5.1)
-      '@nuxt/nitro-server': 4.2.1(ab8854c820c9ffee8744ebbe9ea0b130)
+      '@nuxt/nitro-server': 4.2.1(5faea99a0826d8cc4d8a68f3293df9cf)
       '@nuxt/schema': 4.2.1
       '@nuxt/telemetry': 2.6.6(magicast@0.5.1)
-      '@nuxt/vite-builder': 4.2.1(@types/node@24.10.1)(eslint@9.39.1(jiti@2.6.1))(lightningcss@1.30.2)(magicast@0.5.1)(nuxt@4.2.1(3c04f0c22b81ccf2340c475fdee64242))(optionator@0.9.4)(rollup@4.53.3)(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))(yaml@2.8.2)
+      '@nuxt/vite-builder': 4.2.1(@types/node@24.10.1)(eslint@9.39.1(jiti@2.6.1))(lightningcss@1.30.2)(magicast@0.5.1)(nuxt@4.2.1(40daf78a012ea33bc01de112322d9e2f))(optionator@0.9.4)(rollup@4.53.3)(terser@5.44.1)(tsx@4.21.0)(typescript@5.9.3)(vue@3.5.25(typescript@5.9.3))(yaml@2.8.2)
       '@unhead/vue': 2.0.19(vue@3.5.25(typescript@5.9.3))
       '@vue/shared': 3.5.25
       c12: 3.3.2(magicast@0.5.1)
@@ -19168,7 +18931,7 @@ snapshots:
       '@unrs/resolver-binding-win32-ia32-msvc': 1.11.1
       '@unrs/resolver-binding-win32-x64-msvc': 1.11.1
 
-  unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3))(ioredis@5.8.2):
+  unstorage@1.17.3(db0@0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3))(ioredis@5.8.2):
     dependencies:
       anymatch: 3.1.3
       chokidar: 4.0.3
@@ -19179,7 +18942,7 @@ snapshots:
       ofetch: 1.5.1
       ufo: 1.6.1
     optionalDependencies:
-      db0: 0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.38.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(@types/react@19.2.6)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(react@19.2.0))(mysql2@3.15.3)
+      db0: 0.3.4(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(drizzle-orm@0.45.0(@electric-sql/pglite@0.3.2)(@libsql/client@0.15.15)(@opentelemetry/api@1.9.0)(@prisma/client@7.1.0(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3))(@types/pg@8.15.6)(gel@2.2.0)(mysql2@3.15.3)(postgres@3.4.7)(prisma@7.1.0(@types/react@19.2.6)(magicast@0.5.1)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)))(mysql2@3.15.3)
       ioredis: 5.8.2
 
   untun@0.1.3:
@@ -19491,6 +19254,7 @@ snapshots:
   which@4.0.0:
     dependencies:
       isexe: 3.1.1
+    optional: true
 
   which@5.0.0:
     dependencies:
