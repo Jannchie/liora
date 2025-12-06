@@ -1,3 +1,24 @@
+## v0.9.0
+
+[v0.8.0...v0.9.0](https://github.com/Jannchie/liora/compare/v0.8.0...v0.9.0)
+
+### :rocket: Breaking Changes
+
+- **database**: migrate from prisma to drizzle orm - By [Jannchie](mailto:jannchie@gmail.com) in [47fa4c8](https://github.com/Jannchie/liora/commit/47fa4c8)
+
+### :sparkles: Features
+
+- **db**: instrument libsql client with sentry tracing - By [Jannchie](mailto:jannchie@gmail.com) in [fb09475](https://github.com/Jannchie/liora/commit/fb09475)
+- **routing**: support legacy /photo/:id path via rest param - By [Jannchie](mailto:jannchie@gmail.com) in [4d7b77c](https://github.com/Jannchie/liora/commit/4d7b77c)
+
+### :adhesive_bandage: Fixes
+
+- **routing**: restrict catch-all route to photo id pattern - By [Jannchie](mailto:jannchie@gmail.com) in [7005205](https://github.com/Jannchie/liora/commit/7005205)
+
+### :wrench: Chores
+
+- **deps**: upgrade pnpm lock entries and workspace deps - By [Jannchie](mailto:jannchie@gmail.com) in [a43805b](https://github.com/Jannchie/liora/commit/a43805b)
+
 ## v0.8.0
 
 [v0.7.0...v0.8.0](https://github.com/Jannchie/liora/compare/v0.7.0...v0.8.0)
