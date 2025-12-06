@@ -1,8 +1,8 @@
 import type { FileMetadata } from '../app/types/file'
-import { join } from 'node:path'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
+import { asc, eq } from 'drizzle-orm'
 import exifr from 'exifr'
-import { PrismaClient } from '../app/generated/prisma/client'
+import { closeDb, db, files as filesTable } from '../server/utils/db'
+import type { FileRow } from '../server/utils/db'
 
 function escapeRegExp(value: string): string {
   return value.replaceAll(/[-/\\^$*+?.()|[\]{}]/g, String.raw`\\$&`)
@@ -95,10 +95,6 @@ interface ExifResult {
   xpComment?: string | string[]
   xpKeywords?: string | string[]
 }
-
-const databaseUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'data.db')}`
-const adapter = new PrismaLibSql({ url: databaseUrl })
-const prisma = new PrismaClient({ adapter })
 
 function parseMetadata(raw: string): ParsedMetadata {
   try {
@@ -563,7 +559,9 @@ function mergeMetadata(existing: ParsedMetadata, exif: ExifResult): MergeResult 
 }
 
 async function main(): Promise<void> {
-  const files = await prisma.file.findMany({ orderBy: { id: 'asc' } })
+  const files = await db.query.files.findMany({
+    orderBy: [asc(filesTable.id)],
+  })
 
   let updated = 0
   let skipped = 0
@@ -591,7 +589,7 @@ async function main(): Promise<void> {
     }
     const dedupedCamera = mergeResult.cameraModel
 
-    const data: Record<string, unknown> = {
+    const data: Partial<FileRow> = {
       metadata: JSON.stringify(mergedMetadata),
     }
 
@@ -626,10 +624,10 @@ async function main(): Promise<void> {
       data.longitude = mergedMetadata.longitude
     }
 
-    await prisma.file.update({
-      where: { id: file.id },
-      data,
-    })
+    await db
+      .update(filesTable)
+      .set(data)
+      .where(eq(filesTable.id, file.id))
     updated += 1
     console.log(`Updated #${file.id} (${file.title || 'untitled'})`)
   }
@@ -645,5 +643,5 @@ catch (error) {
   process.exitCode = 1
 }
 finally {
-  await prisma.$disconnect()
+  await closeDb()
 }

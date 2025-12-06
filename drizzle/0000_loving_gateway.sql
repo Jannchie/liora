@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS `File` (
+	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	`title` text DEFAULT '' NOT NULL,
+	`description` text DEFAULT '' NOT NULL,
+	`imageUrl` text NOT NULL,
+	`thumbnailUrl` text DEFAULT '' NOT NULL,
+	`width` integer NOT NULL,
+	`height` integer NOT NULL,
+	`originalName` text DEFAULT '' NOT NULL,
+	`fanworkTitle` text DEFAULT '' NOT NULL,
+	`characterList` text DEFAULT '' NOT NULL,
+	`location` text DEFAULT '' NOT NULL,
+	`locationName` text DEFAULT '' NOT NULL,
+	`latitude` real,
+	`longitude` real,
+	`cameraModel` text DEFAULT '' NOT NULL,
+	`aperture` text DEFAULT '' NOT NULL,
+	`focalLength` text DEFAULT '' NOT NULL,
+	`iso` text DEFAULT '' NOT NULL,
+	`shutterSpeed` text DEFAULT '' NOT NULL,
+	`captureTime` text DEFAULT '' NOT NULL,
+	`metadata` text DEFAULT '{}' NOT NULL,
+	`genre` text DEFAULT '' NOT NULL,
+	`createdAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `SiteSetting` (
+	`id` integer PRIMARY KEY DEFAULT 1 NOT NULL,
+	`name` text DEFAULT 'Liora Gallery' NOT NULL,
+	`description` text DEFAULT 'A minimal gallery for photography and illustrations.' NOT NULL,
+	`iconUrl` text DEFAULT '/favicon.ico' NOT NULL,
+	`socialHomepage` text DEFAULT '' NOT NULL,
+	`socialGithub` text DEFAULT '' NOT NULL,
+	`socialTwitter` text DEFAULT '' NOT NULL,
+	`socialInstagram` text DEFAULT '' NOT NULL,
+	`socialWeibo` text DEFAULT '' NOT NULL,
+	`socialYoutube` text DEFAULT '' NOT NULL,
+	`socialBilibili` text DEFAULT '' NOT NULL,
+	`socialTiktok` text DEFAULT '' NOT NULL,
+	`socialLinkedin` text DEFAULT '' NOT NULL,
+	`infoPlacement` text DEFAULT 'header' NOT NULL,
+	`updatedAt` text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);

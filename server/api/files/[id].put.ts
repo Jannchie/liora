@@ -1,9 +1,10 @@
+import { eq } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { createError, getRouterParam, readBody } from 'h3'
 import { requireAdmin } from '../../utils/auth'
+import { db, files } from '../../utils/db'
 import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
-import { prisma } from '../../utils/prisma'
 import replaceImageHandler from './[id]/image.put'
 
 type UpdateBody = Partial<FilePayload>
@@ -72,7 +73,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const id = parseId(event)
   const body = await readBody<UpdateBody>(event)
 
-  const existing = await prisma.file.findUnique({ where: { id } })
+  const existing = await db.query.files.findFirst({
+    where: eq(files.id, id),
+  })
   if (!existing) {
     throw createError({ statusCode: 404, statusMessage: 'File not found.' })
   }
@@ -147,9 +150,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     notes: normalizeText(body.notes, existingMetadata.notes),
   }
 
-  const updated = await prisma.file.update({
-    where: { id },
-    data: {
+  const [updated] = await db
+    .update(files)
+    .set({
       title,
       description,
       width,
@@ -168,8 +171,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       shutterSpeed: mergedMetadata.shutterSpeed,
       captureTime: mergedMetadata.captureTime,
       metadata: JSON.stringify(mergedMetadata),
-    },
-  })
+    })
+    .where(eq(files.id, id))
+    .returning()
 
   return toFileResponse(updated)
 })

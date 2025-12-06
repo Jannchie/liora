@@ -1,7 +1,8 @@
+import { eq } from 'drizzle-orm'
 import type { GenreClassificationResult } from '../../utils/ai-classifier'
 import { classifyPhotoGenre, deriveGenreLabel } from '../../utils/ai-classifier'
 import { requireAdmin } from '../../utils/auth'
-import { prisma } from '../../utils/prisma'
+import { db, files } from '../../utils/db'
 
 interface ReclassifySummary {
   total: number
@@ -13,13 +14,11 @@ interface ReclassifySummary {
 export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
   requireAdmin(event)
 
-  const targets = await prisma.file.findMany({
-    where: {
-      genre: '',
-    },
-    select: { id: true, imageUrl: true },
-    orderBy: { id: 'asc' },
-  })
+  const targets = await db
+    .select({ id: files.id, imageUrl: files.imageUrl })
+    .from(files)
+    .where(eq(files.genre, ''))
+    .orderBy(files.id)
 
   let updated = 0
   let skipped = 0
@@ -37,10 +36,7 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
         skipped += 1
         continue
       }
-      await prisma.file.update({
-        where: { id: file.id },
-        data: { genre },
-      })
+      await db.update(files).set({ genre }).where(eq(files.id, file.id))
       // eslint-disable-next-line no-console
       console.info(`[reclassify] updated #${file.id} -> ${genre}`)
       updated += 1

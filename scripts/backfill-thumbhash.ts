@@ -1,26 +1,16 @@
 import { createHash } from 'node:crypto'
-import { join } from 'node:path'
-import { PrismaLibSql } from '@prisma/adapter-libsql'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
-import { PrismaClient } from '../app/generated/prisma/client'
+import { asc, eq } from 'drizzle-orm'
+import type { FileRow } from '../server/utils/db'
+import { closeDb, db, files as filesTable } from '../server/utils/db'
 
-interface DbFile {
-  id: number
-  imageUrl: string
-  thumbnailUrl: string | null
-  metadata: string
-  title: string
-}
+type DbFile = Pick<FileRow, 'id' | 'imageUrl' | 'thumbnailUrl' | 'metadata' | 'title'>
 
 interface ImageHashes {
   perceptualHash: string | null
   sha256: string
 }
-
-const databaseUrl = process.env.DATABASE_URL ?? `file:${join(process.cwd(), 'prisma', 'data.db')}`
-const adapter = new PrismaLibSql({ url: databaseUrl })
-const prisma = new PrismaClient({ adapter })
 
 function parseMetadata(raw: string): Record<string, unknown> {
   try {
@@ -146,17 +136,19 @@ async function updateFileThumbhash(file: DbFile): Promise<boolean> {
     return false
   }
 
-  await prisma.file.update({
-    where: { id: file.id },
-    data: { metadata: JSON.stringify(metadata) },
-  })
+  await db
+    .update(filesTable)
+    .set({ metadata: JSON.stringify(metadata) })
+    .where(eq(filesTable.id, file.id))
 
   console.log(`Updated #${file.id} (${file.title || 'untitled'})`)
   return true
 }
 
 async function main(): Promise<void> {
-  const files = await prisma.file.findMany({ orderBy: { id: 'asc' } })
+  const files = await db.query.files.findMany({
+    orderBy: [asc(filesTable.id)],
+  })
   let updatedCount = 0
 
   for (const file of files) {
@@ -177,5 +169,5 @@ catch (error) {
   process.exitCode = 1
 }
 finally {
-  await prisma.$disconnect()
+  await closeDb()
 }

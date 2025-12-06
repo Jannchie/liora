@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import type { FileMetadata, FileResponse } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
@@ -6,9 +7,9 @@ import { createError, getRouterParam, readMultipartFormData } from 'h3'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../../../utils/auth'
+import { db, files } from '../../../utils/db'
 import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
 import { computeHistogram } from '../../../utils/histogram'
-import { prisma } from '../../../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
 
 interface MultipartEntry {
@@ -239,7 +240,9 @@ async function saveFile(file: MultipartEntry, event: H3Event, contentType: strin
 export default defineEventHandler(async (event): Promise<FileResponse> => {
   requireAdmin(event)
   const id = parseId(event)
-  const existing = await prisma.file.findUnique({ where: { id } })
+  const existing = await db.query.files.findFirst({
+    where: eq(files.id, id),
+  })
   if (!existing) {
     throw createError({ statusCode: 404, statusMessage: 'File not found.' })
   }
@@ -342,9 +345,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     histogram: metadata.histogram ?? existingMetadata.histogram ?? null,
   }
 
-  const updated = await prisma.file.update({
-    where: { id },
-    data: {
+  const [updated] = await db
+    .update(files)
+    .set({
       title: normalizeText(fields.title) || existing.title,
       description: normalizeText(fields.description) || existing.description,
       originalName,
@@ -366,8 +369,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       captureTime: mergedMetadata.captureTime,
       metadata: JSON.stringify(mergedMetadata),
       genre: normalizeText(fields.genre) || existing.genre,
-    },
-  })
+    })
+    .where(eq(files.id, id))
+    .returning()
 
   return toFileResponse(updated)
 })

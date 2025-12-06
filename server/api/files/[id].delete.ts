@@ -1,7 +1,8 @@
+import { eq } from 'drizzle-orm'
 import type { H3Event } from 'h3'
 import { createError, getRouterParam } from 'h3'
 import { requireAdmin } from '../../utils/auth'
-import { prisma } from '../../utils/prisma'
+import { db, files } from '../../utils/db'
 
 function parseId(event: H3Event): number {
   const idParam = getRouterParam(event, 'id')
@@ -15,12 +16,14 @@ function parseId(event: H3Event): number {
 export default defineEventHandler(async (event): Promise<{ success: boolean }> => {
   requireAdmin(event)
   const id = parseId(event)
-  const existing = await prisma.file.findUnique({ where: { id } })
+  const existing = await db.query.files.findFirst({
+    where: eq(files.id, id),
+  })
 
   if (!existing) {
     throw createError({ statusCode: 404, statusMessage: 'File not found.' })
   }
 
-  await prisma.file.delete({ where: { id } })
+  await db.delete(files).where(eq(files.id, id))
   return { success: true }
 })

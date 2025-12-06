@@ -1,5 +1,5 @@
-import type { File } from '../../app/generated/prisma/client'
 import type { FileMetadata, FileResponse } from '~/types/file'
+import type { FileRow } from './db'
 
 export function mapCharacters(characterList: string): string[] {
   return characterList
@@ -61,7 +61,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   }
 }
 
-export function toFileResponse(file: File): FileResponse {
+export function toFileResponse(file: FileRow): FileResponse {
   const characters = mapCharacters(file.characterList)
   const metadata = ensureMetadata(file.metadata, {
     fanworkTitle: file.fanworkTitle,
@@ -97,6 +97,7 @@ export function toFileResponse(file: File): FileResponse {
   })
   const imageUrl = file.imageUrl || file.thumbnailUrl || ''
   const genre = file.genre?.trim() ?? ''
+  const createdAt = file.createdAt instanceof Date ? file.createdAt : new Date(file.createdAt)
 
   return {
     id: file.id,
@@ -114,6 +115,6 @@ export function toFileResponse(file: File): FileResponse {
     metadata,
     genre,
     fileSize: metadata.fileSize,
-    createdAt: file.createdAt.toISOString(),
+    createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
   }
 }

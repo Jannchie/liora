@@ -1,12 +1,12 @@
-import type { File as PrismaFile } from '../../app/generated/prisma/client'
+import { desc } from 'drizzle-orm'
 import type { FileResponse } from '~/types/file'
+import { db, files } from '../utils/db'
 import { toFileResponse } from '../utils/file-mapper'
-import { prisma } from '../utils/prisma'
 
 export default defineEventHandler(async (): Promise<FileResponse[]> => {
-  const files = await prisma.file.findMany({
-    orderBy: [{ captureTime: 'desc' }, { createdAt: 'desc' }],
+  const rows = await db.query.files.findMany({
+    orderBy: [desc(files.captureTime), desc(files.createdAt)],
   })
 
-  return files.map((file: PrismaFile) => toFileResponse(file))
+  return rows.map(file => toFileResponse(file))
 })

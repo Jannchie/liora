@@ -6,7 +6,7 @@
 
 ![Liora Gallery screenshot](docs/screenshots/liora-gallery-home.png)
 
-Liora Gallery is a minimal, self-hosted gallery for photography and illustrations. It pairs a public waterfall grid with an admin workspace for uploads, metadata curation, SEO, and S3-backed storage. Built on Nuxt 4, Prisma, and any S3-compatible bucket.
+Liora Gallery is a minimal, self-hosted gallery for photography and illustrations. It pairs a public waterfall grid with an admin workspace for uploads, metadata curation, SEO, and S3-backed storage. Built on Nuxt 4, Drizzle ORM, and any S3-compatible bucket.
 
 ## Key Features
 
@@ -43,7 +43,7 @@ Liora Gallery is a minimal, self-hosted gallery for photography and illustration
    pnpm dev
    ```
 
-4. Visit <http://localhost:3000> (admin console at `/admin`). Local data lives in `prisma/data.db`; run migrations if you change the schema.
+4. Visit <http://localhost:3000> (admin console at `/admin`). Local data lives in `data/data.db`; run migrations if you change the schema.
 
 ## Configuration
 
@@ -54,7 +54,8 @@ Core environment variables:
 | `ADMIN_USERNAME`       | Yes         | Admin login for `/admin`                                                                           | `admin`                          |
 | `ADMIN_PASSWORD`       | Yes         | Admin password                                                                                     | `change-me`                      |
 | `ADMIN_SESSION_SECRET` | Recommended | Session signing secret (falls back to password if empty)                                           | `please-change-me`               |
-| `DATABASE_URL`         | Optional    | SQLite/LibSQL connection. Default: `file:./prisma/data.db` locally, `file:/data/data.db` in Docker | `libsql://host/db?authToken=...` |
+| `DATABASE_URL`         | Optional    | SQLite/LibSQL connection. Default: `file:./data/data.db` locally, `file:/data/data.db` in Docker | `libsql://host/db?authToken=...` |
+| `DATABASE_AUTH_TOKEN`  | Optional    | LibSQL/Turso auth token when required                                                              | `...`                            |
 | `S3_ENDPOINT`          | Yes         | S3-compatible endpoint (no trailing slash)                                                         | `https://s3.example.com`         |
 | `S3_BUCKET`            | Yes         | Bucket name                                                                                        | `liora`                          |
 | `S3_ACCESS_KEY_ID`     | Yes         | Access key                                                                                         | `AKIA...`                        |
@@ -78,10 +79,10 @@ Legacy `NUXT_*` variants continue to work for backward compatibility, but prefer
 
 ## Database
 
-- Prisma schema lives in `prisma/schema.prisma`; local SQLite file is `prisma/data.db`.
-- Apply schema changes: `pnpm exec prisma migrate dev --name <message>`
-- Regenerate client (after schema edits): `pnpm exec prisma generate`
-- Docker images run `pnpm exec prisma migrate deploy` on startup; mount `/data` to persist SQLite (`DATABASE_URL=file:/data/data.db` baked into the image).
+- Schema lives in `server/database/schema.ts`; Drizzle migrations are stored in `drizzle/`, and the default local SQLite file is `data/data.db`.
+- Create a migration after schema changes: `pnpm run db:generate`
+- Apply migrations (uses `DATABASE_URL`): `pnpm run db:migrate`
+- Docker images run `pnpm run db:migrate` on startup; mount `/data` to persist SQLite (`DATABASE_URL=file:/data/data.db` baked into the image).
 - Utility scripts:
   - `pnpm backfill:exif`: parse EXIF and backfill metadata fields (camera, lens, exposure, capture time, etc.).
   - `pnpm backfill:thumbhash`: fetch stored images, compute thumbhash/perceptual hash/SHA-256, and store them in metadata.
@@ -103,7 +104,7 @@ Legacy `NUXT_*` variants continue to work for backward compatibility, but prefer
   ```
 
 - Defaults: listens on `0.0.0.0:3000`; `DATABASE_URL=file:/data/data.db`. Override `HOST`/`PORT` or mount `/data` to persist SQLite.
-- Prisma migrations (`pnpm exec prisma migrate deploy`) run at container start. Use `scripts/build-docker.sh` and `scripts/publish-docker.sh` to tag/push images (`IMAGE_NAME` overridable).
+- Drizzle migrations (`pnpm run db:migrate`) run at container start. Use `scripts/build-docker.sh` and `scripts/publish-docker.sh` to tag/push images (`IMAGE_NAME` overridable).
 - Persist SQLite with a host directory (example: `/srv/liora-db`):
 
   ```bash
@@ -131,7 +132,7 @@ Legacy `NUXT_*` variants continue to work for backward compatibility, but prefer
 
 ## Operations
 
-- Back up the SQLite file (`prisma/data.db` locally or `/data` in Docker) and your S3 bucket regularly.
+- Back up the SQLite file (`data/data.db` locally or `/data` in Docker) and your S3 bucket regularly.
 - Set `SITE_URL`/`SITE_INDEXABLE` appropriately before exposing to crawlers.
 - Geocoding uses a proxied Nominatim API; calls are throttled server-side (1 request/second).
 - AI classification is optional; uploads still succeed without `OPENAI_API_KEY`.

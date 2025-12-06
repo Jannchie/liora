@@ -3,15 +3,15 @@
 ## Project Structure & Module Organization
 
 - `app/pages` holds Nuxt page routes; `app/components` stores shared UI; `app/assets/css/main.css` carries Tailwind-driven styles; `app/types` contains shared TypeScript contracts (e.g., `~/types/file`).
-- `server/api` exposes Nitro endpoints, with file listing/upload flows in `files.get.ts` and `files.post.ts`; `server/utils` wraps Prisma (`prisma.ts`) and S3-compatible storage access (`s3.ts`).
-- `prisma/schema.prisma` defines the LibSQL/SQLite schema; `prisma/migrations` tracks history; `prisma/data.db` is the local default. Generated Prisma artifacts live under `app/generated/prisma/client`—do not edit by hand.
+- `server/api` exposes Nitro endpoints, with file listing/upload flows in `files.get.ts` and `files.post.ts`; `server/utils` wraps Drizzle (`db.ts`) and S3-compatible storage access (`s3.ts`).
+- Database schema lives in `server/database/schema.ts`; Drizzle migrations are stored in `drizzle/`; `data/data.db` is the default local SQLite file.
 - `public/` serves static assets; `nuxt.config.ts` centralizes runtime config (storage credentials, module setup).
 
 ## Build, Test, and Development Commands
 
 - Use pnpm for all tasks: `pnpm install`.
 - Local dev: `pnpm dev` (<http://localhost:3000>). Production bundle: `pnpm build`; preview: `pnpm preview`. Static export when needed: `pnpm generate`.
-- Database workflow: `pnpm exec prisma migrate dev --name <message>` to evolve schema; `pnpm exec prisma generate` to refresh the client.
+- Database workflow: `pnpm run db:generate` to create migrations from the schema; `pnpm run db:migrate` to apply migrations to the target database.
 - Testing: run Vitest (add it if missing) with Nuxt test utils, e.g., `pnpm exec vitest`. Keep CI fast; prefer `--runInBand` when hitting the real DB.
 
 ## Coding Style & Naming Conventions
@@ -22,7 +22,7 @@
 
 ## Testing Guidelines
 
-- Place specs under `tests/` or alongside features as `*.spec.ts`. Use Vitest with `@nuxt/test-utils` for pages/server endpoints; mock Prisma and S3 uploads for unit tests.
+- Place specs under `tests/` or alongside features as `*.spec.ts`. Use Vitest with `@nuxt/test-utils` for pages/server endpoints; mock Drizzle database calls and S3 uploads for unit tests.
 - Include coverage for data shaping (metadata parsing, character list normalization) and API validation branches. Keep fixtures small and deterministic.
 
 ## Commit & Pull Request Guidelines
@@ -33,5 +33,5 @@
 
 ## Security & Configuration Tips
 
-- Store secrets in `.env`/`.env.local` (never commit). Required variables: `DATABASE_URL` (defaults to `prisma/data.db`), `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, optional `S3_PUBLIC_BASE_URL`—any S3-compatible service with matching endpoint/keys works.
+- Store secrets in `.env`/`.env.local` (never commit). Required variables: `DATABASE_URL` (defaults to `data/data.db`), `S3_ENDPOINT`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`; optional `DATABASE_AUTH_TOKEN` for LibSQL/Turso and `S3_PUBLIC_BASE_URL`—any S3-compatible service with matching endpoint/keys works.
 - Validate S3-compatible credentials before uploading; when debugging locally, rely on the default SQLite file instead of production URLs.

@@ -6,9 +6,9 @@ import { basename, extname } from 'node:path'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
+import { db, files } from '../utils/db'
 import { joinCharacters, toFileResponse } from '../utils/file-mapper'
 import { computeHistogram } from '../utils/histogram'
-import { prisma } from '../utils/prisma'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
 interface MultipartEntry {
@@ -406,8 +406,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.thumbhash = thumbhash
   }
 
-  const created = await prisma.file.create({
-    data: {
+  const [created] = await db
+    .insert(files)
+    .values({
       title: normalizedTitle,
       description: normalizedDescription,
       originalName,
@@ -429,8 +430,8 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       captureTime: metadata.captureTime,
       metadata: JSON.stringify(metadata),
       genre: normalizedGenre,
-    },
-  })
+    })
+    .returning()
 
   return toFileResponse(created)
 })

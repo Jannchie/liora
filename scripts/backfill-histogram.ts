@@ -1,6 +1,7 @@
+import { eq } from 'drizzle-orm'
 import type { HistogramData } from '../app/types/file'
 import { computeHistogram } from '../server/utils/histogram'
-import { prisma } from '../server/utils/prisma'
+import { closeDb, db, files } from '../server/utils/db'
 
 interface ParsedMetadata {
   histogram?: HistogramData | null
@@ -31,14 +32,14 @@ async function fetchImageBuffer(url: string): Promise<Buffer> {
 }
 
 async function main(): Promise<void> {
-  const files = await prisma.file.findMany({
-    select: { id: true, imageUrl: true, metadata: true },
-  })
+  const rows = await db
+    .select({ id: files.id, imageUrl: files.imageUrl, metadata: files.metadata })
+    .from(files)
 
   let updated = 0
   let skipped = 0
 
-  for (const file of files) {
+  for (const file of rows) {
     const metadata = parseMetadata(file.metadata)
     if (!metadata) {
       skipped += 1
@@ -59,10 +60,10 @@ async function main(): Promise<void> {
       }
 
       metadata.histogram = histogram
-      await prisma.file.update({
-        where: { id: file.id },
-        data: { metadata: JSON.stringify(metadata) },
-      })
+      await db
+        .update(files)
+        .set({ metadata: JSON.stringify(metadata) })
+        .where(eq(files.id, file.id))
       updated += 1
 
       console.log(`Updated histogram for file #${file.id}`)
@@ -74,12 +75,12 @@ async function main(): Promise<void> {
   }
 
   console.log(`Done. Updated ${updated}, skipped ${skipped}.`)
-  await prisma.$disconnect()
+  await closeDb()
 }
 
 await main().catch(async (error) => {
   console.error(error)
-  await prisma.$disconnect()
+  await closeDb()
   // eslint-disable-next-line unicorn/no-process-exit
   process.exit(1)
 })

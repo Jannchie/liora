@@ -1,7 +1,7 @@
-import type { SiteSetting } from '../../app/generated/prisma/client'
+import { eq } from 'drizzle-orm'
 import type { SiteInfoPlacement } from '~/types/gallery'
 import type { SiteSettings, SiteSettingsPayload, SiteSocialLinks } from '~/types/site'
-import { prisma } from './prisma'
+import { db, siteSettings, type SiteSettingRow } from './db'
 
 const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'
@@ -78,7 +78,8 @@ function resolveDefaultSiteSetting(): {
   }
 }
 
-function serialize(setting: SiteSetting): SiteSettings {
+function serialize(setting: SiteSettingRow): SiteSettings {
+  const updatedAt = setting.updatedAt instanceof Date ? setting.updatedAt : new Date(setting.updatedAt)
   return {
     name: setting.name,
     description: setting.description,
@@ -95,7 +96,7 @@ function serialize(setting: SiteSetting): SiteSettings {
       linkedin: setting.socialLinkedin,
     },
     infoPlacement: normalizeInfoPlacement(setting.infoPlacement),
-    updatedAt: setting.updatedAt.toISOString(),
+    updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date().toISOString() : updatedAt.toISOString(),
   }
 }
 
@@ -108,7 +109,9 @@ function serializeDefaults(): SiteSettings {
 }
 
 export async function getSiteSettings(): Promise<SiteSettings> {
-  const existing = await prisma.siteSetting.findUnique({ where: { id: 1 } })
+  const existing = await db.query.siteSettings.findFirst({
+    where: eq(siteSettings.id, 1),
+  })
   if (existing) {
     return serialize(existing)
   }
@@ -156,24 +159,10 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
 
 export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<SiteSettings> {
   const validated = validatePayload(payload)
-  const updated = await prisma.siteSetting.upsert({
-    where: { id: 1 },
-    update: {
-      name: validated.name,
-      description: validated.description,
-      iconUrl: validated.iconUrl,
-      infoPlacement: validated.infoPlacement,
-      socialHomepage: validated.social.homepage,
-      socialGithub: validated.social.github,
-      socialTwitter: validated.social.twitter,
-      socialInstagram: validated.social.instagram,
-      socialWeibo: validated.social.weibo,
-      socialYoutube: validated.social.youtube,
-      socialBilibili: validated.social.bilibili,
-      socialTiktok: validated.social.tiktok,
-      socialLinkedin: validated.social.linkedin,
-    },
-    create: {
+  const timestamp = new Date()
+  const [updated] = await db
+    .insert(siteSettings)
+    .values({
       id: 1,
       name: validated.name,
       description: validated.description,
@@ -188,18 +177,38 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       socialBilibili: validated.social.bilibili,
       socialTiktok: validated.social.tiktok,
       socialLinkedin: validated.social.linkedin,
-    },
-  })
+      updatedAt: timestamp,
+    })
+    .onConflictDoUpdate({
+      target: siteSettings.id,
+      set: {
+        name: validated.name,
+        description: validated.description,
+        iconUrl: validated.iconUrl,
+        infoPlacement: validated.infoPlacement,
+        socialHomepage: validated.social.homepage,
+        socialGithub: validated.social.github,
+        socialTwitter: validated.social.twitter,
+        socialInstagram: validated.social.instagram,
+        socialWeibo: validated.social.weibo,
+        socialYoutube: validated.social.youtube,
+        socialBilibili: validated.social.bilibili,
+        socialTiktok: validated.social.tiktok,
+        socialLinkedin: validated.social.linkedin,
+        updatedAt: timestamp,
+      },
+    })
+    .returning()
   return serialize(updated)
 }
 
 export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
   const validatedIcon = validateIconUrl(iconUrl)
   const defaults = resolveDefaultSiteSetting()
-  const updated = await prisma.siteSetting.upsert({
-    where: { id: 1 },
-    update: { iconUrl: validatedIcon },
-    create: {
+  const timestamp = new Date()
+  const [updated] = await db
+    .insert(siteSettings)
+    .values({
       id: 1,
       name: defaults.name,
       description: defaults.description,
@@ -214,7 +223,15 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       socialBilibili: defaults.social.bilibili,
       socialTiktok: defaults.social.tiktok,
       socialLinkedin: defaults.social.linkedin,
-    },
-  })
+      updatedAt: timestamp,
+    })
+    .onConflictDoUpdate({
+      target: siteSettings.id,
+      set: {
+        iconUrl: validatedIcon,
+        updatedAt: timestamp,
+      },
+    })
+    .returning()
   return serialize(updated)
 }

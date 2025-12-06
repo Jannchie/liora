@@ -23,10 +23,8 @@ logs
 .env.*
 !.env.example
 
-/app/generated/prisma
-prisma/data.db
-prisma/dev.db
 data/*
+storage/*
 
 docker-compose.dev.yml
 # Sentry Config File

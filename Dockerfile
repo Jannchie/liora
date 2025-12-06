@@ -19,7 +19,6 @@ COPY --from=deps /app/package.json ./package.json
 COPY --from=deps /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=deps /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY . .
-RUN pnpm exec prisma generate
 RUN pnpm run build
 
 FROM base AS runner
@@ -33,12 +32,11 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-lock.yaml ./pnpm-lock.yaml
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
-COPY --from=build /app/app/generated ./app/generated
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY --from=build /app/drizzle ./drizzle
+COPY --from=build /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=build /app/.output ./.output
 COPY scripts/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 EXPOSE 3000
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node .output/server/index.mjs"]
+CMD ["sh", "-c", "pnpm run db:migrate && node .output/server/index.mjs"]
