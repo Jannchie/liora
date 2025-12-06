@@ -11,7 +11,18 @@ import { useSiteSettingsState } from '~/composables/useSiteSettings'
 const { t } = useI18n()
 
 definePageMeta({
-  alias: ['/photo/:id'],
+  path: '/:rest(.*)?',
+  validate: (route) => {
+    const rest = Array.isArray(route.params.rest)
+      ? route.params.rest.join('/')
+      : typeof route.params.rest === 'string'
+        ? route.params.rest
+        : ''
+    if (rest.length === 0) {
+      return true
+    }
+    return /^photo\/\d+$/.test(rest)
+  },
 })
 
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {

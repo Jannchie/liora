@@ -120,7 +120,7 @@ interface OverlayDownloadState {
 }
 
 const baseRouteName = 'index'
-const overlayRouteParam = 'id'
+const overlayRouteParam = 'rest'
 const legacyOverlayQueryKey = 'photo'
 
 interface OverlayPointer {
@@ -578,8 +578,25 @@ function resolveOverlayRouteId(value: string | string[] | null | undefined): num
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function resolveOverlayRouteIdFromPathParam(): number | null {
+  const param = route.params[overlayRouteParam]
+  const normalized = Array.isArray(param)
+    ? param.join('/')
+    : typeof param === 'string'
+      ? param
+      : ''
+  if (normalized.length === 0) {
+    return null
+  }
+  const match = normalized.match(/^photo\/(\d+)$/)
+  if (!match) {
+    return null
+  }
+  return resolveOverlayRouteId(match[1])
+}
+
 function getOverlayRouteIdFromRoute(): number | null {
-  const paramId = resolveOverlayRouteId(route.params[overlayRouteParam] as string | string[] | undefined)
+  const paramId = resolveOverlayRouteIdFromPathParam()
   if (paramId !== null) {
     return paramId
   }
@@ -596,10 +613,10 @@ async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'rep
   const navigate = navigation === 'replace' ? router.replace : router.push
   const sanitizedQuery = resolveSanitizedQuery()
   const currentId = getOverlayRouteIdFromRoute()
-  if (fileId === null && currentId === null && route.name === baseRouteName) {
+  if (fileId === null && currentId === null && route.path === '/') {
     return
   }
-  if (fileId !== null && currentId === fileId && route.path.startsWith('/photo/')) {
+  if (fileId !== null && currentId === fileId && route.path === `/photo/${fileId}`) {
     return
   }
   if (fileId === null) {
@@ -1463,7 +1480,7 @@ watch(
     if (legacyId === null) {
       return
     }
-    const paramId = resolveOverlayRouteId(route.params[overlayRouteParam] as string | string[] | undefined)
+    const paramId = resolveOverlayRouteIdFromPathParam()
     if (paramId !== null) {
       return
     }

@@ -200,12 +200,6 @@ export default defineNuxtConfig({
         { src: '/pwa-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
     },
-    workbox: {
-      navigateFallback: '/',
-    },
-    devOptions: {
-      enabled: true,
-    },
   },
   vite: {
     resolve: {
