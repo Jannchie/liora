@@ -43,6 +43,7 @@ useSeoMeta({
 
 const { data: filesData, pending: pendingFiles, refresh, error: fetchError } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
+  server: false,
 })
 
 const files = computed<FileResponse[]>(() => filesData.value ?? [])

@@ -4,7 +4,6 @@ import type { FileResponse } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
-import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed, onMounted, ref } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
@@ -25,8 +24,9 @@ definePageMeta({
   },
 })
 
-const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
+const { data, pending, error } = useFetch<FileResponse[]>('/api/files', {
   default: () => [],
+  server: false,
 })
 
 const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
