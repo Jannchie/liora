@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@iconify-json/carbon": "catalog:",
+    "@iconify-json/lucide": "catalog:",
     "@iconify-json/mdi": "catalog:",
     "@iconify-json/simple-icons": "catalog:",
     "@jannchie/eslint-config": "catalog:",

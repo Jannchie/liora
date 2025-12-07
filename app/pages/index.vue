@@ -60,10 +60,7 @@ const emptyText = computed(() => t('home.emptyText'))
 const loadingText = computed(() => t('home.loading'))
 const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
-const breakpoints = useBreakpoints(breakpointsTailwind)
-const isMobile = breakpoints.smaller('md')
 const hasHydrated = ref(false)
-const socialButtonSize = computed(() => (hasHydrated.value && isMobile.value ? 'sm' : 'lg'))
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
   const placement = siteSettings.value?.infoPlacement?.trim()
@@ -127,6 +124,7 @@ defineOgImageComponent('LioraCard', {
 <template>
   <div class="home-display-font min-h-screen w-full">
     <header
+      v-if="showHeaderInfo"
       class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
     >
       <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-[2000px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
@@ -144,7 +142,7 @@ defineOgImageComponent('LioraCard', {
               variant="soft"
               color="neutral"
               square
-              :size="socialButtonSize"
+              size="sm"
               class="text-muted"
               :icon="link.icon"
               :aria-label="link.label"
@@ -168,6 +166,23 @@ defineOgImageComponent('LioraCard', {
       </div>
     </header>
     <div class="max-w-[2000px] m-auto">
+      <div
+        v-if="!showHeaderInfo"
+        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-[2000px] md:flex-nowrap md:gap-3 md:px-4 md:py-3"
+      >
+        <UButton
+          v-if="isAuthenticated"
+          to="/admin"
+          color="primary"
+          variant="soft"
+          size="sm"
+          class="shrink-0"
+          icon="mdi:shield-check-outline"
+        >
+          {{ t('admin.nav.label') }}
+        </UButton>
+        <LanguageSwitcher class="hidden md:block" />
+      </div>
       <UAlert
         v-if="fetchError"
         color="error"

@@ -5,6 +5,7 @@ catalogs:
     '@ai-sdk/openai': ^2.0.79
     '@aws-sdk/client-s3': ^3.946.0
     '@iconify-json/carbon': ^1.2.15
+    '@iconify-json/lucide': ^1.2.79
     '@iconify-json/mdi': ^1.2.3
     '@iconify-json/simple-icons': ^1.2.61
     '@jannchie/eslint-config': ^3.7.5
