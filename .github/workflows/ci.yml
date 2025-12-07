@@ -26,11 +26,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Prisma client
-        run: pnpm exec prisma generate
-        env:
-          DATABASE_URL: file:./prisma/data.db
-
       - name: Lint
         run: pnpm exec eslint .
 
