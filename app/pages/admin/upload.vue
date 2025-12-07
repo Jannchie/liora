@@ -752,19 +752,14 @@ function sendFileWithProgress(formData: FormData): Promise<void> {
     uploadStartedAt.value = performance.now()
     uploadBytesSent.value = 0
     uploadTotalBytes.value = selectedFile.value?.size ?? 0
-    xhr.upload.onprogress = (event) => {
+    xhr.upload.addEventListener('progress', (event) => {
       const total = event.lengthComputable ? event.total : uploadTotalBytes.value
       if (event.lengthComputable) {
         uploadTotalBytes.value = event.total
       }
       const loaded = event.loaded
       uploadBytesSent.value = loaded
-      if (total > 0) {
-        uploadProgress.value = Math.min(100, (loaded / total) * 100)
-      }
-      else {
-        uploadProgress.value = 0
-      }
+      uploadProgress.value = total > 0 ? Math.min(100, (loaded / total) * 100) : 0
       const startedAt = uploadStartedAt.value
       if (startedAt !== null) {
         const elapsedSeconds = (performance.now() - startedAt) / 1000
@@ -772,9 +767,10 @@ function sendFileWithProgress(formData: FormData): Promise<void> {
           uploadSpeed.value = loaded / elapsedSeconds
         }
       }
-    }
+    })
+    // eslint-disable-next-line unicorn/prefer-add-event-listener
     xhr.onerror = () => reject(new Error('Upload failed'))
-    xhr.onload = () => {
+    xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         uploadBytesSent.value = uploadTotalBytes.value || uploadBytesSent.value
         uploadProgress.value = 100
@@ -783,7 +779,7 @@ function sendFileWithProgress(formData: FormData): Promise<void> {
       else {
         reject(new Error(xhr.statusText || 'Upload failed'))
       }
-    }
+    })
     xhr.open('POST', '/api/files')
     xhr.send(formData)
   })

@@ -28,7 +28,6 @@ definePageMeta({
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })
-console.log(data.value)
 
 const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
 await loadSiteSettings()
@@ -63,11 +62,15 @@ const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('md')
-const socialButtonSize = computed(() => (isMobile.value ? 'sm' : 'lg'))
+const hasHydrated = ref(false)
+const socialButtonSize = computed(() => (hasHydrated.value && isMobile.value ? 'sm' : 'lg'))
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
   const placement = siteSettings.value?.infoPlacement?.trim()
-  return placement === 'header' ? 'header' : 'waterfall'
+  if (placement === 'waterfall') {
+    return 'waterfall'
+  }
+  return 'header'
 })
 
 const showHeaderInfo = computed(() => infoPlacement.value === 'header')
@@ -106,6 +109,7 @@ onMounted(() => {
   if (root instanceof HTMLElement) {
     scrollElementRef.value = root
   }
+  hasHydrated.value = true
 })
 
 usePageSeo({
@@ -123,7 +127,6 @@ defineOgImageComponent('LioraCard', {
 <template>
   <div class="home-display-font min-h-screen w-full">
     <header
-      v-if="showHeaderInfo"
       class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
     >
       <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-[2000px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
@@ -131,7 +134,7 @@ defineOgImageComponent('LioraCard', {
           <h1 class="home-title-font text-sm font-semibold leading-tight text-highlighted md:text-lg">
             {{ pageTitle }}
           </h1>
-          <div class="flex flex-wrap items-center justify-center gap-1 text-muted md:justify-start md:gap-2">
+          <div class="flex flex-wrap items-center justify-center gap-2 text-muted md:justify-start">
             <UButton
               v-for="link in headerSocialLinks"
               :key="link.label"
@@ -165,23 +168,6 @@ defineOgImageComponent('LioraCard', {
       </div>
     </header>
     <div class="max-w-[2000px] m-auto">
-      <div
-        v-if="!showHeaderInfo"
-        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-[2000px] md:flex-nowrap md:gap-3 md:px-4 md:py-3"
-      >
-        <UButton
-          v-if="isAuthenticated"
-          to="/admin"
-          color="primary"
-          variant="soft"
-          size="sm"
-          class="shrink-0"
-          icon="mdi:shield-check-outline"
-        >
-          {{ t('admin.nav.label') }}
-        </UButton>
-        <LanguageSwitcher class="hidden md:block" />
-      </div>
       <UAlert
         v-if="fetchError"
         color="error"

@@ -32,14 +32,6 @@ const {
 const { geocodeQuery, geocoding, geocodeResults, searchLocation, applyGeocodeResult } = useLocationSearch(form.value)
 const classifyingGenre = ref(false)
 
-const formShell = computed(
-  () => 'mx-auto flex w-full max-w-6xl flex-col gap-5 lg:gap-6',
-)
-const sectionCard = computed(() => 'space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5')
-const sectionLayout = computed(() => 'space-y-4')
-const baseGrid = computed(() => 'grid grid-cols-12 gap-3 lg:gap-4')
-const halfCol = computed(() => 'col-span-12 md:col-span-6')
-const thirdCol = computed(() => 'col-span-12 md:col-span-6 xl:col-span-4')
 const genreOptions = computed(() => [
   { label: t('admin.files.genreOptions.portrait'), value: 'PORTRAIT' },
   { label: t('admin.files.genreOptions.landscape'), value: 'LANDSCAPE' },
@@ -154,9 +146,9 @@ watch(
 </script>
 
 <template>
-  <section :class="formShell">
-    <section :class="sectionCard">
-      <div :class="sectionLayout">
+  <section class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:gap-6">
+    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+      <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
           <div>
@@ -213,11 +205,11 @@ watch(
               </UFormField>
             </div>
           </div>
-          <div :class="baseGrid">
-            <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')" :class="thirdCol">
+          <div class="grid grid-cols-12 gap-3 lg:gap-4">
+            <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model.number="form.width" class="w-full" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model.number="form.height" class="w-full" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
             </UFormField>
           </div>
@@ -225,8 +217,8 @@ watch(
       </div>
     </section>
 
-    <section :class="sectionCard">
-      <div :class="sectionLayout">
+    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+      <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
           <div>
@@ -308,11 +300,11 @@ watch(
               </UButton>
             </div>
           </div>
-          <div :class="baseGrid">
-            <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName" :class="halfCol">
+          <div class="grid grid-cols-12 gap-3 lg:gap-4">
+            <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName" class="col-span-12 md:col-span-6">
               <UInput v-model="form.locationName" class="w-full" :placeholder="t('admin.upload.fields.locationName.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw" :class="halfCol">
+            <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw" class="col-span-12 md:col-span-6">
               <UInput v-model="form.location" class="w-full" :placeholder="t('admin.upload.fields.locationRaw.placeholder')" />
             </UFormField>
           </div>
@@ -320,8 +312,8 @@ watch(
       </div>
     </section>
 
-    <section :class="sectionCard">
-      <div :class="sectionLayout">
+    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+      <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
           <div>
@@ -349,29 +341,29 @@ watch(
               </p>
             </div>
           </div>
-          <div :class="baseGrid">
-            <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel" :class="halfCol">
+          <div class="grid grid-cols-12 gap-3 lg:gap-4">
+            <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel" class="col-span-12 md:col-span-6">
               <UInput v-model="form.cameraModel" class="w-full" :placeholder="t('admin.upload.fields.cameraModel.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.lensModel.label')" name="lensModel" :class="halfCol">
+            <UFormField :label="t('admin.upload.fields.lensModel.label')" name="lensModel" class="col-span-12 md:col-span-6">
               <UInput v-model="form.lensModel" class="w-full" :placeholder="t('admin.upload.fields.lensModel.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.aperture.label')" name="aperture" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.aperture.label')" name="aperture" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model="form.aperture" class="w-full" :placeholder="t('admin.upload.fields.aperture.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.shutterSpeed.label')" name="shutterSpeed" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.shutterSpeed.label')" name="shutterSpeed" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model="form.shutterSpeed" class="w-full" :placeholder="t('admin.upload.fields.shutterSpeed.placeholder')" />
             </UFormField>
-            <UFormField name="iso" label="ISO" :class="thirdCol">
+            <UFormField name="iso" label="ISO" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model="form.iso" class="w-full" placeholder="800" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.focalLength.label')" name="focalLength" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.focalLength.label')" name="focalLength" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model="form.focalLength" class="w-full" :placeholder="t('admin.upload.fields.focalLength.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.exposureBias.label')" name="exposureBias" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.exposureBias.label')" name="exposureBias" class="col-span-12 md:col-span-6 xl:col-span-4">
               <UInput v-model="form.exposureBias" class="w-full" :placeholder="t('admin.upload.fields.exposureBias.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.exposureProgram.label')" name="exposureProgram" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.exposureProgram.label')" name="exposureProgram" class="col-span-12 md:col-span-6 xl:col-span-4">
               <USelect
                 v-model="form.exposureProgram"
                 class="w-full"
@@ -381,7 +373,7 @@ watch(
                 :placeholder="t('admin.upload.fields.exposureProgram.placeholder')"
               />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.exposureMode.label')" name="exposureMode" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.exposureMode.label')" name="exposureMode" class="col-span-12 md:col-span-6 xl:col-span-4">
               <USelect
                 v-model="form.exposureMode"
                 class="w-full"
@@ -391,7 +383,7 @@ watch(
                 :placeholder="t('admin.upload.fields.exposureMode.placeholder')"
               />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.meteringMode.label')" name="meteringMode" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.meteringMode.label')" name="meteringMode" class="col-span-12 md:col-span-6 xl:col-span-4">
               <USelect
                 v-model="form.meteringMode"
                 class="w-full"
@@ -401,7 +393,7 @@ watch(
                 :placeholder="t('admin.upload.fields.meteringMode.placeholder')"
               />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.whiteBalance.label')" name="whiteBalance" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.whiteBalance.label')" name="whiteBalance" class="col-span-12 md:col-span-6 xl:col-span-4">
               <USelect
                 v-model="form.whiteBalance"
                 class="w-full"
@@ -411,7 +403,7 @@ watch(
                 :placeholder="t('admin.upload.fields.whiteBalance.placeholder')"
               />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.flash.label')" name="flash" :class="thirdCol">
+            <UFormField :label="t('admin.upload.fields.flash.label')" name="flash" class="col-span-12 md:col-span-6 xl:col-span-4">
               <USelect
                 v-model="form.flash"
                 class="w-full"
@@ -426,8 +418,8 @@ watch(
       </div>
     </section>
 
-    <section :class="sectionCard">
-      <div :class="sectionLayout">
+    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+      <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
           <div>
@@ -440,11 +432,11 @@ watch(
           </div>
         </div>
         <div class="w-full">
-          <div :class="baseGrid">
-            <UFormField :label="t('admin.upload.fields.colorSpace.label')" name="colorSpace" :class="halfCol">
+          <div class="grid grid-cols-12 gap-3 lg:gap-4">
+            <UFormField :label="t('admin.upload.fields.colorSpace.label')" name="colorSpace" class="col-span-12 md:col-span-6">
               <UInput v-model="form.colorSpace" class="w-full" :placeholder="t('admin.upload.fields.colorSpace.placeholder')" />
             </UFormField>
-            <UFormField :label="t('admin.upload.fields.resolutionUnit.label')" name="resolutionUnit" :class="halfCol">
+            <UFormField :label="t('admin.upload.fields.resolutionUnit.label')" name="resolutionUnit" class="col-span-12 md:col-span-6">
               <UInput v-model="form.resolutionUnit" class="w-full" :placeholder="t('admin.upload.fields.resolutionUnit.placeholder')" />
             </UFormField>
             <div class="col-span-12 grid grid-cols-2 gap-3">
