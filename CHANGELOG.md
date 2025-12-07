@@ -1,3 +1,28 @@
+## v0.10.0
+
+[v0.9.0...v0.10.0](https://github.com/Jannchie/liora/compare/v0.9.0...v0.10.0)
+
+### :sparkles: Features
+
+- **upload**: add async processing status & toasts - By [Jannchie](mailto:jannchie@gmail.com) in [f7ef731](https://github.com/Jannchie/liora/commit/f7ef731)
+- **upload**: show upload progress with speed and size - By [Jannchie](mailto:jannchie@gmail.com) in [0d52e5b](https://github.com/Jannchie/liora/commit/0d52e5b)
+
+### :adhesive_bandage: Fixes
+
+- **fetch**: disable server-side fetching for client-only requests - By [Jannchie](mailto:jannchie@gmail.com) in [3f380e1](https://github.com/Jannchie/liora/commit/3f380e1)
+
+### :art: Refactors
+
+- **ui**: replace computed layout classes with static classes && simplify xhr event handling && adjust home layout hydration logic - By [Jannchie](mailto:jannchie@gmail.com) in [2eaf57c](https://github.com/Jannchie/liora/commit/2eaf57c)
+- **uploads**: process file uploads asynchronously && add cache-control headers - By [Jannchie](mailto:jannchie@gmail.com) in [3d64534](https://github.com/Jannchie/liora/commit/3d64534)
+
+### :wrench: Chores
+
+- **.github-workflows**: remove prisma client generation from ci - By [Jannchie](mailto:jannchie@gmail.com) in [047788f](https://github.com/Jannchie/liora/commit/047788f)
+- **deps**: update pnpm lock and workspace dependencies - By [Jannchie](mailto:jannchie@gmail.com) in [fc0f8bc](https://github.com/Jannchie/liora/commit/fc0f8bc)
+- **icons**: add lucide icon catalog && convert useFetch to client-side call - By [Jannchie](mailto:jannchie@gmail.com) in [436348a](https://github.com/Jannchie/liora/commit/436348a)
+- **server**: add middleware to ignore specific paths - By [Jannchie](mailto:jannchie@gmail.com) in [34d746c](https://github.com/Jannchie/liora/commit/34d746c)
+
 ## v0.9.0
 
 [v0.8.0...v0.9.0](https://github.com/Jannchie/liora/compare/v0.8.0...v0.9.0)
