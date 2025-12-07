@@ -582,9 +582,9 @@ function resolveOverlayRouteIdFromPathParam(): number | null {
   const param = route.params[overlayRouteParam]
   const normalized = Array.isArray(param)
     ? param.join('/')
-    : typeof param === 'string'
-      ? param
-      : ''
+    : (typeof param === 'string'
+        ? param
+        : '')
   if (normalized.length === 0) {
     return null
   }

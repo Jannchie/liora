@@ -1,13 +1,14 @@
 import type { H3Event } from 'h3'
 import type { S3Config } from '../utils/s3'
-import type { FileMetadata, FileResponse } from '~/types/file'
+import type { FileMetadata } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
 import { basename, extname } from 'node:path'
+import { eq } from 'drizzle-orm'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
 import { db, files } from '../utils/db'
-import { joinCharacters, toFileResponse } from '../utils/file-mapper'
+import { joinCharacters } from '../utils/file-mapper'
 import { computeHistogram } from '../utils/histogram'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
 
@@ -35,11 +36,6 @@ const FORMAT_MIME_MAP: Record<string, string> = {
   tif: 'image/tiff',
   gif: 'image/gif',
   svg: 'image/svg+xml',
-}
-
-interface ImageHashes {
-  perceptualHash: string | null
-  sha256: string
 }
 
 const LENGTH_LIMITS = {
@@ -105,14 +101,9 @@ async function computePerceptualHash(data: Buffer): Promise<string | null> {
   }
 }
 
-async function computeHashes(data: Buffer): Promise<ImageHashes> {
-  return {
-    perceptualHash: await computePerceptualHash(data),
-    sha256: createHash('sha256').update(data).digest('hex'),
-  }
-}
-
 const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
+
+const computeSha256 = (data: Buffer): string => createHash('sha256').update(data).digest('hex')
 
 function parseCharacters(raw: string | undefined): string[] {
   return (raw ?? '')
@@ -344,7 +335,7 @@ async function generateThumbhash(data: Buffer): Promise<string | null> {
   }
 }
 
-async function saveFile(file: MultipartEntry, config: S3Config, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, config: S3Config, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = buildBaseName(file.filename)
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -357,13 +348,112 @@ async function saveFile(file: MultipartEntry, config: S3Config, contentType: str
     config,
   })
 
-  const thumbhash = await generateThumbhash(file.data) ?? undefined
   const thumbnailUrl = imageUrl
 
-  return { imageUrl, thumbnailUrl, thumbhash }
+  return { imageUrl, thumbnailUrl }
 }
 
-export default defineEventHandler(async (event): Promise<FileResponse> => {
+function enqueueMetadataPostProcessing(fileId: number, buffer: Buffer, baseMetadata: FileMetadata): void {
+  setTimeout(async () => {
+    const nextMetadata: FileMetadata = { ...baseMetadata }
+    try {
+      const [perceptualHash, histogram, thumbhash] = await Promise.all([
+        computePerceptualHash(buffer),
+        computeHistogram(buffer),
+        generateThumbhash(buffer),
+      ])
+      if (perceptualHash) {
+        nextMetadata.perceptualHash = perceptualHash
+      }
+      if (histogram) {
+        nextMetadata.histogram = histogram
+      }
+      if (thumbhash) {
+        nextMetadata.thumbhash = thumbhash
+      }
+      await db
+        .update(files)
+        .set({ metadata: JSON.stringify(nextMetadata) })
+        .where(eq(files.id, fileId))
+    }
+    catch (error) {
+      console.error('Post-upload metadata processing failed:', error)
+    }
+  }, 0)
+}
+
+interface UploadJobPayload {
+  file: MultipartEntry
+  fields: Record<string, string>
+  storageConfig: S3Config
+}
+
+async function processUploadJob(payload: UploadJobPayload): Promise<void> {
+  const { file, fields, storageConfig } = payload
+  try {
+    const { width, height, contentType } = await validateImage(file)
+    const characters = parseCharacters(fields.characters)
+    const metadata = buildMetadata(fields, characters)
+    const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
+    metadata.cameraModel = deduped.cameraModel
+    metadata.lensModel = deduped.lensModel
+    metadata.fileSize = file.data.length
+    metadata.sha256 = computeSha256(file.data)
+    const normalizedTitle = normalizeText(fields.title)
+    const normalizedDescription = normalizeText(fields.description)
+    const normalizedGenre = normalizeText(fields.genre)
+    const originalName = file.filename ? basename(file.filename) : ''
+    validateLengths({
+      title: normalizedTitle,
+      description: normalizedDescription,
+      genre: normalizedGenre,
+      metadata,
+      characters,
+      originalName,
+    })
+    const { imageUrl, thumbnailUrl } = await saveFile(file, storageConfig, contentType)
+
+    const [created] = await db
+      .insert(files)
+      .values({
+        title: normalizedTitle,
+        description: normalizedDescription,
+        originalName,
+        imageUrl,
+        thumbnailUrl,
+        width,
+        height,
+        fanworkTitle: metadata.fanworkTitle,
+        characterList: joinCharacters(characters),
+        location: metadata.location,
+        locationName: metadata.locationName,
+        latitude: metadata.latitude,
+        longitude: metadata.longitude,
+        cameraModel: metadata.cameraModel,
+        aperture: metadata.aperture,
+        focalLength: metadata.focalLength,
+        iso: metadata.iso,
+        shutterSpeed: metadata.shutterSpeed,
+        captureTime: metadata.captureTime,
+        metadata: JSON.stringify(metadata),
+        genre: normalizedGenre,
+      })
+      .returning()
+
+    enqueueMetadataPostProcessing(created.id, file.data, metadata)
+  }
+  catch (error) {
+    console.error('Async upload job failed:', error)
+  }
+}
+
+function startBackgroundUpload(payload: UploadJobPayload): void {
+  setTimeout(() => {
+    void processUploadJob(payload)
+  }, 0)
+}
+
+export default defineEventHandler(async (event): Promise<{ accepted: true }> => {
   requireAdmin(event)
   const { file, fields } = await parseMultipart(event)
   if (file.data.length > MAX_FILE_SIZE_BYTES) {
@@ -373,65 +463,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     })
   }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
-  const { width, height, contentType } = await validateImage(file)
-
-  const characters = parseCharacters(fields.characters)
-  const metadata = buildMetadata(fields, characters)
-  const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
-  metadata.cameraModel = deduped.cameraModel
-  metadata.lensModel = deduped.lensModel
-  metadata.fileSize = file.data.length
-  const normalizedTitle = normalizeText(fields.title)
-  const normalizedDescription = normalizeText(fields.description)
-  const normalizedGenre = normalizeText(fields.genre)
-  const originalName = file.filename ? basename(file.filename) : ''
-  validateLengths({
-    title: normalizedTitle,
-    description: normalizedDescription,
-    genre: normalizedGenre,
-    metadata,
-    characters,
-    originalName,
-  })
-  const hashes = await computeHashes(file.data)
-  metadata.perceptualHash = hashes.perceptualHash ?? undefined
-  metadata.sha256 = hashes.sha256
-
-  const histogram = await computeHistogram(file.data)
-  if (histogram) {
-    metadata.histogram = histogram
-  }
-  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, storageConfig, contentType)
-  if (thumbhash) {
-    metadata.thumbhash = thumbhash
-  }
-
-  const [created] = await db
-    .insert(files)
-    .values({
-      title: normalizedTitle,
-      description: normalizedDescription,
-      originalName,
-      imageUrl,
-      thumbnailUrl,
-      width,
-      height,
-      fanworkTitle: metadata.fanworkTitle,
-      characterList: joinCharacters(characters),
-      location: metadata.location,
-      locationName: metadata.locationName,
-      latitude: metadata.latitude,
-      longitude: metadata.longitude,
-      cameraModel: metadata.cameraModel,
-      aperture: metadata.aperture,
-      focalLength: metadata.focalLength,
-      iso: metadata.iso,
-      shutterSpeed: metadata.shutterSpeed,
-      captureTime: metadata.captureTime,
-      metadata: JSON.stringify(metadata),
-      genre: normalizedGenre,
-    })
-    .returning()
-
-  return toFileResponse(created)
+  startBackgroundUpload({ file, fields, storageConfig })
+  event.node.res.statusCode = 202
+  return { accepted: true }
 })

@@ -11,13 +11,13 @@ import { useSiteSettingsState } from '~/composables/useSiteSettings'
 const { t } = useI18n()
 
 definePageMeta({
-  path: '/:rest(photo/\\d+)?',
+  path: String.raw`/:rest(photo/\d+)?`,
   validate: (route) => {
     const rest = Array.isArray(route.params.rest)
       ? route.params.rest.join('/')
-      : typeof route.params.rest === 'string'
-        ? route.params.rest
-        : ''
+      : (typeof route.params.rest === 'string'
+          ? route.params.rest
+          : '')
     if (rest.length === 0) {
       return true
     }
@@ -28,6 +28,7 @@ definePageMeta({
 const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
 })
+console.log(data.value)
 
 const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
 await loadSiteSettings()
