@@ -170,6 +170,12 @@
         "edit": {
           "label": "编辑与保存",
           "title": "完善元数据"
+        },
+        "progress": {
+          "title": "上传进度",
+          "uploaded": "已上传",
+          "speed": "速度",
+          "total": "总大小"
         }
       },
       "formSections": {

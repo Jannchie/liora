@@ -85,6 +85,18 @@
   letter-spacing: 0;
 }
 
+/* @layer theme {
+  .dark {
+    --ui-bg: #000;
+    --ui-bg-muted: #050505;
+    --ui-bg-elevated: #0a0a0a;
+    --ui-bg-accented: #111111;
+    --ui-border: #1a1a1a;
+    --ui-border-muted: #111111;
+    --ui-border-accented: #1f1f1f;
+  }
+} */
+
 html,body {
   touch-action: manipulation;
 }

@@ -170,6 +170,12 @@
         "edit": {
           "label": "Edit & save",
           "title": "Complete metadata"
+        },
+        "progress": {
+          "title": "Upload progress",
+          "uploaded": "Uploaded",
+          "speed": "Speed",
+          "total": "Total size"
         }
       },
       "formSections": {

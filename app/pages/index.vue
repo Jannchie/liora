@@ -62,7 +62,7 @@ const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isMobile = breakpoints.smaller('md')
-const socialButtonSize = computed(() => (isMobile.value ? 'md' : 'lg'))
+const socialButtonSize = computed(() => (isMobile.value ? 'sm' : 'lg'))
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
   const placement = siteSettings.value?.infoPlacement?.trim()
@@ -125,12 +125,12 @@ defineOgImageComponent('LioraCard', {
       v-if="showHeaderInfo"
       class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
     >
-      <div class="mx-auto flex flex-wrap items-center justify-between gap-2 px-3 py-2 md:max-w-[2000px] md:gap-3 md:px-4 md:py-3">
-        <div class="flex w-full flex-wrap items-center gap-2 md:flex-1 md:gap-3">
+      <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-[2000px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
+        <div class="flex w-full flex-col items-center gap-1 md:flex-1 md:flex-row md:items-center md:gap-3">
           <h1 class="home-title-font text-sm font-semibold leading-tight text-highlighted md:text-lg">
             {{ pageTitle }}
           </h1>
-          <div class="flex flex-wrap items-center gap-2 text-muted">
+          <div class="flex flex-wrap items-center justify-center gap-1 text-muted md:justify-start md:gap-2">
             <UButton
               v-for="link in headerSocialLinks"
               :key="link.label"

@@ -170,6 +170,12 @@
         "edit": {
           "label": "編集と保存",
           "title": "メタデータを完成させる"
+        },
+        "progress": {
+          "title": "アップロード進行状況",
+          "uploaded": "送信済み",
+          "speed": "速度",
+          "total": "合計サイズ"
         }
       },
       "formSections": {

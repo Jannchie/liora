@@ -81,6 +81,11 @@ const formModel = computed<MediaFormState>({
 })
 
 const submitting = ref(false)
+const uploadProgress = ref(0)
+const uploadSpeed = ref(0)
+const uploadBytesSent = ref(0)
+const uploadTotalBytes = ref(0)
+const uploadStartedAt = ref<number | null>(null)
 const selectedFile = computed<File | null>(() => {
   return uploadValue.value ?? null
 })
@@ -107,6 +112,11 @@ const {
   flashOptions,
 } = useExposureOptions()
 const selectedFileName = computed(() => selectedFile.value?.name ?? t('common.labels.untitled'))
+const uploadProgressPercent = computed(() => Math.min(100, Math.max(0, uploadProgress.value)))
+const uploadSpeedText = computed(() => formatSpeed(uploadSpeed.value))
+const uploadTotalText = computed(() => formatFileSize(uploadTotalBytes.value))
+const uploadedBytesText = computed(() => formatFileSize(uploadBytesSent.value))
+const isUploading = computed(() => submitting.value)
 let activeMetadataToken = 0
 
 function normalizeToOption(
@@ -178,6 +188,7 @@ function setUploadValue(file: File | null): void {
 function clearFormForNewFile(): void {
   resetFileState()
   resetOptionalFields()
+  resetUploadMetrics()
 }
 
 function clearSelectedFile(): void {
@@ -196,6 +207,14 @@ function resetFileState(): void {
   if (inputEl) {
     inputEl.value = ''
   }
+}
+
+function resetUploadMetrics(): void {
+  uploadProgress.value = 0
+  uploadSpeed.value = 0
+  uploadBytesSent.value = 0
+  uploadTotalBytes.value = 0
+  uploadStartedAt.value = null
 }
 
 function getFileInputElement(): HTMLInputElement | null {
@@ -698,6 +717,21 @@ function formatFileSize(bytes: number): string {
   return `${mb.toFixed(1)} MB`
 }
 
+function formatSpeed(bytesPerSecond: number): string {
+  if (bytesPerSecond <= 0) {
+    return '0 B/s'
+  }
+  const kb = bytesPerSecond / 1024
+  if (kb < 1) {
+    return `${bytesPerSecond.toFixed(0)} B/s`
+  }
+  if (kb < 1024) {
+    return `${kb.toFixed(1)} KB/s`
+  }
+  const mb = kb / 1024
+  return `${mb.toFixed(1)} MB/s`
+}
+
 const previewChips = computed(() => {
   const chips: { icon: string, text: string }[] = []
   if (form.width > 0 && form.height > 0) {
@@ -712,6 +746,49 @@ const previewChips = computed(() => {
   return chips
 })
 
+function sendFileWithProgress(formData: FormData): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest()
+    uploadStartedAt.value = performance.now()
+    uploadBytesSent.value = 0
+    uploadTotalBytes.value = selectedFile.value?.size ?? 0
+    xhr.upload.onprogress = (event) => {
+      const total = event.lengthComputable ? event.total : uploadTotalBytes.value
+      if (event.lengthComputable) {
+        uploadTotalBytes.value = event.total
+      }
+      const loaded = event.loaded
+      uploadBytesSent.value = loaded
+      if (total > 0) {
+        uploadProgress.value = Math.min(100, (loaded / total) * 100)
+      }
+      else {
+        uploadProgress.value = 0
+      }
+      const startedAt = uploadStartedAt.value
+      if (startedAt !== null) {
+        const elapsedSeconds = (performance.now() - startedAt) / 1000
+        if (elapsedSeconds > 0) {
+          uploadSpeed.value = loaded / elapsedSeconds
+        }
+      }
+    }
+    xhr.onerror = () => reject(new Error('Upload failed'))
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        uploadBytesSent.value = uploadTotalBytes.value || uploadBytesSent.value
+        uploadProgress.value = 100
+        resolve()
+      }
+      else {
+        reject(new Error(xhr.statusText || 'Upload failed'))
+      }
+    }
+    xhr.open('POST', '/api/files')
+    xhr.send(formData)
+  })
+}
+
 async function submit(): Promise<void> {
   if (!selectedFile.value) {
     toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
@@ -724,6 +801,7 @@ async function submit(): Promise<void> {
   }
 
   submitting.value = true
+  resetUploadMetrics()
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
@@ -756,10 +834,7 @@ async function submit(): Promise<void> {
     formData.append('captureTime', form.captureTime)
     formData.append('notes', form.notes)
 
-    await $fetch('/api/files', {
-      method: 'POST',
-      body: formData,
-    })
+    await sendFileWithProgress(formData)
     clearSelectedFile()
   }
   catch (error) {
@@ -942,6 +1017,44 @@ onBeforeUnmount(() => {
                   <Icon name="mdi:information-outline" class="h-4 w-4" />
                   <span>{{ selectedFile?.type || 'image' }}</span>
                 </div>
+              </div>
+              <div
+                v-if="isUploading"
+                class="space-y-2 rounded-lg border border-default/50 bg-default/80 px-3 py-3"
+              >
+                <div class="flex items-center justify-between gap-2 text-sm">
+                  <div class="flex items-center gap-2">
+                    <Icon name="mdi:progress-upload" class="h-4 w-4 text-primary" />
+                    <span class="font-semibold text-highlighted">
+                      {{ t('admin.upload.sections.progress.title') }}
+                    </span>
+                  </div>
+                  <span class="text-xs text-muted">
+                    {{ uploadProgressPercent.toFixed(1) }}%
+                  </span>
+                </div>
+                <div class="h-2 w-full overflow-hidden rounded-full bg-default/50">
+                  <div
+                    class="h-full bg-primary transition-all"
+                    :style="{ width: `${uploadProgressPercent}%` }"
+                  />
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                  <span class="flex items-center gap-1">
+                    <Icon name="mdi:database-arrow-up-outline" class="h-4 w-4" />
+                    <span>{{ t('admin.upload.sections.progress.uploaded') }}:</span>
+                    <span class="text-highlighted">{{ uploadedBytesText }}</span>
+                    <span v-if="uploadTotalBytes">/ {{ uploadTotalText }}</span>
+                  </span>
+                  <span class="flex items-center gap-1">
+                    <Icon name="mdi:speedometer" class="h-4 w-4" />
+                    <span>{{ t('admin.upload.sections.progress.speed') }}:</span>
+                    <span class="text-highlighted">{{ uploadSpeedText }}</span>
+                  </span>
+                </div>
+                <p class="text-[11px] text-muted">
+                  {{ t('admin.upload.sections.progress.total') }}: {{ uploadTotalText }}
+                </p>
               </div>
             </div>
           </UCard>
