@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
+import type { UploadProcessingStatus } from '~/types/file'
 import exifr from 'exifr'
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useExposureOptions } from '~/composables/useExposureOptions'
@@ -7,6 +8,7 @@ import { toLocalInputString } from '~/utils/datetime'
 
 const { t } = useI18n()
 const toast = useToast()
+const { $fetch } = useNuxtApp()
 definePageMeta({
   middleware: 'admin-auth',
 })
@@ -27,6 +29,12 @@ const toastMessages = computed(() => ({
   geocodeFailedTitle: t('admin.upload.toast.geocodeFailedTitle'),
   geocodeFailedFallback: t('admin.upload.toast.geocodeFailedFallback'),
   geocodeNoResult: t('admin.upload.toast.geocodeNoResult'),
+  processing: t('admin.upload.toast.processing'),
+  processingDescription: t('admin.upload.toast.processingDescription'),
+  processingDoneTitle: t('admin.upload.toast.processingDoneTitle'),
+  processingDoneDescription: t('admin.upload.toast.processingDoneDescription'),
+  processingFailedTitle: t('admin.upload.toast.processingFailedTitle'),
+  processingFailedDescription: t('admin.upload.toast.processingFailedDescription'),
 }))
 
 useSeoMeta({
@@ -118,6 +126,8 @@ const uploadTotalText = computed(() => formatFileSize(uploadTotalBytes.value))
 const uploadedBytesText = computed(() => formatFileSize(uploadBytesSent.value))
 const isUploading = computed(() => submitting.value)
 let activeMetadataToken = 0
+const processingToastId = ref<string | null>(null)
+const processingPollTimer = ref<ReturnType<typeof setInterval> | null>(null)
 
 function normalizeToOption(
   value: string | undefined,
@@ -746,9 +756,102 @@ const previewChips = computed(() => {
   return chips
 })
 
-function sendFileWithProgress(formData: FormData): Promise<void> {
+function stopProcessingStatusPoll(): void {
+  if (processingPollTimer.value !== null) {
+    clearInterval(processingPollTimer.value)
+    processingPollTimer.value = null
+  }
+}
+
+function pushProcessingToast(status: UploadProcessingStatus | 'unknown'): void {
+  if (!processingToastId.value) {
+    return
+  }
+  if (status === 'processing') {
+    toast.add({
+      id: processingToastId.value,
+      title: toastMessages.value.processing,
+      description: toastMessages.value.processingDescription,
+      color: 'primary',
+      timeout: 0,
+    })
+    return
+  }
+  if (status === 'completed') {
+    toast.add({
+      id: processingToastId.value,
+      title: toastMessages.value.processingDoneTitle,
+      description: toastMessages.value.processingDoneDescription,
+      color: 'success',
+    })
+    return
+  }
+  toast.add({
+    id: processingToastId.value,
+    title: toastMessages.value.processingFailedTitle,
+    description: toastMessages.value.processingFailedDescription,
+    color: 'error',
+  })
+}
+
+function startProcessingStatusPoll(uploadId: string): void {
+  stopProcessingStatusPoll()
+  processingToastId.value = `upload-processing-${uploadId}`
+  pushProcessingToast('processing')
+  let attempts = 0
+  const maxAttempts = 120
+  const poll = async (): Promise<void> => {
+    attempts += 1
+    try {
+      const response = await $fetch<{ status: UploadProcessingStatus | 'unknown' }>('/api/files/status', {
+        params: { uploadId },
+        retry: 0,
+      })
+      if (response.status === 'processing') {
+        if (attempts >= maxAttempts) {
+          pushProcessingToast('failed')
+          stopProcessingStatusPoll()
+        }
+        return
+      }
+      pushProcessingToast(response.status)
+      stopProcessingStatusPoll()
+    }
+    catch (error) {
+      if (attempts >= maxAttempts) {
+        pushProcessingToast('failed')
+        stopProcessingStatusPoll()
+      }
+    }
+  }
+  void poll()
+  processingPollTimer.value = setInterval(() => {
+    void poll()
+  }, 2000)
+}
+
+function extractUploadIdFromResponse(response: unknown): string | undefined {
+  if (typeof response === 'object' && response !== null && 'uploadId' in response) {
+    const value = (response as Record<string, unknown>).uploadId
+    return typeof value === 'string' ? value : undefined
+  }
+  if (typeof response === 'string') {
+    try {
+      const parsed = JSON.parse(response) as Record<string, unknown>
+      const uploadId = parsed.uploadId
+      return typeof uploadId === 'string' ? uploadId : undefined
+    }
+    catch {
+      return undefined
+    }
+  }
+  return undefined
+}
+
+function sendFileWithProgress(formData: FormData): Promise<{ uploadId?: string }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
+    xhr.responseType = 'json'
     uploadStartedAt.value = performance.now()
     uploadBytesSent.value = 0
     uploadTotalBytes.value = selectedFile.value?.size ?? 0
@@ -774,7 +877,8 @@ function sendFileWithProgress(formData: FormData): Promise<void> {
       if (xhr.status >= 200 && xhr.status < 300) {
         uploadBytesSent.value = uploadTotalBytes.value || uploadBytesSent.value
         uploadProgress.value = 100
-        resolve()
+        const uploadId = extractUploadIdFromResponse(xhr.response ?? xhr.responseText)
+        resolve({ uploadId })
       }
       else {
         reject(new Error(xhr.statusText || 'Upload failed'))
@@ -798,6 +902,7 @@ async function submit(): Promise<void> {
 
   submitting.value = true
   resetUploadMetrics()
+  stopProcessingStatusPoll()
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
@@ -830,8 +935,18 @@ async function submit(): Promise<void> {
     formData.append('captureTime', form.captureTime)
     formData.append('notes', form.notes)
 
-    await sendFileWithProgress(formData)
+    const { uploadId } = await sendFileWithProgress(formData)
     clearSelectedFile()
+    if (uploadId) {
+      startProcessingStatusPoll(uploadId)
+    }
+    else {
+      toast.add({
+        title: toastMessages.value.processingDoneTitle,
+        description: toastMessages.value.processingDoneDescription,
+        color: 'success',
+      })
+    }
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
@@ -847,6 +962,7 @@ onBeforeUnmount(() => {
   if (pasteListener && target) {
     target.removeEventListener('paste', pasteListener)
   }
+  stopProcessingStatusPoll()
   clearSelectedFile()
 })
 </script>

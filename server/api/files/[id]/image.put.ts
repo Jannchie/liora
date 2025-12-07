@@ -291,9 +291,12 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     sha256: undefined,
     histogram: null,
     fileSize: existingFileSize,
+    processingStatus: 'completed',
+    uploadId: '',
   })
   const metadata = buildMetadata(fields, characters)
   metadata.fileSize = file.data.length
+  metadata.processingStatus = 'completed'
 
   const hashes = await computeHashes(file.data)
   metadata.perceptualHash = hashes.perceptualHash ?? undefined
@@ -343,6 +346,8 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     perceptualHash: metadata.perceptualHash ?? existingMetadata.perceptualHash,
     sha256: metadata.sha256 ?? existingMetadata.sha256,
     histogram: metadata.histogram ?? existingMetadata.histogram ?? null,
+    processingStatus: metadata.processingStatus ?? existingMetadata.processingStatus ?? 'completed',
+    uploadId: metadata.uploadId ?? existingMetadata.uploadId ?? '',
   }
 
   const [updated] = await db

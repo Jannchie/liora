@@ -5,6 +5,8 @@ export interface HistogramData {
   luminance: number[]
 }
 
+export type UploadProcessingStatus = 'processing' | 'completed' | 'failed'
+
 export interface FileMetadata {
   fanworkTitle: string
   characters: string[]
@@ -36,6 +38,8 @@ export interface FileMetadata {
   perceptualHash?: string
   sha256?: string
   histogram?: HistogramData | null
+  processingStatus?: UploadProcessingStatus
+  uploadId?: string
 }
 
 export interface FilePayload {

@@ -58,6 +58,8 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
     sha256: parsed.sha256 ?? fallbacks.sha256,
     histogram: parsed.histogram ?? fallbacks.histogram,
+    processingStatus: parsed.processingStatus ?? fallbacks.processingStatus,
+    uploadId: parsed.uploadId ?? fallbacks.uploadId,
   }
 }
 
@@ -94,6 +96,8 @@ export function toFileResponse(file: FileRow): FileResponse {
     perceptualHash: undefined,
     sha256: undefined,
     histogram: null,
+    processingStatus: 'completed',
+    uploadId: '',
   })
   const imageUrl = file.imageUrl || file.thumbnailUrl || ''
   const genre = file.genre?.trim() ?? ''

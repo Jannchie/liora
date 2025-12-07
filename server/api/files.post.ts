@@ -11,6 +11,7 @@ import { db, files } from '../utils/db'
 import { joinCharacters } from '../utils/file-mapper'
 import { computeHistogram } from '../utils/histogram'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
+import { setUploadStatus, type UploadStatus } from '../utils/upload-status'
 
 interface MultipartEntry {
   name: string
@@ -353,43 +354,62 @@ async function saveFile(file: MultipartEntry, config: S3Config, contentType: str
   return { imageUrl, thumbnailUrl }
 }
 
-function enqueueMetadataPostProcessing(fileId: number, buffer: Buffer, baseMetadata: FileMetadata): void {
-  setTimeout(async () => {
-    const nextMetadata: FileMetadata = { ...baseMetadata }
-    try {
-      const [perceptualHash, histogram, thumbhash] = await Promise.all([
-        computePerceptualHash(buffer),
-        computeHistogram(buffer),
-        generateThumbhash(buffer),
-      ])
-      if (perceptualHash) {
-        nextMetadata.perceptualHash = perceptualHash
-      }
-      if (histogram) {
-        nextMetadata.histogram = histogram
-      }
-      if (thumbhash) {
-        nextMetadata.thumbhash = thumbhash
-      }
-      await db
-        .update(files)
-        .set({ metadata: JSON.stringify(nextMetadata) })
-        .where(eq(files.id, fileId))
+async function runMetadataPostProcessing(
+  fileId: number,
+  buffer: Buffer,
+  baseMetadata: FileMetadata,
+  uploadId: string,
+): Promise<UploadStatus> {
+  const nextMetadata: FileMetadata = { ...baseMetadata }
+  let status: UploadStatus = 'completed'
+  try {
+    const [perceptualHash, histogram, thumbhash] = await Promise.all([
+      computePerceptualHash(buffer),
+      computeHistogram(buffer),
+      generateThumbhash(buffer),
+    ])
+    if (perceptualHash) {
+      nextMetadata.perceptualHash = perceptualHash
     }
-    catch (error) {
-      console.error('Post-upload metadata processing failed:', error)
+    if (histogram) {
+      nextMetadata.histogram = histogram
     }
-  }, 0)
+    if (thumbhash) {
+      nextMetadata.thumbhash = thumbhash
+    }
+  }
+  catch (error) {
+    status = 'failed'
+    console.error('Post-upload metadata processing failed:', error)
+  }
+
+  nextMetadata.processingStatus = status
+  nextMetadata.uploadId = uploadId
+
+  try {
+    await db
+      .update(files)
+      .set({ metadata: JSON.stringify(nextMetadata) })
+      .where(eq(files.id, fileId))
+  }
+  catch (error) {
+    status = 'failed'
+    console.error('Post-upload metadata persistence failed:', error)
+  }
+
+  return status
 }
 
 interface UploadJobPayload {
   file: MultipartEntry
   fields: Record<string, string>
   storageConfig: S3Config
+  uploadId: string
+  sha256: string
 }
 
 async function processUploadJob(payload: UploadJobPayload): Promise<void> {
-  const { file, fields, storageConfig } = payload
+  const { file, fields, storageConfig, uploadId, sha256 } = payload
   try {
     const { width, height, contentType } = await validateImage(file)
     const characters = parseCharacters(fields.characters)
@@ -398,7 +418,9 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
     metadata.cameraModel = deduped.cameraModel
     metadata.lensModel = deduped.lensModel
     metadata.fileSize = file.data.length
-    metadata.sha256 = computeSha256(file.data)
+    metadata.sha256 = sha256
+    metadata.processingStatus = 'processing'
+    metadata.uploadId = uploadId
     const normalizedTitle = normalizeText(fields.title)
     const normalizedDescription = normalizeText(fields.description)
     const normalizedGenre = normalizeText(fields.genre)
@@ -440,9 +462,11 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
       })
       .returning()
 
-    enqueueMetadataPostProcessing(created.id, file.data, metadata)
+    const status = await runMetadataPostProcessing(created.id, file.data, metadata, uploadId)
+    setUploadStatus(uploadId, status)
   }
   catch (error) {
+    setUploadStatus(uploadId, 'failed')
     console.error('Async upload job failed:', error)
   }
 }
@@ -453,7 +477,7 @@ function startBackgroundUpload(payload: UploadJobPayload): void {
   }, 0)
 }
 
-export default defineEventHandler(async (event): Promise<{ accepted: true }> => {
+export default defineEventHandler(async (event): Promise<{ accepted: true, uploadId: string }> => {
   requireAdmin(event)
   const { file, fields } = await parseMultipart(event)
   if (file.data.length > MAX_FILE_SIZE_BYTES) {
@@ -463,7 +487,10 @@ export default defineEventHandler(async (event): Promise<{ accepted: true }> => 
     })
   }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
-  startBackgroundUpload({ file, fields, storageConfig })
+  const uploadId = randomUUID()
+  const sha256 = computeSha256(file.data)
+  setUploadStatus(uploadId, 'processing')
+  startBackgroundUpload({ file, fields, storageConfig, uploadId, sha256 })
   event.node.res.statusCode = 202
-  return { accepted: true }
+  return { accepted: true, uploadId }
 })
