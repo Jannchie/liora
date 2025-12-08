@@ -996,7 +996,7 @@ onBeforeUnmount(() => {
             v-model="uploadValue"
             accept="image/*"
             :label="t('admin.upload.sections.upload.dropHint')"
-            :description="`${t('admin.upload.sections.upload.supported')} · ${t('admin.upload.sections.upload.pasteHint')}`"
+            :description="t('admin.upload.sections.upload.supported')"
             class="w-full"
           />
         </UCard>
@@ -1081,9 +1081,6 @@ onBeforeUnmount(() => {
                 <div class="space-y-0.5">
                   <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                     {{ t('admin.upload.sections.preview.title') }}
-                  </p>
-                  <p class="text-sm text-toned">
-                    {{ t('admin.upload.sections.preview.alt') }}
                   </p>
                 </div>
                 <UButton
@@ -1178,9 +1175,6 @@ onBeforeUnmount(() => {
                   <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
                   <span>{{ t('admin.upload.sections.edit.title') }}</span>
                 </h2>
-                <p class="text-sm text-muted">
-                  {{ t('admin.upload.sections.upload.pasteHint') }}
-                </p>
               </div>
             </template>
             <div class="space-y-6">

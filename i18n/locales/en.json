@@ -121,7 +121,6 @@
       "errorFallback": "Sign-in failed, please retry.",
       "sectionLabel": "Admin Panel",
       "heading": "Sign in",
-      "subtitle": "Use the configured admin account to continue.",
       "usernameLabel": "Username",
       "usernamePlaceholder": "Enter username",
       "passwordLabel": "Password",
@@ -165,8 +164,7 @@
         "upload": {
           "label": "Upload photo",
           "dropHint": "Drag a photo here or click to pick a file",
-          "supported": "Common formats such as JPG/PNG are supported",
-          "pasteHint": "You can also paste an image from the clipboard"
+          "supported": "Common formats such as JPG/PNG are supported"
         },
         "preview": {
           "label": "Preview & autofill",
@@ -186,24 +184,16 @@
       },
       "formSections": {
         "basic": {
-          "label": "Basics",
-          "description": "Dimensions, time, and titles"
+          "label": "Basics"
         },
         "camera": {
-          "label": "Shooting settings",
-          "description": "Body, lens, and exposure"
+          "label": "Shooting settings"
         },
         "color": {
-          "label": "Output & color",
-          "description": "Color space and resolution"
+          "label": "Output & color"
         },
         "location": {
-          "label": "Location",
-          "description": "Geo tag and original address"
-        },
-        "notes": {
-          "label": "Additional notes",
-          "description": "Notes to help future search"
+          "label": "Location"
         }
       },
       "fields": {

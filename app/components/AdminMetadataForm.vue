@@ -155,9 +155,6 @@ watch(
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.basic.label') }}
             </p>
-            <p class="text-sm text-toned">
-              {{ t('admin.upload.formSections.basic.description') }}
-            </p>
           </div>
         </div>
         <div class="flex w-full flex-col gap-4">
@@ -224,9 +221,6 @@ watch(
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.location.label') }}
-            </p>
-            <p class="text-sm text-toned">
-              {{ t('admin.upload.formSections.location.description') }}
             </p>
           </div>
         </div>
@@ -319,9 +313,6 @@ watch(
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.camera.label') }}
-            </p>
-            <p class="text-sm text-toned">
-              {{ t('admin.upload.formSections.camera.description') }}
             </p>
           </div>
         </div>
@@ -425,9 +416,6 @@ watch(
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.color.label') }}
-            </p>
-            <p class="text-sm text-toned">
-              {{ t('admin.upload.formSections.color.description') }}
             </p>
           </div>
         </div>

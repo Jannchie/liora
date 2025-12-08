@@ -121,7 +121,6 @@
       "errorFallback": "登录失败，请重试",
       "sectionLabel": "管理后台",
       "heading": "登录",
-      "subtitle": "使用配置的管理员账户进入后台。",
       "usernameLabel": "用户名",
       "usernamePlaceholder": "请输入用户名",
       "passwordLabel": "密码",
@@ -162,16 +161,15 @@
       },
       "title": "作品上传",
       "sections": {
-        "upload": {
-          "label": "上传照片",
-          "dropHint": "拖拽照片到此或点击选择文件",
-          "supported": "支持 JPG/PNG 等常见格式",
-          "pasteHint": "也可以直接粘贴剪贴板中的图片"
-        },
-        "preview": {
-          "label": "预览与自动填充",
-          "title": "照片信息",
-          "alt": "预览"
+      "upload": {
+        "label": "上传照片",
+        "dropHint": "拖拽照片到此或点击选择文件",
+        "supported": "支持 JPG/PNG 等常见格式"
+      },
+      "preview": {
+        "label": "预览与自动填充",
+        "title": "照片信息",
+        "alt": "预览"
         },
         "edit": {
           "label": "编辑与保存",
@@ -186,24 +184,16 @@
       },
       "formSections": {
         "basic": {
-          "label": "基本信息",
-          "description": "尺寸、时间与标题描述"
+          "label": "基本信息"
         },
         "camera": {
-          "label": "拍摄参数",
-          "description": "机身、镜头与曝光设定"
+          "label": "拍摄参数"
         },
         "color": {
-          "label": "输出与色彩",
-          "description": "色彩空间与分辨率"
+          "label": "输出与色彩"
         },
         "location": {
-          "label": "位置信息",
-          "description": "地理标记与原始地址"
-        },
-        "notes": {
-          "label": "附加说明",
-          "description": "备注信息便于后续检索"
+          "label": "位置信息"
         }
       },
       "fields": {

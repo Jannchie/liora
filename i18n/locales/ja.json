@@ -121,7 +121,6 @@
       "errorFallback": "サインインに失敗しました。再度お試しください。",
       "sectionLabel": "管理パネル",
       "heading": "サインイン",
-      "subtitle": "設定済みの管理者アカウントで続行してください。",
       "usernameLabel": "ユーザー名",
       "usernamePlaceholder": "ユーザー名を入力",
       "passwordLabel": "パスワード",
@@ -165,8 +164,7 @@
         "upload": {
           "label": "写真をアップロード",
           "dropHint": "ここに写真をドラッグするかクリックして選択",
-          "supported": "JPG/PNG など一般的な形式に対応",
-          "pasteHint": "クリップボードの画像を貼り付けても使えます"
+          "supported": "JPG/PNG など一般的な形式に対応"
         },
         "preview": {
           "label": "プレビューと自動入力",
@@ -186,24 +184,16 @@
       },
       "formSections": {
         "basic": {
-          "label": "基本情報",
-          "description": "サイズ・時間・タイトル"
+          "label": "基本情報"
         },
         "camera": {
-          "label": "撮影設定",
-          "description": "ボディ・レンズ・露出"
+          "label": "撮影設定"
         },
         "color": {
-          "label": "出力とカラー",
-          "description": "色空間と解像度"
+          "label": "出力とカラー"
         },
         "location": {
-          "label": "位置情報",
-          "description": "ジオタグと元の住所"
-        },
-        "notes": {
-          "label": "補足メモ",
-          "description": "後から探しやすい備考"
+          "label": "位置情報"
         }
       },
       "fields": {
