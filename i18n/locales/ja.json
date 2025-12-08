@@ -557,42 +557,31 @@
           "previewHelp": "ブラウザーのタブやブックマークに表示されます。"
         },
         "homepage": {
-          "label": "個人サイト",
-          "placeholder": "https://example.com",
-          "help": "個人サイトのリンク。空欄なら表示しません。"
+          "placeholder": "https://example.com"
         },
         "github": {
-          "placeholder": "https://github.com/username",
-          "help": "https:// を含む完全な URL を使用。空欄なら非表示。"
+          "placeholder": "https://github.com/username"
         },
         "twitter": {
-          "placeholder": "https://x.com/username",
-          "help": "X/Twitter の URL。空欄なら非表示。"
+          "placeholder": "https://x.com/username"
         },
         "instagram": {
-          "placeholder": "https://instagram.com/username",
-          "help": "任意の公開プロフィール URL。空欄なら非表示。"
+          "placeholder": "https://instagram.com/username"
         },
         "youtube": {
-          "placeholder": "https://youtube.com/\\u0040username",
-          "help": "チャンネルまたはプロフィールの URL。空欄なら非表示。"
+          "placeholder": "https://youtube.com/\\u0040username"
         },
         "bilibili": {
-          "placeholder": "https://space.bilibili.com/123456",
-          "help": "アクセス可能な Bilibili スペースの URL。空欄なら非表示。"
+          "placeholder": "https://space.bilibili.com/123456"
         },
         "tiktok": {
-          "placeholder": "https://www.tiktok.com/\\u0040username",
-          "help": "TikTok のプロフィールリンク。空欄なら非表示。"
+          "placeholder": "https://www.tiktok.com/\\u0040username"
         },
         "linkedin": {
-          "placeholder": "https://www.linkedin.com/in/username",
-          "help": "LinkedIn のプロフィールまたはページ URL。空欄なら非表示。"
+          "placeholder": "https://www.linkedin.com/in/username"
         },
         "weibo": {
-          "label": "Weibo",
-          "placeholder": "https://weibo.com/username",
-          "help": "到達可能な URL を指定。空欄なら非表示。"
+          "placeholder": "https://weibo.com/username"
         }
       },
       "actions": {

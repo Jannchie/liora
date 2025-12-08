@@ -557,42 +557,31 @@
           "previewHelp": "Displayed in browser tabs and bookmarks."
         },
         "homepage": {
-          "label": "Homepage",
-          "placeholder": "https://example.com",
-          "help": "Link to your personal site; leave blank to hide."
+          "placeholder": "https://example.com"
         },
         "github": {
-          "placeholder": "https://github.com/username",
-          "help": "Use a full URL (with https://). Leave blank to hide."
+          "placeholder": "https://github.com/username"
         },
         "twitter": {
-          "placeholder": "https://x.com/username",
-          "help": "Link to X or Twitter; blank to hide."
+          "placeholder": "https://x.com/username"
         },
         "instagram": {
-          "placeholder": "https://instagram.com/username",
-          "help": "Any public profile URL; blank to hide."
+          "placeholder": "https://instagram.com/username"
         },
         "youtube": {
-          "placeholder": "https://youtube.com/\\u0040username",
-          "help": "Use a channel or profile URL; blank to hide."
+          "placeholder": "https://youtube.com/\\u0040username"
         },
         "bilibili": {
-          "placeholder": "https://space.bilibili.com/123456",
-          "help": "Paste a reachable Bilibili space URL; leave blank to hide."
+          "placeholder": "https://space.bilibili.com/123456"
         },
         "tiktok": {
-          "placeholder": "https://www.tiktok.com/\\u0040username",
-          "help": "Add a TikTok profile link; leave blank to hide."
+          "placeholder": "https://www.tiktok.com/\\u0040username"
         },
         "linkedin": {
-          "placeholder": "https://www.linkedin.com/in/username",
-          "help": "Use a LinkedIn profile or page URL; blank to hide."
+          "placeholder": "https://www.linkedin.com/in/username"
         },
         "weibo": {
-          "label": "Weibo",
-          "placeholder": "https://weibo.com/username",
-          "help": "Provide a reachable URL; blank to hide."
+          "placeholder": "https://weibo.com/username"
         }
       },
       "actions": {

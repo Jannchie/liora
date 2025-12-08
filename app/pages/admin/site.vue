@@ -344,139 +344,85 @@ function handleReset(): void {
           </template>
 
           <div class="flex flex-wrap gap-3">
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:home" class="h-4 w-4" />
-                <span>{{ t('admin.site.fields.homepage.label') }}</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.homepage"
+                :aria-label="t('admin.site.fields.homepage.placeholder')"
                 :placeholder="t('admin.site.fields.homepage.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.homepage.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:github" class="h-4 w-4" />
-                <span>GitHub</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.github"
+                aria-label="GitHub"
                 :placeholder="t('admin.site.fields.github.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.github.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="fa6-brands:x-twitter" class="h-4 w-4" />
-                <span>X</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.twitter"
+                aria-label="X"
                 :placeholder="t('admin.site.fields.twitter.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.twitter.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:instagram" class="h-4 w-4" />
-                <span>Instagram</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.instagram"
+                aria-label="Instagram"
                 :placeholder="t('admin.site.fields.instagram.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.instagram.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:youtube" class="h-4 w-4" />
-                <span>YouTube</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.youtube"
+                aria-label="YouTube"
                 :placeholder="t('admin.site.fields.youtube.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.youtube.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="simple-icons:bilibili" class="h-4 w-4" />
-                <span>Bilibili</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.bilibili"
+                aria-label="Bilibili"
                 :placeholder="t('admin.site.fields.bilibili.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.bilibili.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="fa6-brands:tiktok" class="h-4 w-4" />
-                <span>TikTok</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.tiktok"
+                aria-label="TikTok"
                 :placeholder="t('admin.site.fields.tiktok.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.tiktok.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:linkedin" class="h-4 w-4" />
-                <span>LinkedIn</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.linkedin"
+                aria-label="LinkedIn"
                 :placeholder="t('admin.site.fields.linkedin.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.linkedin.help') }}
-              </p>
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-2 rounded border border-default/20 bg-default/60 p-3">
-              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:sina-weibo" class="h-4 w-4" />
-                <span>{{ t('admin.site.fields.weibo.label') }}</span>
-              </div>
+            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.weibo"
+                :aria-label="t('admin.site.fields.weibo.placeholder')"
                 :placeholder="t('admin.site.fields.weibo.placeholder')"
                 :disabled="saving || loadingSettings"
               />
-              <p class="text-xs text-muted">
-                {{ t('admin.site.fields.weibo.help') }}
-              </p>
             </div>
           </div>
         </UCard>

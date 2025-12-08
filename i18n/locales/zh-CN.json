@@ -557,42 +557,31 @@
           "previewHelp": "用于浏览器标签页与收藏夹展示。"
         },
         "homepage": {
-          "label": "个人主页",
-          "placeholder": "https://example.com",
-          "help": "填写个人主页链接，留空则不显示。"
+          "placeholder": "https://example.com"
         },
         "github": {
-          "placeholder": "https://github.com/username",
-          "help": "需要完整链接（含 https://），留空则不显示。"
+          "placeholder": "https://github.com/username"
         },
         "twitter": {
-          "placeholder": "https://x.com/username",
-          "help": "X 或 Twitter 链接，留空不显示。"
+          "placeholder": "https://x.com/username"
         },
         "instagram": {
-          "placeholder": "https://instagram.com/username",
-          "help": "公开主页链接，未填不展示。"
+          "placeholder": "https://instagram.com/username"
         },
         "youtube": {
-          "placeholder": "https://youtube.com/\\u0040username",
-          "help": "填写频道或主页链接，留空则不显示。"
+          "placeholder": "https://youtube.com/\\u0040username"
         },
         "bilibili": {
-          "placeholder": "https://space.bilibili.com/123456",
-          "help": "可访问的 B 站空间链接，留空隐藏。"
+          "placeholder": "https://space.bilibili.com/123456"
         },
         "tiktok": {
-          "placeholder": "https://www.tiktok.com/\\u0040username",
-          "help": "TikTok 个人页链接，留空不展示。"
+          "placeholder": "https://www.tiktok.com/\\u0040username"
         },
         "linkedin": {
-          "placeholder": "https://www.linkedin.com/in/username",
-          "help": "LinkedIn 个人或主页链接，留空不显示。"
+          "placeholder": "https://www.linkedin.com/in/username"
         },
         "weibo": {
-          "label": "微博",
-          "placeholder": "https://weibo.com/username",
-          "help": "可访问的完整链接，留空隐藏。"
+          "placeholder": "https://weibo.com/username"
         }
       },
       "actions": {
