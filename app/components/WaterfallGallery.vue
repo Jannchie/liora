@@ -14,6 +14,7 @@ import type {
   WaterfallEntry,
 } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
+import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
@@ -52,6 +53,8 @@ const runtimeConfig = useRuntimeConfig()
 const siteConfig = useSiteConfig()
 const route = useRoute()
 const router = useRouter()
+const breakpoints = useBreakpoints(breakpointsTailwind)
+const isSmallScreen = breakpoints.smaller('md')
 
 function getInitialColumns(): number {
   return minColumns
@@ -1402,7 +1405,12 @@ const overlayZoomMin = computed<number>(() => {
   return Math.max(overlayZoomEpsilon, base)
 })
 
+const isOverlayInteractionDisabled = computed<boolean>(() => isSmallScreen.value)
+
 const viewerTouchAction = computed<string>(() => {
+  if (isOverlayInteractionDisabled.value) {
+    return 'pan-y'
+  }
   if (overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon || overlayPointers.value.size >= 2) {
     return 'none'
   }
@@ -1532,6 +1540,25 @@ watch(
       overlayZoom.value = nextBase
       overlayPan.value = { x: 0, y: 0 }
     }
+  },
+)
+
+watch(
+  [isSmallScreen, activeFile],
+  ([
+    isSmall, 
+file,
+  ], [
+    previousIsSmall, 
+previousFile,
+  ]) => {
+    if (!file || file !== previousFile || isSmall === previousIsSmall) {
+      return
+    }
+    if (isSmall) {
+      resetOverlayZoom()
+    }
+    startOverlayImageLoad(file, overlayImageSrc.value)
   },
 )
 
@@ -1668,7 +1695,7 @@ function setOverlayZoom(next: number, focalPoint?: OverlayPointer): void {
 }
 
 function handleOverlayWheel(event: WheelEvent): void {
-  if (!activeFile.value) {
+  if (!activeFile.value || isOverlayInteractionDisabled.value) {
     return
   }
   event.preventDefault()
@@ -1677,6 +1704,9 @@ function handleOverlayWheel(event: WheelEvent): void {
 }
 
 function handleOverlayDoubleClick(event: MouseEvent): void {
+  if (isOverlayInteractionDisabled.value) {
+    return
+  }
   event.preventDefault()
   const isAtOriginal = Math.abs(overlayZoom.value - 1) <= overlayZoomEpsilon
   const target = isAtOriginal ? overlayZoomMin.value : 1
@@ -1687,6 +1717,9 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
 }
 
 function handleOverlayPointerDown(event: PointerEvent): void {
+  if (isOverlayInteractionDisabled.value) {
+    return
+  }
   if (!(event.currentTarget instanceof HTMLElement)) {
     return
   }
@@ -1738,6 +1771,9 @@ function handleOverlayPointerDown(event: PointerEvent): void {
 }
 
 function handleOverlayPointerMove(event: PointerEvent): void {
+  if (isOverlayInteractionDisabled.value) {
+    return
+  }
   if (overlayPointers.value.has(event.pointerId)) {
     overlayPointers.value.set(event.pointerId, { x: event.clientX, y: event.clientY })
   }
@@ -1773,6 +1809,9 @@ function handleOverlayPointerMove(event: PointerEvent): void {
 }
 
 function endOverlayPointerDrag(event: PointerEvent): void {
+  if (isOverlayInteractionDisabled.value) {
+    return
+  }
   if (overlayPointers.value.has(event.pointerId)) {
     overlayPointers.value.delete(event.pointerId)
   }
@@ -1822,6 +1861,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   revokeOverlayObjectUrl()
   resetOverlayDownload()
   overlayImageLoader.value = null
+  const skipFullLoad = isSmallScreen.value
   const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.thumbnailUrl || file.imageUrl
   const rawFullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
   const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
@@ -1853,6 +1893,9 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   }
 
   const startFullLoad = async (): Promise<void> => {
+    if (skipFullLoad) {
+      return
+    }
     if (!fullImageSrc) {
       return
     }
@@ -1921,11 +1964,17 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   }
 
   if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
+    if (skipFullLoad) {
+      return
+    }
     void startFullLoad()
     return
   }
 
   if (overlayImageSrc.value && previewSrc === overlayImageSrc.value) {
+    if (skipFullLoad) {
+      return
+    }
     void startFullLoad()
     return
   }
@@ -1947,6 +1996,9 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     }
     overlayImageSrc.value = previewSrc
     overlayImageLoader.value = null
+    if (skipFullLoad) {
+      return
+    }
     void startFullLoad()
   }
   const handlePreviewError = (): void => {
@@ -1954,6 +2006,9 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       return
     }
     overlayImageLoader.value = null
+    if (skipFullLoad) {
+      return
+    }
     void startFullLoad()
   }
   previewLoader.addEventListener('load', handlePreviewLoad)
