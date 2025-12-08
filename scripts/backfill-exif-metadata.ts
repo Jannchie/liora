@@ -567,7 +567,7 @@ async function main(): Promise<void> {
   let skipped = 0
 
   for (const file of files) {
-    const sourceUrl = (file.imageUrl?.trim() || file.thumbnailUrl?.trim() || '').trim()
+    const sourceUrl = file.imageUrl?.trim() ?? ''
     if (!sourceUrl) {
       console.warn(`File #${file.id} has no image url; skip`)
       skipped += 1

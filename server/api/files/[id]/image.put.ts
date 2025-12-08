@@ -217,7 +217,7 @@ async function computeHashes(data: Buffer): Promise<ImageHashes> {
   }
 }
 
-async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, thumbhash?: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = file.filename ? basename(file.filename).replace(/\.[^/.]+$/, '') : 'image'
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -232,9 +232,8 @@ async function saveFile(file: MultipartEntry, event: H3Event, contentType: strin
   })
 
   const thumbhash = await generateThumbhash(file.data) ?? undefined
-  const thumbnailUrl = imageUrl
 
-  return { imageUrl, thumbnailUrl, thumbhash }
+  return { imageUrl, thumbhash }
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
@@ -307,7 +306,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.histogram = histogram
   }
 
-  const { imageUrl, thumbnailUrl, thumbhash } = await saveFile(file, event, contentType)
+  const { imageUrl, thumbhash } = await saveFile(file, event, contentType)
   if (thumbhash) {
     metadata.thumbhash = thumbhash
   }
@@ -357,7 +356,6 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       description: normalizeText(fields.description) || existing.description,
       originalName,
       imageUrl,
-      thumbnailUrl,
       width,
       height,
       fanworkTitle: mergedMetadata.fanworkTitle,

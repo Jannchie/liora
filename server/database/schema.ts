@@ -6,7 +6,6 @@ export const files = sqliteTable('File', {
   title: text('title').notNull().default(''),
   description: text('description').notNull().default(''),
   imageUrl: text('imageUrl').notNull(),
-  thumbnailUrl: text('thumbnailUrl').notNull().default(''),
   width: integer('width').notNull(),
   height: integer('height').notNull(),
   originalName: text('originalName').notNull().default(''),

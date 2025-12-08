@@ -337,7 +337,7 @@ async function generateThumbhash(data: Buffer): Promise<string | null> {
   }
 }
 
-async function saveFile(file: MultipartEntry, config: S3Config, contentType: string | undefined): Promise<{ imageUrl: string, thumbnailUrl: string }> {
+async function saveFile(file: MultipartEntry, config: S3Config, contentType: string | undefined): Promise<{ imageUrl: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = buildBaseName(file.filename)
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -350,9 +350,7 @@ async function saveFile(file: MultipartEntry, config: S3Config, contentType: str
     config,
   })
 
-  const thumbnailUrl = imageUrl
-
-  return { imageUrl, thumbnailUrl }
+  return { imageUrl }
 }
 
 async function runMetadataPostProcessing(
@@ -438,7 +436,7 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
       characters,
       originalName,
     })
-    const { imageUrl, thumbnailUrl } = await saveFile(file, storageConfig, contentType)
+    const { imageUrl } = await saveFile(file, storageConfig, contentType)
 
     const [created] = await db
       .insert(files)
@@ -447,7 +445,6 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
         description: normalizedDescription,
         originalName,
         imageUrl,
-        thumbnailUrl,
         width,
         height,
         fanworkTitle: metadata.fanworkTitle,

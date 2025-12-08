@@ -5,7 +5,7 @@ import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { closeDb, db, files as filesTable } from '../server/utils/db'
 
-type DbFile = Pick<FileRow, 'id' | 'imageUrl' | 'thumbnailUrl' | 'metadata' | 'title'>
+type DbFile = Pick<FileRow, 'id' | 'imageUrl' | 'metadata' | 'title'>
 
 interface ImageHashes {
   perceptualHash: string | null
@@ -104,7 +104,7 @@ async function updateFileThumbhash(file: DbFile): Promise<boolean> {
     return false
   }
 
-  const sourceUrl = (file.imageUrl?.trim() || file.thumbnailUrl?.trim() || '').trim()
+  const sourceUrl = file.imageUrl?.trim() ?? ''
   if (!sourceUrl) {
     console.warn(`File #${file.id} has no usable image URL`)
     return false

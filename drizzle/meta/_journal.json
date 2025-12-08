@@ -8,6 +8,13 @@
       "when": 1765016897684,
       "tag": "0000_loving_gateway",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1765174601581,
+      "tag": "0001_remove_thumbnail_url",
+      "breakpoints": true
     }
   ]
 }

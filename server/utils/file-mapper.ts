@@ -99,7 +99,7 @@ export function toFileResponse(file: FileRow): FileResponse {
     processingStatus: 'completed',
     uploadId: '',
   })
-  const imageUrl = file.imageUrl || file.thumbnailUrl || ''
+  const imageUrl = file.imageUrl || ''
   const genre = file.genre?.trim() ?? ''
   const createdAt = file.createdAt instanceof Date ? file.createdAt : new Date(file.createdAt)
 
