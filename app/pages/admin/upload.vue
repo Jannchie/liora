@@ -817,7 +817,7 @@ function startProcessingStatusPoll(uploadId: string): void {
       pushProcessingToast(response.status)
       stopProcessingStatusPoll()
     }
-    catch (error) {
+    catch {
       if (attempts >= maxAttempts) {
         pushProcessingToast('failed')
         stopProcessingStatusPoll()

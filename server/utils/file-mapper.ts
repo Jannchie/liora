@@ -1,5 +1,5 @@
-import type { FileMetadata, FileResponse } from '~/types/file'
 import type { FileRow } from './db'
+import type { FileMetadata, FileResponse } from '~/types/file'
 
 export function mapCharacters(characterList: string): string[] {
   return characterList

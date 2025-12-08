@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm'
+import type { SiteSettingRow } from './db'
 import type { SiteInfoPlacement } from '~/types/gallery'
 import type { SiteSettings, SiteSettingsPayload, SiteSocialLinks } from '~/types/site'
-import { db, siteSettings, type SiteSettingRow } from './db'
+import { eq } from 'drizzle-orm'
+import { db, siteSettings } from './db'
 
 const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'

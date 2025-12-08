@@ -1,5 +1,13 @@
 catalogMode: prefer
 
+cleanupUnusedCatalogs: true
+
+shellEmulator: true
+
+trustPolicy: no-downgrade
+overrides:
+  '@vercel/nft': ^0.27.4
+
 catalogs:
   default:
     '@ai-sdk/openai': ^2.0.79
@@ -41,16 +49,6 @@ catalogs:
     vue: ^3.5.25
     vue-router: ^4.6.3
     vue-wf: ^0.7.0
-
-cleanupUnusedCatalogs: true
-
 onlyBuiltDependencies:
   - '@sentry/cli'
   - vue-demi
-
-overrides:
-  '@vercel/nft': ^0.27.4
-
-shellEmulator: true
-
-trustPolicy: no-downgrade

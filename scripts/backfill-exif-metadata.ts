@@ -1,8 +1,8 @@
 import type { FileMetadata } from '../app/types/file'
+import type { FileRow } from '../server/utils/db'
 import { asc, eq } from 'drizzle-orm'
 import exifr from 'exifr'
 import { closeDb, db, files as filesTable } from '../server/utils/db'
-import type { FileRow } from '../server/utils/db'
 
 function escapeRegExp(value: string): string {
   return value.replaceAll(/[-/\\^$*+?.()|[\]{}]/g, String.raw`\\$&`)

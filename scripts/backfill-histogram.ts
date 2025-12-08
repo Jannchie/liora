@@ -1,7 +1,7 @@
-import { eq } from 'drizzle-orm'
 import type { HistogramData } from '../app/types/file'
-import { computeHistogram } from '../server/utils/histogram'
+import { eq } from 'drizzle-orm'
 import { closeDb, db, files } from '../server/utils/db'
+import { computeHistogram } from '../server/utils/histogram'
 
 interface ParsedMetadata {
   histogram?: HistogramData | null

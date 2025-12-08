@@ -1,5 +1,6 @@
 import type { H3Event } from 'h3'
 import type { S3Config } from '../utils/s3'
+import type { UploadStatus } from '../utils/upload-status'
 import type { FileMetadata } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
 import { basename, extname } from 'node:path'
@@ -11,7 +12,7 @@ import { db, files } from '../utils/db'
 import { joinCharacters } from '../utils/file-mapper'
 import { computeHistogram } from '../utils/histogram'
 import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
-import { setUploadStatus, type UploadStatus } from '../utils/upload-status'
+import { setUploadStatus } from '../utils/upload-status'
 
 interface MultipartEntry {
   name: string
@@ -363,7 +364,11 @@ async function runMetadataPostProcessing(
   const nextMetadata: FileMetadata = { ...baseMetadata }
   let status: UploadStatus = 'completed'
   try {
-    const [perceptualHash, histogram, thumbhash] = await Promise.all([
+    const [
+      perceptualHash,
+      histogram,
+      thumbhash,
+    ] = await Promise.all([
       computePerceptualHash(buffer),
       computeHistogram(buffer),
       generateThumbhash(buffer),

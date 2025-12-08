@@ -1,8 +1,8 @@
+import type { FileRow } from '../server/utils/db'
 import { createHash } from 'node:crypto'
+import { asc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
-import { asc, eq } from 'drizzle-orm'
-import type { FileRow } from '../server/utils/db'
 import { closeDb, db, files as filesTable } from '../server/utils/db'
 
 type DbFile = Pick<FileRow, 'id' | 'imageUrl' | 'thumbnailUrl' | 'metadata' | 'title'>
