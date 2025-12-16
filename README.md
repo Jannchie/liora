@@ -67,8 +67,6 @@ Core environment variables:
 
 Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCIAL_TWITTER`, `SOCIAL_INSTAGRAM`, `SOCIAL_WEIBO`, `SOCIAL_YOUTUBE`, `SOCIAL_BILIBILI`, `SOCIAL_TIKTOK`, `SOCIAL_LINKEDIN`.
 
-Legacy `NUXT_*` variants continue to work for backward compatibility, but prefer the prefix-less names above.
-
 ## Local Development
 
 - Dev server: `pnpm dev`

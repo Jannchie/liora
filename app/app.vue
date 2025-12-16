@@ -5,7 +5,7 @@ const route = useRoute()
 
 const pageKey = computed<string>(() => {
   const name = route.name
-  if (name === 'index' || name === 'photo-id') {
+  if (name === 'index') {
     return 'gallery'
   }
   return route.fullPath

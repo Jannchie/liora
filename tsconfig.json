@@ -1,11 +1,6 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@vueuse/core": [
-        "./shims/vueuse-core"
-      ]
-    }
+    "baseUrl": "."
   },
   "references": [
     {

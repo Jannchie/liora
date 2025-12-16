@@ -124,7 +124,6 @@ interface OverlayDownloadState {
 
 const baseRouteName = 'index'
 const overlayRouteParam = 'rest'
-const legacyOverlayQueryKey = 'photo'
 
 interface OverlayPointer {
   clientX: number
@@ -599,22 +598,12 @@ function resolveOverlayRouteIdFromPathParam(): number | null {
 }
 
 function getOverlayRouteIdFromRoute(): number | null {
-  const paramId = resolveOverlayRouteIdFromPathParam()
-  if (paramId !== null) {
-    return paramId
-  }
-  return resolveOverlayRouteId(route.query[legacyOverlayQueryKey] as string | string[] | null | undefined)
-}
-
-function resolveSanitizedQuery(): Record<string, string | string[] | null | undefined> {
-  const nextQuery = { ...route.query }
-  delete nextQuery[legacyOverlayQueryKey]
-  return nextQuery as Record<string, string | string[] | null | undefined>
+  return resolveOverlayRouteIdFromPathParam()
 }
 
 async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'replace' = 'push'): Promise<void> {
   const navigate = navigation === 'replace' ? router.replace : router.push
-  const sanitizedQuery = resolveSanitizedQuery()
+  const nextQuery = { ...route.query }
   const currentId = getOverlayRouteIdFromRoute()
   if (fileId === null && currentId === null && route.path === '/') {
     return
@@ -623,12 +612,12 @@ async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'rep
     return
   }
   if (fileId === null) {
-    await navigate({ name: baseRouteName, query: sanitizedQuery, hash: route.hash })
+    await navigate({ name: baseRouteName, query: nextQuery, hash: route.hash })
     return
   }
   await navigate({
     path: `/photo/${fileId}`,
-    query: sanitizedQuery,
+    query: nextQuery,
     hash: route.hash,
   })
 }
@@ -1481,20 +1470,6 @@ function handleKeydown(event: KeyboardEvent): void {
 }
 
 const overlayRouteId = computed<number | null>(() => getOverlayRouteIdFromRoute())
-
-watch(
-  () => (isHydrated.value ? resolveOverlayRouteId(route.query[legacyOverlayQueryKey] as string | string[] | null | undefined) : null),
-  (legacyId) => {
-    if (legacyId === null) {
-      return
-    }
-    const paramId = resolveOverlayRouteIdFromPathParam()
-    if (paramId !== null) {
-      return
-    }
-    void syncOverlayRoute(legacyId, 'replace')
-  },
-)
 
 watch(
   [

@@ -1,5 +1,3 @@
-import { fileURLToPath } from 'node:url'
-
 function resolveDomains(): string[] {
   const domains = new Set<string>()
   const add = (value: string | undefined): void => {
@@ -22,10 +20,10 @@ function resolveDomains(): string[] {
   return [...domains]
 }
 
-const resolveSiteEnv = (): string => process.env.SITE_ENV ?? process.env.NUXT_SITE_ENV ?? process.env.NODE_ENV ?? 'development'
+const resolveSiteEnv = (): string => process.env.SITE_ENV ?? process.env.NODE_ENV ?? 'development'
 
 function resolveSiteUrl(siteEnv: string): string | undefined {
-  const envUrl = process.env.SITE_URL ?? process.env.NUXT_SITE_URL ?? process.env.NUXT_PUBLIC_SITE_URL
+  const envUrl = process.env.SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
     return envUrl
   }
@@ -57,7 +55,7 @@ const pwaBackgroundColorDark = '#0f172a'
 
 const siteEnv = resolveSiteEnv()
 const siteUrl = resolveSiteUrl(siteEnv)
-const siteIndexable = parseBoolean(process.env.SITE_INDEXABLE ?? process.env.NUXT_SITE_INDEXABLE, true)
+const siteIndexable = parseBoolean(process.env.SITE_INDEXABLE, true)
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -111,15 +109,15 @@ export default defineNuxtConfig({
     },
     public: {
       social: {
-        homepage: process.env.SOCIAL_HOMEPAGE ?? process.env.NUXT_PUBLIC_SOCIAL_HOMEPAGE ?? '',
-        github: process.env.SOCIAL_GITHUB ?? process.env.NUXT_PUBLIC_SOCIAL_GITHUB ?? '',
-        twitter: process.env.SOCIAL_TWITTER ?? process.env.NUXT_PUBLIC_SOCIAL_TWITTER ?? '',
-        instagram: process.env.SOCIAL_INSTAGRAM ?? process.env.NUXT_PUBLIC_SOCIAL_INSTAGRAM ?? '',
-        weibo: process.env.SOCIAL_WEIBO ?? process.env.NUXT_PUBLIC_SOCIAL_WEIBO ?? '',
-        youtube: process.env.SOCIAL_YOUTUBE ?? process.env.NUXT_PUBLIC_SOCIAL_YOUTUBE ?? '',
-        bilibili: process.env.SOCIAL_BILIBILI ?? process.env.NUXT_PUBLIC_SOCIAL_BILIBILI ?? '',
-        tiktok: process.env.SOCIAL_TIKTOK ?? process.env.NUXT_PUBLIC_SOCIAL_TIKTOK ?? '',
-        linkedin: process.env.SOCIAL_LINKEDIN ?? process.env.NUXT_PUBLIC_SOCIAL_LINKEDIN ?? '',
+        homepage: process.env.SOCIAL_HOMEPAGE ?? '',
+        github: process.env.SOCIAL_GITHUB ?? '',
+        twitter: process.env.SOCIAL_TWITTER ?? '',
+        instagram: process.env.SOCIAL_INSTAGRAM ?? '',
+        weibo: process.env.SOCIAL_WEIBO ?? '',
+        youtube: process.env.SOCIAL_YOUTUBE ?? '',
+        bilibili: process.env.SOCIAL_BILIBILI ?? '',
+        tiktok: process.env.SOCIAL_TIKTOK ?? '',
+        linkedin: process.env.SOCIAL_LINKEDIN ?? '',
       },
       imageDomains: [],
     },
@@ -205,22 +203,6 @@ export default defineNuxtConfig({
         { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
         { src: '/pwa-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
-    },
-  },
-  vite: {
-    resolve: {
-      alias: [
-        {
-          find: /^@vueuse\/core(?:\/index\.js)?$/,
-          replacement: fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
-        },
-      ],
-    },
-  },
-  nitro: {
-    alias: {
-      '@vueuse/core': fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
-      '@vueuse/core/index.js': fileURLToPath(new URL('shims/vueuse-core/index.js', import.meta.url)),
     },
   },
   eslint: {

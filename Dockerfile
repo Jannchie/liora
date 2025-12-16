@@ -23,8 +23,7 @@ RUN pnpm run build
 
 FROM base AS runner
 ENV NODE_ENV=production
-ENV NUXT_HOST=0.0.0.0
-ENV NUXT_PORT=3000
+ENV HOST=0.0.0.0
 ENV PORT=3000
 WORKDIR /app
 RUN mkdir -p /data

@@ -45,9 +45,6 @@ export default defineNuxtPlugin(() => {
   const httpConfig = (runtimeConfig as { ipx?: { http?: { domains?: string[] } } }).ipx?.http
 
   const envDomains = process.env.IMAGE_DOMAINS
-    ?? process.env.IPX_HTTP_DOMAINS
-    ?? process.env.NUXT_IMAGE_DOMAINS
-    ?? process.env.NUXT_IPX_HTTP_DOMAINS
   const mergedDomains = parseDomains(
     image.options.domains,
     runtimeConfig.public.imageDomains as DomainSource,
