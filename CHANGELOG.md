@@ -1,3 +1,26 @@
+## v0.11.0
+
+[v0.10.0...v0.11.0](https://github.com/Jannchie/liora/compare/v0.10.0...v0.11.0)
+
+### :rocket: Breaking Changes
+
+- **files**: remove thumbnailUrl column and usage - By [Jannchie](mailto:jannchie@gmail.com) in [898f6ce](https://github.com/Jannchie/liora/commit/898f6ce)
+
+### :sparkles: Features
+
+- **gallery**: disable overlay interactions on small screens - By [Jannchie](mailto:jannchie@gmail.com) in [8057a7b](https://github.com/Jannchie/liora/commit/8057a7b)
+
+### :art: Refactors
+
+- **admin-upload**: remove redundant upload and section descriptions - By [Jannchie](mailto:jannchie@gmail.com) in [5d5c0ce](https://github.com/Jannchie/liora/commit/5d5c0ce)
+- **config**: remove legacy nuxt env mappings && simplify env handling - By [Jannchie](mailto:jannchie@gmail.com) in [ecdadd7](https://github.com/Jannchie/liora/commit/ecdadd7)
+- **ui**: clean up watch args, standardize classes and layout sizes, swap fetch util, update pnpm catalogs - By [Jannchie](mailto:jannchie@gmail.com) in [447d27b](https://github.com/Jannchie/liora/commit/447d27b)
+
+### :lipstick: Styles
+
+- **admin-site**: simplify social inputs and add aria labels - By [Jannchie](mailto:jannchie@gmail.com) in [06f06c6](https://github.com/Jannchie/liora/commit/06f06c6)
+- **codebase**: reformat imports and minor syntax cleanup - By [Jannchie](mailto:jannchie@gmail.com) in [6273b70](https://github.com/Jannchie/liora/commit/6273b70)
+
 ## v0.10.0
 
 [v0.9.0...v0.10.0](https://github.com/Jannchie/liora/compare/v0.9.0...v0.10.0)
