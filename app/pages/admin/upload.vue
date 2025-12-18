@@ -8,7 +8,7 @@ import { toLocalInputString } from '~/utils/datetime'
 
 const { t } = useI18n()
 const toast = useToast()
-const { $fetch } = useNuxtApp()
+const requestFetch = useRequestFetch()
 definePageMeta({
   middleware: 'admin-auth',
 })
@@ -773,7 +773,7 @@ function pushProcessingToast(status: UploadProcessingStatus | 'unknown'): void {
       title: toastMessages.value.processing,
       description: toastMessages.value.processingDescription,
       color: 'primary',
-      timeout: 0,
+      duration: Number.POSITIVE_INFINITY,
     })
     return
   }
@@ -803,7 +803,7 @@ function startProcessingStatusPoll(uploadId: string): void {
   const poll = async (): Promise<void> => {
     attempts += 1
     try {
-      const response = await $fetch<{ status: UploadProcessingStatus | 'unknown' }>('/api/files/status', {
+      const response = await requestFetch<{ status: UploadProcessingStatus | 'unknown' }>('/api/files/status', {
         params: { uploadId },
         retry: 0,
       })

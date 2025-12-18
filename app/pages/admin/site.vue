@@ -234,7 +234,7 @@ function handleReset(): void {
           </template>
 
           <div class="flex flex-wrap gap-4">
-            <div class="flex min-w-[260px] flex-1 flex-col gap-1.5">
+            <div class="flex min-w-65 flex-1 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:format-title" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.name.label') }}</span>
@@ -249,7 +249,7 @@ function handleReset(): void {
               </p>
             </div>
 
-            <div class="flex min-w-[220px] flex-1 flex-col gap-1.5">
+            <div class="flex min-w-55 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
                 <Icon name="mdi:view-dashboard-outline" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.infoPlacement.label') }}</span>
@@ -344,7 +344,7 @@ function handleReset(): void {
           </template>
 
           <div class="flex flex-wrap gap-3">
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.homepage"
                 :aria-label="t('admin.site.fields.homepage.placeholder')"
@@ -353,7 +353,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.github"
                 aria-label="GitHub"
@@ -362,7 +362,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.twitter"
                 aria-label="X"
@@ -371,7 +371,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.instagram"
                 aria-label="Instagram"
@@ -380,7 +380,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.youtube"
                 aria-label="YouTube"
@@ -389,7 +389,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.bilibili"
                 aria-label="Bilibili"
@@ -398,7 +398,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.tiktok"
                 aria-label="TikTok"
@@ -407,7 +407,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.linkedin"
                 aria-label="LinkedIn"
@@ -416,7 +416,7 @@ function handleReset(): void {
               />
             </div>
 
-            <div class="flex min-w-[260px] flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
+            <div class="flex min-w-65 flex-[0_1_320px] flex-col gap-1.5 rounded border border-default/20 bg-default/60 p-3">
               <UInput
                 v-model="form.social.weibo"
                 :aria-label="t('admin.site.fields.weibo.placeholder')"

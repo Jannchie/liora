@@ -1520,13 +1520,7 @@ watch(
 
 watch(
   [isSmallScreen, activeFile],
-  ([
-    isSmall, 
-file,
-  ], [
-    previousIsSmall, 
-previousFile,
-  ]) => {
+  ([isSmall, file], [previousIsSmall, previousFile]) => {
     if (!file || file !== previousFile || isSmall === previousIsSmall) {
       return
     }

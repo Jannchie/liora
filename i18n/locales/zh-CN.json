@@ -161,15 +161,15 @@
       },
       "title": "作品上传",
       "sections": {
-      "upload": {
-        "label": "上传照片",
-        "dropHint": "拖拽照片到此或点击选择文件",
-        "supported": "支持 JPG/PNG 等常见格式"
-      },
-      "preview": {
-        "label": "预览与自动填充",
-        "title": "照片信息",
-        "alt": "预览"
+        "upload": {
+          "label": "上传照片",
+          "dropHint": "拖拽照片到此或点击选择文件",
+          "supported": "支持 JPG/PNG 等常见格式"
+        },
+        "preview": {
+          "label": "预览与自动填充",
+          "title": "照片信息",
+          "alt": "预览"
         },
         "edit": {
           "label": "编辑与保存",

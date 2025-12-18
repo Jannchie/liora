@@ -127,7 +127,7 @@ defineOgImageComponent('LioraCard', {
       v-if="showHeaderInfo"
       class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
     >
-      <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-[2000px] md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
+      <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-500 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
         <div class="flex w-full flex-col items-center gap-1 md:flex-1 md:flex-row md:items-center md:gap-3">
           <h1 class="home-title-font text-sm font-semibold leading-tight text-highlighted md:text-lg">
             {{ pageTitle }}
@@ -165,10 +165,10 @@ defineOgImageComponent('LioraCard', {
         </div>
       </div>
     </header>
-    <div class="max-w-[2000px] m-auto">
+    <div class="max-w-500 m-auto">
       <div
         v-if="!showHeaderInfo"
-        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-[2000px] md:flex-nowrap md:gap-3 md:px-4 md:py-3"
+        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3"
       >
         <UButton
           v-if="isAuthenticated"

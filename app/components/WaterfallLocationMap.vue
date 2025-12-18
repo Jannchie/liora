@@ -66,7 +66,7 @@ const altText = computed(() => t('gallery.map.alt', { location: locationLabel.va
       <iframe
         :title="altText"
         :src="embedUrl"
-        class="h-[180px] w-full border-0"
+        class="h-45 w-full border-0"
         loading="lazy"
       />
     </div>
