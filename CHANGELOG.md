@@ -1,3 +1,12 @@
+## v0.11.1
+
+[v0.11.0...v0.11.1](https://github.com/Jannchie/liora/compare/v0.11.0...v0.11.1)
+
+### :wrench: Chores
+
+- **config**: reorder and normalize pnpm workspace config - By [Jannchie](mailto:jannchie@gmail.com) in [f6b99f0](https://github.com/Jannchie/liora/commit/f6b99f0)
+- **deps**: update workspace dependency versions - By [Jannchie](mailto:jannchie@gmail.com) in [e65e3cc](https://github.com/Jannchie/liora/commit/e65e3cc)
+
 ## v0.11.0
 
 [v0.10.0...v0.11.0](https://github.com/Jannchie/liora/compare/v0.10.0...v0.11.0)
