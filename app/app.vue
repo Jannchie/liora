@@ -4,14 +4,24 @@ import { computed, watchEffect } from 'vue'
 const route = useRoute()
 const { locale } = useI18n()
 
+type HtmlDir = 'ltr' | 'rtl' | 'auto' | undefined
+
 const localeHead = useLocaleHead({
-  addDirAttribute: true,
-  addSeoAttributes: true,
+  dir: true,
+  lang: true,
+  seo: true,
 })
+
+function resolveDir(dir: string | undefined): HtmlDir {
+  if (dir === 'ltr' || dir === 'rtl' || dir === 'auto') {
+    return dir
+  }
+  return undefined
+}
 
 useHead(() => {
   const htmlLang = localeHead.value.htmlAttrs?.lang ?? locale.value
-  const htmlDir = localeHead.value.htmlAttrs?.dir
+  const htmlDir = resolveDir(localeHead.value.htmlAttrs?.dir)
 
   return {
     htmlAttrs: {
@@ -26,7 +36,7 @@ useHead(() => {
 if (import.meta.client) {
   watchEffect(() => {
     const htmlLang = localeHead.value.htmlAttrs?.lang ?? locale.value
-    const htmlDir = localeHead.value.htmlAttrs?.dir
+    const htmlDir = resolveDir(localeHead.value.htmlAttrs?.dir)
     const root = document.documentElement
 
     root.lang = htmlLang

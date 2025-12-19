@@ -1,7 +1,36 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+type DetectBrowserLanguageCookieOptions = {
+  cookieKey?: string
+  cookieCrossOrigin?: boolean
+  cookieSecure?: boolean
+  cookieDomain?: string
+}
+
 const { locale, locales, t, setLocale } = useI18n()
+const runtimeConfig = useRuntimeConfig()
+
+function resolveDetectBrowserLanguage(): DetectBrowserLanguageCookieOptions | null {
+  const raw = runtimeConfig.public?.i18n?.detectBrowserLanguage
+  if (!raw || typeof raw !== 'object') {
+    return null
+  }
+  return raw as DetectBrowserLanguageCookieOptions
+}
+
+const detectBrowserLanguage = resolveDetectBrowserLanguage()
+
+const cookieExpires = new Date()
+cookieExpires.setFullYear(cookieExpires.getFullYear() + 1)
+
+const localeCookie = useCookie<string | null>(detectBrowserLanguage?.cookieKey ?? 'i18n_redirected', {
+  path: '/',
+  expires: cookieExpires,
+  sameSite: detectBrowserLanguage?.cookieCrossOrigin ? 'none' : 'lax',
+  secure: Boolean(detectBrowserLanguage?.cookieCrossOrigin || detectBrowserLanguage?.cookieSecure),
+  domain: detectBrowserLanguage?.cookieDomain || undefined,
+})
 
 const options = computed(() => locales.value.map((item) => {
   const label = typeof item === 'string' ? t(`locales.${item}`) : item.name ?? t(`locales.${item.code}`)
@@ -19,9 +48,10 @@ function isLocaleCode(value: unknown): value is typeof locale.value {
 
 const model = computed({
   get: () => locale.value,
-  set: (value: string | number | null | undefined) => {
+  set: async (value: string | number | null | undefined) => {
     if (isLocaleCode(value)) {
-      void setLocale(value)
+      await setLocale(value)
+      localeCookie.value = value
     }
   },
 })

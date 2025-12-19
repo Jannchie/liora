@@ -139,9 +139,9 @@ export default defineNuxtConfig({
     defaultLocale,
     langDir: 'locales',
     locales: [
-      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json' },
-      { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'ja', name: '日本語', file: 'ja.json' },
+      { code: 'zh-CN', name: '简体中文', file: 'zh-CN.json', language: 'zh-CN' },
+      { code: 'en', name: 'English', file: 'en.json', language: 'en-US' },
+      { code: 'ja', name: '日本語', file: 'ja.json', language: 'ja-JP' },
     ],
     detectBrowserLanguage: {
       useCookie: true,
