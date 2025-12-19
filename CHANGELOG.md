@@ -1,3 +1,11 @@
+## v0.12.3
+
+[v0.12.2...v0.12.3](https://github.com/Jannchie/liora/compare/v0.12.2...v0.12.3)
+
+### :sparkles: Features
+
+- **docker-entrypoint**: sync ipx http domains from image env vars - By [Jannchie](mailto:jannchie@gmail.com) in [642ee7b](https://github.com/Jannchie/liora/commit/642ee7b)
+
 ## v0.12.2
 
 [v0.12.1...v0.12.2](https://github.com/Jannchie/liora/compare/v0.12.1...v0.12.2)
