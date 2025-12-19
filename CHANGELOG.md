@@ -1,3 +1,11 @@
+## v0.12.1
+
+[v0.12.0...v0.12.1](https://github.com/Jannchie/liora/compare/v0.12.0...v0.12.1)
+
+### :adhesive_bandage: Fixes
+
+- **image**: guard server-only ipx http config && set i18n baseUrl - By [Jannchie](mailto:jannchie@gmail.com) in [2e75b43](https://github.com/Jannchie/liora/commit/2e75b43)
+
 ## v0.12.0
 
 [v0.11.1...v0.12.0](https://github.com/Jannchie/liora/compare/v0.11.1...v0.12.0)
