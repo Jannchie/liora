@@ -1,3 +1,15 @@
+## v0.12.0
+
+[v0.11.1...v0.12.0](https://github.com/Jannchie/liora/compare/v0.11.1...v0.12.0)
+
+### :sparkles: Features
+
+- **i18n**: enhance locale direction and cookie handling - By [Jannchie](mailto:jannchie@gmail.com) in [27fe77e](https://github.com/Jannchie/liora/commit/27fe77e)
+
+### :lipstick: Styles
+
+- **ui**: update i18n head handling and ui styles - By [Jannchie](mailto:jannchie@gmail.com) in [d45dc5c](https://github.com/Jannchie/liora/commit/d45dc5c)
+
 ## v0.11.1
 
 [v0.11.0...v0.11.1](https://github.com/Jannchie/liora/compare/v0.11.0...v0.11.1)
