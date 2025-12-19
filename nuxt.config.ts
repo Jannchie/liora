@@ -119,7 +119,7 @@ export default defineNuxtConfig({
         tiktok: process.env.SOCIAL_TIKTOK ?? '',
         linkedin: process.env.SOCIAL_LINKEDIN ?? '',
       },
-      imageDomains: [],
+      imageDomains: resolveDomains(),
     },
   },
   modules: [
