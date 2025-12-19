@@ -24,4 +24,12 @@ if [ -z "$NUXT_PUBLIC_IMAGE_DOMAINS" ]; then
   fi
 fi
 
+if [ -z "$NUXT_IPX_HTTP_DOMAINS" ]; then
+  if [ -n "$IMAGE_DOMAINS" ]; then
+    export NUXT_IPX_HTTP_DOMAINS="$IMAGE_DOMAINS"
+  elif [ -n "$IMAGE_DOMAIN_DEFAULT" ]; then
+    export NUXT_IPX_HTTP_DOMAINS="$IMAGE_DOMAIN_DEFAULT"
+  fi
+fi
+
 exec "$@"
