@@ -42,7 +42,6 @@ function parseDomains(...sources: DomainSource[]): string[] {
 export default defineNuxtPlugin(() => {
   const runtimeConfig = useRuntimeConfig()
   const image = useImage()
-  const httpConfig = (runtimeConfig as { ipx?: { http?: { domains?: string[] } } }).ipx?.http
 
   const envDomains = process.env.IMAGE_DOMAINS
   const mergedDomains = parseDomains(
@@ -56,7 +55,10 @@ export default defineNuxtPlugin(() => {
   }
 
   image.options.domains = mergedDomains
-  if (httpConfig) {
-    httpConfig.domains = mergedDomains
+  if (import.meta.server) {
+    const httpConfig = (runtimeConfig as { ipx?: { http?: { domains?: string[] } } }).ipx?.http
+    if (httpConfig) {
+      httpConfig.domains = mergedDomains
+    }
   }
 })
