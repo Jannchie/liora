@@ -1,3 +1,11 @@
+## v0.12.2
+
+[v0.12.1...v0.12.2](https://github.com/Jannchie/liora/compare/v0.12.1...v0.12.2)
+
+### :wrench: Chores
+
+- **config**: set image domains from env && bump package overrides - By [Jannchie](mailto:jannchie@gmail.com) in [e01f6b1](https://github.com/Jannchie/liora/commit/e01f6b1)
+
 ## v0.12.1
 
 [v0.12.0...v0.12.1](https://github.com/Jannchie/liora/compare/v0.12.0...v0.12.1)
