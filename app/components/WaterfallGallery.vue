@@ -2034,16 +2034,6 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         </button>
       </template>
     </Waterfall>
-    <div
-      v-if="isLoading"
-      class="absolute inset-0 flex items-center justify-center backdrop-blur-sm"
-      :style="{ backgroundColor: 'color-mix(in oklab, var(--ui-bg) 70%, transparent)' }"
-    >
-      <div class="flex items-center gap-2 px-3 py-2 text-sm text-default ring-1 ring-default">
-        <Icon name="line-md:loading-loop" class="h-5 w-5 text-primary" />
-        <span>{{ loadingText }}</span>
-      </div>
-    </div>
     <Teleport to="body">
       <WaterfallOverlay
         v-if="activeFile"

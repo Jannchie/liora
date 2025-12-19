@@ -165,7 +165,7 @@ onMounted(() => {
           <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">
-                <h3 class="home-title-font text-lg font-semibold leading-snug text-highlighted">
+                <h3 class="text-lg font-semibold leading-snug text-highlighted">
                   {{ file.displayTitle }}
                 </h3>
               </div>
