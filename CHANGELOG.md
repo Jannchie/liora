@@ -1,3 +1,11 @@
+## v0.12.4
+
+[v0.12.3...v0.12.4](https://github.com/Jannchie/liora/compare/v0.12.3...v0.12.4)
+
+### :sparkles: Features
+
+- **scripts**: map legacy env vars to NUXT_* equivalents - By [Jannchie](mailto:jannchie@gmail.com) in [842b58f](https://github.com/Jannchie/liora/commit/842b58f)
+
 ## v0.12.3
 
 [v0.12.2...v0.12.3](https://github.com/Jannchie/liora/compare/v0.12.2...v0.12.3)
