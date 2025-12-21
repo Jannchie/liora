@@ -18,6 +18,7 @@ export interface SiteSettingsPayload {
   iconUrl: string
   social: SiteSocialLinks
   infoPlacement: SiteInfoPlacement
+  customCss: string
 }
 
 export interface SiteSettings extends SiteSettingsPayload {

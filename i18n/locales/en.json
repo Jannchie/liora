@@ -541,6 +541,11 @@
           "placeholder": "Intro for the homepage (optional)",
           "help": "Appears on the info card; keep it brief."
         },
+        "customCss": {
+          "label": "Custom CSS",
+          "placeholder": "Add CSS rules for the public site (optional)",
+          "help": "Injected into the site head and rendered on the server."
+        },
         "infoPlacement": {
           "label": "Info placement",
           "help": "Choose where to show the site title and description.",

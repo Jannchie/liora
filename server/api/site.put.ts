@@ -12,6 +12,7 @@ function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPaylo
     description: typeof body.description === 'string' ? body.description : '',
     iconUrl: typeof body.iconUrl === 'string' ? body.iconUrl : '',
     infoPlacement: normalizeInfoPlacement(typeof body.infoPlacement === 'string' ? body.infoPlacement : undefined),
+    customCss: typeof body.customCss === 'string' ? body.customCss : '',
     social: {
       homepage: typeof body.social?.homepage === 'string' ? body.social.homepage : '',
       github: typeof body.social?.github === 'string' ? body.social.github : '',

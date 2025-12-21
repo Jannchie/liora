@@ -541,6 +541,11 @@
           "placeholder": "ホームの紹介文（任意）",
           "help": "情報カードに表示されます。短くまとめてください。"
         },
+        "customCss": {
+          "label": "カスタム CSS",
+          "placeholder": "任意：公開サイト向けの CSS を追加",
+          "help": "サイトの head に注入され、SSR でも反映されます。"
+        },
         "infoPlacement": {
           "label": "情報の表示位置",
           "help": "サイト名と説明をどこに表示するか選択します。",

@@ -541,6 +541,11 @@
           "placeholder": "用于首页展示的简介，可留空",
           "help": "展示在信息卡，简短即可。"
         },
+        "customCss": {
+          "label": "自定义 CSS",
+          "placeholder": "可选：为前台添加 CSS 规则",
+          "help": "会注入到站点 head，支持 SSR 渲染。"
+        },
         "infoPlacement": {
           "label": "信息展示位置",
           "help": "选择站点标题和描述放在页头或瀑布流卡片中。",

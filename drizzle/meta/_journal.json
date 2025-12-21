@@ -15,6 +15,13 @@
       "when": 1765174601581,
       "tag": "0001_remove_thumbnail_url",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1766300703800,
+      "tag": "0002_add_site_custom_css",
+      "breakpoints": true
     }
   ]
 }

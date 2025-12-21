@@ -41,6 +41,7 @@ export const siteSettings = sqliteTable('SiteSetting', {
   socialTiktok: text('socialTiktok').notNull().default(''),
   socialLinkedin: text('socialLinkedin').notNull().default(''),
   infoPlacement: text('infoPlacement').notNull().default('header'),
+  customCss: text('customCss').notNull().default(''),
   updatedAt: text('updatedAt', { mode: 'date' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 

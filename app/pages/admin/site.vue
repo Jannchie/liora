@@ -46,6 +46,7 @@ const form = reactive<SiteSettingsPayload>({
   description: '',
   iconUrl: '',
   infoPlacement: 'header',
+  customCss: '',
   social: {
     homepage: '',
     github: '',
@@ -71,6 +72,7 @@ function applySettings(value: SiteSettings | null | undefined): void {
   form.description = value.description
   form.iconUrl = value.iconUrl
   form.infoPlacement = value.infoPlacement ?? 'header'
+  form.customCss = value.customCss ?? ''
   form.social.homepage = value.social.homepage
   form.social.github = value.social.github
   form.social.twitter = value.social.twitter
@@ -115,6 +117,7 @@ async function handleSubmit(): Promise<void> {
         description: form.description,
         iconUrl: form.iconUrl,
         infoPlacement: form.infoPlacement,
+        customCss: form.customCss,
         social: { ...form.social },
       },
     })
@@ -277,6 +280,23 @@ function handleReset(): void {
               />
               <p class="text-xs text-muted">
                 {{ t('admin.site.fields.description.help') }}
+              </p>
+            </div>
+
+            <div class="flex basis-full flex-col gap-1.5">
+              <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
+                <Icon name="mdi:code-tags" class="h-4 w-4" />
+                <span>{{ t('admin.site.fields.customCss.label') }}</span>
+              </div>
+              <UTextarea
+                v-model="form.customCss"
+                :rows="8"
+                :placeholder="t('admin.site.fields.customCss.placeholder')"
+                :disabled="saving || loadingSettings"
+                class="font-mono text-xs"
+              />
+              <p class="text-xs text-muted">
+                {{ t('admin.site.fields.customCss.help') }}
               </p>
             </div>
 

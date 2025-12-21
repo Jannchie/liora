@@ -8,6 +8,7 @@ const FALLBACK_NAME = 'Liora Gallery'
 const FALLBACK_DESCRIPTION = 'A minimal gallery for photography and illustrations.'
 const FALLBACK_ICON_URL = '/favicon.ico'
 const FALLBACK_INFO_PLACEMENT: SiteInfoPlacement = 'header'
+const FALLBACK_CUSTOM_CSS = ''
 
 function normalizeText(value: string | undefined): string {
   return value?.trim() ?? ''
@@ -20,6 +21,10 @@ function normalizeIconUrl(value: string | undefined): string {
 
 function normalizeInfoPlacement(value: string | undefined): SiteInfoPlacement {
   return value === 'waterfall' ? 'waterfall' : FALLBACK_INFO_PLACEMENT
+}
+
+function normalizeCustomCss(value: string | undefined): string {
+  return value ?? ''
 }
 
 function validateIconUrl(value: string): string {
@@ -69,6 +74,7 @@ function resolveDefaultSiteSetting(): {
   iconUrl: string
   social: SiteSocialLinks
   infoPlacement: SiteInfoPlacement
+  customCss: string
 } {
   return {
     name: FALLBACK_NAME,
@@ -76,6 +82,7 @@ function resolveDefaultSiteSetting(): {
     iconUrl: FALLBACK_ICON_URL,
     social: resolveDefaultSocial(),
     infoPlacement: FALLBACK_INFO_PLACEMENT,
+    customCss: FALLBACK_CUSTOM_CSS,
   }
 }
 
@@ -97,6 +104,7 @@ function serialize(setting: SiteSettingRow): SiteSettings {
       linkedin: setting.socialLinkedin,
     },
     infoPlacement: normalizeInfoPlacement(setting.infoPlacement),
+    customCss: normalizeCustomCss(setting.customCss),
     updatedAt: Number.isNaN(updatedAt.getTime()) ? new Date().toISOString() : updatedAt.toISOString(),
   }
 }
@@ -144,6 +152,7 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
     description: trimmedDescription,
     iconUrl: validateIconUrl(payload.iconUrl),
     infoPlacement: validateInfoPlacement(payload.infoPlacement),
+    customCss: normalizeCustomCss(payload.customCss),
     social: {
       homepage: normalizeText(payload.social.homepage),
       github: normalizeText(payload.social.github),
@@ -179,6 +188,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       socialTiktok: validated.social.tiktok,
       socialLinkedin: validated.social.linkedin,
       updatedAt: timestamp,
+      customCss: validated.customCss,
     })
     .onConflictDoUpdate({
       target: siteSettings.id,
@@ -197,6 +207,7 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
         socialTiktok: validated.social.tiktok,
         socialLinkedin: validated.social.linkedin,
         updatedAt: timestamp,
+        customCss: validated.customCss,
       },
     })
     .returning()
@@ -224,6 +235,7 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       socialBilibili: defaults.social.bilibili,
       socialTiktok: defaults.social.tiktok,
       socialLinkedin: defaults.social.linkedin,
+      customCss: defaults.customCss,
       updatedAt: timestamp,
     })
     .onConflictDoUpdate({
