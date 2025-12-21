@@ -1,3 +1,15 @@
+## v0.13.0
+
+[v0.12.4...v0.13.0](https://github.com/Jannchie/liora/compare/v0.12.4...v0.13.0)
+
+### :sparkles: Features
+
+- **site**: add custom css setting and SSR injection - By [Jannchie](mailto:jannchie@gmail.com) in [2ae5660](https://github.com/Jannchie/liora/commit/2ae5660)
+
+### :lipstick: Styles
+
+- **css**: wrap font-face and touch-action in base layer - By [Jannchie](mailto:jannchie@gmail.com) in [bafb1d3](https://github.com/Jannchie/liora/commit/bafb1d3)
+
 ## v0.12.4
 
 [v0.12.3...v0.12.4](https://github.com/Jannchie/liora/compare/v0.12.3...v0.12.4)
