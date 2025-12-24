@@ -31,12 +31,14 @@ const props = withDefaults(
     scrollElement?: HTMLElement | Document | Window | null
     siteSettings?: SiteSettings | null
     isAuthenticated?: boolean
+    totalCount?: number | null
   }>(),
   {
     emptyText: undefined,
     scrollElement: undefined,
     siteSettings: undefined,
     isAuthenticated: false,
+    totalCount: undefined,
   },
 )
 
@@ -108,6 +110,7 @@ const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 const fileOverrides = ref<Record<number, FileResponse>>({})
 const isAdmin = computed(() => props.isAuthenticated ?? false)
 const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
+const showLoadingState = computed(() => !isHydrated.value || (props.isLoading && props.files.length === 0))
 
 interface ThumbhashInfo {
   dataUrl: string
@@ -479,7 +482,12 @@ const siteDescription = computed(() => {
   }
   return t('home.defaultDescription')
 })
-const photoCount = computed(() => resolvedFiles.value.length)
+const photoCount = computed(() => {
+  if (props.totalCount !== null && props.totalCount !== undefined) {
+    return props.totalCount
+  }
+  return resolvedFiles.value.length
+})
 
 const socialLinks = computed<SocialLink[]>(() => {
   const links: SocialLink[] = []
@@ -1999,7 +2007,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
 
 <template>
   <div ref="galleryRef" class="relative">
-    <template v-if="isHydrated">
+    <template v-if="!showLoadingState">
       <Waterfall
         :gap="waterfallGap"
         :cols="columns"
@@ -2094,11 +2102,17 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     </template>
     <div
       v-else
-      class="flex min-h-[50vh] items-center justify-center text-sm text-muted"
+      class="flex items-center justify-center text-sm text-muted"
+      :style="{ height: 'calc(100dvh - 256px)' }"
       aria-live="polite"
+      aria-busy="true"
     >
-      <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary" />
-      <span>Loading gallery…</span>
+      <div class="flex flex-col items-center gap-2">
+        <Icon name="line-md:loading-loop" size="xl" />
+        <span class="text-sm text-muted">
+          {{ t('home.loading') }}
+        </span>
+      </div>
     </div>
   </div>
 </template>

@@ -43,7 +43,7 @@
     "typescript": "^5.9.3",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4",
-    "vue-wf": "^0.8.0"
+    "vue-wf": "^0.8.1"
   },
   "devDependencies": {
     "@iconify-json/carbon": "^1.2.15",

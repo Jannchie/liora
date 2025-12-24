@@ -4,7 +4,7 @@ import type { FileResponse } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
@@ -24,9 +24,25 @@ definePageMeta({
   },
 })
 
-const { data, pending, error } = useFetch<FileResponse[]>('/api/files', {
+const pageSize = 36
+const totalAvailable = useState<number | null>('home-total-available', () => null)
+const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
   default: () => [],
-  server: false,
+  query: {
+    limit: pageSize,
+    offset: 0,
+    includeTotal: '1',
+  },
+  onResponse({ response }) {
+    const totalHeader = response.headers.get('x-total-count')
+    if (!totalHeader) {
+      return
+    }
+    const parsed = Number.parseInt(totalHeader, 10)
+    if (Number.isFinite(parsed) && parsed >= 0) {
+      totalAvailable.value = parsed
+    }
+  },
 })
 
 const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
@@ -50,16 +66,130 @@ const pageDescription = computed(() => {
   return defaultDescription.value
 })
 
-const files = computed<FileResponse[]>(() => data.value ?? [])
-const totalFiles = computed(() => files.value.length)
-const isLoading = computed(() => pending.value)
+const files = ref<FileResponse[]>(data.value ?? [])
+const totalFiles = computed(() => totalAvailable.value ?? files.value.length)
+const isLoadingMore = ref(false)
+const loadMoreError = ref(false)
+const nextOffset = ref(files.value.length)
+const hasMore = ref(
+  totalAvailable.value === null
+    ? files.value.length >= pageSize
+    : files.value.length < totalAvailable.value,
+)
+const loadMoreSentinel = ref<HTMLElement | null>(null)
+const loadMoreObserver = ref<IntersectionObserver | null>(null)
+const showLoadMoreSentinel = computed(() => files.value.length > 0)
+const isLoading = computed(() => pending.value || isLoadingMore.value)
 const fetchError = computed(() => error.value)
 const alertTitle = computed(() => fetchError.value?.message ?? t('home.fetchFailed'))
 const alertDescription = computed(() => t('home.fetchFailedDescription'))
 const emptyText = computed(() => t('home.emptyText'))
 const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
-const hasHydrated = ref(false)
+const route = useRoute()
+
+const routePhotoId = computed<number | null>(() => {
+  const rest = route.params.rest
+  const normalized = Array.isArray(rest)
+    ? rest.join('/')
+    : (typeof rest === 'string'
+        ? rest
+        : '')
+  if (!normalized) {
+    return null
+  }
+  const match = normalized.match(/^photo\/(\d+)$/)
+  if (!match) {
+    return null
+  }
+  const parsed = Number.parseInt(match[1], 10)
+  return Number.isFinite(parsed) ? parsed : null
+})
+
+const mergeFiles = (nextBatch: FileResponse[]): void => {
+  if (nextBatch.length === 0) {
+    return
+  }
+  const existingIds = new Set(files.value.map(file => file.id))
+  const unique = nextBatch.filter(file => !existingIds.has(file.id))
+  if (unique.length > 0) {
+    files.value = [...files.value, ...unique]
+  }
+}
+
+const ensureRouteFile = async (): Promise<void> => {
+  const targetId = routePhotoId.value
+  if (!targetId) {
+    return
+  }
+  if (files.value.some(file => file.id === targetId)) {
+    return
+  }
+  try {
+    const file = await $fetch<FileResponse>(`/api/files/${targetId}`)
+    mergeFiles([file])
+  }
+  catch {
+    // Ignore missing route data.
+  }
+}
+
+const loadMore = async (): Promise<void> => {
+  if (isLoadingMore.value || pending.value || !hasMore.value || loadMoreError.value) {
+    return
+  }
+  isLoadingMore.value = true
+  try {
+    const nextBatch = await $fetch<FileResponse[]>('/api/files', {
+      query: {
+        limit: pageSize,
+        offset: nextOffset.value,
+      },
+    })
+    if (nextBatch.length === 0) {
+      hasMore.value = false
+      return
+    }
+    mergeFiles(nextBatch)
+    nextOffset.value += nextBatch.length
+    const resolvedTotal = totalAvailable.value
+    if (resolvedTotal !== null && nextOffset.value >= resolvedTotal) {
+      hasMore.value = false
+    }
+    else if (nextBatch.length < pageSize) {
+      hasMore.value = false
+    }
+  }
+  catch {
+    loadMoreError.value = true
+  }
+  finally {
+    isLoadingMore.value = false
+  }
+}
+
+const setupLoadMoreObserver = (): void => {
+  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+    return
+  }
+  if (!loadMoreSentinel.value) {
+    return
+  }
+  loadMoreObserver.value?.disconnect()
+  loadMoreObserver.value = new IntersectionObserver(
+    (entries) => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        void loadMore()
+      }
+    },
+    {
+      root: scrollElementRef.value ?? null,
+      rootMargin: '600px 0px',
+      threshold: 0,
+    },
+  )
+  loadMoreObserver.value.observe(loadMoreSentinel.value)
+}
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
   const placement = siteSettings.value?.infoPlacement?.trim()
@@ -100,12 +230,18 @@ const { data: sessionState } = await useFetch<SessionState>('/api/auth/session',
 
 const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
 
+await ensureRouteFile()
+
 onMounted(() => {
   const root = document.scrollingElement ?? document.documentElement ?? document.body ?? undefined
   if (root instanceof HTMLElement) {
     scrollElementRef.value = root
   }
-  hasHydrated.value = true
+  setupLoadMoreObserver()
+})
+
+onBeforeUnmount(() => {
+  loadMoreObserver.value?.disconnect()
 })
 
 usePageSeo({
@@ -194,16 +330,24 @@ defineOgImageComponent('LioraCard', {
         </template>
       </UAlert>
 
-      <ClientOnly>
-        <WaterfallGallery
-          :files="files"
-          :is-loading="isLoading"
-          :site-settings="siteSettings ?? undefined"
-          :scroll-element="scrollElementRef"
-          :empty-text="emptyText"
-          :is-authenticated="isAuthenticated"
-        />
-      </ClientOnly>
+      <WaterfallGallery
+        :files="files"
+        :is-loading="isLoading"
+        :site-settings="siteSettings ?? undefined"
+        :scroll-element="scrollElementRef"
+        :empty-text="emptyText"
+        :total-count="totalAvailable ?? undefined"
+        :is-authenticated="isAuthenticated"
+      />
+      <div
+        ref="loadMoreSentinel"
+        v-show="showLoadMoreSentinel"
+        class="flex min-h-[48px] items-center justify-center py-6 text-xs text-muted"
+        aria-live="polite"
+      >
+        <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
+        <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
+      </div>
     </div>
   </div>
 </template>
