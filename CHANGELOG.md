@@ -1,3 +1,16 @@
+## v0.16.0
+
+[v0.15.0...v0.16.0](https://github.com/Jannchie/liora/compare/v0.15.0...v0.16.0)
+
+### :sparkles: Features
+
+- **components**: lazy-load brand icon in waterfall metadata panel - By [Jannchie](mailto:jannchie@gmail.com) in [f29a46e](https://github.com/Jannchie/liora/commit/f29a46e)
+- **router**: add custom scroll behavior config - By [Jannchie](mailto:jannchie@gmail.com) in [16d711b](https://github.com/Jannchie/liora/commit/16d711b)
+
+### :art: Refactors
+
+- **ui**: convert const arrow functions to named functions && adjust window checks and ref ordering - By [Jannchie](mailto:jannchie@gmail.com) in [5d5dcd8](https://github.com/Jannchie/liora/commit/5d5dcd8)
+
 ## v0.15.0
 
 [v0.14.0...v0.15.0](https://github.com/Jannchie/liora/compare/v0.14.0...v0.15.0)
