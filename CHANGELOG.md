@@ -1,3 +1,11 @@
+## v0.13.2
+
+[v0.13.1...v0.13.2](https://github.com/Jannchie/liora/compare/v0.13.1...v0.13.2)
+
+### :lipstick: Styles
+
+- **css**: simplify font declarations and fallback stacks - By [Jannchie](mailto:jannchie@gmail.com) in [4f4e48a](https://github.com/Jannchie/liora/commit/4f4e48a)
+
 ## v0.13.1
 
 [v0.13.0...v0.13.1](https://github.com/Jannchie/liora/compare/v0.13.0...v0.13.1)
