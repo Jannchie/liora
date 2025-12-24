@@ -1,3 +1,11 @@
+## v0.13.1
+
+[v0.13.0...v0.13.1](https://github.com/Jannchie/liora/compare/v0.13.0...v0.13.1)
+
+### :art: Refactors
+
+- **gallery**: improve gallery image sizing and hydration flow - By [Jannchie](mailto:jannchie@gmail.com) in [8708f87](https://github.com/Jannchie/liora/commit/8708f87)
+
 ## v0.13.0
 
 [v0.12.4...v0.13.0](https://github.com/Jannchie/liora/compare/v0.12.4...v0.13.0)
