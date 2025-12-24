@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { Chart as ChartInstance } from 'chart.js'
 import type { HistogramData } from '~/types/file'
-import { Chart } from 'chart.js/auto'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 interface HistogramSummary {
@@ -23,7 +23,11 @@ const histogramSmoothingKernel = [1, 6, 15, 20, 15, 6, 1]
 const { t } = useI18n()
 
 const histogramCanvasRef = ref<HTMLCanvasElement | null>(null)
-const histogramChart = ref<Chart | null>(null)
+const histogramChart = ref<ChartInstance<'line'> | null>(null)
+let chartConstructor: typeof import('chart.js').Chart | null = null
+let chartImportPromise: Promise<typeof import('chart.js').Chart> | null = null
+let renderSequence = 0
+let isUnmounted = false
 
 const histogramColors = computed(() => ({
   red: getCssColor('--ui-color-error-500', '#ef4444'),
@@ -87,16 +91,17 @@ watch(
     histogramColors,
   ],
   () => {
-    renderHistogram()
+    void renderHistogram()
   },
   { flush: 'post' },
 )
 
 onMounted(() => {
-  renderHistogram()
+  void renderHistogram()
 })
 
 onBeforeUnmount(() => {
+  isUnmounted = true
   destroyHistogramChart()
 })
 
@@ -168,21 +173,48 @@ function destroyHistogramChart(): void {
   histogramChart.value = null
 }
 
-function renderHistogram(): void {
-  if (globalThis.document === undefined || !histogramCanvasRef.value || !props.histogram) {
+async function loadChartConstructor(): Promise<typeof import('chart.js').Chart> {
+  if (chartConstructor) {
+    return chartConstructor
+  }
+  if (!chartImportPromise) {
+    chartImportPromise = import('chart.js').then(
+      ({ Chart, LineController, LineElement, PointElement, LinearScale, CategoryScale }) => {
+        Chart.register(LineController, LineElement, PointElement, LinearScale, CategoryScale)
+        chartConstructor = Chart
+        return Chart
+      },
+    )
+  }
+  return chartImportPromise
+}
+
+async function renderHistogram(): Promise<void> {
+  const sequence = renderSequence + 1
+  renderSequence = sequence
+  if (globalThis.document === undefined) {
     return
   }
-  const context = histogramCanvasRef.value.getContext('2d')
+  const canvas = histogramCanvasRef.value
+  const histogram = props.histogram
+  if (!canvas || !histogram) {
+    return
+  }
+  const Chart = await loadChartConstructor()
+  if (isUnmounted || sequence !== renderSequence) {
+    return
+  }
+  const context = canvas.getContext('2d')
   if (!context) {
     return
   }
   destroyHistogramChart()
-  const chartHistogram = smoothHistogramData(props.histogram)
+  const chartHistogram = smoothHistogramData(histogram)
   const labels = chartHistogram.red.map((_, index) => index)
-  const monochrome = isMonochromeHistogram(props.histogram)
+  const monochrome = isMonochromeHistogram(histogram)
   const toneOverlay = {
     id: 'toneOverlay',
-    beforeDraw(chartInstance: Chart<'line'>) {
+    beforeDraw(chartInstance: ChartInstance<'line'>) {
       const { ctx, chartArea, scales } = chartInstance
       const xScale = scales.x
       if (!chartArea || !xScale) {

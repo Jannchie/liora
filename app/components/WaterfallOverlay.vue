@@ -2,7 +2,7 @@
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
 import type { FileLocation, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const {
   file,
@@ -63,6 +63,8 @@ const viewerRef = ref<HTMLElement | null>(null)
 const overlayHiddenClass = 'overlay-content-hidden'
 
 const { t } = useI18n()
+
+const WaterfallLocationMap = defineAsyncComponent(() => import('~/components/WaterfallLocationMap.vue'))
 
 watch(
   viewerRef,
