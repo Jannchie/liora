@@ -28,7 +28,7 @@ const props = withDefaults(
     files: FileResponse[]
     isLoading: boolean
     emptyText?: string
-    scrollElement?: HTMLElement
+    scrollElement?: HTMLElement | Document | Window | null
     siteSettings?: SiteSettings | null
     isAuthenticated?: boolean
   }>(),
@@ -195,7 +195,6 @@ const genreBadgeLabel = computed<string | null>(() => {
 
 const characterSeparator = computed(() => t('gallery.metadata.characterSeparator'))
 const resolvedEmptyText = computed(() => props.emptyText ?? t('gallery.empty'))
-const loadingText = computed(() => t('common.loading'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 
 function toByteArrayFromBase64(value: string): Uint8Array {
@@ -322,29 +321,40 @@ function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined,
   return { width, height }
 }
 
+function normalizeImageSize(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) {
+    return 1
+  }
+  return Math.max(1, Math.round(value))
+}
+
 function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' | 'inside' = 'inside'): ImageAttrs {
+  const width = normalizeImageSize(displaySize.width)
+  const height = normalizeImageSize(displaySize.height)
   const modifiers: Record<string, number | string> = {
-    width: displaySize.width,
+    width,
     format: 'webp',
     fit,
+    quality: 75,
   }
   if (fit === 'cover') {
-    modifiers.height = displaySize.height
+    modifiers.height = height
   }
-  const sizes = image.getSizes(src, {
+  const sizesValue = `${width}px`
+  const sizesResult = image.getSizes(src, {
     modifiers,
-    sizes: `${maxDisplayWidth}px`,
+    sizes: sizesValue,
   })
   const imageResult = image.getImage(src, {
     modifiers,
   })
-  const resolvedSrc = sizes.src ?? imageResult.url
-
+  const resolvedSrc = imageResult.url ?? sizesResult.src ?? src
   return {
-    ...sizes,
+    ...sizesResult,
     src: resolvedSrc,
-    width: displaySize.width,
-    height: displaySize.height,
+    sizes: sizesResult.sizes ?? sizesValue,
+    width,
+    height,
   }
 }
 
@@ -392,10 +402,11 @@ const columnWidth = computed(() => {
     return maxDisplayWidth
   }
   const available = wrapperWidth.value > 0
-    ? (wrapperWidth.value - waterfallGap * (columns.value - 1)) / columns.value
-    : maxDisplayWidth
-  const clamped = Math.min(maxDisplayWidth, Math.floor(available))
-  return Math.max(140, clamped)
+    ? wrapperWidth.value - waterfallGap * (columns.value - 1)
+    : maxDisplayWidth * columns.value
+  const width = available / columns.value
+  const clamped = Math.min(maxDisplayWidth, width)
+  return Math.max(1, clamped)
 })
 
 function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile {
@@ -546,9 +557,9 @@ function updateColumns(): void {
 }
 
 onMounted(async () => {
-  isHydrated.value = true
   await nextTick()
   updateColumns()
+  isHydrated.value = true
   if (typeof ResizeObserver !== 'undefined') {
     resizeObserver.value = new ResizeObserver(() => updateColumns())
     if (galleryRef.value) {
@@ -1987,105 +1998,107 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
 </script>
 
 <template>
-  <div v-if="isHydrated" ref="galleryRef" class="relative">
-    <Waterfall
-      :gap="waterfallGap"
-      :cols="columns"
-      :items="waterfallItems"
-      :wrapper-width="wrapperWidth"
-      :scroll-element="scrollElement"
-    >
-      <template v-for="entry in waterfallEntries" :key="entry.entryType === 'info' ? 'waterfall-info' : entry.id">
-        <WaterfallInfoCard
-          v-if="entry.entryType === 'info'"
-          :site-name="siteName"
-          :site-description="siteDescription"
-          :photo-count="photoCount"
-          :social-links="socialLinks"
-          :empty-text="resolvedEmptyText"
-          :is-loading="isLoading"
-          :display-size="infoCardDisplaySize"
-        />
-        <button
-          v-else
-          type="button"
-          class="group relative block h-full w-full focus:outline-none"
-          :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
-          @click="handleEntryClick($event, entry)"
-        >
-          <img
-            :key="entry.id"
-            :alt="entry.displayTitle"
-            :style="[
-              entryTransitionStyle(entry.id),
-              entry.placeholder
-                ? {
-                  backgroundImage: `url(${entry.placeholder})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                  backgroundRepeat: 'no-repeat',
-                }
-                : undefined,
-            ]"
-            loading="lazy"
-            class="h-full w-full object-contain bg-default transition duration-200 group-hover:opacity-90"
-            v-bind="entry.imageAttrs"
+  <div ref="galleryRef" class="relative">
+    <template v-if="isHydrated">
+      <Waterfall
+        :gap="waterfallGap"
+        :cols="columns"
+        :items="waterfallItems"
+        :wrapper-width="wrapperWidth"
+        :scroll-element="scrollElement"
+      >
+        <template v-for="entry in waterfallEntries" :key="entry.entryType === 'info' ? 'waterfall-info' : entry.id">
+          <WaterfallInfoCard
+            v-if="entry.entryType === 'info'"
+            :site-name="siteName"
+            :site-description="siteDescription"
+            :photo-count="photoCount"
+            :social-links="socialLinks"
+            :empty-text="resolvedEmptyText"
+            :is-loading="isLoading"
+            :display-size="infoCardDisplaySize"
+          />
+          <button
+            v-else
+            type="button"
+            class="group relative block h-full w-full focus:outline-none"
+            :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
+            @click="handleEntryClick($event, entry)"
           >
-        </button>
-      </template>
-    </Waterfall>
-    <Teleport to="body">
-      <WaterfallOverlay
-        v-if="activeFile"
-        :file="activeFile"
-        :overlay-background-style="overlayBackgroundStyle"
-        :overlay-image-src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
-        :overlay-image-transform-style="overlayImageTransformStyle"
-        :overlay-download-visible="overlayDownloadVisible"
-        :overlay-download-label="overlayDownloadLabel"
-        :overlay-download-percent="overlayDownloadPercent"
-        :overlay-zoom-label="overlayZoomLabel"
-        :overlay-zoom-indicator-visible="overlayZoomIndicatorVisible"
-        :overlay-stats="overlayStats"
-        :histogram="histogram"
-        :metadata-entries="metadataEntries"
-        :exposure-entries="exposureEntries"
-        :has-metadata="hasMetadata"
-        :preview-attrs="activeFile.previewAttrs"
-        :location="locationPoint"
-        :genre-label="genreBadgeLabel"
-        :can-edit="isAdmin"
-        :viewer-touch-action="viewerTouchAction"
-        @close="handleOverlayClose"
-        @edit="handleOverlayEdit"
-        @wheel="handleOverlayWheel"
-        @dblclick="handleOverlayDoubleClick"
-        @pointerdown="handleOverlayPointerDown"
-        @pointermove="handleOverlayPointerMove"
-        @pointerup="endOverlayPointerDrag"
-        @pointercancel="endOverlayPointerDrag"
-        @pointerleave="endOverlayPointerDrag"
-        @viewer-mounted="handleOverlayViewerMounted"
-      />
-      <AdminEditModal
-        v-model:open="editModalOpen"
-        v-model:capture-time-local="editCaptureTimeLocal"
-        v-model:form="editFormModel"
-        v-model:replace-file="replaceFile"
-        :file="editingFile"
-        :loading="editing"
-        :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
-        @submit="saveEditFromModal"
-        @close="closeEditModal"
-      />
-    </Teleport>
-  </div>
-  <div
-    v-else
-    class="flex min-h-[50vh] items-center justify-center text-sm text-muted"
-    aria-live="polite"
-  >
-    <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary" />
-    <span>Loading gallery…</span>
+            <img
+              :key="entry.id"
+              :alt="entry.displayTitle"
+              :style="[
+                entryTransitionStyle(entry.id),
+                entry.placeholder
+                  ? {
+                    backgroundImage: `url(${entry.placeholder})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }
+                  : undefined,
+              ]"
+              loading="lazy"
+              class="h-full w-full object-contain bg-default transition duration-200 group-hover:opacity-90"
+              v-bind="entry.imageAttrs"
+            >
+          </button>
+        </template>
+      </Waterfall>
+      <Teleport to="body">
+        <WaterfallOverlay
+          v-if="activeFile"
+          :file="activeFile"
+          :overlay-background-style="overlayBackgroundStyle"
+          :overlay-image-src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
+          :overlay-image-transform-style="overlayImageTransformStyle"
+          :overlay-download-visible="overlayDownloadVisible"
+          :overlay-download-label="overlayDownloadLabel"
+          :overlay-download-percent="overlayDownloadPercent"
+          :overlay-zoom-label="overlayZoomLabel"
+          :overlay-zoom-indicator-visible="overlayZoomIndicatorVisible"
+          :overlay-stats="overlayStats"
+          :histogram="histogram"
+          :metadata-entries="metadataEntries"
+          :exposure-entries="exposureEntries"
+          :has-metadata="hasMetadata"
+          :preview-attrs="activeFile.previewAttrs"
+          :location="locationPoint"
+          :genre-label="genreBadgeLabel"
+          :can-edit="isAdmin"
+          :viewer-touch-action="viewerTouchAction"
+          @close="handleOverlayClose"
+          @edit="handleOverlayEdit"
+          @wheel="handleOverlayWheel"
+          @dblclick="handleOverlayDoubleClick"
+          @pointerdown="handleOverlayPointerDown"
+          @pointermove="handleOverlayPointerMove"
+          @pointerup="endOverlayPointerDrag"
+          @pointercancel="endOverlayPointerDrag"
+          @pointerleave="endOverlayPointerDrag"
+          @viewer-mounted="handleOverlayViewerMounted"
+        />
+        <AdminEditModal
+          v-model:open="editModalOpen"
+          v-model:capture-time-local="editCaptureTimeLocal"
+          v-model:form="editFormModel"
+          v-model:replace-file="replaceFile"
+          :file="editingFile"
+          :loading="editing"
+          :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
+          @submit="saveEditFromModal"
+          @close="closeEditModal"
+        />
+      </Teleport>
+    </template>
+    <div
+      v-else
+      class="flex min-h-[50vh] items-center justify-center text-sm text-muted"
+      aria-live="polite"
+    >
+      <Icon name="line-md:loading-loop" class="mr-2 h-5 w-5 text-primary" />
+      <span>Loading gallery…</span>
+    </div>
   </div>
 </template>

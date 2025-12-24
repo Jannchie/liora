@@ -60,6 +60,8 @@ const pageKey = computed<string>(() => {
 
 <template>
   <UApp>
-    <NuxtPage :page-key="pageKey" />
+    <main>
+      <NuxtPage :page-key="pageKey" />
+    </main>
   </UApp>
 </template>

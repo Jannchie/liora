@@ -74,7 +74,7 @@ export default defineNuxtConfig({
         {
           key: 'viewport',
           name: 'viewport',
-          content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
+          content: 'width=device-width, initial-scale=1, viewport-fit=cover',
         },
         {
           key: 'theme-color-light',
@@ -170,6 +170,13 @@ export default defineNuxtConfig({
     sitemap: siteUrl ? [`${siteUrl}/sitemap.xml`] : [],
     disallow: ['/admin', '/admin/**', '/api/**'],
   },
+  routeRules: {
+    '/_ipx/**': {
+      headers: {
+        'cache-control': 'public, max-age=31536000, immutable',
+      },
+    },
+  },
   ogImage: {
     defaults: {
       component: 'LioraCard',
@@ -218,6 +225,6 @@ export default defineNuxtConfig({
     },
   },
   sourcemap: {
-    client: 'hidden',
+    client: true,
   },
 })
