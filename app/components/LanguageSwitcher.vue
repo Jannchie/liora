@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-type DetectBrowserLanguageCookieOptions = {
+interface DetectBrowserLanguageCookieOptions {
   cookieKey?: string
   cookieCrossOrigin?: boolean
   cookieSecure?: boolean
