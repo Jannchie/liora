@@ -64,6 +64,7 @@ const overlayHiddenClass = 'overlay-content-hidden'
 
 const { t } = useI18n()
 
+const WaterfallHistogramPanel = defineAsyncComponent(() => import('~/components/WaterfallHistogramPanel.vue'))
 const WaterfallLocationMap = defineAsyncComponent(() => import('~/components/WaterfallLocationMap.vue'))
 
 watch(
@@ -210,7 +211,55 @@ onMounted(() => {
             </div>
           </div>
           <div class="space-y-3">
-            <WaterfallHistogramPanel :histogram="histogram" />
+            <Suspense>
+              <template #default>
+                <WaterfallHistogramPanel :histogram="histogram" />
+              </template>
+              <template #fallback>
+                <div class="rounded-lg border border-default/20 bg-elevated/80" aria-hidden="true">
+                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                    <div class="flex items-center gap-2">
+                      <div class="h-4 w-4 rounded bg-default/40" />
+                      <div class="h-4 w-24 rounded bg-default/40" />
+                    </div>
+                  </div>
+                  <div class="space-y-3 p-3">
+                    <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
+                      <div class="absolute inset-0 animate-pulse bg-default/40" />
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <div class="h-4 w-12 rounded bg-default/40" />
+                          <div class="h-4 w-8 rounded bg-default/40" />
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full w-1/2 rounded-full bg-default/50" />
+                        </div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <div class="h-4 w-12 rounded bg-default/40" />
+                          <div class="h-4 w-8 rounded bg-default/40" />
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full w-1/2 rounded-full bg-default/50" />
+                        </div>
+                      </div>
+                      <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                          <div class="h-4 w-12 rounded bg-default/40" />
+                          <div class="h-4 w-8 rounded bg-default/40" />
+                        </div>
+                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
+                          <div class="h-full w-1/2 rounded-full bg-default/50" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </Suspense>
             <WaterfallLocationMap v-if="location" :location="location" />
             <WaterfallMetadataPanel
               :metadata-entries="metadataEntries"
