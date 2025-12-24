@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { MetadataEntry } from '~/types/gallery'
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 
 const props = defineProps<{
   hasMetadata: boolean
   metadataEntries: MetadataEntry[]
   exposureEntries: MetadataEntry[]
 }>()
+
+const BrandIcon = defineAsyncComponent(() => import('~/components/BrandIcon.vue'))
 
 function isMetadataEntry(value: MetadataEntry | null | undefined): value is MetadataEntry {
   return value != null
