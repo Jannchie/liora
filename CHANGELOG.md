@@ -1,3 +1,11 @@
+## v0.13.3
+
+[v0.13.2...v0.13.3](https://github.com/Jannchie/liora/compare/v0.13.2...v0.13.3)
+
+### :sparkles: Features
+
+- **waterfall**: lazy-load chart.js and async map component - By [Jannchie](mailto:jannchie@gmail.com) in [b14c961](https://github.com/Jannchie/liora/commit/b14c961)
+
 ## v0.13.2
 
 [v0.13.1...v0.13.2](https://github.com/Jannchie/liora/compare/v0.13.1...v0.13.2)
