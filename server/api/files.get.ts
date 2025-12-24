@@ -4,23 +4,70 @@ import { getQuery } from 'h3'
 import { db, files } from '../utils/db'
 import { toFileResponse } from '../utils/file-mapper'
 
-function parseQueryNumber(value: string | string[] | undefined): number | null {
-  if (typeof value !== 'string') {
+type QueryInput = unknown
+
+function resolveQueryValue(value: QueryInput): string | number | boolean | null {
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      if (typeof entry === 'string') {
+        if (entry.trim().length > 0) {
+          return entry
+        }
+      }
+      else if (typeof entry === 'number') {
+        if (Number.isFinite(entry)) {
+          return entry
+        }
+      }
+      else if (typeof entry === 'boolean') {
+        return entry
+      }
+    }
     return null
   }
-  const parsed = Number.parseInt(value, 10)
+  if (typeof value === 'string') {
+    if (value.trim().length === 0) {
+      return null
+    }
+    return value
+  }
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+  if (typeof value === 'boolean') {
+    return value
+  }
+  return null
+}
+
+function parseQueryNumber(value: QueryInput): number | null {
+  const normalized = resolveQueryValue(value)
+  if (typeof normalized === 'number') {
+    return normalized >= 0 ? normalized : null
+  }
+  if (typeof normalized !== 'string') {
+    return null
+  }
+  const parsed = Number.parseInt(normalized, 10)
   if (!Number.isFinite(parsed) || parsed < 0) {
     return null
   }
   return parsed
 }
 
-function parseQueryBoolean(value: string | string[] | undefined): boolean {
-  if (typeof value !== 'string') {
+function parseQueryBoolean(value: QueryInput): boolean {
+  const normalized = resolveQueryValue(value)
+  if (typeof normalized === 'boolean') {
+    return normalized
+  }
+  if (typeof normalized === 'number') {
+    return normalized === 1
+  }
+  if (typeof normalized !== 'string') {
     return false
   }
-  const normalized = value.trim().toLowerCase()
-  return normalized === 'true' || normalized === '1'
+  const trimmed = normalized.trim().toLowerCase()
+  return trimmed === 'true' || trimmed === '1'
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse[]> => {
