@@ -23,7 +23,7 @@ export const files = sqliteTable('File', {
   captureTime: text('captureTime').notNull().default(''),
   metadata: text('metadata').notNull().default('{}'),
   genre: text('genre').notNull().default(''),
-  createdAt: text('createdAt', { mode: 'date' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
 export const siteSettings = sqliteTable('SiteSetting', {
@@ -42,7 +42,7 @@ export const siteSettings = sqliteTable('SiteSetting', {
   socialLinkedin: text('socialLinkedin').notNull().default(''),
   infoPlacement: text('infoPlacement').notNull().default('header'),
   customCss: text('customCss').notNull().default(''),
-  updatedAt: text('updatedAt', { mode: 'date' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updatedAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
 export type FileRow = typeof files.$inferSelect

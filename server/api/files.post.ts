@@ -464,6 +464,10 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
       })
       .returning()
 
+    if (!created) {
+      throw new Error('Failed to create file record.')
+    }
+
     const status = await runMetadataPostProcessing(created.id, file.data, metadata, uploadId)
     setUploadStatus(uploadId, status)
   }

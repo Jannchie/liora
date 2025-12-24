@@ -101,7 +101,7 @@ export function toFileResponse(file: FileRow): FileResponse {
   })
   const imageUrl = file.imageUrl || ''
   const genre = file.genre?.trim() ?? ''
-  const createdAt = file.createdAt instanceof Date ? file.createdAt : new Date(file.createdAt)
+  const createdAt = new Date(file.createdAt)
 
   return {
     id: file.id,

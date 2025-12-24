@@ -175,5 +175,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     .where(eq(files.id, id))
     .returning()
 
+  if (!updated) {
+    throw createError({ statusCode: 500, statusMessage: 'Failed to update file.' })
+  }
+
   return toFileResponse(updated)
 })

@@ -87,7 +87,7 @@ function resolveDefaultSiteSetting(): {
 }
 
 function serialize(setting: SiteSettingRow): SiteSettings {
-  const updatedAt = setting.updatedAt instanceof Date ? setting.updatedAt : new Date(setting.updatedAt)
+  const updatedAt = new Date(setting.updatedAt)
   return {
     name: setting.name,
     description: setting.description,
@@ -169,7 +169,7 @@ function validatePayload(payload: SiteSettingsPayload): SiteSettingsPayload {
 
 export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<SiteSettings> {
   const validated = validatePayload(payload)
-  const timestamp = new Date()
+  const timestamp = new Date().toISOString()
   const [updated] = await db
     .insert(siteSettings)
     .values({
@@ -211,13 +211,16 @@ export async function updateSiteSettings(payload: SiteSettingsPayload): Promise<
       },
     })
     .returning()
+  if (!updated) {
+    throw createError({ statusCode: 500, statusMessage: 'Failed to update site settings.' })
+  }
   return serialize(updated)
 }
 
 export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
   const validatedIcon = validateIconUrl(iconUrl)
   const defaults = resolveDefaultSiteSetting()
-  const timestamp = new Date()
+  const timestamp = new Date().toISOString()
   const [updated] = await db
     .insert(siteSettings)
     .values({
@@ -246,5 +249,8 @@ export async function updateSiteIcon(iconUrl: string): Promise<SiteSettings> {
       },
     })
     .returning()
+  if (!updated) {
+    throw createError({ statusCode: 500, statusMessage: 'Failed to update site settings.' })
+  }
   return serialize(updated)
 }
