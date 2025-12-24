@@ -99,14 +99,14 @@ const routePhotoId = computed<number | null>(() => {
     return null
   }
   const match = normalized.match(/^photo\/(\d+)$/)
-  if (!match) {
+  if (!match || !match[1]) {
     return null
   }
   const parsed = Number.parseInt(match[1], 10)
   return Number.isFinite(parsed) ? parsed : null
 })
 
-const mergeFiles = (nextBatch: FileResponse[]): void => {
+function mergeFiles(nextBatch: FileResponse[]): void {
   if (nextBatch.length === 0) {
     return
   }
@@ -117,7 +117,7 @@ const mergeFiles = (nextBatch: FileResponse[]): void => {
   }
 }
 
-const ensureRouteFile = async (): Promise<void> => {
+async function ensureRouteFile(): Promise<void> {
   const targetId = routePhotoId.value
   if (!targetId) {
     return
@@ -134,7 +134,7 @@ const ensureRouteFile = async (): Promise<void> => {
   }
 }
 
-const loadMore = async (): Promise<void> => {
+async function loadMore(): Promise<void> {
   if (isLoadingMore.value || pending.value || !hasMore.value || loadMoreError.value) {
     return
   }
@@ -168,8 +168,8 @@ const loadMore = async (): Promise<void> => {
   }
 }
 
-const setupLoadMoreObserver = (): void => {
-  if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+function setupLoadMoreObserver(): void {
+  if (globalThis.window === undefined || !('IntersectionObserver' in globalThis)) {
     return
   }
   if (!loadMoreSentinel.value) {
@@ -340,9 +340,9 @@ defineOgImageComponent('LioraCard', {
         :is-authenticated="isAuthenticated"
       />
       <div
-        ref="loadMoreSentinel"
         v-show="showLoadMoreSentinel"
-        class="flex min-h-[48px] items-center justify-center py-6 text-xs text-muted"
+        ref="loadMoreSentinel"
+        class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
         aria-live="polite"
       >
         <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
