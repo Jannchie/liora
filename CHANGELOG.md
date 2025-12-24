@@ -1,3 +1,11 @@
+## v0.15.0
+
+[v0.14.0...v0.15.0](https://github.com/Jannchie/liora/compare/v0.14.0...v0.15.0)
+
+### :sparkles: Features
+
+- **waterfall**: lazy-load histogram panel with suspense fallback - By [Jannchie](mailto:jannchie@gmail.com) in [7831d84](https://github.com/Jannchie/liora/commit/7831d84)
+
 ## v0.14.0
 
 [v0.13.3...v0.14.0](https://github.com/Jannchie/liora/compare/v0.13.3...v0.14.0)
