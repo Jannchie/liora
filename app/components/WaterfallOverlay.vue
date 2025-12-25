@@ -97,7 +97,12 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 overlay-root" role="dialog" aria-modal="true">
+  <div
+    class="fixed inset-0 z-50 overlay-root"
+    role="dialog"
+    aria-modal="true"
+    :aria-labelledby="`overlay-title-${file.id}`"
+  >
     <div
       v-if="overlayBackgroundStyle"
       class="pointer-events-none absolute inset-0 scale-110 bg-cover bg-center blur-3xl"
@@ -168,7 +173,7 @@ onMounted(() => {
           <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">
-                <h3 class="text-lg font-semibold leading-snug text-highlighted">
+                <h3 :id="`overlay-title-${file.id}`" class="text-lg font-semibold leading-snug text-highlighted">
                   {{ file.displayTitle }}
                 </h3>
               </div>
@@ -189,6 +194,7 @@ onMounted(() => {
                   color="neutral"
                   variant="ghost"
                   icon="mdi:close"
+                  :aria-label="t('common.actions.close')"
                   @click="emit('close')"
                 />
               </div>

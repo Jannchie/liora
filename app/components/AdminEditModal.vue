@@ -200,6 +200,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
                         color="neutral"
                         size="sm"
                         icon="mdi:close"
+                        :aria-label="t('common.actions.remove')"
                         @click="clearReplaceSelection"
                       />
                     </div>
