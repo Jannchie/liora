@@ -1,3 +1,21 @@
+## v0.17.0
+
+[v0.16.0...v0.17.0](https://github.com/Jannchie/liora/compare/v0.16.0...v0.17.0)
+
+### :sparkles: Features
+
+- **gallery**: extract gallery layout && wrap nuxt page with layout - By [Jannchie](mailto:jannchie@gmail.com) in [c4ede1d](https://github.com/Jannchie/liora/commit/c4ede1d)
+- **ui**: expand waterfall range for image preloading - By [Jannchie](mailto:jannchie@gmail.com) in [31c0edc](https://github.com/Jannchie/liora/commit/31c0edc)
+
+### :adhesive_bandage: Fixes
+
+- **accessibility**: add aria labels and dialog title for overlays - By [Jannchie](mailto:jannchie@gmail.com) in [84fd714](https://github.com/Jannchie/liora/commit/84fd714)
+
+### :art: Refactors
+
+- **api**: normalize query param parsing - By [Jannchie](mailto:jannchie@gmail.com) in [2898ea3](https://github.com/Jannchie/liora/commit/2898ea3)
+- **routing**: normalize route params and simplify photo route - By [Jannchie](mailto:jannchie@gmail.com) in [2828167](https://github.com/Jannchie/liora/commit/2828167)
+
 ## v0.16.0
 
 [v0.15.0...v0.16.0](https://github.com/Jannchie/liora/compare/v0.15.0...v0.16.0)
