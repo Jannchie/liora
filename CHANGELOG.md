@@ -1,3 +1,15 @@
+## v0.18.0
+
+[v0.17.0...v0.18.0](https://github.com/Jannchie/liora/compare/v0.17.0...v0.18.0)
+
+### :sparkles: Features
+
+- **gallery**: streamline waterfall loading with summaries - By [Jannchie](mailto:jannchie@gmail.com) in [eb3fd5d](https://github.com/Jannchie/liora/commit/eb3fd5d)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: fix index checks, route regex and query handling - By [Jannchie](mailto:jannchie@gmail.com) in [d5afc17](https://github.com/Jannchie/liora/commit/d5afc17)
+
 ## v0.17.0
 
 [v0.16.0...v0.17.0](https://github.com/Jannchie/liora/compare/v0.16.0...v0.17.0)
