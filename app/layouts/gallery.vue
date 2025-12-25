@@ -141,7 +141,7 @@ const routePhotoId = computed<number | null>(() => {
 
 function replaceFile(updated: FileResponse): void {
   const index = files.value.findIndex(file => file.id === updated.id)
-  if (index < 0) {
+  if (index === -1) {
     files.value = [...files.value, updated]
     return
   }

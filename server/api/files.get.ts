@@ -79,7 +79,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
   const offset = parseQueryNumber(query.offset)
   const waterfallOnly = parseQueryBoolean(query.waterfall)
   if (waterfallOnly) {
-    let baseQuery = db
+    const baseQuery = db
       .select({
         id: files.id,
         imageUrl: files.imageUrl,
@@ -88,13 +88,9 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
       })
       .from(files)
       .orderBy(desc(files.captureTime), desc(files.createdAt))
-    if (typeof limit === 'number') {
-      baseQuery = baseQuery.limit(limit)
-    }
-    if (typeof offset === 'number') {
-      baseQuery = baseQuery.offset(offset)
-    }
-    const rows = await baseQuery
+    const limitedQuery = typeof limit === 'number' ? baseQuery.limit(limit) : baseQuery
+    const offsetQuery = typeof offset === 'number' ? limitedQuery.offset(offset) : limitedQuery
+    const rows = await offsetQuery
     return rows.map(row => ({
       id: row.id,
       imageUrl: row.imageUrl ?? '',
