@@ -2010,6 +2010,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     <template v-if="!showLoadingState">
       <Waterfall
         :gap="waterfallGap"
+        :range-expand="300"
         :cols="columns"
         :items="waterfallItems"
         :wrapper-width="wrapperWidth"
