@@ -298,6 +298,12 @@ function resolveSortTimestamp(file: FileResponse): number {
   return captureTimestamp ?? createdTimestamp
 }
 
+function hasSortTimestamp(file: FileResponse): boolean {
+  const captureTime = file.metadata.captureTime.trim()
+  const createdAt = file.createdAt.trim()
+  return captureTime.length > 0 || createdAt.length > 0
+}
+
 function formatDisplayDateTime(value: string | undefined): string | undefined {
   if (!value) {
     return undefined
@@ -417,24 +423,22 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
   const decoded = decodeThumbhash(file.metadata.thumbhash)
   const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
   const imageUrl = (file.imageUrl ?? '').trim()
-  const thumbnailUrl = (file.thumbnailUrl ?? '').trim()
-  const baseImageUrl = thumbnailUrl.length > 0 ? thumbnailUrl : imageUrl
+  const baseImageUrl = imageUrl
   const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
   const previewSize = computeDisplaySize(
     file,
     decoded?.aspectRatio,
     displayWidth,
   )
-  const previewAttrs = resolveImageAttrs(thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl, previewSize, 'inside')
+  const previewAttrs = resolveImageAttrs(baseImageUrl, previewSize, 'inside')
   const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
   const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
-    thumbnailUrl.length > 0 ? thumbnailUrl : baseImageUrl,
+    baseImageUrl,
     decoded?.aspectRatio,
   )
   return {
     ...file,
     imageUrl,
-    thumbnailUrl,
     displayTitle,
     coverUrl: previewUrl,
     previewUrl,
@@ -449,9 +453,12 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
 
 const resolvedFiles = computed<ResolvedFile[]>(() => {
   const displayWidth = columnWidth.value
-  return [...filesWithOverrides.value]
+  const items = [...filesWithOverrides.value]
     .map(file => toResolvedFile(file, displayWidth))
-    .toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
+  if (!items.every(file => hasSortTimestamp(file))) {
+    return items
+  }
+  return items.toSorted((first, second) => resolveSortTimestamp(second) - resolveSortTimestamp(first))
 })
 
 const resolvedSiteSettings = computed(() => props.siteSettings ?? null)
@@ -646,7 +653,7 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
       return resolved
     }
   }
-  const fallback = file.imageAttrs?.src ?? file.thumbnailUrl ?? ''
+  const fallback = file.imageAttrs?.src ?? file.imageUrl ?? ''
   const normalized = fallback.trim()
   return normalized.length > 0 ? normalized : null
 }
@@ -1457,7 +1464,6 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
       || file.overlayPlaceholderUrl
       || file.previewUrl
       || file.coverUrl
-      || file.thumbnailUrl
       || file.imageUrl
   if (!source) {
     return null
@@ -1513,6 +1519,11 @@ watch(
     }
     if (!activeFile.value || activeFile.value.id !== target.id) {
       openOverlay(target, false)
+      return
+    }
+    if (activeFile.value !== target) {
+      activeFile.value = target
+      histogram.value = normalizeHistogram(target.metadata.histogram)
     }
   },
   { immediate: true },
@@ -1844,8 +1855,8 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   resetOverlayDownload()
   overlayImageLoader.value = null
   const skipFullLoad = isSmallScreen.value
-  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.thumbnailUrl || file.imageUrl
-  const rawFullImageSrc = file.imageUrl || file.thumbnailUrl || previewSrc
+  const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl
+  const rawFullImageSrc = file.imageUrl || previewSrc
   const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
   const firstAvailable = [
     immediateSrc,
@@ -1854,7 +1865,6 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     file.previewAttrs?.src,
     file.previewUrl,
     file.coverUrl,
-    file.thumbnailUrl,
     file.imageAttrs?.src,
     file.imageUrl,
   ].find(value => typeof value === 'string' && value.trim().length > 0)?.trim()

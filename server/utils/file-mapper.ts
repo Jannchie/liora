@@ -109,7 +109,6 @@ export function toFileResponse(file: FileRow): FileResponse {
     description: file.description,
     originalName: file.originalName,
     imageUrl,
-    thumbnailUrl: imageUrl,
     width: file.width,
     height: file.height,
     fanworkTitle: file.fanworkTitle,

@@ -53,7 +53,7 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
     return props.file.imageAttrs
   }
 
-  const src = (props.file.thumbnailUrl || props.file.imageUrl || '').trim()
+  const src = (props.file.imageUrl || '').trim()
   const width = props.file.width || undefined
   const height = props.file.height || undefined
   if (!src) {
@@ -178,7 +178,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
               <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
                 <div
                   v-if="file && effectivePreviewAttrs"
-                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-[420px] lg:shrink-0"
+                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-105 lg:shrink-0"
                 >
                   <div class="flex items-center justify-between">
                     <p class="text-xs font-semibold uppercase tracking-wide text-muted">

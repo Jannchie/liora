@@ -122,7 +122,7 @@ function resolvePreviewUrl(file: FileResponse): string {
   if (primary) {
     return primary
   }
-  return file.thumbnailUrl.trim() || file.imageUrl
+  return file.imageUrl
 }
 
 type ImageAttributes = ImageSizes & {

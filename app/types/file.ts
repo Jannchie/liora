@@ -75,13 +75,19 @@ export interface FilePayload {
   notes?: string
 }
 
+export interface FileSummary {
+  id: number
+  imageUrl: string
+  width: number
+  height: number
+}
+
 export interface FileResponse {
   id: number
   title: string
   description: string
   originalName: string
   imageUrl: string
-  thumbnailUrl: string
   width: number
   height: number
   metadata: FileMetadata

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { SessionState } from '~/types/auth'
-import type { FileResponse } from '~/types/file'
+import type { FileMetadata, FileResponse, FileSummary } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
@@ -16,29 +16,79 @@ function normalizeRouteParam(param: string | string[] | null | undefined): strin
   return typeof param === 'string' ? param : ''
 }
 
+const summaryIds = new Set<number>()
+
+function createEmptyMetadata(): FileMetadata {
+  return {
+    fanworkTitle: '',
+    characters: [],
+    location: '',
+    locationName: '',
+    latitude: null,
+    longitude: null,
+    cameraModel: '',
+    lensModel: '',
+    aperture: '',
+    focalLength: '',
+    iso: '',
+    shutterSpeed: '',
+    exposureBias: '',
+    exposureProgram: '',
+    exposureMode: '',
+    meteringMode: '',
+    whiteBalance: '',
+    flash: '',
+    colorSpace: '',
+    resolutionX: '',
+    resolutionY: '',
+    resolutionUnit: '',
+    software: '',
+    captureTime: '',
+    notes: '',
+    fileSize: 0,
+  }
+}
+
+function toFileResponseSummary(file: FileSummary): FileResponse {
+  const imageUrl = file.imageUrl.trim()
+  return {
+    id: file.id,
+    title: '',
+    description: '',
+    originalName: '',
+    imageUrl,
+    width: file.width,
+    height: file.height,
+    metadata: createEmptyMetadata(),
+    fanworkTitle: '',
+    location: '',
+    cameraModel: '',
+    characters: [],
+    genre: '',
+    fileSize: 0,
+    createdAt: '',
+  }
+}
+
+function hydrateSummaryFiles(nextBatch: FileSummary[]): FileResponse[] {
+  return nextBatch.map((file) => {
+    summaryIds.add(file.id)
+    return toFileResponseSummary(file)
+  })
+}
+
 const pageSize = 36
-const totalAvailable = useState<number | null>('home-total-available', () => null)
-const { data, pending, error } = await useFetch<FileResponse[]>('/api/files', {
+const { data, pending, error } = useFetch<FileSummary[]>('/api/files', {
   default: () => [],
   query: {
     limit: pageSize,
     offset: 0,
-    includeTotal: '1',
+    waterfall: '1',
   },
-  onResponse({ response }) {
-    const totalHeader = response.headers.get('x-total-count')
-    if (!totalHeader) {
-      return
-    }
-    const parsed = Number.parseInt(totalHeader, 10)
-    if (Number.isFinite(parsed) && parsed >= 0) {
-      totalAvailable.value = parsed
-    }
-  },
+  server: false,
 })
 
 const { settings: siteSettingsState, load: loadSiteSettings } = useSiteSettingsState()
-await loadSiteSettings()
 
 const siteSettings = computed<SiteSettings | null>(() => siteSettingsState.value)
 const defaultTitle = computed(() => t('home.defaultTitle'))
@@ -58,16 +108,12 @@ const pageDescription = computed(() => {
   return defaultDescription.value
 })
 
-const files = ref<FileResponse[]>(data.value ?? [])
-const totalFiles = computed(() => totalAvailable.value ?? files.value.length)
+const files = ref<FileResponse[]>([])
+const totalFiles = computed(() => files.value.length)
 const isLoadingMore = ref(false)
 const loadMoreError = ref(false)
-const nextOffset = ref(files.value.length)
-const hasMore = ref(
-  totalAvailable.value === null
-    ? files.value.length >= pageSize
-    : files.value.length < totalAvailable.value,
-)
+const nextOffset = ref(0)
+const hasMore = ref(false)
 const loadMoreSentinel = ref<HTMLElement | null>(null)
 const loadMoreObserver = ref<IntersectionObserver | null>(null)
 const showLoadMoreSentinel = computed(() => files.value.length > 0)
@@ -93,6 +139,17 @@ const routePhotoId = computed<number | null>(() => {
   return Number.isFinite(parsed) ? parsed : null
 })
 
+function replaceFile(updated: FileResponse): void {
+  const index = files.value.findIndex(file => file.id === updated.id)
+  if (index < 0) {
+    files.value = [...files.value, updated]
+    return
+  }
+  const nextFiles = [...files.value]
+  nextFiles[index] = updated
+  files.value = nextFiles
+}
+
 function mergeFiles(nextBatch: FileResponse[]): void {
   if (nextBatch.length === 0) {
     return
@@ -104,21 +161,76 @@ function mergeFiles(nextBatch: FileResponse[]): void {
   }
 }
 
+function mergeSummaryFiles(nextBatch: FileSummary[]): void {
+  if (nextBatch.length === 0) {
+    return
+  }
+  const existingIds = new Set(files.value.map(file => file.id))
+  const unique = nextBatch.filter(file => !existingIds.has(file.id))
+  if (unique.length === 0) {
+    return
+  }
+  for (const file of unique) {
+    summaryIds.add(file.id)
+  }
+  mergeFiles(unique.map(file => toFileResponseSummary(file)))
+}
+
+function syncInitialFiles(nextBatch: FileSummary[]): void {
+  summaryIds.clear()
+  files.value = hydrateSummaryFiles(nextBatch)
+  nextOffset.value = nextBatch.length
+  hasMore.value = nextBatch.length >= pageSize
+}
+
 async function ensureRouteFile(): Promise<void> {
   const targetId = routePhotoId.value
   if (!targetId) {
     return
   }
-  if (files.value.some(file => file.id === targetId)) {
+  const existing = files.value.find(file => file.id === targetId)
+  if (existing && !summaryIds.has(targetId)) {
     return
   }
   try {
     const file = await $fetch<FileResponse>(`/api/files/${targetId}`)
-    mergeFiles([file])
+    summaryIds.delete(file.id)
+    replaceFile(file)
   }
   catch {
     // Ignore missing route data.
   }
+}
+
+if (import.meta.client) {
+  void loadSiteSettings()
+  watch(
+    data,
+    (nextData) => {
+      const resolved = Array.isArray(nextData) ? nextData : []
+      syncInitialFiles(resolved)
+    },
+    { immediate: true },
+  )
+  const ensuredRouteId = ref<number | null>(null)
+  watch(
+    [pending, routePhotoId],
+    ([isPending, routeId]) => {
+      if (isPending) {
+        return
+      }
+      if (!routeId) {
+        ensuredRouteId.value = null
+        return
+      }
+      if (ensuredRouteId.value === routeId) {
+        return
+      }
+      ensuredRouteId.value = routeId
+      void ensureRouteFile()
+    },
+    { immediate: true },
+  )
 }
 
 async function loadMore(): Promise<void> {
@@ -127,23 +239,20 @@ async function loadMore(): Promise<void> {
   }
   isLoadingMore.value = true
   try {
-    const nextBatch = await $fetch<FileResponse[]>('/api/files', {
+    const nextBatch = await $fetch<FileSummary[]>('/api/files', {
       query: {
         limit: pageSize,
         offset: nextOffset.value,
+        waterfall: '1',
       },
     })
     if (nextBatch.length === 0) {
       hasMore.value = false
       return
     }
-    mergeFiles(nextBatch)
+    mergeSummaryFiles(nextBatch)
     nextOffset.value += nextBatch.length
-    const resolvedTotal = totalAvailable.value
-    if (resolvedTotal !== null && nextOffset.value >= resolvedTotal) {
-      hasMore.value = false
-    }
-    else if (nextBatch.length < pageSize) {
+    if (nextBatch.length < pageSize) {
       hasMore.value = false
     }
   }
@@ -211,13 +320,12 @@ const headerSocialLinks = computed<SocialLink[]>(() => {
   return links
 })
 
-const { data: sessionState } = await useFetch<SessionState>('/api/auth/session', {
+const { data: sessionState } = useFetch<SessionState>('/api/auth/session', {
   default: () => ({ authenticated: false }),
+  server: false,
 })
 
 const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
-
-await ensureRouteFile()
 
 onMounted(() => {
   const root = document.scrollingElement ?? document.documentElement ?? document.body ?? undefined
@@ -323,7 +431,6 @@ defineOgImageComponent('LioraCard', {
         :site-settings="siteSettings ?? undefined"
         :scroll-element="scrollElementRef"
         :empty-text="emptyText"
-        :total-count="totalAvailable ?? undefined"
         :is-authenticated="isAuthenticated"
       />
       <div
