@@ -9,18 +9,25 @@ import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
 
+function normalizeRouteParam(param: string | string[] | null | undefined): string {
+  if (Array.isArray(param)) {
+    return param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? ''
+  }
+  return typeof param === 'string' ? param : ''
+}
+
 definePageMeta({
-  path: String.raw`/:rest(photo/\d+)?`,
+  path: '/:section(photo)?/:id(\\d+)?',
   validate: (route) => {
-    const rest = Array.isArray(route.params.rest)
-      ? route.params.rest.join('/')
-      : (typeof route.params.rest === 'string'
-          ? route.params.rest
-          : '')
-    if (rest.length === 0) {
+    const section = normalizeRouteParam(route.params.section)
+    const id = normalizeRouteParam(route.params.id)
+    if (!section && !id) {
       return true
     }
-    return /^photo\/\d+$/.test(rest)
+    if (section === 'photo' && id) {
+      return true
+    }
+    return false
   },
 })
 
@@ -89,20 +96,15 @@ const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 
 const routePhotoId = computed<number | null>(() => {
-  const rest = route.params.rest
-  const normalized = Array.isArray(rest)
-    ? rest.join('/')
-    : (typeof rest === 'string'
-        ? rest
-        : '')
+  const section = normalizeRouteParam(route.params.section)
+  if (section !== 'photo') {
+    return null
+  }
+  const normalized = normalizeRouteParam(route.params.id)
   if (!normalized) {
     return null
   }
-  const match = normalized.match(/^photo\/(\d+)$/)
-  if (!match || !match[1]) {
-    return null
-  }
-  const parsed = Number.parseInt(match[1], 10)
+  const parsed = Number.parseInt(normalized, 10)
   return Number.isFinite(parsed) ? parsed : null
 })
 

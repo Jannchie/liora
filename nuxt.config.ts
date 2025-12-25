@@ -23,7 +23,9 @@ function resolveDomains(): string[] {
 const resolveSiteEnv = (): string => process.env.SITE_ENV ?? process.env.NODE_ENV ?? 'development'
 
 function resolveSiteUrl(siteEnv: string): string | undefined {
-  const envUrl = process.env.SITE_URL
+  const envUrl = process.env.NUXT_PUBLIC_I18N_BASE_URL
+    ?? process.env.NUXT_PUBLIC_SITE_URL
+    ?? process.env.SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
     return envUrl
   }
@@ -196,6 +198,9 @@ export default defineNuxtConfig({
   },
   pwa: {
     registerType: 'autoUpdate',
+    workbox: {
+      navigateFallback: null,
+    },
     manifest: {
       name: siteName,
       short_name: 'Liora',

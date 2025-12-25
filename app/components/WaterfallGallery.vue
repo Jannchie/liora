@@ -126,7 +126,7 @@ interface OverlayDownloadState {
 }
 
 const baseRouteName = 'index'
-const overlayRouteParam = 'rest'
+const overlayRouteParam = 'id'
 
 interface OverlayPointer {
   clientX: number
@@ -602,18 +602,12 @@ function resolveOverlayRouteId(value: string | string[] | null | undefined): num
 function resolveOverlayRouteIdFromPathParam(): number | null {
   const param = route.params[overlayRouteParam]
   const normalized = Array.isArray(param)
-    ? param.join('/')
-    : (typeof param === 'string'
-        ? param
-        : '')
-  if (normalized.length === 0) {
+    ? param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
+    : param
+  if (typeof normalized !== 'string') {
     return null
   }
-  const match = normalized.match(/^photo\/(\d+)$/)
-  if (!match) {
-    return null
-  }
-  return resolveOverlayRouteId(match[1])
+  return resolveOverlayRouteId(normalized)
 }
 
 function getOverlayRouteIdFromRoute(): number | null {
