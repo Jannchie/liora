@@ -27,9 +27,12 @@ function resolveSiteUrl(siteEnv: string): string | undefined {
     ?? process.env.NUXT_PUBLIC_SITE_URL
     ?? process.env.SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
-    return envUrl
+    return envUrl.trim()
   }
-  if (siteEnv === 'development') {
+  const isDev = process.env.NUXT_DEV === 'true'
+    || process.env.NODE_ENV === 'development'
+    || siteEnv === 'development'
+  if (isDev) {
     return 'http://localhost:3000'
   }
   return undefined
