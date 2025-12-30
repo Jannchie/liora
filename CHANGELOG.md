@@ -1,3 +1,11 @@
+## v0.18.2
+
+[v0.18.1...v0.18.2](https://github.com/Jannchie/liora/compare/v0.18.1...v0.18.2)
+
+### :wrench: Chores
+
+- **config**: trim site url and map site env vars - By [Jannchie](mailto:jannchie@gmail.com) in [32fadb5](https://github.com/Jannchie/liora/commit/32fadb5)
+
 ## v0.18.1
 
 [v0.18.0...v0.18.1](https://github.com/Jannchie/liora/compare/v0.18.0...v0.18.1)
