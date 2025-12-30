@@ -51,6 +51,11 @@ function createEmptyMetadata(): FileMetadata {
 
 function toFileResponseSummary(file: FileSummary): FileResponse {
   const imageUrl = file.imageUrl.trim()
+  const metadata = createEmptyMetadata()
+  const thumbhash = file.thumbhash?.trim()
+  if (thumbhash) {
+    metadata.thumbhash = thumbhash
+  }
   return {
     id: file.id,
     title: '',
@@ -59,7 +64,7 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
     imageUrl,
     width: file.width,
     height: file.height,
-    metadata: createEmptyMetadata(),
+    metadata,
     fanworkTitle: '',
     location: '',
     cameraModel: '',
@@ -127,16 +132,22 @@ const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 
 const routePhotoId = computed<number | null>(() => {
-  const section = normalizeRouteParam(route.params.section)
-  if (section !== 'photo') {
-    return null
-  }
   const normalized = normalizeRouteParam(route.params.id)
   if (!normalized) {
     return null
   }
   const parsed = Number.parseInt(normalized, 10)
-  return Number.isFinite(parsed) ? parsed : null
+  if (!Number.isFinite(parsed)) {
+    return null
+  }
+  const section = normalizeRouteParam(route.params.section)
+  if (section) {
+    return section === 'photo' ? parsed : null
+  }
+  if (route.path.startsWith('/photo/')) {
+    return parsed
+  }
+  return null
 })
 
 function replaceFile(updated: FileResponse): void {
@@ -209,6 +220,7 @@ if (import.meta.client) {
     (nextData) => {
       const resolved = Array.isArray(nextData) ? nextData : []
       syncInitialFiles(resolved)
+      void ensureRouteFile()
     },
     { immediate: true },
   )

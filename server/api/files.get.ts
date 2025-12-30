@@ -70,6 +70,19 @@ function parseQueryBoolean(value: QueryInput): boolean {
   return trimmed === 'true' || trimmed === '1'
 }
 
+function extractThumbhash(value: string | null | undefined): string | undefined {
+  if (!value) {
+    return undefined
+  }
+  try {
+    const parsed = JSON.parse(value) as Record<string, unknown>
+    return typeof parsed.thumbhash === 'string' ? parsed.thumbhash : undefined
+  }
+  catch {
+    return undefined
+  }
+}
+
 export default defineEventHandler(async (event): Promise<FileResponse[] | FileSummary[]> => {
   setHeader(event, 'Cache-Control', 'no-store')
   setHeader(event, 'Pragma', 'no-cache')
@@ -85,6 +98,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
         imageUrl: files.imageUrl,
         width: files.width,
         height: files.height,
+        metadata: files.metadata,
       })
       .from(files)
       .orderBy(desc(files.captureTime), desc(files.createdAt))
@@ -96,6 +110,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
       imageUrl: row.imageUrl ?? '',
       width: row.width,
       height: row.height,
+      thumbhash: extractThumbhash(row.metadata),
     }))
   }
   const rows = await db.query.files.findMany({

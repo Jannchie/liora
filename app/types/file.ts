@@ -80,6 +80,7 @@ export interface FileSummary {
   imageUrl: string
   width: number
   height: number
+  thumbhash?: string
 }
 
 export interface FileResponse {

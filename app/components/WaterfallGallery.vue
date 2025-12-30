@@ -612,7 +612,11 @@ function resolveOverlayRouteIdFromPathParam(): number | null {
     ? param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
     : param
   if (typeof normalized !== 'string') {
-    return null
+    const pathMatch = route.path.match(/^\/photo\/(\d+)\/?$/)
+    if (!pathMatch?.[1]) {
+      return null
+    }
+    return resolveOverlayRouteId(pathMatch[1])
   }
   return resolveOverlayRouteId(normalized)
 }
