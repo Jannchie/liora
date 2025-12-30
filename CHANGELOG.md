@@ -1,3 +1,11 @@
+## v0.18.1
+
+[v0.18.0...v0.18.1](https://github.com/Jannchie/liora/compare/v0.18.0...v0.18.1)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: preserve thumbhash && resolve photo route id from path - By [Jannchie](mailto:jannchie@gmail.com) in [49663af](https://github.com/Jannchie/liora/commit/49663af)
+
 ## v0.18.0
 
 [v0.17.0...v0.18.0](https://github.com/Jannchie/liora/compare/v0.17.0...v0.18.0)
