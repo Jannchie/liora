@@ -62,7 +62,7 @@ async function handleSubmit(): Promise<void> {
       <div class="space-y-6">
         <div class="space-y-2 text-center">
           <div class="mx-auto inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            <Icon name="mdi:shield-lock-outline" class="h-4 w-4" />
+            <Icon name="tabler:shield-lock" class="h-4 w-4" />
             <span>{{ t('admin.login.sectionLabel') }}</span>
           </div>
           <h1 class="text-2xl font-semibold">
@@ -107,7 +107,7 @@ async function handleSubmit(): Promise<void> {
             :description="errorMessage"
           >
             <template #icon>
-              <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+              <Icon name="tabler:alert-circle" class="h-5 w-5" />
             </template>
           </UAlert>
 
@@ -117,7 +117,7 @@ async function handleSubmit(): Promise<void> {
             variant="solid"
             block
             :loading="submitting"
-            icon="mdi:login"
+            icon="tabler:login"
           >
             {{ t('admin.login.submit') }}
           </UButton>

@@ -292,6 +292,8 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     fileSize: existingFileSize,
     processingStatus: 'completed',
     uploadId: '',
+    livePhotoVideoUrl: '',
+    livePhotoStillTime: undefined,
   })
   const metadata = buildMetadata(fields, characters)
   metadata.fileSize = file.data.length

@@ -22,7 +22,7 @@ const safePercent = computed<number | null>(() => {
   >
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <Icon name="mdi:download" class="h-4 w-4 text-white/70" />
+        <Icon name="tabler:download" class="h-4 w-4 text-white/70" />
         <span class="font-semibold">{{ label }}</span>
       </div>
       <span v-if="safePercent !== null" class="text-xs font-semibold text-white/80">

@@ -77,6 +77,15 @@ const overlayDownloadState = ref<OverlayDownloadState>({
   loaded: 0,
   total: null,
 })
+const sharingLivePhoto = ref(false)
+const preparingLivePhotoShare = ref(false)
+const livePhotoShareAssets = ref<LivePhotoShareAssets | null>(null)
+const livePhotoShareAbortController = ref<AbortController | null>(null)
+const livePreviewRefs = new Map<number, HTMLVideoElement>()
+const livePreviewPlaying = reactive<Record<number, boolean>>({})
+const livePreviewActiveId = ref<number | null>(null)
+const hoverPreviewEnabled = ref(true)
+const hoverPreviewQuery = ref<MediaQueryList | null>(null)
 const overlayDownloadHideDelayMs = 500
 const overlayDownloadHideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const overlayViewerRef = ref<HTMLElement | null>(null)
@@ -123,6 +132,12 @@ interface OverlayDownloadState {
   status: OverlayDownloadStatus
   loaded: number
   total: number | null
+}
+
+interface LivePhotoShareAssets {
+  fileId: number
+  imageFile: File
+  videoFile: File
 }
 
 const baseRouteName = 'index'
@@ -255,6 +270,150 @@ function resolveUrlOrigin(value: string): string | null {
   }
   catch {
     return null
+  }
+}
+
+function setLivePreviewRef(id: number, element: Element | null): void {
+  if (element instanceof HTMLVideoElement) {
+    livePreviewRefs.set(id, element)
+  }
+  else {
+    livePreviewRefs.delete(id)
+  }
+}
+
+function stopLivePreview(id: number | null | undefined): void {
+  if (id === null || id === undefined) {
+    return
+  }
+  livePreviewPlaying[id] = false
+  const video = livePreviewRefs.get(id)
+  if (video) {
+    video.pause()
+    video.currentTime = 0
+  }
+  if (livePreviewActiveId.value === id) {
+    livePreviewActiveId.value = null
+  }
+}
+
+function playLivePreview(id: number): void {
+  if (livePreviewActiveId.value !== null && livePreviewActiveId.value !== id) {
+    stopLivePreview(livePreviewActiveId.value)
+  }
+  livePreviewActiveId.value = id
+  livePreviewPlaying[id] = true
+  const video = livePreviewRefs.get(id)
+  if (!video) {
+    return
+  }
+  video.currentTime = 0
+  const playPromise = video.play()
+  if (playPromise) {
+    playPromise.catch(() => {
+      stopLivePreview(id)
+    })
+  }
+}
+
+function handleLivePreviewEnter(entry: ResolvedFile): void {
+  if (!hoverPreviewEnabled.value) {
+    return
+  }
+  const liveVideoUrl = entry.metadata.livePhotoVideoUrl?.trim()
+  if (!liveVideoUrl) {
+    return
+  }
+  playLivePreview(entry.id)
+}
+
+function handleLivePreviewLeave(entry: ResolvedFile): void {
+  if (!entry.metadata.livePhotoVideoUrl) {
+    return
+  }
+  stopLivePreview(entry.id)
+}
+
+function handleLivePreviewEnded(id: number): void {
+  stopLivePreview(id)
+}
+
+function handleHoverPreviewChange(event: MediaQueryListEvent): void {
+  hoverPreviewEnabled.value = event.matches
+  if (!event.matches) {
+    stopLivePreview(livePreviewActiveId.value)
+  }
+}
+
+function clearLivePhotoShareState(): void {
+  livePhotoShareAssets.value = null
+  if (livePhotoShareAbortController.value) {
+    livePhotoShareAbortController.value.abort()
+    livePhotoShareAbortController.value = null
+  }
+  preparingLivePhotoShare.value = false
+}
+
+async function prepareLivePhotoShareAssets(file: ResolvedFile): Promise<void> {
+  const liveVideoUrl = file.metadata.livePhotoVideoUrl?.trim()
+  if (!liveVideoUrl) {
+    clearLivePhotoShareState()
+    return
+  }
+  if (typeof File === 'undefined' || typeof fetch === 'undefined') {
+    return
+  }
+  if (preparingLivePhotoShare.value) {
+    return
+  }
+  if (livePhotoShareAssets.value?.fileId === file.id) {
+    return
+  }
+
+  const controller = new AbortController()
+  livePhotoShareAbortController.value?.abort()
+  livePhotoShareAbortController.value = controller
+  preparingLivePhotoShare.value = true
+  try {
+    const contentId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(16).slice(2)}`
+    const baseName = resolveShareBaseName(file)
+    const [imageResponse, videoResponse] = await Promise.all([
+      fetch(`/api/files/${file.id}/live-photo/image?contentId=${encodeURIComponent(contentId)}`, {
+        signal: controller.signal,
+      }),
+      fetch(`/api/files/${file.id}/live-photo/video?contentId=${encodeURIComponent(contentId)}`, {
+        signal: controller.signal,
+      }),
+    ])
+    if (!imageResponse.ok || !videoResponse.ok) {
+      throw new Error('Failed to prepare live photo files.')
+    }
+    const [imageBlob, videoBlob] = await Promise.all([imageResponse.blob(), videoResponse.blob()])
+    if (controller.signal.aborted) {
+      return
+    }
+    const imageFile = new File([imageBlob], `${baseName}.jpg`, { type: 'image/jpeg' })
+    const videoFile = new File([videoBlob], `${baseName}.mov`, { type: 'video/quicktime' })
+    livePhotoShareAssets.value = {
+      fileId: file.id,
+      imageFile,
+      videoFile,
+    }
+  }
+  catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return
+    }
+    console.warn('Failed to prepare live photo share assets', error)
+    livePhotoShareAssets.value = null
+  }
+  finally {
+    if (livePhotoShareAbortController.value === controller) {
+      livePhotoShareAbortController.value = null
+      preparingLivePhotoShare.value = false
+    }
   }
 }
 
@@ -507,15 +666,15 @@ const socialLinks = computed<SocialLink[]>(() => {
     }
   }
 
-  appendLink('Homepage', social.homepage, 'mdi:home')
-  appendLink('GitHub', social.github, 'mdi:github')
-  appendLink('X', social.twitter, 'fa6-brands:x-twitter')
-  appendLink('Instagram', social.instagram, 'mdi:instagram')
-  appendLink('YouTube', social.youtube, 'mdi:youtube')
-  appendLink('TikTok', social.tiktok, 'fa6-brands:tiktok')
-  appendLink('Bilibili', social.bilibili, 'simple-icons:bilibili')
-  appendLink('LinkedIn', social.linkedin, 'mdi:linkedin')
-  appendLink('Weibo', social.weibo, 'mdi:sina-weibo')
+  appendLink('Homepage', social.homepage, 'tabler:home')
+  appendLink('GitHub', social.github, 'tabler:brand-github')
+  appendLink('X', social.twitter, 'tabler:brand-x')
+  appendLink('Instagram', social.instagram, 'tabler:brand-instagram')
+  appendLink('YouTube', social.youtube, 'tabler:brand-youtube')
+  appendLink('TikTok', social.tiktok, 'tabler:brand-tiktok')
+  appendLink('Bilibili', social.bilibili, 'tabler:brand-bilibili')
+  appendLink('LinkedIn', social.linkedin, 'tabler:brand-linkedin')
+  appendLink('Weibo', social.weibo, 'tabler:brand-weibo')
   return links
 })
 
@@ -583,6 +742,17 @@ onMounted(async () => {
   }
   if (globalThis.window !== undefined) {
     globalThis.window.addEventListener('keydown', handleKeydown)
+    if (typeof globalThis.window.matchMedia === 'function') {
+      const query = globalThis.window.matchMedia('(hover: hover) and (pointer: fine)')
+      hoverPreviewQuery.value = query
+      hoverPreviewEnabled.value = query.matches
+      if (typeof query.addEventListener === 'function') {
+        query.addEventListener('change', handleHoverPreviewChange)
+      }
+      else if (typeof query.addListener === 'function') {
+        query.addListener(handleHoverPreviewChange)
+      }
+    }
   }
 })
 
@@ -591,6 +761,17 @@ onBeforeUnmount(() => {
   if (globalThis.window !== undefined) {
     globalThis.window.removeEventListener('keydown', handleKeydown)
   }
+  const hoverQuery = hoverPreviewQuery.value
+  if (hoverQuery) {
+    if (typeof hoverQuery.removeEventListener === 'function') {
+      hoverQuery.removeEventListener('change', handleHoverPreviewChange)
+    }
+    else if (typeof hoverQuery.removeListener === 'function') {
+      hoverQuery.removeListener(handleHoverPreviewChange)
+    }
+  }
+  stopLivePreview(livePreviewActiveId.value)
+  clearLivePhotoShareState()
   clearOverlayDownloadHideTimer()
   clearOverlayZoomIndicatorTimer()
 })
@@ -663,6 +844,7 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
 }
 
 function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
+  stopLivePreview(livePreviewActiveId.value)
   activeFile.value = file
   void nextTick(() => resetOverlayZoom())
   startOverlayImageLoad(file, immediateSrc)
@@ -686,6 +868,20 @@ function handleEntryClick(event: MouseEvent, file: ResolvedFile): void {
   runViewTransition(() => openOverlay(file, true, resolveInlinePreviewSrc(event, file)))
 }
 
+watch(
+  () => [activeFile.value?.id ?? null, activeFile.value?.metadata.livePhotoVideoUrl ?? ''],
+  ([nextId]) => {
+    clearLivePhotoShareState()
+    if (nextId === null) {
+      return
+    }
+    const file = activeFile.value
+    if (file && file.metadata.livePhotoVideoUrl) {
+      void prepareLivePhotoShareAssets(file)
+    }
+  },
+)
+
 function handleOverlayClose(): void {
   runViewTransition(() => {
     closeEditModal()
@@ -699,6 +895,50 @@ function handleOverlayEdit(): void {
 
 function handleOverlayViewerMounted(element: HTMLElement | null): void {
   overlayViewerRef.value = element
+}
+
+async function handleShareLivePhoto(): Promise<void> {
+  const file = activeFile.value
+  if (!file || !file.metadata.livePhotoVideoUrl) {
+    return
+  }
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function' || typeof File === 'undefined') {
+    toast.add({ title: t('gallery.livePhoto.shareUnsupported'), color: 'warning' })
+    return
+  }
+  if (sharingLivePhoto.value) {
+    return
+  }
+  if (!livePhotoShareAssets.value || livePhotoShareAssets.value.fileId !== file.id) {
+    if (!preparingLivePhotoShare.value) {
+      void prepareLivePhotoShareAssets(file)
+    }
+    toast.add({ title: t('gallery.livePhoto.sharePreparing'), color: 'warning' })
+    return
+  }
+
+  const { imageFile, videoFile } = livePhotoShareAssets.value
+  sharingLivePhoto.value = true
+  try {
+    if (typeof navigator.canShare === 'function' && !navigator.canShare({ files: [imageFile, videoFile] })) {
+      toast.add({ title: t('gallery.livePhoto.shareUnsupported'), color: 'warning' })
+      return
+    }
+    await navigator.share({
+      files: [imageFile, videoFile],
+      title: file.displayTitle,
+    })
+  }
+  catch (error) {
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      return
+    }
+    const description = error instanceof Error ? error.message : t('common.toast.loadFailed')
+    toast.add({ title: t('gallery.livePhoto.shareFailed'), description, color: 'error' })
+  }
+  finally {
+    sharingLivePhoto.value = false
+  }
 }
 
 function toDisplayText(value: string | null | undefined): string | undefined {
@@ -1178,26 +1418,26 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const entries: MetadataEntry[] = []
   const title = toDisplayText(displayTitle)
   if (title) {
-    entries.push({ label: metadataLabels.value.title, value: title, icon: 'carbon:text-font' })
+    entries.push({ label: metadataLabels.value.title, value: title, icon: 'tabler:typography' })
   }
   const description = toDisplayText(file.description)
   if (description) {
-    entries.push({ label: metadataLabels.value.description, value: description, icon: 'carbon:document' })
+    entries.push({ label: metadataLabels.value.description, value: description, icon: 'tabler:file-text' })
   }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {
-    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'carbon:color-palette' })
+    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'tabler:palette' })
   }
   if (metadata.characters.length > 0) {
     entries.push({
       label: metadataLabels.value.characters,
       value: metadata.characters.join(characterSeparator.value),
-      icon: 'carbon:user-multiple',
+      icon: 'tabler:users',
     })
   }
   const locationName = toDisplayText(metadata.locationName || file.location)
   if (locationName) {
-    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'carbon:location' })
+    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'tabler:map-pin' })
   }
   const { camera, lens } = dedupeCameraLens(metadata.cameraModel || file.cameraModel, metadata.lensModel)
   if (camera) {
@@ -1205,29 +1445,29 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.camera,
       value: model ?? camera,
-      icon: 'carbon:camera',
+      icon: 'tabler:camera',
       valueIcon: brandIcon ?? undefined,
       valueIconLabel: brandLabel ?? undefined,
     })
   }
   if (lens) {
-    entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'mdi:camera-iris' })
+    entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'tabler:aperture' })
   }
   const captureTime = formatDisplayDateTime(metadata.captureTime)
   if (captureTime) {
-    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'carbon:time' })
+    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'tabler:clock' })
   }
   const colorSpace = toDisplayText(metadata.colorSpace)
   if (colorSpace) {
-    entries.push({ label: metadataLabels.value.colorSpace, value: colorSpace, icon: 'carbon:color-palette' })
+    entries.push({ label: metadataLabels.value.colorSpace, value: colorSpace, icon: 'tabler:palette' })
   }
   const resolution = formatResolutionValue(metadata.resolutionX, metadata.resolutionY, metadata.resolutionUnit)
   if (resolution) {
-    entries.push({ label: metadataLabels.value.resolution, value: resolution, icon: 'carbon:crop' })
+    entries.push({ label: metadataLabels.value.resolution, value: resolution, icon: 'tabler:crop' })
   }
   const software = toDisplayText(metadata.software)
   if (software) {
-    entries.push({ label: metadataLabels.value.software, value: software, icon: 'mdi:application' })
+    entries.push({ label: metadataLabels.value.software, value: software, icon: 'tabler:app-window' })
   }
   return entries
 })
@@ -1244,7 +1484,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.aperture'),
       value: aperture,
-      icon: 'carbon:aperture',
+      icon: 'tabler:aperture',
     })
   }
   const shutterSpeed = toDisplayText(metadata.shutterSpeed)
@@ -1252,7 +1492,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.shutterSpeed'),
       value: shutterSpeed,
-      icon: 'carbon:timer',
+      icon: 'tabler:hourglass',
     })
   }
   const iso = toDisplayText(metadata.iso)
@@ -1260,7 +1500,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.iso'),
       value: iso,
-      icon: 'carbon:iso',
+      icon: 'tabler:circle-letter-i',
     })
   }
   const focalLength = toDisplayText(metadata.focalLength)
@@ -1268,7 +1508,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.focalLength'),
       value: focalLength,
-      icon: 'carbon:ruler',
+      icon: 'tabler:ruler',
     })
   }
   const exposureBias = toDisplayText(metadata.exposureBias)
@@ -1276,7 +1516,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureBias,
       value: exposureBias,
-      icon: 'mdi:brightness-5',
+      icon: 'tabler:brightness-2',
     })
   }
   const exposureProgram = toDisplayText(metadata.exposureProgram)
@@ -1284,7 +1524,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureProgram,
       value: translateExposureProgram(exposureProgram) ?? exposureProgram,
-      icon: 'mdi:format-list-bulleted',
+      icon: 'tabler:list-details',
     })
   }
   const exposureMode = toDisplayText(metadata.exposureMode)
@@ -1292,7 +1532,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureMode,
       value: translateExposureMode(exposureMode) ?? exposureMode,
-      icon: 'mdi:tune',
+      icon: 'tabler:adjustments',
     })
   }
   const meteringMode = toDisplayText(metadata.meteringMode)
@@ -1300,7 +1540,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.meteringMode,
       value: translateMeteringMode(meteringMode) ?? meteringMode,
-      icon: 'mdi:crosshairs-gps',
+      icon: 'tabler:crosshair',
     })
   }
   const whiteBalance = toDisplayText(metadata.whiteBalance)
@@ -1308,7 +1548,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.whiteBalance,
       value: translateWhiteBalance(whiteBalance) ?? whiteBalance,
-      icon: 'mdi:white-balance-auto',
+      icon: 'tabler:color-filter',
     })
   }
   const flash = toDisplayText(metadata.flash)
@@ -1316,7 +1556,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.flash,
       value: translateFlash(flash) ?? flash,
-      icon: 'carbon:flash',
+      icon: 'tabler:bolt',
     })
   }
   return entries
@@ -1331,12 +1571,12 @@ const overlayStats = computed<OverlayStat[]>(() => {
   }
   const stats: OverlayStat[] = []
   const resolution = `${file.width} × ${file.height}`
-  stats.push({ label: resolution, icon: 'carbon:crop' })
+  stats.push({ label: resolution, icon: 'tabler:crop' })
   const sizeLabel = formatBytes(file.fileSize ?? null)
-  stats.push({ label: sizeLabel, icon: 'carbon:data-volume' })
+  stats.push({ label: sizeLabel, icon: 'tabler:database' })
   const uploadedAt = formatDisplayDateTime(file.createdAt)
   if (uploadedAt) {
-    stats.push({ label: uploadedAt, icon: 'carbon:upload' })
+    stats.push({ label: uploadedAt, icon: 'tabler:upload' })
   }
   return stats
 })
@@ -1365,6 +1605,17 @@ function formatBytes(value: number | null): string {
   const megabytes = value / (1024 * 1024)
   const precision = megabytes >= 10 ? 0 : 1
   return `${megabytes.toFixed(precision)} MB`
+}
+
+function resolveShareBaseName(file: ResolvedFile): string {
+  const title = resolveFileTitle(file, `live-photo-${file.id}`)
+  const normalized = title
+    .normalize('NFKD')
+    .replaceAll(/[^\w-]+/g, '-')
+    .replaceAll(/-+/g, '-')
+    .replaceAll(/^-|-$/g, '')
+    .slice(0, 80)
+  return normalized.length > 0 ? normalized : `live-photo-${file.id}`
 }
 
 const overlayDownloadPercent = computed<number | null>(() => {
@@ -2041,6 +2292,8 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
             class="group relative block h-full w-full focus:outline-none"
             :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
             @click="handleEntryClick($event, entry)"
+            @mouseenter="handleLivePreviewEnter(entry)"
+            @mouseleave="handleLivePreviewLeave(entry)"
           >
             <img
               :key="entry.id"
@@ -2060,6 +2313,25 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
               class="h-full w-full object-contain bg-default transition duration-200 group-hover:opacity-90"
               v-bind="entry.imageAttrs"
             >
+            <video
+              v-if="entry.metadata.livePhotoVideoUrl"
+              :ref="element => setLivePreviewRef(entry.id, element)"
+              :src="entry.metadata.livePhotoVideoUrl"
+              :poster="entry.imageAttrs?.src ?? entry.imageUrl"
+              class="pointer-events-none absolute inset-0 h-full w-full object-contain transition-opacity duration-200"
+              :class="livePreviewPlaying[entry.id] ? 'opacity-100' : 'opacity-0'"
+              muted
+              playsinline
+              preload="metadata"
+              @ended="handleLivePreviewEnded(entry.id)"
+            />
+            <span
+              v-if="entry.metadata.livePhotoVideoUrl"
+              class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-default/80 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-highlighted ring-1 ring-default/60"
+            >
+              <Icon name="tabler:live-photo" class="h-4 w-4 text-primary" />
+              <span>{{ t('gallery.livePhoto.badge') }}</span>
+            </span>
           </button>
         </template>
       </Waterfall>
@@ -2086,8 +2358,11 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           :genre-label="genreBadgeLabel"
           :can-edit="isAdmin"
           :viewer-touch-action="viewerTouchAction"
+          :live-photo-sharing="sharingLivePhoto"
+          :live-photo-preparing="preparingLivePhotoShare"
           @close="handleOverlayClose"
           @edit="handleOverlayEdit"
+          @share-live-photo="handleShareLivePhoto"
           @wheel="handleOverlayWheel"
           @dblclick="handleOverlayDoubleClick"
           @pointerdown="handleOverlayPointerDown"
@@ -2118,7 +2393,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       aria-busy="true"
     >
       <div class="flex flex-col items-center gap-2">
-        <Icon name="line-md:loading-loop" size="xl" />
+        <Icon name="tabler:loader-2" size="xl" />
         <span class="text-sm text-muted">
           {{ t('home.loading') }}
         </span>

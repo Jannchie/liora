@@ -40,6 +40,8 @@ export interface FileMetadata {
   histogram?: HistogramData | null
   processingStatus?: UploadProcessingStatus
   uploadId?: string
+  livePhotoVideoUrl?: string
+  livePhotoStillTime?: number
 }
 
 export interface FilePayload {
@@ -81,6 +83,7 @@ export interface FileSummary {
   width: number
   height: number
   thumbhash?: string
+  livePhotoVideoUrl?: string
 }
 
 export interface FileResponse {

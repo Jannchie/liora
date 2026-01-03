@@ -27,6 +27,13 @@ function parseMetadata(raw: string): Partial<FileMetadata> {
 export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }): FileMetadata {
   const parsed = parseMetadata(raw)
   const parsedFileSize = typeof parsed.fileSize === 'number' ? parsed.fileSize : Number(parsed.fileSize)
+  const parsedLivePhotoVideoUrl = typeof parsed.livePhotoVideoUrl === 'string' ? parsed.livePhotoVideoUrl : undefined
+  const parsedLivePhotoStillTime = typeof parsed.livePhotoStillTime === 'number'
+    ? parsed.livePhotoStillTime
+    : Number(parsed.livePhotoStillTime)
+  const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
+    ? parsedLivePhotoStillTime
+    : fallbacks.livePhotoStillTime
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -60,6 +67,8 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     histogram: parsed.histogram ?? fallbacks.histogram,
     processingStatus: parsed.processingStatus ?? fallbacks.processingStatus,
     uploadId: parsed.uploadId ?? fallbacks.uploadId,
+    livePhotoVideoUrl: parsedLivePhotoVideoUrl ?? fallbacks.livePhotoVideoUrl,
+    livePhotoStillTime,
   }
 }
 
@@ -98,6 +107,8 @@ export function toFileResponse(file: FileRow): FileResponse {
     histogram: null,
     processingStatus: 'completed',
     uploadId: '',
+    livePhotoVideoUrl: '',
+    livePhotoStillTime: undefined,
   })
   const imageUrl = file.imageUrl || ''
   const genre = file.genre?.trim() ?? ''

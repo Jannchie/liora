@@ -181,13 +181,13 @@ function handleReset(): void {
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="flex items-center gap-2 text-3xl font-semibold text-highlighted">
-            <Icon name="mdi:pencil-outline" class="h-6 w-6 text-primary" />
+            <Icon name="tabler:pencil" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.site.title') }}</span>
           </h1>
         </div>
         <div class="flex flex-col items-end gap-2 text-sm text-muted sm:items-end">
           <div class="flex items-center gap-2">
-            <Icon name="mdi:clock-outline" class="h-4 w-4" />
+            <Icon name="tabler:clock" class="h-4 w-4" />
             <span>{{ t('admin.site.lastUpdated.label') }}</span>
             <span class="text-highlighted">{{ lastUpdated }}</span>
           </div>
@@ -196,7 +196,7 @@ function handleReset(): void {
               color="primary"
               :loading="saving"
               :disabled="saving || loadingSettings"
-              icon="mdi:content-save-outline"
+              icon="tabler:device-floppy"
               @click="handleSubmit"
             >
               {{ t('common.actions.save') }}
@@ -205,7 +205,7 @@ function handleReset(): void {
               variant="soft"
               color="neutral"
               :disabled="saving || loadingSettings"
-              icon="mdi:restore"
+              icon="tabler:restore"
               @click="handleReset"
             >
               {{ t('common.actions.reset') }}
@@ -222,7 +222,7 @@ function handleReset(): void {
         :description="settingsError?.message"
       >
         <template #icon>
-          <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+          <Icon name="tabler:alert-circle" class="h-5 w-5" />
         </template>
       </UAlert>
 
@@ -239,7 +239,7 @@ function handleReset(): void {
           <div class="flex flex-wrap gap-4">
             <div class="flex min-w-65 flex-1 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:format-title" class="h-4 w-4" />
+                <Icon name="tabler:heading" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.name.label') }}</span>
               </div>
               <UInput
@@ -254,7 +254,7 @@ function handleReset(): void {
 
             <div class="flex min-w-55 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:view-dashboard-outline" class="h-4 w-4" />
+                <Icon name="tabler:layout-dashboard" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.infoPlacement.label') }}</span>
               </div>
               <USelect
@@ -269,7 +269,7 @@ function handleReset(): void {
 
             <div class="flex basis-full flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:text" class="h-4 w-4" />
+                <Icon name="tabler:text-size" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.description.label') }}</span>
               </div>
               <UTextarea
@@ -285,7 +285,7 @@ function handleReset(): void {
 
             <div class="flex basis-full flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:code-tags" class="h-4 w-4" />
+                <Icon name="tabler:code" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.customCss.label') }}</span>
               </div>
               <UTextarea
@@ -302,7 +302,7 @@ function handleReset(): void {
 
             <div class="flex min-w-[320px] flex-1 flex-col gap-1.5">
               <div class="flex items-center gap-2 text-sm font-medium text-highlighted">
-                <Icon name="mdi:link-variant" class="h-4 w-4" />
+                <Icon name="tabler:link" class="h-4 w-4" />
                 <span>{{ t('admin.site.fields.icon.label') }}</span>
               </div>
               <UInput
@@ -335,7 +335,7 @@ function handleReset(): void {
                     variant="soft"
                     :loading="uploadingIcon"
                     :disabled="saving || loadingSettings || uploadingIcon"
-                    icon="mdi:image-plus"
+                    icon="tabler:photo-plus"
                     @click="openIconPicker"
                   >
                     {{ t('admin.site.fields.icon.upload') }}
@@ -453,7 +453,7 @@ function handleReset(): void {
           variant="soft"
           color="neutral"
           :disabled="saving || loadingSettings"
-          icon="mdi:restore"
+          icon="tabler:restore"
           @click="handleReset"
         >
           {{ t('common.actions.reset') }}
@@ -462,7 +462,7 @@ function handleReset(): void {
           color="primary"
           :loading="saving"
           :disabled="saving || loadingSettings"
-          icon="mdi:content-save-outline"
+          icon="tabler:device-floppy"
           @click="handleSubmit"
         >
           {{ t('admin.site.actions.save') }}

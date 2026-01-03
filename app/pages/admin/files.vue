@@ -203,9 +203,9 @@ function handleSort(column: SortKey): void {
 
 function resolveSortIcon(column: SortKey): string {
   if (sortKey.value !== column) {
-    return 'mdi:swap-vertical'
+    return 'tabler:arrows-up-down'
   }
-  return sortDirection.value === 'asc' ? 'mdi:arrow-up' : 'mdi:arrow-down'
+  return sortDirection.value === 'asc' ? 'tabler:arrow-up' : 'tabler:arrow-down'
 }
 
 function resolveAriaSort(column: SortKey): 'ascending' | 'descending' | 'none' {
@@ -458,7 +458,7 @@ watch(fetchError, (value) => {
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="flex items-center gap-2 text-3xl font-semibold">
-            <Icon name="mdi:view-list-outline" class="h-6 w-6 text-primary" />
+            <Icon name="tabler:list" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.files.title') }}</span>
           </h1>
         </div>
@@ -468,7 +468,7 @@ watch(fetchError, (value) => {
             variant="soft"
             :disabled="!hasFiles || reclassifying"
             :loading="reclassifying"
-            icon="mdi:magic-wand"
+            icon="tabler:wand"
             @click="reclassifyMissing"
           >
             {{ t('admin.files.actions.reclassify') }}
@@ -477,7 +477,7 @@ watch(fetchError, (value) => {
             color="primary"
             variant="solid"
             :loading="isLoading"
-            icon="mdi:refresh"
+            icon="tabler:refresh"
             @click="handleRefresh"
           >
             {{ t('admin.files.actions.refresh') }}
@@ -489,12 +489,12 @@ watch(fetchError, (value) => {
         <div class="flex items-center justify-between">
           <div>
             <h2 class="flex items-center gap-2 text-xl font-semibold">
-              <Icon name="mdi:table" class="h-5 w-5 text-primary" />
+              <Icon name="tabler:table" class="h-5 w-5 text-primary" />
               <span>{{ t('admin.files.section.title') }}</span>
             </h2>
           </div>
           <div class="flex items-center gap-2 text-sm text-muted">
-            <Icon name="mdi:counter" class="h-4 w-4" />
+            <Icon name="tabler:hash" class="h-4 w-4" />
             <span>{{ recordCountText }}</span>
           </div>
         </div>
@@ -576,7 +576,7 @@ watch(fetchError, (value) => {
                   size="xs"
                   variant="soft"
                   color="primary"
-                  icon="mdi:pencil-outline"
+                  icon="tabler:pencil"
                   @click="openEdit(row.original)"
                 >
                   {{ t('common.actions.edit') }}
@@ -586,7 +586,7 @@ watch(fetchError, (value) => {
                   variant="soft"
                   color="error"
                   :loading="deletingId === row.original.id"
-                  icon="mdi:trash-can-outline"
+                  icon="tabler:trash"
                   @click="openDelete(row.original)"
                 >
                   {{ t('common.actions.delete') }}
@@ -630,7 +630,7 @@ watch(fetchError, (value) => {
                 {{ t('admin.files.delete.description') }}
               </p>
             </div>
-            <UButton variant="soft" color="neutral" icon="mdi:close" @click="deleteModalOpen = false">
+            <UButton variant="soft" color="neutral" icon="tabler:x" @click="deleteModalOpen = false">
               {{ t('common.actions.close') }}
             </UButton>
           </div>
@@ -643,13 +643,13 @@ watch(fetchError, (value) => {
             </p>
           </div>
           <div class="flex justify-end gap-2">
-            <UButton variant="soft" color="neutral" icon="mdi:arrow-left" @click="deleteModalOpen = false">
+            <UButton variant="soft" color="neutral" icon="tabler:arrow-left" @click="deleteModalOpen = false">
               {{ t('common.actions.cancel') }}
             </UButton>
             <UButton
               color="error"
               :loading="deletingId !== null"
-              icon="mdi:trash-can-outline"
+              icon="tabler:trash"
               @click="confirmDelete"
             >
               {{ t('admin.files.delete.confirm') }}

@@ -22,7 +22,8 @@ interface MultipartEntry {
 }
 
 interface ParsedForm {
-  file: MultipartEntry
+  image: MultipartEntry
+  video?: MultipartEntry
   fields: Record<string, string>
 }
 
@@ -115,6 +116,8 @@ function parseCharacters(raw: string | undefined): string[] {
 }
 
 function buildMetadata(fields: Record<string, string>, characters: string[]): FileMetadata {
+  const parsedStillTime = fields.livePhotoStillTime ? Number(fields.livePhotoStillTime) : Number.NaN
+  const livePhotoStillTime = Number.isFinite(parsedStillTime) && parsedStillTime >= 0 ? parsedStillTime : undefined
   return {
     fanworkTitle: normalizeText(fields.fanworkTitle),
     characters,
@@ -145,6 +148,7 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     thumbhash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
+    livePhotoStillTime,
   }
 }
 
@@ -274,7 +278,8 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
     throw createError({ statusCode: 400, statusMessage: 'Multipart form data is required.' })
   }
 
-  let fileEntry: MultipartEntry | undefined
+  let imageEntry: MultipartEntry | undefined
+  let videoEntry: MultipartEntry | undefined
   const fields: Record<string, string> = {}
 
   for (const entry of form) {
@@ -283,8 +288,16 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
       continue
     }
     if (entry.filename) {
-      if (!fileEntry) {
-        fileEntry = entry as MultipartEntry
+      const normalizedName = fieldName.trim().toLowerCase()
+      const candidate = entry as MultipartEntry
+      if (normalizedName === 'video' || normalizedName === 'livevideo') {
+        if (!videoEntry) {
+          videoEntry = candidate
+        }
+        continue
+      }
+      if (!imageEntry) {
+        imageEntry = candidate
       }
     }
     else {
@@ -292,11 +305,15 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
     }
   }
 
-  if (!fileEntry || !fileEntry.data?.length) {
+  if (!imageEntry || !imageEntry.data?.length) {
     throw createError({ statusCode: 400, statusMessage: 'Image file is required.' })
   }
 
-  return { file: fileEntry, fields }
+  if (videoEntry && !videoEntry.data?.length) {
+    videoEntry = undefined
+  }
+
+  return { image: imageEntry, video: videoEntry, fields }
 }
 
 function normalizeExt(filename: string | undefined): string {
@@ -307,12 +324,28 @@ function normalizeExt(filename: string | undefined): string {
   return '.jpg'
 }
 
+function normalizeVideoExt(filename: string | undefined): string {
+  const parsed = extname(filename ?? '').toLowerCase()
+  if (parsed) {
+    return parsed
+  }
+  return '.mp4'
+}
+
 function buildBaseName(filename: string | undefined): string {
   const ext = normalizeExt(filename)
   const raw = basename(filename ?? '', ext)
   const normalized = raw.normalize('NFKD').replaceAll(/[^\w-]+/g, '-').replaceAll(/-+/g, '-').replaceAll(/^-|-$/g, '')
   const limited = normalized.slice(0, 80)
   return limited.length > 0 ? limited : 'upload'
+}
+
+function buildVideoBaseName(filename: string | undefined): string {
+  const ext = normalizeVideoExt(filename)
+  const raw = basename(filename ?? '', ext)
+  const normalized = raw.normalize('NFKD').replaceAll(/[^\w-]+/g, '-').replaceAll(/-+/g, '-').replaceAll(/^-|-$/g, '')
+  const limited = normalized.slice(0, 80)
+  return limited.length > 0 ? limited : 'live'
 }
 
 async function generateThumbhash(data: Buffer): Promise<string | null> {
@@ -351,6 +384,23 @@ async function saveFile(file: MultipartEntry, config: S3Config, contentType: str
   })
 
   return { imageUrl }
+}
+
+async function saveVideo(file: MultipartEntry, config: S3Config): Promise<{ videoUrl: string }> {
+  const ext = normalizeVideoExt(file.filename)
+  const safeName = buildVideoBaseName(file.filename)
+  const baseName = `${safeName}-live-${Date.now().toString(36)}-${randomUUID()}`
+  const originalKey = `${baseName}${ext}`
+  const contentType = file.type?.trim() || 'video/mp4'
+
+  const videoUrl = await uploadBufferToS3({
+    key: originalKey,
+    data: file.data,
+    contentType,
+    config,
+  })
+
+  return { videoUrl }
 }
 
 async function runMetadataPostProcessing(
@@ -404,7 +454,8 @@ async function runMetadataPostProcessing(
 }
 
 interface UploadJobPayload {
-  file: MultipartEntry
+  image: MultipartEntry
+  video?: MultipartEntry
   fields: Record<string, string>
   storageConfig: S3Config
   uploadId: string
@@ -412,22 +463,22 @@ interface UploadJobPayload {
 }
 
 async function processUploadJob(payload: UploadJobPayload): Promise<void> {
-  const { file, fields, storageConfig, uploadId, sha256 } = payload
+  const { image, video, fields, storageConfig, uploadId, sha256 } = payload
   try {
-    const { width, height, contentType } = await validateImage(file)
+    const { width, height, contentType } = await validateImage(image)
     const characters = parseCharacters(fields.characters)
     const metadata = buildMetadata(fields, characters)
     const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
     metadata.cameraModel = deduped.cameraModel
     metadata.lensModel = deduped.lensModel
-    metadata.fileSize = file.data.length
+    metadata.fileSize = image.data.length
     metadata.sha256 = sha256
     metadata.processingStatus = 'processing'
     metadata.uploadId = uploadId
     const normalizedTitle = normalizeText(fields.title)
     const normalizedDescription = normalizeText(fields.description)
     const normalizedGenre = normalizeText(fields.genre)
-    const originalName = file.filename ? basename(file.filename) : ''
+    const originalName = image.filename ? basename(image.filename) : ''
     validateLengths({
       title: normalizedTitle,
       description: normalizedDescription,
@@ -436,7 +487,11 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
       characters,
       originalName,
     })
-    const { imageUrl } = await saveFile(file, storageConfig, contentType)
+    const { imageUrl } = await saveFile(image, storageConfig, contentType)
+    if (video) {
+      const { videoUrl } = await saveVideo(video, storageConfig)
+      metadata.livePhotoVideoUrl = videoUrl
+    }
 
     const [created] = await db
       .insert(files)
@@ -468,7 +523,7 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
       throw new Error('Failed to create file record.')
     }
 
-    const status = await runMetadataPostProcessing(created.id, file.data, metadata, uploadId)
+    const status = await runMetadataPostProcessing(created.id, image.data, metadata, uploadId)
     setUploadStatus(uploadId, status)
   }
   catch (error) {
@@ -485,18 +540,24 @@ function startBackgroundUpload(payload: UploadJobPayload): void {
 
 export default defineEventHandler(async (event): Promise<{ accepted: true, uploadId: string }> => {
   requireAdmin(event)
-  const { file, fields } = await parseMultipart(event)
-  if (file.data.length > MAX_FILE_SIZE_BYTES) {
+  const { image, video, fields } = await parseMultipart(event)
+  if (image.data.length > MAX_FILE_SIZE_BYTES) {
     throw createError({
       statusCode: 413,
-      statusMessage: `File exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+      statusMessage: `Image exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+    })
+  }
+  if (video && video.data.length > MAX_FILE_SIZE_BYTES) {
+    throw createError({
+      statusCode: 413,
+      statusMessage: `Video exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
     })
   }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
   const uploadId = randomUUID()
-  const sha256 = computeSha256(file.data)
+  const sha256 = computeSha256(image.data)
   setUploadStatus(uploadId, 'processing')
-  startBackgroundUpload({ file, fields, storageConfig, uploadId, sha256 })
+  startBackgroundUpload({ image, video, fields, storageConfig, uploadId, sha256 })
   event.node.res.statusCode = 202
   return { accepted: true, uploadId }
 })

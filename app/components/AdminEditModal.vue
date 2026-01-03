@@ -168,7 +168,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="soft" color="neutral" icon="mdi:close" @click="handleClose">
+          <UButton variant="soft" color="neutral" icon="tabler:x" @click="handleClose">
             {{ t('common.actions.close') }}
           </UButton>
         </div>
@@ -189,7 +189,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
                         color="primary"
                         variant="soft"
                         size="sm"
-                        icon="mdi:camera-retake-outline"
+                        icon="tabler:camera-rotate"
                         @click="replaceInput?.click()"
                       >
                         {{ t('common.actions.changeImage') }}
@@ -199,7 +199,7 @@ async function handleReplaceChange(event: Event): Promise<void> {
                         variant="ghost"
                         color="neutral"
                         size="sm"
-                        icon="mdi:close"
+                        icon="tabler:x"
                         :aria-label="t('common.actions.remove')"
                         @click="clearReplaceSelection"
                       />
@@ -248,14 +248,14 @@ async function handleReplaceChange(event: Event): Promise<void> {
               </div>
 
               <div class="sticky bottom-0 flex justify-end gap-2 bg-default/90 px-1 py-3 backdrop-blur">
-                <UButton variant="soft" color="neutral" icon="mdi:arrow-left" @click="handleClose">
+                <UButton variant="soft" color="neutral" icon="tabler:arrow-left" @click="handleClose">
                   {{ t('common.actions.cancel') }}
                 </UButton>
                 <UButton
                   color="primary"
                   type="submit"
                   :loading="loading"
-                  icon="mdi:content-save-outline"
+                  icon="tabler:device-floppy"
                 >
                   {{ t('common.actions.save') }}
                 </UButton>

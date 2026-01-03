@@ -15,9 +15,9 @@ const toast = useToast()
 const loggingOut = ref(false)
 
 const navItems = computed<NavItem[]>(() => [
-  { label: t('admin.nav.upload'), to: '/admin/upload', icon: 'mdi:upload-outline', value: '/admin/upload' },
-  { label: t('admin.nav.files'), to: '/admin/files', icon: 'mdi:view-list-outline', value: '/admin/files' },
-  { label: t('admin.nav.site'), to: '/admin/site', icon: 'mdi:earth', value: '/admin/site' },
+  { label: t('admin.nav.upload'), to: '/admin/upload', icon: 'tabler:upload', value: '/admin/upload' },
+  { label: t('admin.nav.files'), to: '/admin/files', icon: 'tabler:list', value: '/admin/files' },
+  { label: t('admin.nav.site'), to: '/admin/site', icon: 'tabler:globe', value: '/admin/site' },
 ])
 
 const activeTab = computed<string>(() => navItems.value.find(item => item.to === route.path)?.value ?? '')
@@ -65,7 +65,7 @@ async function handleTabChange(value: string | number): Promise<void> {
         to="/"
         variant="soft"
         color="primary"
-        icon="mdi:home-outline"
+        icon="tabler:home"
       >
         {{ t('admin.nav.viewFrontend') }}
       </UButton>
@@ -73,7 +73,7 @@ async function handleTabChange(value: string | number): Promise<void> {
         variant="soft"
         color="primary"
         :loading="loggingOut"
-        icon="mdi:logout"
+        icon="tabler:logout"
         @click="handleLogout"
       >
         {{ t('admin.nav.logout') }}

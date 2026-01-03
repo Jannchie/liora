@@ -332,7 +332,7 @@ function endPointer(event: PointerEvent): void {
         size="sm"
         color="neutral"
         variant="ghost"
-        icon="mdi:close"
+        icon="tabler:x"
         :aria-label="t('common.actions.close')"
         class="absolute right-3 top-3 z-10 text-white"
         @click="close"

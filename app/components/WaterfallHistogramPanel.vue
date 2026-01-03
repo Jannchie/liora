@@ -336,7 +336,7 @@ async function renderHistogram(): Promise<void> {
   <div class="rounded-lg border border-default/20 bg-elevated/80">
     <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
       <div class="flex items-center gap-2">
-        <Icon name="carbon:chart-line" class="h-4 w-4" />
+        <Icon name="tabler:chart-line" class="h-4 w-4" />
         <span>{{ t('gallery.histogram.title') }}</span>
       </div>
     </div>
@@ -347,7 +347,7 @@ async function renderHistogram(): Promise<void> {
           v-if="!histogram"
           class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
         >
-          <Icon name="line-md:loading-loop" class="h-4 w-4" />
+          <Icon name="tabler:loader-2" class="h-4 w-4" />
           <span>{{ t('gallery.histogram.pending') }}</span>
         </div>
       </div>

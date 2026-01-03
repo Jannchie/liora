@@ -20,6 +20,7 @@
       "reset": "Reset",
       "cancel": "Cancel",
       "changeImage": "Change image",
+      "changeVideo": "Change video",
       "remove": "Remove",
       "switchLanguage": "Switch language"
     },
@@ -99,6 +100,15 @@
       "coordinates": "Coordinates: {value}",
       "defaultLabel": "Location"
     },
+    "livePhoto": {
+      "badge": "Live",
+      "play": "Play live",
+      "still": "View still",
+      "share": "Save Live Photo",
+      "sharePreparing": "Preparing Live Photo. Please try again in a moment.",
+      "shareUnsupported": "Sharing to Photos is not supported on this device.",
+      "shareFailed": "Live Photo sharing failed."
+    },
     "totalWorks": "Total works"
   },
   "admin": {
@@ -133,12 +143,16 @@
       "seoDescription": "Upload works and fill metadata in the admin panel.",
       "toast": {
         "selectImage": "Please choose an image first",
+        "selectVideo": "Please choose a video first",
+        "selectFrame": "Please choose a frame first",
         "readSize": "Read image dimensions first",
         "sizeFailed": "Failed to read size",
         "sizeFailedFallback": "Read failed",
         "sizeReadError": "Unable to read image dimensions",
         "exifFailed": "Failed to read metadata",
         "exifFailedFallback": "Failed to parse metadata",
+        "videoFailed": "Failed to load video",
+        "frameFailed": "Failed to capture frame",
         "saveSuccessTitle": "Saved",
         "saveSuccessDescription": "Record written to database.",
         "saveFailedTitle": "Save failed",
@@ -164,12 +178,25 @@
         "upload": {
           "label": "Upload photo",
           "dropHint": "Drag a photo here or click to pick a file",
-          "supported": "Common formats such as JPG/PNG are supported"
+          "supported": "Common formats such as JPG/PNG are supported",
+          "mode": {
+            "image": "Photo",
+            "live": "Live photo"
+          },
+          "liveHint": "Upload a short clip, then choose a frame as the cover.",
+          "liveDropHint": "Drag a video here or click to pick a file",
+          "liveSupported": "Common formats such as MP4/MOV are supported"
         },
         "preview": {
           "label": "Preview & autofill",
           "title": "Photo details",
           "alt": "Preview"
+        },
+        "livePhoto": {
+          "title": "Live photo video",
+          "frameHint": "Pick a frame with the slider. Default is the last frame.",
+          "useFrame": "Use this frame",
+          "framePlaceholder": "Select a frame from the video"
         },
         "edit": {
           "label": "Edit & save",

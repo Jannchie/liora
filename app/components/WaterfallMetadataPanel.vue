@@ -61,7 +61,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
   <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
     <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
       <div class="flex items-center gap-2">
-        <Icon name="carbon:information" class="h-4 w-4" />
+        <Icon name="tabler:info-circle" class="h-4 w-4" />
         <span>{{ t('gallery.metadata.section') }}</span>
       </div>
       <span class="rounded-full bg-default/60 px-2 py-0.5 text-xs font-semibold text-highlighted ring-1 ring-default/15">
@@ -71,7 +71,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
     <div v-if="hasMetadata" class="space-y-3 p-3">
       <div v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0" class="space-y-3">
         <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-          <Icon name="carbon:settings-adjust" class="h-4 w-4" />
+          <Icon name="tabler:adjustments" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
         <div v-if="mainExposureEntries.length > 0" class="grid grid-cols-3 gap-2">
@@ -128,7 +128,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
       </div>
       <div v-if="secondaryExposureEntries.length > 0" class="space-y-2 border-t border-default/10 pt-3">
         <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-          <Icon name="carbon:settings-adjust" class="h-4 w-4" />
+          <Icon name="tabler:adjustments" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
         <div class="flex flex-wrap gap-2">
@@ -147,11 +147,11 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
     </div>
     <div v-else class="px-3 py-4 text-sm text-muted">
       <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
-        <Icon name="carbon:warning" class="h-4 w-4" />
+        <Icon name="tabler:alert-triangle" class="h-4 w-4" />
         <span>{{ t('gallery.metadata.section') }}</span>
       </p>
       <p class="mt-2 flex items-center gap-2 text-highlighted">
-        <Icon name="carbon:information" class="h-4 w-4 text-muted" />
+        <Icon name="tabler:info-circle" class="h-4 w-4 text-muted" />
         <span>{{ t('gallery.metadata.empty') }}</span>
       </p>
     </div>

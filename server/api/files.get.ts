@@ -70,17 +70,31 @@ function parseQueryBoolean(value: QueryInput): boolean {
   return trimmed === 'true' || trimmed === '1'
 }
 
-function extractThumbhash(value: string | null | undefined): string | undefined {
+function parseMetadata(value: string | null | undefined): Record<string, unknown> | null {
   if (!value) {
-    return undefined
+    return null
   }
   try {
-    const parsed = JSON.parse(value) as Record<string, unknown>
-    return typeof parsed.thumbhash === 'string' ? parsed.thumbhash : undefined
+    return JSON.parse(value) as Record<string, unknown>
   }
   catch {
+    return null
+  }
+}
+
+function extractThumbhash(metadata: Record<string, unknown> | null): string | undefined {
+  if (!metadata) {
     return undefined
   }
+  return typeof metadata.thumbhash === 'string' ? metadata.thumbhash : undefined
+}
+
+function extractLivePhotoVideoUrl(metadata: Record<string, unknown> | null): string | undefined {
+  if (!metadata) {
+    return undefined
+  }
+  const value = metadata.livePhotoVideoUrl
+  return typeof value === 'string' && value.trim().length > 0 ? value : undefined
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse[] | FileSummary[]> => {
@@ -105,13 +119,17 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
     const limitedQuery = typeof limit === 'number' ? baseQuery.limit(limit) : baseQuery
     const offsetQuery = typeof offset === 'number' ? limitedQuery.offset(offset) : limitedQuery
     const rows = await offsetQuery
-    return rows.map(row => ({
-      id: row.id,
-      imageUrl: row.imageUrl ?? '',
-      width: row.width,
-      height: row.height,
-      thumbhash: extractThumbhash(row.metadata),
-    }))
+    return rows.map((row) => {
+      const metadata = parseMetadata(row.metadata)
+      return {
+        id: row.id,
+        imageUrl: row.imageUrl ?? '',
+        width: row.width,
+        height: row.height,
+        thumbhash: extractThumbhash(metadata),
+        livePhotoVideoUrl: extractLivePhotoVideoUrl(metadata),
+      }
+    })
   }
   const rows = await db.query.files.findMany({
     orderBy: [desc(files.captureTime), desc(files.createdAt)],

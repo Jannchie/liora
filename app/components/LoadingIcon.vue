@@ -23,7 +23,7 @@ const props = withDefaults(
     />
     <Icon
       v-else
-      name="line-md:loading-loop"
+      name="tabler:loader-2"
       :class="[props.size, props.spinnerClass]"
       aria-hidden="true"
     />

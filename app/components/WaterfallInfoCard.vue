@@ -58,7 +58,7 @@ const { t } = useI18n()
     </div>
     <div class="space-y-3 text-sm text-muted">
       <div class="flex items-center justify-center gap-2 text-default">
-        <Icon name="mdi:image-multiple-outline" class="h-4 w-4 text-muted" />
+        <Icon name="tabler:stack-2" class="h-4 w-4 text-muted" />
         <span>{{ t('gallery.totalWorks') }}</span>
         <span class="text-highlighted">
           {{ photoCount }}

@@ -74,9 +74,9 @@ const canAutoClassify = computed(() => {
   return hasFile || hasUrl
 })
 const exposureHighlights = computed<ExposureHighlight[]>(() => [
-  { label: t('admin.upload.fields.aperture.label'), value: form.value.aperture || '—', icon: 'mdi:camera-iris' },
-  { label: t('admin.upload.fields.shutterSpeed.label'), value: form.value.shutterSpeed || '—', icon: 'mdi:camera-timer' },
-  { label: 'ISO', value: form.value.iso || '—', icon: 'mdi:brightness-6' },
+  { label: t('admin.upload.fields.aperture.label'), value: form.value.aperture || '—', icon: 'tabler:aperture' },
+  { label: t('admin.upload.fields.shutterSpeed.label'), value: form.value.shutterSpeed || '—', icon: 'tabler:clock' },
+  { label: 'ISO', value: form.value.iso || '—', icon: 'tabler:circle-letter-i' },
 ])
 
 interface GenreClassificationPayload {
@@ -150,7 +150,7 @@ watch(
     <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
-          <Icon name="mdi:shape-outline" class="h-4 w-4 text-primary" />
+          <Icon name="tabler:shape" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.basic.label') }}
@@ -190,7 +190,7 @@ watch(
                     class="w-full whitespace-nowrap sm:w-auto sm:shrink-0"
                     :disabled="!canAutoClassify"
                     :loading="classifyingGenre"
-                    icon="mdi:robot-outline"
+                    icon="tabler:robot"
                     @click="autoClassifyGenre"
                   >
                     {{ t('admin.files.form.genre.auto') }}
@@ -217,7 +217,7 @@ watch(
     <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
-          <Icon name="mdi:map-marker-outline" class="h-4 w-4 text-primary" />
+          <Icon name="tabler:map-pin" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.location.label') }}
@@ -241,7 +241,7 @@ watch(
               class="w-full justify-center md:w-auto"
               color="primary"
               :loading="geocoding"
-              icon="mdi:map-search-outline"
+              icon="tabler:map-search"
               @click="searchLocation"
             >
               {{ t('admin.upload.fields.locationSearch.action') }}
@@ -287,7 +287,7 @@ watch(
                 :loading="geocoding"
                 :disabled="!canReverseGeocode"
                 class="w-full sm:w-auto"
-                icon="mdi:map-marker-radius-outline"
+                icon="tabler:map-pin-search"
                 @click="searchLocation"
               >
                 {{ t('admin.files.form.locationReverse.actionShort') }}
@@ -309,7 +309,7 @@ watch(
     <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
-          <Icon name="mdi:camera-outline" class="h-4 w-4 text-primary" />
+          <Icon name="tabler:camera" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.camera.label') }}
@@ -412,7 +412,7 @@ watch(
     <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
-          <Icon name="mdi:palette-outline" class="h-4 w-4 text-primary" />
+          <Icon name="tabler:palette" class="h-4 w-4 text-primary" />
           <div>
             <p class="text-xs font-semibold uppercase tracking-wide text-muted">
               {{ t('admin.upload.formSections.color.label') }}

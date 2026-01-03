@@ -18,11 +18,15 @@ const pageDescription = computed(() => t('admin.upload.seoDescription'))
 
 const toastMessages = computed(() => ({
   selectImage: t('admin.upload.toast.selectImage'),
+  selectVideo: t('admin.upload.toast.selectVideo'),
+  selectFrame: t('admin.upload.toast.selectFrame'),
   readSize: t('admin.upload.toast.readSize'),
   sizeFailed: t('admin.upload.toast.sizeFailed'),
   sizeFailedFallback: t('admin.upload.toast.sizeFailedFallback'),
   exifFailed: t('admin.upload.toast.exifFailed'),
   exifFailedFallback: t('admin.upload.toast.exifFailedFallback'),
+  videoFailed: t('admin.upload.toast.videoFailed'),
+  frameFailed: t('admin.upload.toast.frameFailed'),
   saveFailedTitle: t('admin.upload.toast.saveFailedTitle'),
   saveFailedFallback: t('admin.upload.toast.saveFailedFallback'),
   geocodeMissingQuery: t('admin.upload.toast.geocodeMissingQuery'),
@@ -46,9 +50,17 @@ useSeoMeta({
 })
 
 type UploadValue = File | null
+type UploadMode = 'image' | 'live'
 
 const previewMaxHeight = 480
+const uploadMode = ref<UploadMode>('image')
 const uploadValue = ref<UploadValue>(null)
+const videoValue = ref<File | null>(null)
+const videoPreviewUrl = ref<string>('')
+const liveFrameTime = ref(0)
+const liveFrameDuration = ref(0)
+const liveFramePending = ref(false)
+const videoElementRef = ref<HTMLVideoElement | null>(null)
 const form = reactive<MediaFormState>({
   width: 0,
   height: 0,
@@ -97,8 +109,12 @@ const uploadStartedAt = ref<number | null>(null)
 const selectedFile = computed<File | null>(() => {
   return uploadValue.value ?? null
 })
+const selectedVideo = computed<File | null>(() => videoValue.value ?? null)
+const hasSelection = computed<boolean>(() => Boolean(selectedFile.value || selectedVideo.value))
+const isLiveMode = computed<boolean>(() => uploadMode.value === 'live')
 const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
+const videoUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
 const captureTimeDisplay = computed(() => {
@@ -120,6 +136,15 @@ const {
   flashOptions,
 } = useExposureOptions()
 const selectedFileName = computed(() => selectedFile.value?.name ?? t('common.labels.untitled'))
+const selectedVideoName = computed(() => selectedVideo.value?.name ?? t('common.labels.untitled'))
+const displayFileName = computed(() => {
+  if (isLiveMode.value && selectedVideo.value) {
+    return selectedVideoName.value
+  }
+  return selectedFileName.value
+})
+const changePrimaryLabel = computed(() => (isLiveMode.value ? t('common.actions.changeVideo') : t('common.actions.changeImage')))
+const totalUploadBytes = computed(() => (selectedFile.value?.size ?? 0) + (selectedVideo.value?.size ?? 0))
 const uploadProgressPercent = computed(() => Math.min(100, Math.max(0, uploadProgress.value)))
 const uploadSpeedText = computed(() => formatSpeed(uploadSpeed.value))
 const uploadTotalText = computed(() => formatFileSize(uploadTotalBytes.value))
@@ -128,6 +153,8 @@ const isUploading = computed(() => submitting.value)
 let activeMetadataToken = 0
 const processingToastId = ref<string | null>(null)
 const processingPollTimer = ref<ReturnType<typeof setInterval> | null>(null)
+const liveFrameTimeLabel = computed(() => formatDuration(liveFrameTime.value))
+const liveFrameDurationLabel = computed(() => formatDuration(liveFrameDuration.value))
 
 function normalizeToOption(
   value: string | undefined,
@@ -195,6 +222,16 @@ function setUploadValue(file: File | null): void {
   uploadValue.value = file
 }
 
+function setUploadMode(mode: UploadMode): void {
+  if (uploadMode.value === mode) {
+    return
+  }
+  if (hasSelection.value) {
+    clearSelectedFile()
+  }
+  uploadMode.value = mode
+}
+
 function clearFormForNewFile(): void {
   resetFileState()
   resetOptionalFields()
@@ -204,6 +241,7 @@ function clearFormForNewFile(): void {
 function clearSelectedFile(): void {
   clearFormForNewFile()
   setUploadValue(null)
+  clearVideoSelection()
 }
 
 function resetFileState(): void {
@@ -213,7 +251,22 @@ function resetFileState(): void {
   previewUrl.value = ''
   form.width = 0
   form.height = 0
-  const inputEl = getFileInputElement()
+  const inputEl = getFileInputElement('image')
+  if (inputEl) {
+    inputEl.value = ''
+  }
+}
+
+function clearVideoSelection(): void {
+  if (videoPreviewUrl.value) {
+    URL.revokeObjectURL(videoPreviewUrl.value)
+  }
+  videoPreviewUrl.value = ''
+  liveFrameDuration.value = 0
+  liveFrameTime.value = 0
+  liveFramePending.value = false
+  videoValue.value = null
+  const inputEl = getFileInputElement('video')
   if (inputEl) {
     inputEl.value = ''
   }
@@ -227,8 +280,9 @@ function resetUploadMetrics(): void {
   uploadStartedAt.value = null
 }
 
-function getFileInputElement(): HTMLInputElement | null {
-  const exposed = fileUploadRef.value?.inputRef
+function getFileInputElement(target: 'image' | 'video'): HTMLInputElement | null {
+  const refTarget = target === 'image' ? fileUploadRef.value : videoUploadRef.value
+  const exposed = refTarget?.inputRef
   if (!exposed) {
     return null
   }
@@ -676,8 +730,151 @@ watch(selectedFile, (file, previous) => {
   void handleSelectedFileChange(file)
 })
 
+watch(videoValue, (file, previous) => {
+  if (file === previous) {
+    return
+  }
+  void handleVideoSelected(file)
+})
+
 function openFileDialog(): void {
-  getFileInputElement()?.click()
+  const target = isLiveMode.value ? 'video' : 'image'
+  getFileInputElement(target)?.click()
+}
+
+async function handleVideoSelected(file: File | null): Promise<void> {
+  liveFramePending.value = false
+  if (!file) {
+    setUploadValue(null)
+    liveFrameDuration.value = 0
+    liveFrameTime.value = 0
+    if (videoPreviewUrl.value) {
+      URL.revokeObjectURL(videoPreviewUrl.value)
+    }
+    videoPreviewUrl.value = ''
+    return
+  }
+  clearFormForNewFile()
+  setUploadValue(null)
+  if (videoPreviewUrl.value) {
+    URL.revokeObjectURL(videoPreviewUrl.value)
+  }
+  videoPreviewUrl.value = URL.createObjectURL(file)
+  liveFrameDuration.value = 0
+  liveFrameTime.value = 0
+}
+
+function handleVideoMetadataLoaded(): void {
+  const video = videoElementRef.value
+  if (!video) {
+    return
+  }
+  const duration = Number.isFinite(video.duration) ? video.duration : 0
+  liveFrameDuration.value = duration > 0 ? duration : 0
+  const fallbackTime = duration > 0 ? Math.max(0, duration - 0.1) : 0
+  liveFrameTime.value = normalizeFrameTime(fallbackTime)
+  void captureLiveFrame()
+}
+
+function handleVideoError(): void {
+  toast.add({ title: toastMessages.value.videoFailed, color: 'error' })
+}
+
+function handleFrameInput(event: Event): void {
+  if (!(event.target instanceof HTMLInputElement)) {
+    return
+  }
+  const value = Number(event.target.value)
+  if (!Number.isFinite(value)) {
+    return
+  }
+  const normalized = normalizeFrameTime(value)
+  liveFrameTime.value = normalized
+  const video = videoElementRef.value
+  if (video) {
+    video.currentTime = normalized
+  }
+  void captureLiveFrame()
+}
+
+async function captureLiveFrame(): Promise<void> {
+  const video = videoElementRef.value
+  if (!video || !selectedVideo.value || liveFrameDuration.value <= 0) {
+    return
+  }
+  if (liveFramePending.value) {
+    return
+  }
+  liveFramePending.value = true
+  try {
+    const targetTime = normalizeFrameTime(liveFrameTime.value)
+    await seekVideo(video, targetTime)
+    const width = video.videoWidth
+    const height = video.videoHeight
+    if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) {
+      throw new Error('Invalid video frame size.')
+    }
+    const canvas = document.createElement('canvas')
+    canvas.width = width
+    canvas.height = height
+    const context = canvas.getContext('2d')
+    if (!context) {
+      throw new Error('Canvas context not available.')
+    }
+    context.drawImage(video, 0, 0, width, height)
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92))
+    if (!blob) {
+      throw new Error('Frame capture failed.')
+    }
+    const baseName = selectedVideo.value.name.replace(/\.[^/.]+$/, '') || 'live-photo'
+    const frameFile = new File([blob], `${baseName}-frame.jpg`, { type: blob.type || 'image/jpeg' })
+    setUploadValue(frameFile)
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.frameFailed
+    toast.add({ title: toastMessages.value.frameFailed, description: message, color: 'error' })
+  }
+  finally {
+    liveFramePending.value = false
+  }
+}
+
+async function seekVideo(video: HTMLVideoElement, time: number): Promise<void> {
+  if (!Number.isFinite(time)) {
+    return
+  }
+  if (Math.abs(video.currentTime - time) < 0.02) {
+    return
+  }
+  await new Promise<void>((resolve, reject) => {
+    const cleanup = (): void => {
+      video.removeEventListener('seeked', handleSeeked)
+      video.removeEventListener('error', handleError)
+    }
+    const handleSeeked = (): void => {
+      cleanup()
+      resolve()
+    }
+    const handleError = (): void => {
+      cleanup()
+      reject(new Error('Seek failed.'))
+    }
+    video.addEventListener('seeked', handleSeeked, { once: true })
+    video.addEventListener('error', handleError, { once: true })
+    video.currentTime = time
+  })
+}
+
+function normalizeFrameTime(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0
+  }
+  const duration = liveFrameDuration.value
+  if (!Number.isFinite(duration) || duration <= 0) {
+    return Math.max(0, value)
+  }
+  const maxTime = Math.max(0, duration - 0.05)
+  return Math.min(Math.max(0, value), maxTime)
 }
 
 function extractClipboardImage(event: ClipboardEvent): File | null {
@@ -701,6 +898,7 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     return
   }
   event.preventDefault()
+  setUploadMode('image')
   setUploadValue(file)
 }
 
@@ -742,16 +940,29 @@ function formatSpeed(bytesPerSecond: number): string {
   return `${mb.toFixed(1)} MB/s`
 }
 
+function formatDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    return '0:00'
+  }
+  const total = Math.floor(seconds)
+  const minutes = Math.floor(total / 60)
+  const remainder = total % 60
+  return `${minutes}:${remainder.toString().padStart(2, '0')}`
+}
+
 const previewChips = computed(() => {
   const chips: { icon: string, text: string }[] = []
   if (form.width > 0 && form.height > 0) {
-    chips.push({ icon: 'mdi:aspect-ratio', text: `${form.width} × ${form.height}` })
+    chips.push({ icon: 'tabler:aspect-ratio', text: `${form.width} × ${form.height}` })
   }
   if (captureTimeDisplay.value) {
-    chips.push({ icon: 'mdi:calendar-clock', text: captureTimeDisplay.value })
+    chips.push({ icon: 'tabler:calendar-time', text: captureTimeDisplay.value })
   }
   if (selectedFile.value) {
-    chips.push({ icon: 'mdi:file-image-outline', text: formatFileSize(selectedFile.value.size) })
+    chips.push({ icon: 'tabler:file-type-jpg', text: formatFileSize(selectedFile.value.size) })
+  }
+  if (selectedVideo.value) {
+    chips.push({ icon: 'tabler:movie', text: formatFileSize(selectedVideo.value.size) })
   }
   return chips
 })
@@ -854,7 +1065,7 @@ function sendFileWithProgress(formData: FormData): Promise<{ uploadId?: string }
     xhr.responseType = 'json'
     uploadStartedAt.value = performance.now()
     uploadBytesSent.value = 0
-    uploadTotalBytes.value = selectedFile.value?.size ?? 0
+    uploadTotalBytes.value = totalUploadBytes.value
     xhr.upload.addEventListener('progress', (event) => {
       const total = event.lengthComputable ? event.total : uploadTotalBytes.value
       if (event.lengthComputable) {
@@ -890,8 +1101,14 @@ function sendFileWithProgress(formData: FormData): Promise<{ uploadId?: string }
 }
 
 async function submit(): Promise<void> {
+  if (isLiveMode.value && !selectedVideo.value) {
+    toast.add({ title: toastMessages.value.selectVideo, color: 'warning' })
+    return
+  }
+
   if (!selectedFile.value) {
-    toast.add({ title: toastMessages.value.selectImage, color: 'warning' })
+    const message = isLiveMode.value ? toastMessages.value.selectFrame : toastMessages.value.selectImage
+    toast.add({ title: message, color: 'warning' })
     return
   }
 
@@ -906,6 +1123,9 @@ async function submit(): Promise<void> {
   try {
     const formData = new FormData()
     formData.append('file', selectedFile.value)
+    if (selectedVideo.value) {
+      formData.append('video', selectedVideo.value)
+    }
     formData.append('width', String(form.width))
     formData.append('height', String(form.height))
     formData.append('title', form.title)
@@ -934,6 +1154,7 @@ async function submit(): Promise<void> {
     formData.append('software', form.software)
     formData.append('captureTime', form.captureTime)
     formData.append('notes', form.notes)
+    formData.append('livePhotoStillTime', isLiveMode.value ? String(liveFrameTime.value) : '')
 
     const { uploadId } = await sendFileWithProgress(formData)
     clearSelectedFile()
@@ -975,35 +1196,72 @@ onBeforeUnmount(() => {
       <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 class="flex items-center gap-2 text-3xl font-semibold">
-            <Icon name="mdi:database-outline" class="h-6 w-6 text-primary" />
+            <Icon name="tabler:database" class="h-6 w-6 text-primary" />
             <span>{{ t('admin.upload.title') }}</span>
           </h1>
         </div>
       </header>
 
-      <div v-show="!selectedFile" class="grid gap-6">
+      <div v-show="!hasSelection" class="grid gap-6">
         <UCard>
           <template #header>
             <div class="space-y-1">
               <h2 class="flex items-center gap-2 text-xl font-semibold">
-                <Icon name="mdi:upload-outline" class="h-5 w-5 text-primary" />
+                <Icon name="tabler:upload" class="h-5 w-5 text-primary" />
                 <span>{{ t('admin.upload.sections.upload.label') }}</span>
               </h2>
             </div>
           </template>
-          <UFileUpload
-            ref="fileUploadRef"
-            v-model="uploadValue"
-            accept="image/*"
-            :label="t('admin.upload.sections.upload.dropHint')"
-            :description="t('admin.upload.sections.upload.supported')"
-            class="w-full"
-          />
+          <div class="space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <UButton
+                size="sm"
+                type="button"
+                :variant="uploadMode === 'image' ? 'solid' : 'soft'"
+                :color="uploadMode === 'image' ? 'primary' : 'neutral'"
+                :aria-pressed="uploadMode === 'image'"
+                @click="setUploadMode('image')"
+              >
+                {{ t('admin.upload.sections.upload.mode.image') }}
+              </UButton>
+              <UButton
+                size="sm"
+                type="button"
+                :variant="uploadMode === 'live' ? 'solid' : 'soft'"
+                :color="uploadMode === 'live' ? 'primary' : 'neutral'"
+                :aria-pressed="uploadMode === 'live'"
+                @click="setUploadMode('live')"
+              >
+                {{ t('admin.upload.sections.upload.mode.live') }}
+              </UButton>
+            </div>
+            <p v-if="uploadMode === 'live'" class="text-xs text-muted">
+              {{ t('admin.upload.sections.upload.liveHint') }}
+            </p>
+            <UFileUpload
+              v-if="uploadMode === 'image'"
+              ref="fileUploadRef"
+              v-model="uploadValue"
+              accept="image/*"
+              :label="t('admin.upload.sections.upload.dropHint')"
+              :description="t('admin.upload.sections.upload.supported')"
+              class="w-full"
+            />
+            <UFileUpload
+              v-else
+              ref="videoUploadRef"
+              v-model="videoValue"
+              accept="video/*"
+              :label="t('admin.upload.sections.upload.liveDropHint')"
+              :description="t('admin.upload.sections.upload.liveSupported')"
+              class="w-full"
+            />
+          </div>
         </UCard>
       </div>
 
       <UForm
-        v-if="selectedFile"
+        v-if="hasSelection"
         :state="form"
         class="space-y-4"
         @submit.prevent="submit"
@@ -1012,14 +1270,14 @@ onBeforeUnmount(() => {
           <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-3">
               <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/10">
-                <Icon name="mdi:database-edit-outline" class="h-5 w-5" />
+                <Icon name="tabler:database-edit" class="h-5 w-5" />
               </div>
               <div class="space-y-0.5">
                 <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                   {{ t('admin.upload.sections.edit.title') }}
                 </p>
                 <p class="text-base font-semibold text-highlighted">
-                  {{ selectedFileName }}
+                  {{ displayFileName }}
                 </p>
               </div>
             </div>
@@ -1028,7 +1286,7 @@ onBeforeUnmount(() => {
                 variant="soft"
                 color="neutral"
                 type="button"
-                icon="mdi:close"
+                icon="tabler:x"
                 @click="clearSelectedFile"
               >
                 {{ t('common.actions.cancel') }}
@@ -1037,7 +1295,8 @@ onBeforeUnmount(() => {
                 color="primary"
                 type="submit"
                 :loading="submitting"
-                icon="mdi:content-save-outline"
+                :disabled="!selectedFile"
+                icon="tabler:device-floppy"
               >
                 {{ t('admin.upload.actions.save') }}
               </UButton>
@@ -1046,7 +1305,7 @@ onBeforeUnmount(() => {
           <div v-if="previewChips.length > 0" class="flex flex-wrap gap-2">
             <span
               v-for="chip in previewChips"
-              :key="chip.text"
+              :key="`${chip.icon}-${chip.text}`"
               class="inline-flex items-center gap-2 rounded-full bg-elevated/80 px-3 py-1 text-xs font-medium text-highlighted ring-1 ring-default/50"
             >
               <Icon :name="chip.icon" class="h-4 w-4 text-primary" />
@@ -1058,7 +1317,7 @@ onBeforeUnmount(() => {
               variant="soft"
               color="neutral"
               type="button"
-              icon="mdi:close"
+              icon="tabler:x"
               @click="clearSelectedFile"
             >
               {{ t('common.actions.cancel') }}
@@ -1067,7 +1326,8 @@ onBeforeUnmount(() => {
               color="primary"
               type="submit"
               :loading="submitting"
-              icon="mdi:content-save-outline"
+              :disabled="!selectedFile"
+              icon="tabler:device-floppy"
             >
               {{ t('admin.upload.actions.save') }}
             </UButton>
@@ -1087,10 +1347,10 @@ onBeforeUnmount(() => {
                   variant="ghost"
                   color="neutral"
                   type="button"
-                  icon="mdi:camera-retake-outline"
+                  icon="tabler:camera-rotate"
                   @click="openFileDialog()"
                 >
-                  {{ t('common.actions.changeImage') }}
+                  {{ changePrimaryLabel }}
                 </UButton>
               </div>
             </template>
@@ -1101,7 +1361,7 @@ onBeforeUnmount(() => {
                   :style="{ aspectRatio: aspectRatioStyle, maxHeight: `${previewMaxHeight}px` }"
                   role="button"
                   tabindex="0"
-                  :aria-label="t('common.actions.changeImage')"
+                  :aria-label="changePrimaryLabel"
                   @click="openFileDialog()"
                   @keydown.enter.prevent="openFileDialog()"
                   @keydown.space.prevent="openFileDialog()"
@@ -1113,18 +1373,95 @@ onBeforeUnmount(() => {
                     class="max-h-full max-w-full object-contain"
                     :style="{ maxHeight: `${previewMaxHeight}px` }"
                   >
+                  <div
+                    v-else-if="isLiveMode && selectedVideo"
+                    class="px-6 text-center text-xs text-muted"
+                  >
+                    {{ t('admin.upload.sections.livePhoto.framePlaceholder') }}
+                  </div>
                 </div>
               </div>
-              <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/50 bg-default/80 px-3 py-2 text-sm">
+              <div
+                v-if="selectedFile"
+                class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/50 bg-default/80 px-3 py-2 text-sm"
+              >
                 <div class="flex items-center gap-2">
-                  <Icon name="mdi:image-outline" class="h-4 w-4 text-primary" />
+                  <Icon name="tabler:photo" class="h-4 w-4 text-primary" />
                   <span class="font-semibold text-highlighted">
                     {{ selectedFileName }}
                   </span>
                 </div>
                 <div class="flex items-center gap-2 text-xs text-muted">
-                  <Icon name="mdi:information-outline" class="h-4 w-4" />
+                  <Icon name="tabler:info-circle" class="h-4 w-4" />
                   <span>{{ selectedFile?.type || 'image' }}</span>
+                </div>
+              </div>
+              <div
+                v-if="selectedVideo"
+                class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/50 bg-default/80 px-3 py-2 text-sm"
+              >
+                <div class="flex items-center gap-2">
+                  <Icon name="tabler:movie" class="h-4 w-4 text-primary" />
+                  <span class="font-semibold text-highlighted">
+                    {{ selectedVideoName }}
+                  </span>
+                </div>
+                <div class="flex items-center gap-2 text-xs text-muted">
+                  <Icon name="tabler:info-circle" class="h-4 w-4" />
+                  <span>{{ selectedVideo?.type || 'video' }}</span>
+                </div>
+              </div>
+              <div
+                v-if="selectedVideo"
+                class="space-y-3 rounded-lg border border-default/50 bg-default/80 px-3 py-3"
+              >
+                <div class="flex items-center justify-between gap-2 text-xs text-muted">
+                  <div class="flex items-center gap-2">
+                    <Icon name="tabler:movie" class="h-4 w-4 text-primary" />
+                    <span class="font-semibold text-highlighted">
+                      {{ t('admin.upload.sections.livePhoto.title') }}
+                    </span>
+                  </div>
+                  <span>{{ liveFrameDurationLabel }}</span>
+                </div>
+                <video
+                  ref="videoElementRef"
+                  :src="videoPreviewUrl"
+                  :poster="previewUrl || undefined"
+                  class="w-full max-h-64 rounded-lg border border-default/50 bg-black/10 object-contain"
+                  muted
+                  playsinline
+                  preload="metadata"
+                  @loadedmetadata="handleVideoMetadataLoaded"
+                  @error="handleVideoError"
+                />
+                <div class="flex items-center gap-2 text-xs text-muted">
+                  <span class="tabular-nums text-highlighted">{{ liveFrameTimeLabel }}</span>
+                  <input
+                    type="range"
+                    min="0"
+                    :max="liveFrameDuration"
+                    step="0.1"
+                    :value="liveFrameTime"
+                    class="h-1 w-full cursor-pointer accent-primary"
+                    :disabled="liveFrameDuration <= 0"
+                    @input="handleFrameInput"
+                  >
+                  <span class="tabular-nums">{{ liveFrameDurationLabel }}</span>
+                </div>
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                  <span>{{ t('admin.upload.sections.livePhoto.frameHint') }}</span>
+                  <UButton
+                    size="sm"
+                    type="button"
+                    color="primary"
+                    variant="soft"
+                    :loading="liveFramePending"
+                    :disabled="liveFrameDuration <= 0"
+                    @click="captureLiveFrame"
+                  >
+                    {{ t('admin.upload.sections.livePhoto.useFrame') }}
+                  </UButton>
                 </div>
               </div>
               <div
@@ -1133,7 +1470,7 @@ onBeforeUnmount(() => {
               >
                 <div class="flex items-center justify-between gap-2 text-sm">
                   <div class="flex items-center gap-2">
-                    <Icon name="mdi:progress-upload" class="h-4 w-4 text-primary" />
+                    <Icon name="tabler:cloud-upload" class="h-4 w-4 text-primary" />
                     <span class="font-semibold text-highlighted">
                       {{ t('admin.upload.sections.progress.title') }}
                     </span>
@@ -1150,13 +1487,13 @@ onBeforeUnmount(() => {
                 </div>
                 <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
                   <span class="flex items-center gap-1">
-                    <Icon name="mdi:database-arrow-up-outline" class="h-4 w-4" />
+                    <Icon name="tabler:database-export" class="h-4 w-4" />
                     <span>{{ t('admin.upload.sections.progress.uploaded') }}:</span>
                     <span class="text-highlighted">{{ uploadedBytesText }}</span>
                     <span v-if="uploadTotalBytes">/ {{ uploadTotalText }}</span>
                   </span>
                   <span class="flex items-center gap-1">
-                    <Icon name="mdi:speedometer" class="h-4 w-4" />
+                    <Icon name="tabler:gauge" class="h-4 w-4" />
                     <span>{{ t('admin.upload.sections.progress.speed') }}:</span>
                     <span class="text-highlighted">{{ uploadSpeedText }}</span>
                   </span>
@@ -1172,7 +1509,7 @@ onBeforeUnmount(() => {
             <template #header>
               <div class="space-y-1">
                 <h2 class="flex items-center gap-2 text-xl font-semibold">
-                  <Icon name="mdi:database-edit-outline" class="h-5 w-5 text-primary" />
+                  <Icon name="tabler:database-edit" class="h-5 w-5 text-primary" />
                   <span>{{ t('admin.upload.sections.edit.title') }}</span>
                 </h2>
               </div>
@@ -1190,7 +1527,7 @@ onBeforeUnmount(() => {
                   color="neutral"
                   type="button"
                   class="w-full sm:w-auto"
-                  icon="mdi:close"
+                  icon="tabler:x"
                   @click="clearSelectedFile"
                 >
                   {{ t('common.actions.cancel') }}
@@ -1199,8 +1536,9 @@ onBeforeUnmount(() => {
                   color="primary"
                   type="submit"
                   :loading="submitting"
+                  :disabled="!selectedFile"
                   class="w-full sm:w-auto"
-                  icon="mdi:content-save-outline"
+                  icon="tabler:device-floppy"
                 >
                   {{ t('admin.upload.actions.save') }}
                 </UButton>

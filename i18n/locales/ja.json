@@ -20,6 +20,7 @@
       "reset": "リセット",
       "cancel": "キャンセル",
       "changeImage": "画像を変更",
+      "changeVideo": "動画を変更",
       "remove": "削除",
       "switchLanguage": "言語を切り替える"
     },
@@ -99,6 +100,15 @@
       "coordinates": "座標: {value}",
       "defaultLabel": "位置"
     },
+    "livePhoto": {
+      "badge": "Live",
+      "play": "Liveを再生",
+      "still": "静止画を見る",
+      "share": "Live Photo を保存",
+      "sharePreparing": "Live Photo を準備中です。少し待ってからもう一度お試しください。",
+      "shareUnsupported": "この端末では写真への共有に対応していません。",
+      "shareFailed": "Live Photo の共有に失敗しました。"
+    },
     "totalWorks": "作品数"
   },
   "admin": {
@@ -133,12 +143,16 @@
       "seoDescription": "管理画面で作品をアップロードしメタデータを入力します。",
       "toast": {
         "selectImage": "先に画像を選択してください",
+        "selectVideo": "先に動画を選択してください",
+        "selectFrame": "先にフレームを選択してください",
         "readSize": "まず画像サイズを取得してください",
         "sizeFailed": "サイズの取得に失敗しました",
         "sizeFailedFallback": "読み取りに失敗しました",
         "sizeReadError": "画像サイズを読み取れません",
         "exifFailed": "メタデータの取得に失敗しました",
         "exifFailedFallback": "メタデータを解析できませんでした",
+        "videoFailed": "動画の読み込みに失敗しました",
+        "frameFailed": "フレームの取得に失敗しました",
         "saveSuccessTitle": "保存しました",
         "saveSuccessDescription": "レコードをデータベースに書き込みました。",
         "saveFailedTitle": "保存に失敗しました",
@@ -164,12 +178,25 @@
         "upload": {
           "label": "写真をアップロード",
           "dropHint": "ここに写真をドラッグするかクリックして選択",
-          "supported": "JPG/PNG など一般的な形式に対応"
+          "supported": "JPG/PNG など一般的な形式に対応",
+          "mode": {
+            "image": "写真",
+            "live": "Live Photo"
+          },
+          "liveHint": "短い動画をアップロードし、フレームをカバーに設定します。",
+          "liveDropHint": "ここに動画をドラッグするかクリックして選択",
+          "liveSupported": "MP4/MOV など一般的な形式に対応"
         },
         "preview": {
           "label": "プレビューと自動入力",
           "title": "写真の詳細",
           "alt": "プレビュー"
+        },
+        "livePhoto": {
+          "title": "Live Photo 動画",
+          "frameHint": "スライダーでフレームを選択します。デフォルトは最後のフレームです。",
+          "useFrame": "このフレームを使用",
+          "framePlaceholder": "動画からフレームを選択してください"
         },
         "edit": {
           "label": "編集と保存",

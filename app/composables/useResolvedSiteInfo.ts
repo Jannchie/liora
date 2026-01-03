@@ -52,15 +52,15 @@ export function useResolvedSiteInfo(settings: MaybeRef<SiteSettings | null | und
       }
     }
 
-    appendLink('Homepage', social.homepage, 'mdi:home')
-    appendLink('GitHub', social.github, 'mdi:github')
-    appendLink('X', social.twitter, 'fa6-brands:x-twitter')
-    appendLink('Instagram', social.instagram, 'mdi:instagram')
-    appendLink('YouTube', social.youtube, 'mdi:youtube')
-    appendLink('TikTok', social.tiktok, 'fa6-brands:tiktok')
-    appendLink('Bilibili', social.bilibili, 'simple-icons:bilibili')
-    appendLink('LinkedIn', social.linkedin, 'mdi:linkedin')
-    appendLink('Weibo', social.weibo, 'mdi:sina-weibo')
+    appendLink('Homepage', social.homepage, 'tabler:home')
+    appendLink('GitHub', social.github, 'tabler:brand-github')
+    appendLink('X', social.twitter, 'tabler:brand-x')
+    appendLink('Instagram', social.instagram, 'tabler:brand-instagram')
+    appendLink('YouTube', social.youtube, 'tabler:brand-youtube')
+    appendLink('TikTok', social.tiktok, 'tabler:brand-tiktok')
+    appendLink('Bilibili', social.bilibili, 'tabler:brand-bilibili')
+    appendLink('LinkedIn', social.linkedin, 'tabler:brand-linkedin')
+    appendLink('Weibo', social.weibo, 'tabler:brand-weibo')
     return links
   })
 

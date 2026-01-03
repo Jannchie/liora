@@ -56,6 +56,10 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
   if (thumbhash) {
     metadata.thumbhash = thumbhash
   }
+  const livePhotoVideoUrl = file.livePhotoVideoUrl?.trim()
+  if (livePhotoVideoUrl) {
+    metadata.livePhotoVideoUrl = livePhotoVideoUrl
+  }
   return {
     id: file.id,
     title: '',
@@ -320,15 +324,15 @@ const headerSocialLinks = computed<SocialLink[]>(() => {
     }
   }
 
-  appendLink('Homepage', social?.homepage, 'mdi:home')
-  appendLink('GitHub', social?.github, 'mdi:github')
-  appendLink('X', social?.twitter, 'fa6-brands:x-twitter')
-  appendLink('Instagram', social?.instagram, 'mdi:instagram')
-  appendLink('YouTube', social?.youtube, 'mdi:youtube')
-  appendLink('TikTok', social?.tiktok, 'fa6-brands:tiktok')
-  appendLink('Bilibili', social?.bilibili, 'simple-icons:bilibili')
-  appendLink('LinkedIn', social?.linkedin, 'mdi:linkedin')
-  appendLink('Weibo', social?.weibo, 'mdi:sina-weibo')
+  appendLink('Homepage', social?.homepage, 'tabler:home')
+  appendLink('GitHub', social?.github, 'tabler:brand-github')
+  appendLink('X', social?.twitter, 'tabler:brand-x')
+  appendLink('Instagram', social?.instagram, 'tabler:brand-instagram')
+  appendLink('YouTube', social?.youtube, 'tabler:brand-youtube')
+  appendLink('TikTok', social?.tiktok, 'tabler:brand-tiktok')
+  appendLink('Bilibili', social?.bilibili, 'tabler:brand-bilibili')
+  appendLink('LinkedIn', social?.linkedin, 'tabler:brand-linkedin')
+  appendLink('Weibo', social?.weibo, 'tabler:brand-weibo')
   return links
 })
 
@@ -398,7 +402,7 @@ defineOgImageComponent('LioraCard', {
             color="primary"
             variant="soft"
             size="sm"
-            icon="mdi:shield-check-outline"
+            icon="tabler:shield-check"
             class="shrink-0"
           >
             {{ t('admin.nav.label') }}
@@ -419,7 +423,7 @@ defineOgImageComponent('LioraCard', {
           variant="soft"
           size="sm"
           class="shrink-0"
-          icon="mdi:shield-check-outline"
+          icon="tabler:shield-check"
         >
           {{ t('admin.nav.label') }}
         </UButton>
@@ -433,7 +437,7 @@ defineOgImageComponent('LioraCard', {
         :description="alertDescription"
       >
         <template #icon>
-          <Icon name="mdi:alert-circle-outline" class="h-5 w-5" />
+          <Icon name="tabler:alert-circle" class="h-5 w-5" />
         </template>
       </UAlert>
 

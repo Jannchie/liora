@@ -2,7 +2,7 @@
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
 import type { FileLocation, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
-import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
 const {
@@ -26,6 +26,8 @@ const {
   canEdit = false,
   viewerTouchAction = 'none',
   previewEnabled = false,
+  livePhotoSharing = false,
+  livePhotoPreparing = false,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -47,6 +49,8 @@ const {
   canEdit?: boolean
   viewerTouchAction?: string
   previewEnabled?: boolean
+  livePhotoSharing?: boolean
+  livePhotoPreparing?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -60,11 +64,25 @@ const emit = defineEmits<{
   (event: 'pointercancel', value: PointerEvent): void
   (event: 'pointerleave', value: PointerEvent): void
   (event: 'viewerMounted', value: HTMLElement | null): void
+  (event: 'shareLivePhoto'): void
 }>()
 
 const viewerRef = ref<HTMLElement | null>(null)
+const videoRef = ref<HTMLVideoElement | null>(null)
 const overlayHiddenClass = 'overlay-content-hidden'
 const previewOpen = ref(false)
+const livePhotoPlaying = ref(false)
+
+const livePhotoVideoUrl = computed<string | null>(() => {
+  const rawValue = file.metadata.livePhotoVideoUrl
+  if (typeof rawValue !== 'string') {
+    return null
+  }
+  const trimmed = rawValue.trim()
+  return trimmed.length > 0 ? trimmed : null
+})
+
+const hasLivePhoto = computed<boolean>(() => Boolean(livePhotoVideoUrl.value))
 
 const previewImageSrc = computed<string | null>(() => {
   const candidates = [
@@ -84,9 +102,10 @@ const previewImageSrc = computed<string | null>(() => {
   return null
 })
 
-const canOpenPreview = computed(() => previewEnabled && Boolean(previewImageSrc.value))
-
 const { t } = useI18n()
+
+const canOpenPreview = computed(() => previewEnabled && Boolean(previewImageSrc.value))
+const livePhotoLabel = computed(() => (livePhotoPlaying.value ? t('gallery.livePhoto.still') : t('gallery.livePhoto.play')))
 
 const WaterfallHistogramPanel = defineAsyncComponent(() => import('~/components/WaterfallHistogramPanel.vue'))
 const WaterfallLocationMap = defineAsyncComponent(() => import('~/components/WaterfallLocationMap.vue'))
@@ -103,7 +122,16 @@ watch(
   () => file.id,
   () => {
     previewOpen.value = false
+    livePhotoPlaying.value = false
+    if (hasLivePhoto.value) {
+      void nextTick(() => {
+        if (hasLivePhoto.value) {
+          livePhotoPlaying.value = true
+        }
+      })
+    }
   },
+  { immediate: true },
 )
 
 watch(
@@ -111,6 +139,59 @@ watch(
   (enabled) => {
     if (!enabled) {
       previewOpen.value = false
+    }
+  },
+)
+
+watch(
+  hasLivePhoto,
+  (next) => {
+    if (next) {
+      livePhotoPlaying.value = true
+      return
+    }
+    livePhotoPlaying.value = false
+    if (videoRef.value) {
+      videoRef.value.pause()
+      videoRef.value.currentTime = 0
+    }
+  },
+)
+
+watch(
+  livePhotoPlaying,
+  (playing) => {
+    const video = videoRef.value
+    if (!video) {
+      return
+    }
+    if (!playing) {
+      video.pause()
+      video.currentTime = 0
+      return
+    }
+    video.currentTime = 0
+    const playPromise = video.play()
+    if (playPromise) {
+      playPromise.catch(() => {
+        livePhotoPlaying.value = false
+      })
+    }
+  },
+)
+
+watch(
+  videoRef,
+  (video) => {
+    if (!video || !livePhotoPlaying.value) {
+      return
+    }
+    video.currentTime = 0
+    const playPromise = video.play()
+    if (playPromise) {
+      playPromise.catch(() => {
+        livePhotoPlaying.value = false
+      })
     }
   },
 )
@@ -142,6 +223,17 @@ function openPreview(): void {
   }
   previewOpen.value = true
 }
+
+function toggleLivePhoto(): void {
+  if (!hasLivePhoto.value) {
+    return
+  }
+  livePhotoPlaying.value = !livePhotoPlaying.value
+}
+
+function handleLivePhotoEnded(): void {
+  livePhotoPlaying.value = false
+}
 </script>
 
 <template>
@@ -159,7 +251,7 @@ function openPreview(): void {
     />
     <div class="absolute inset-0" @click="emit('close')" />
     <div class="relative flex h-full w-full overlay-safe-area">
-      <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(280px,360px)] md:gap-0 md:overflow-y-visible">
+      <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:gap-0 md:overflow-y-visible">
         <div
           ref="viewerRef"
           class="relative flex max-h-[calc(100dvh-100px)] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:max-h-dvh"
@@ -172,7 +264,24 @@ function openPreview(): void {
           @pointercancel="emit('pointercancel', $event)"
           @pointerleave="emit('pointerleave', $event)"
         >
+          <video
+            v-if="hasLivePhoto"
+            v-show="livePhotoPlaying"
+            ref="videoRef"
+            :key="`live-${file.id}`"
+            :src="livePhotoVideoUrl"
+            :poster="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
+            :width="file.width"
+            :height="file.height"
+            :style="overlayImageTransformStyle"
+            class="h-auto w-full select-none object-contain md:max-h-screen"
+            muted
+            playsinline
+            preload="metadata"
+            @ended="handleLivePhotoEnded"
+          />
           <img
+            v-show="!livePhotoPlaying || !hasLivePhoto"
             :key="file.id"
             :src="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
             :srcset="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.srcset : undefined"
@@ -188,6 +297,16 @@ function openPreview(): void {
             ]"
             @click="openPreview"
           >
+          <button
+            v-if="hasLivePhoto"
+            type="button"
+            class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10"
+            :aria-pressed="livePhotoPlaying"
+            @click="toggleLivePhoto"
+          >
+            <Icon :name="livePhotoPlaying ? 'tabler:photo' : 'tabler:player-play'" class="h-4 w-4" />
+            <span>{{ livePhotoLabel }}</span>
+          </button>
           <Transition
             appear
             enter-active-class="transition duration-200 ease-out"
@@ -231,21 +350,11 @@ function openPreview(): void {
               </div>
               <div class="flex items-center gap-2">
                 <UButton
-                  v-if="canEdit"
-                  type="button"
-                  icon="mdi:cog-outline"
-                  size="md"
-                  variant="soft"
-                  @click="emit('edit')"
-                >
-                  {{ t('common.actions.edit') }}
-                </UButton>
-                <UButton
                   type="button"
                   size="md"
                   color="neutral"
                   variant="ghost"
-                  icon="mdi:close"
+                  icon="tabler:x"
                   :aria-label="t('common.actions.close')"
                   @click="emit('close')"
                 />
@@ -263,7 +372,7 @@ function openPreview(): void {
             </div>
             <div v-if="genreLabel" class="flex items-center gap-2">
               <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
-                <Icon name="carbon:classification" class="h-3.5 w-3.5" />
+                <Icon name="tabler:tag" class="h-3.5 w-3.5" />
                 <span>{{ genreLabel }}</span>
               </span>
             </div>
@@ -324,6 +433,36 @@ function openPreview(): void {
               :exposure-entries="exposureEntries"
               :has-metadata="hasMetadata"
             />
+          </div>
+          <div
+            v-if="canEdit || hasLivePhoto"
+            class="mt-auto border-t border-default/10 pt-3"
+          >
+            <div class="flex flex-wrap gap-2">
+              <UButton
+                v-if="canEdit"
+                type="button"
+                icon="tabler:settings"
+                size="md"
+                variant="soft"
+                @click="emit('edit')"
+              >
+                {{ t('common.actions.edit') }}
+              </UButton>
+                <UButton
+                  v-if="hasLivePhoto"
+                  type="button"
+                  icon="tabler:share"
+                  size="md"
+                  variant="soft"
+                  color="primary"
+                  :loading="livePhotoPreparing || livePhotoSharing"
+                  :disabled="livePhotoSharing"
+                  @click="emit('shareLivePhoto')"
+                >
+                  {{ t('gallery.livePhoto.share') }}
+                </UButton>
+            </div>
           </div>
         </div>
       </div>
