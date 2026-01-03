@@ -2,7 +2,8 @@
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
 import type { FileLocation, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
-import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
 const {
   file,
@@ -24,6 +25,7 @@ const {
   location,
   canEdit = false,
   viewerTouchAction = 'none',
+  previewEnabled = false,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -44,6 +46,7 @@ const {
   location?: FileLocation | null
   canEdit?: boolean
   viewerTouchAction?: string
+  previewEnabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -61,6 +64,27 @@ const emit = defineEmits<{
 
 const viewerRef = ref<HTMLElement | null>(null)
 const overlayHiddenClass = 'overlay-content-hidden'
+const previewOpen = ref(false)
+
+const previewImageSrc = computed<string | null>(() => {
+  const candidates = [
+    file.imageUrl,
+    overlayImageSrc,
+    file.previewUrl,
+    file.coverUrl,
+  ]
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim()
+      if (trimmed.length > 0) {
+        return trimmed
+      }
+    }
+  }
+  return null
+})
+
+const canOpenPreview = computed(() => previewEnabled && Boolean(previewImageSrc.value))
 
 const { t } = useI18n()
 
@@ -74,6 +98,23 @@ watch(
   },
   { immediate: true },
 )
+
+watch(
+  () => file.id,
+  () => {
+    previewOpen.value = false
+  },
+)
+
+watch(
+  () => previewEnabled,
+  (enabled) => {
+    if (!enabled) {
+      previewOpen.value = false
+    }
+  },
+)
+
 
 onBeforeUnmount(() => {
   emit('viewerMounted', null)
@@ -94,6 +135,13 @@ onMounted(() => {
     document.body.classList.add(overlayHiddenClass)
   }
 })
+
+function openPreview(): void {
+  if (!canOpenPreview.value) {
+    return
+  }
+  previewOpen.value = true
+}
 </script>
 
 <template>
@@ -134,7 +182,11 @@ onMounted(() => {
             :style="overlayImageTransformStyle"
             :alt="file.displayTitle"
             loading="eager"
-            class="h-auto w-full select-none object-contain md:max-h-screen"
+            :class="[
+              'h-auto w-full select-none object-contain md:max-h-screen',
+              canOpenPreview ? 'cursor-zoom-in' : undefined,
+            ]"
+            @click="openPreview"
           >
           <Transition
             appear
@@ -276,6 +328,14 @@ onMounted(() => {
         </div>
       </div>
     </div>
+    <WaterfallPreviewOverlay
+      v-model:open="previewOpen"
+      :src="previewImageSrc"
+      :alt="file.displayTitle"
+      :width="file.width"
+      :height="file.height"
+      :aria-label="t('gallery.viewLarge', { title: file.displayTitle })"
+    />
   </div>
 </template>
 

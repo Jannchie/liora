@@ -2080,6 +2080,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           :metadata-entries="metadataEntries"
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
+          :preview-enabled="isSmallScreen"
           :preview-attrs="activeFile.previewAttrs"
           :location="locationPoint"
           :genre-label="genreBadgeLabel"
