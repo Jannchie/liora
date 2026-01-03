@@ -1,3 +1,15 @@
+## v0.19.0
+
+[v0.18.2...v0.19.0](https://github.com/Jannchie/liora/compare/v0.18.2...v0.19.0)
+
+### :sparkles: Features
+
+- **gallery**: add image preview overlay with pan/zoom - By [Jannchie](mailto:jannchie@gmail.com) in [0269b37](https://github.com/Jannchie/liora/commit/0269b37)
+
+### :wrench: Chores
+
+- **deps**: bump multiple dependencies & update lockfile - By [Jannchie](mailto:jannchie@gmail.com) in [39f1f1f](https://github.com/Jannchie/liora/commit/39f1f1f)
+
 ## v0.18.2
 
 [v0.18.1...v0.18.2](https://github.com/Jannchie/liora/compare/v0.18.1...v0.18.2)
