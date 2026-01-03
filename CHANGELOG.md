@@ -1,3 +1,11 @@
+## v0.20.0
+
+[v0.19.0...v0.20.0](https://github.com/Jannchie/liora/compare/v0.19.0...v0.20.0)
+
+### :sparkles: Features
+
+- **gallery**: add live photo support and tabler icons - By [Jannchie](mailto:jannchie@gmail.com) in [81737aa](https://github.com/Jannchie/liora/commit/81737aa)
+
 ## v0.19.0
 
 [v0.18.2...v0.19.0](https://github.com/Jannchie/liora/compare/v0.18.2...v0.19.0)
