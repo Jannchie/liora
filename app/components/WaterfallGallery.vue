@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { CSSProperties } from 'vue'
+import type { ComponentPublicInstance, CSSProperties } from 'vue'
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse, HistogramData } from '~/types/file'
 import type {
@@ -273,9 +273,10 @@ function resolveUrlOrigin(value: string): string | null {
   }
 }
 
-function setLivePreviewRef(id: number, element: Element | null): void {
-  if (element instanceof HTMLVideoElement) {
-    livePreviewRefs.set(id, element)
+function setLivePreviewRef(id: number, element: Element | ComponentPublicInstance | null): void {
+  const resolvedElement = element instanceof Element ? element : element?.$el
+  if (resolvedElement instanceof HTMLVideoElement) {
+    livePreviewRefs.set(id, resolvedElement)
   }
   else {
     livePreviewRefs.delete(id)

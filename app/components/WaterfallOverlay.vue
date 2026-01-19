@@ -196,7 +196,6 @@ watch(
   },
 )
 
-
 onBeforeUnmount(() => {
   emit('viewerMounted', null)
   if (typeof document !== 'undefined') {
@@ -269,7 +268,7 @@ function handleLivePhotoEnded(): void {
             v-show="livePhotoPlaying"
             ref="videoRef"
             :key="`live-${file.id}`"
-            :src="livePhotoVideoUrl"
+            :src="livePhotoVideoUrl || undefined"
             :poster="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
             :width="file.width"
             :height="file.height"
@@ -291,10 +290,8 @@ function handleLivePhotoEnded(): void {
             :style="overlayImageTransformStyle"
             :alt="file.displayTitle"
             loading="eager"
-            :class="[
-              'h-auto w-full select-none object-contain md:max-h-screen',
-              canOpenPreview ? 'cursor-zoom-in' : undefined,
-            ]"
+            class="h-auto w-full select-none object-contain md:max-h-screen"
+            :class="canOpenPreview ? 'cursor-zoom-in' : undefined"
             @click="openPreview"
           >
           <button
@@ -449,19 +446,19 @@ function handleLivePhotoEnded(): void {
               >
                 {{ t('common.actions.edit') }}
               </UButton>
-                <UButton
-                  v-if="hasLivePhoto"
-                  type="button"
-                  icon="tabler:share"
-                  size="md"
-                  variant="soft"
-                  color="primary"
-                  :loading="livePhotoPreparing || livePhotoSharing"
-                  :disabled="livePhotoSharing"
-                  @click="emit('shareLivePhoto')"
-                >
-                  {{ t('gallery.livePhoto.share') }}
-                </UButton>
+              <UButton
+                v-if="hasLivePhoto"
+                type="button"
+                icon="tabler:share"
+                size="md"
+                variant="soft"
+                color="primary"
+                :loading="livePhotoPreparing || livePhotoSharing"
+                :disabled="livePhotoSharing"
+                @click="emit('shareLivePhoto')"
+              >
+                {{ t('gallery.livePhoto.share') }}
+              </UButton>
             </div>
           </div>
         </div>

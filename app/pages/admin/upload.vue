@@ -770,8 +770,8 @@ function handleVideoMetadataLoaded(): void {
     return
   }
   const duration = Number.isFinite(video.duration) ? video.duration : 0
-  liveFrameDuration.value = duration > 0 ? duration : 0
-  const fallbackTime = duration > 0 ? Math.max(0, duration - 0.1) : 0
+  liveFrameDuration.value = Math.max(0, duration)
+  const fallbackTime = Math.max(0, duration - 0.1)
   liveFrameTime.value = normalizeFrameTime(fallbackTime)
   void captureLiveFrame()
 }
@@ -847,15 +847,21 @@ async function seekVideo(video: HTMLVideoElement, time: number): Promise<void> {
     return
   }
   await new Promise<void>((resolve, reject) => {
+    let handleSeeked: (() => void) | null = null
+    let handleError: (() => void) | null = null
     const cleanup = (): void => {
-      video.removeEventListener('seeked', handleSeeked)
-      video.removeEventListener('error', handleError)
+      if (handleSeeked) {
+        video.removeEventListener('seeked', handleSeeked)
+      }
+      if (handleError) {
+        video.removeEventListener('error', handleError)
+      }
     }
-    const handleSeeked = (): void => {
+    handleSeeked = (): void => {
       cleanup()
       resolve()
     }
-    const handleError = (): void => {
+    handleError = (): void => {
       cleanup()
       reject(new Error('Seek failed.'))
     }

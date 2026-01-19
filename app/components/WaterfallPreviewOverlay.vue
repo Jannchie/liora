@@ -5,7 +5,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 const props = withDefaults(
   defineProps<{
     open: boolean
-    src: string | null
+    src?: string | null
     alt: string
     width: number
     height: number

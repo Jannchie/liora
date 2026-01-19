@@ -4,8 +4,10 @@ import { access, copyFile, mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join } from 'node:path'
 import { Readable } from 'node:stream'
+import type { ReadableStream as WebReadableStream } from 'node:stream/web'
 import { pipeline } from 'node:stream/promises'
 import { exiftool } from 'exiftool-vendored'
+import type { WriteTags } from 'exiftool-vendored'
 import ffmpegPath from 'ffmpeg-static'
 import sharp from 'sharp'
 
@@ -66,7 +68,7 @@ export async function downloadToFile(url: string, targetPath: string): Promise<v
     })
     return
   }
-  const readable = Readable.fromWeb(response.body)
+  const readable = Readable.fromWeb(response.body as WebReadableStream<Uint8Array>)
   await pipeline(readable, createWriteStream(targetPath))
 }
 
@@ -108,12 +110,9 @@ export async function createLivePhotoVideo(
   try {
     await downloadToFile(videoUrl, sourcePath)
     const sourceExt = extname(sourcePath).toLowerCase()
-    if (sourceExt === '.mov') {
-      await copyFile(sourcePath, outputPath)
-    }
-    else {
-      await rewrapVideoToMov(sourcePath, outputPath)
-    }
+    await (sourceExt === '.mov'
+      ? copyFile(sourcePath, outputPath)
+      : rewrapVideoToMov(sourcePath, outputPath))
     await writeLivePhotoVideoMetadata(outputPath, contentId, stillTime)
     return {
       filePath: outputPath,
@@ -128,27 +127,21 @@ export async function createLivePhotoVideo(
 }
 
 async function writeLivePhotoImageMetadata(filePath: string, contentId: string): Promise<void> {
-  await exiftool.write(
-    filePath,
-    {
-      'XMP:ContentIdentifier': contentId,
-      ContentIdentifier: contentId,
-    },
-    ['-overwrite_original'],
-  )
+  const tags = {
+    'XMP:ContentIdentifier': contentId,
+    'ContentIdentifier': contentId,
+  } as WriteTags
+  await exiftool.write(filePath, tags, ['-overwrite_original'])
 }
 
 async function writeLivePhotoVideoMetadata(filePath: string, contentId: string, stillTime: number): Promise<void> {
   const safeStillTime = Number.isFinite(stillTime) && stillTime >= 0 ? stillTime : 0
-  await exiftool.write(
-    filePath,
-    {
-      'QuickTime:ContentIdentifier': contentId,
-      'QuickTime:StillImageTime': safeStillTime,
-      ContentIdentifier: contentId,
-    },
-    ['-overwrite_original'],
-  )
+  const tags = {
+    'QuickTime:ContentIdentifier': contentId,
+    'QuickTime:StillImageTime': safeStillTime,
+    'ContentIdentifier': contentId,
+  } as WriteTags
+  await exiftool.write(filePath, tags, ['-overwrite_original'])
 }
 
 async function resolveFfmpegPath(): Promise<string> {
