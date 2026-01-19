@@ -1,3 +1,16 @@
+## v0.20.1
+
+[v0.20.0...v0.20.1](https://github.com/Jannchie/liora/compare/v0.20.0...v0.20.1)
+
+### :adhesive_bandage: Fixes
+
+- **auth**: set secure cookie based on protocol && update readme with proxy guidance - By [Jannchie](mailto:panjianqi@preferred.jp) in [e0e8322](https://github.com/Jannchie/liora/commit/e0e8322)
+- **live-photo**: improve metadata writing and video handling - By [Jannchie](mailto:panjianqi@preferred.jp) in [375dfd9](https://github.com/Jannchie/liora/commit/375dfd9)
+
+### :lipstick: Styles
+
+- **live-photo**: sort and group import statements - By [Jannchie](mailto:panjianqi@preferred.jp) in [f8bfd15](https://github.com/Jannchie/liora/commit/f8bfd15)
+
 ## v0.20.0
 
 [v0.19.0...v0.20.0](https://github.com/Jannchie/liora/compare/v0.19.0...v0.20.0)
