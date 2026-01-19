@@ -142,6 +142,7 @@ Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCI
 - Geocoding slow or failing: Nominatim rate limits; try later or fill coordinates manually.
 - Classification unavailable: verify `OPENAI_API_KEY`; admins can still set genres manually or use the reclassify action.
 - Admin login rejected: ensure `ADMIN_USERNAME`/`ADMIN_PASSWORD` are set and the server restarted after changes.
+- Admin login works once then flips to unauthenticated: if using HTTPS behind a reverse proxy, set `X-Forwarded-Proto: https`; for plain HTTP, access the site via `http://` so cookies can be saved.
 
 ## Contributing
 

@@ -1,8 +1,9 @@
 import type { H3Event } from 'h3'
+import type { TLSSocket } from 'node:tls'
 import type { SessionState } from '~/types/auth'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { useRuntimeConfig } from '#imports'
-import { createError, deleteCookie, getCookie, setCookie } from 'h3'
+import { createError, deleteCookie, getCookie, getHeader, setCookie } from 'h3'
 
 const SESSION_COOKIE_NAME = 'liora_admin_session'
 const SESSION_MAX_AGE_SECONDS = 60 * 60 * 24 * 30
@@ -52,6 +53,22 @@ function signPayload(payload: SessionPayload, secret: string): string {
   return `${encodedPayload}.${signature}`
 }
 
+function isRequestSecure(event: H3Event): boolean {
+  const forwardedProto = getHeader(event, 'x-forwarded-proto')
+  if (forwardedProto) {
+    const proto = forwardedProto.split(',')[0]?.trim().toLowerCase()
+    if (proto === 'https') {
+      return true
+    }
+    if (proto === 'http') {
+      return false
+    }
+  }
+
+  const socket = event.node.req.socket
+  return Boolean(socket && 'encrypted' in socket && (socket as TLSSocket).encrypted)
+}
+
 function verifyToken(token: string, secret: string): SessionPayload | null {
   const [encoded, signature] = token.split('.')
   if (!encoded || !signature) {
@@ -88,7 +105,7 @@ export function createSession(event: H3Event, username: string): SessionState {
   setCookie(event, SESSION_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: isRequestSecure(event),
     path: '/',
     maxAge: SESSION_MAX_AGE_SECONDS,
   })
