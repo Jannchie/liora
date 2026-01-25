@@ -100,7 +100,7 @@
     "empty": "No data yet",
     "viewLarge": "View {title} large",
     "badges": {
-      "depthMap": "Depth map"
+      "depthMap": "Depth map available"
     },
     "histogram": {
       "title": "Histogram",

@@ -141,6 +141,15 @@ const placeholderUrl = computed<string>(() => {
 })
 
 const shouldAutoPlay = computed(() => overlayImageReady && !livePhotoPlaying.value)
+const overlayViewerStyle = computed<Record<string, string>>(() => {
+  const style: Record<string, string> = { touchAction: viewerTouchAction }
+  const width = file.width
+  const height = file.height
+  if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+    style['--overlay-aspect'] = `${width} / ${height}`
+  }
+  return style
+})
 
 const { t } = useI18n()
 
@@ -293,8 +302,8 @@ function handleLivePhotoEnded(): void {
       <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:gap-0 md:overflow-y-visible">
         <div
           ref="viewerRef"
-          class="relative flex max-h-[calc(100dvh-100px)] w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full md:max-h-dvh"
-          :style="{ touchAction: viewerTouchAction }"
+          class="overlay-viewer relative flex w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full"
+          :style="overlayViewerStyle"
           @wheel.prevent="emit('wheel', $event)"
           @dblclick.prevent="emit('dblclick', $event)"
           @pointerdown="emit('pointerdown', $event)"
@@ -531,6 +540,46 @@ function handleLivePhotoEnded(): void {
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
+}
+
+@supports (height: 100svh) {
+  .overlay-root {
+    height: 100svh;
+  }
+}
+
+.overlay-viewer {
+  max-height: calc(100dvh - 100px);
+}
+
+@media (max-width: 767px) {
+  .overlay-viewer {
+    aspect-ratio: var(--overlay-aspect, auto);
+    height: auto;
+    max-height: none;
+  }
+}
+
+@media (min-width: 768px) {
+  .overlay-viewer {
+    max-height: 100dvh;
+  }
+}
+
+@supports (height: 100svh) {
+  .overlay-viewer {
+    max-height: calc(100svh - 100px);
+  }
+  @media (min-width: 768px) {
+    .overlay-viewer {
+      max-height: 100svh;
+    }
+  }
+  @media (max-width: 767px) {
+    .overlay-viewer {
+      max-height: none;
+    }
+  }
 }
 
 :global(.overlay-content-hidden #__nuxt) {

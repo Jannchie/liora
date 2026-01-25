@@ -1616,6 +1616,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
 const hasMetadata = computed<boolean>(() => metadataEntries.value.length > 0 || exposureEntries.value.length > 0)
 
 const overlayStats = computed<OverlayStat[]>(() => {
+  const currentLocale = locale.value
   const file = activeFile.value
   if (!file) {
     return []
@@ -1630,7 +1631,7 @@ const overlayStats = computed<OverlayStat[]>(() => {
     stats.push({ label: uploadedAt, icon: 'tabler:upload' })
   }
   const depthMapUrl = typeof file.metadata.depthMapUrl === 'string' ? file.metadata.depthMapUrl.trim() : ''
-  if (depthMapUrl) {
+  if (depthMapUrl && currentLocale) {
     stats.push({ label: t('gallery.badges.depthMap'), icon: 'tabler:stack-2' })
   }
   return stats
@@ -2340,6 +2341,12 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
 
   if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
     if (skipFullLoad) {
+      if (previewSrc && overlayImageSrc.value !== previewSrc) {
+        overlayImageSrc.value = previewSrc
+      }
+      if (previewSrc) {
+        markOverlayDownloadDone(0, null)
+      }
       return
     }
     void startFullLoad()
@@ -2372,6 +2379,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     overlayImageSrc.value = previewSrc
     overlayImageLoader.value = null
     if (skipFullLoad) {
+      markOverlayDownloadDone(0, null)
       return
     }
     void startFullLoad()
@@ -2382,6 +2390,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     }
     overlayImageLoader.value = null
     if (skipFullLoad) {
+      markOverlayDownloadDone(0, null)
       return
     }
     void startFullLoad()

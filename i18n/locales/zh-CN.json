@@ -100,7 +100,7 @@
     "empty": "暂无数据",
     "viewLarge": "查看 {title} 大图",
     "badges": {
-      "depthMap": "包含深度图"
+      "depthMap": "深度图可用"
     },
     "histogram": {
       "title": "直方图",

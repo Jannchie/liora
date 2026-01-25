@@ -7,7 +7,7 @@ import { useFileEditApi } from '~/composables/useFileEditApi'
 import { toLocalInputString } from '~/utils/datetime'
 import { estimateDepthFromUrl } from '~/utils/depth-estimation'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 definePageMeta({
   middleware: 'admin-auth',
 })
@@ -142,7 +142,10 @@ function hasDepthMap(file: FileResponse): boolean {
 
 const missingDepthFiles = computed<FileResponse[]>(() => files.value.filter(file => !hasDepthMap(file)))
 const missingDepthCount = computed(() => missingDepthFiles.value.length)
-const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', { count: missingDepthCount.value }))
+const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', {
+  count: missingDepthCount.value,
+  locale: locale.value,
+}))
 
 function resolvePreviewUrl(file: FileResponse): string {
   const primary = file.imageUrl.trim()

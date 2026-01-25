@@ -29,6 +29,7 @@ interface DepthUniforms extends Record<string, DepthUniformValue<unknown>> {
   uDirectionProgress: DepthUniformValue<number>
   uDepthProgress: DepthUniformValue<number>
   uMaxBlur: DepthUniformValue<number>
+  uBlurEasePower: DepthUniformValue<number>
   uDirectionalDelay: DepthUniformValue<number>
   uDepthDelay: DepthUniformValue<number>
   uDepthCurvePower: DepthUniformValue<number>
@@ -50,6 +51,7 @@ const props = withDefaults(defineProps<{
   directionDurationSeconds?: number
   depthDurationSeconds?: number
   maxBlur?: number
+  blurEasePower?: number
   directionalDelay?: number
   depthDelay?: number
   depthEasePower?: number
@@ -62,10 +64,10 @@ const props = withDefaults(defineProps<{
   revealDurationMs: 500,
   directionDurationSeconds: 2,
   depthDurationSeconds: 2,
-  maxBlur: 100,
+  blurEasePower: -2,
   directionalDelay: 0.2,
   depthDelay: 0.5,
-  depthEasePower: 0.75,
+  depthEasePower: 0.5,
   directionMode: 'bottom-up',
   invertDepth: false,
   autoPlay: true,
@@ -83,6 +85,7 @@ const showFinalImage = ref(false)
 const revealProgress = ref(0)
 const statusMessage = ref('')
 let imageSize = { width: 1, height: 1 }
+const containerWidth = ref(0)
 
 const imageUrl = computed(() => props.imageUrl.trim())
 const depthUrl = computed(() => props.depthUrl?.trim() ?? '')
@@ -90,6 +93,13 @@ const placeholderUrl = computed(() => props.placeholderUrl?.trim() ?? '')
 const hasPlaceholder = computed(() => placeholderUrl.value.length > 0)
 const hasDepth = computed(() => Boolean(depthUrl.value))
 const canRender = computed(() => Boolean(imageUrl.value))
+const effectiveMaxBlur = computed<number>(() => {
+  if (typeof props.maxBlur === 'number' && Number.isFinite(props.maxBlur) && props.maxBlur > 0) {
+    return props.maxBlur
+  }
+  const width = containerWidth.value
+  return width > 0 ? Math.max(1, width / 4) : 1
+})
 const imageAspectRatio = computed<number | undefined>(() => {
   const width = props.imageWidth ?? 0
   const height = props.imageHeight ?? 0
@@ -160,7 +170,7 @@ const revealMaskStyle = computed<Record<string, string> | undefined>(() => {
   }
   const eased = clamped * clamped * (3 - 2 * clamped)
   const visible = (eased * 100).toFixed(3)
-  const feather = 32
+  const feather = 64
   const mid = Math.min(100, Number(visible) + feather * 0.5).toFixed(3)
   const fade = Math.min(100, Number(visible) + feather).toFixed(3)
   const mask = `linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) ${visible}%, rgba(0,0,0,0.35) ${mid}%, rgba(0,0,0,0) ${fade}%, rgba(0,0,0,0) 100%)`
@@ -210,6 +220,7 @@ uniform float uDirectionProgress;
 uniform float uDepthProgress;
 
 uniform float uMaxBlur;          // Max blur radius in pixels.
+uniform float uBlurEasePower;
 uniform float uDirectionalDelay;
 uniform float uDepthDelay;
 uniform float uDepthCurvePower;
@@ -238,6 +249,18 @@ float easePow(float value, float power) {
   float t = clamp(value, 0.0, 1.0);
   float p = max(0.01, power);
   return pow(t, p);
+}
+
+float easeSignedPow(float value, float power) {
+  float t = clamp(value, 0.0, 1.0);
+  float p = abs(power);
+  if (p < 0.01) {
+    return t;
+  }
+  if (power >= 0.0) {
+    return pow(t, p);
+  }
+  return 1.0 - pow(1.0 - t, p);
 }
 
   /* ---------------- blur ---------------- */
@@ -339,8 +362,8 @@ void main() {
   /* ---------- blur radius ---------- */
   float maxDim = max(uResolution.x, uResolution.y);
 
-  float radiusPixels =
-    pow(1.0 - localProgress, 1.6) * uMaxBlur;
+  float easedProgress = easeSignedPow(localProgress, uBlurEasePower);
+  float radiusPixels = (1.0 - easedProgress) * uMaxBlur;
 
   radiusPixels = clamp(radiusPixels, 0.0, maxDim * 0.5);
 
@@ -588,7 +611,8 @@ function updateUniforms(): void {
       break
     }
   }
-  targetUniforms.uMaxBlur.value = props.maxBlur
+  targetUniforms.uMaxBlur.value = effectiveMaxBlur.value
+  targetUniforms.uBlurEasePower.value = Number.isFinite(props.blurEasePower) ? props.blurEasePower : -1.6
   targetUniforms.uDirectionalDelay.value = props.directionalDelay * scale
   targetUniforms.uDepthDelay.value = useDepth ? props.depthDelay * scale : 0
   targetUniforms.uDepthCurvePower.value = Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1
@@ -643,6 +667,7 @@ function initThree(): void {
   }
   const host = wrapperRef.value ?? canvasHost.value
   const { width, height } = host.getBoundingClientRect()
+  containerWidth.value = width
   renderer = new threeModule.WebGLRenderer({ antialias: true, alpha: true })
   renderer.outputColorSpace = threeModule.SRGBColorSpace
   renderer.toneMapping = threeModule.NoToneMapping
@@ -661,7 +686,8 @@ function initThree(): void {
     uResolution: { value: new threeModule.Vector2(1, 1) },
     uDirectionProgress: { value: 0 },
     uDepthProgress: { value: 0 },
-    uMaxBlur: { value: props.maxBlur },
+    uMaxBlur: { value: effectiveMaxBlur.value },
+    uBlurEasePower: { value: Number.isFinite(props.blurEasePower) ? props.blurEasePower : -1.6 },
     uDirectionalDelay: { value: props.directionalDelay },
     uDepthDelay: { value: props.depthDelay },
     uDepthCurvePower: { value: Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1 },
@@ -689,8 +715,10 @@ function initThree(): void {
       return
     }
     const { width: nextWidth, height: nextHeight } = resizeHost.getBoundingClientRect()
+    containerWidth.value = nextWidth
     renderer.setSize(nextWidth, nextHeight, false)
     updateMeshScale()
+    updateUniforms()
     renderScene()
   })
   if (wrapperRef.value) {
@@ -748,7 +776,8 @@ watch([imageUrl, depthUrl], () => {
 
 watch(
   () => [
-    props.maxBlur,
+    effectiveMaxBlur.value,
+    props.blurEasePower,
     props.directionalDelay,
     props.depthDelay,
     props.depthEasePower,
