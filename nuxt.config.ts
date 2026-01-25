@@ -232,6 +232,11 @@ export default defineNuxtConfig({
       project: 'liora',
     },
   },
+  vite: {
+    worker: {
+      format: 'es',
+    },
+  },
   sourcemap: {
     client: true,
   },
