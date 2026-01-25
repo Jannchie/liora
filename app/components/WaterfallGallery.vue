@@ -121,6 +121,7 @@ const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 const depthProcessing = reactive<Record<number, boolean>>({})
 
 const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done')
+const overlaySessionId = ref(0)
 
 const fileOverrides = ref<Record<number, FileResponse>>({})
 const isAdmin = computed(() => props.isAuthenticated ?? false)
@@ -152,6 +153,15 @@ const overlayRouteParam = 'id'
 interface OverlayPointer {
   clientX: number
   clientY: number
+}
+
+function nextOverlaySession(): number {
+  overlaySessionId.value += 1
+  return overlaySessionId.value
+}
+
+function isOverlaySessionActive(sessionId: number): boolean {
+  return overlaySessionId.value === sessionId && activeFile.value !== null
 }
 
 const metadataLabels = computed(() => ({
@@ -764,6 +774,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  nextOverlaySession()
   resizeObserver.value?.disconnect()
   overlayViewerResizeObserver.value?.disconnect()
   if (globalThis.window !== undefined) {
@@ -780,6 +791,8 @@ onBeforeUnmount(() => {
   }
   stopLivePreview(livePreviewActiveId.value)
   clearLivePhotoShareState()
+  abortOverlayImageFetch()
+  revokeOverlayObjectUrl()
   clearOverlayDownloadHideTimer()
   clearOverlayZoomIndicatorTimer()
 })
@@ -853,6 +866,7 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
 
 function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
   stopLivePreview(livePreviewActiveId.value)
+  nextOverlaySession()
   activeFile.value = file
   void nextTick(() => resetOverlayZoom())
   startOverlayImageLoad(file, immediateSrc)
@@ -864,6 +878,7 @@ function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc
 }
 
 function closeOverlay(syncRoute: boolean = true): void {
+  nextOverlaySession()
   activeFile.value = null
   histogram.value = null
   resetOverlayImage()
@@ -1965,18 +1980,32 @@ function clearOverlayZoomIndicatorTimer(): void {
   }
 }
 
-function showOverlayZoomIndicator(): void {
+function showOverlayZoomIndicator(sessionId: number): void {
+  if (!isOverlaySessionActive(sessionId)) {
+    return
+  }
   overlayZoomIndicatorVisible.value = true
   clearOverlayZoomIndicatorTimer()
   overlayZoomIndicatorTimer.value = setTimeout(() => {
+    if (!isOverlaySessionActive(sessionId)) {
+      overlayZoomIndicatorTimer.value = null
+      return
+    }
     overlayZoomIndicatorVisible.value = false
     overlayZoomIndicatorTimer.value = null
   }, overlayZoomIndicatorDurationMs)
 }
 
-function scheduleOverlayDownloadReset(): void {
+function scheduleOverlayDownloadReset(sessionId: number): void {
+  if (!isOverlaySessionActive(sessionId)) {
+    return
+  }
   clearOverlayDownloadHideTimer()
   overlayDownloadHideTimer.value = setTimeout(() => {
+    if (!isOverlaySessionActive(sessionId)) {
+      overlayDownloadHideTimer.value = null
+      return
+    }
     overlayDownloadState.value = {
       status: 'idle',
       loaded: 0,
@@ -1986,9 +2015,12 @@ function scheduleOverlayDownloadReset(): void {
   }, overlayDownloadHideDelayMs)
 }
 
-function markOverlayDownloadDone(loaded: number, total: number | null): void {
+function markOverlayDownloadDone(loaded: number, total: number | null, sessionId: number): void {
+  if (!isOverlaySessionActive(sessionId)) {
+    return
+  }
   overlayDownloadState.value = { status: 'done', loaded, total }
-  scheduleOverlayDownloadReset()
+  scheduleOverlayDownloadReset(sessionId)
 }
 
 function resetOverlayDownload(): void {
@@ -2068,7 +2100,7 @@ function setOverlayZoom(next: number, focalPoint?: OverlayPointer): void {
   }
   overlayZoom.value = clamped
   overlayPan.value = nextPan
-  showOverlayZoomIndicator()
+  showOverlayZoomIndicator(overlaySessionId.value)
 }
 
 function handleOverlayWheel(event: WheelEvent): void {
@@ -2233,7 +2265,12 @@ function navigateOverlay(offset: number): void {
   runViewTransition(() => openOverlay(target))
 }
 
-function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null = null): void {
+function startOverlayImageLoad(
+  file: ResolvedFile,
+  immediateSrc: string | null = null,
+): void {
+  const sessionId = overlaySessionId.value
+  const isSessionActive = (): boolean => isOverlaySessionActive(sessionId)
   abortOverlayImageFetch()
   revokeOverlayObjectUrl()
   resetOverlayDownload()
@@ -2259,7 +2296,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   }
 
   const applyBlobSrc = (blob: Blob): void => {
-    if (overlayImageAbortController.value?.signal.aborted) {
+    if (!isSessionActive() || overlayImageAbortController.value?.signal.aborted) {
       return
     }
     revokeOverlayObjectUrl()
@@ -2269,6 +2306,9 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
   }
 
   const startFullLoad = async (): Promise<void> => {
+    if (!isSessionActive()) {
+      return
+    }
     if (skipFullLoad) {
       return
     }
@@ -2276,12 +2316,22 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       return
     }
     if (typeof fetch === 'undefined' || !isCorsFetchableUrl(fullImageSrc)) {
+      if (!isSessionActive()) {
+        return
+      }
       overlayImageSrc.value = fullImageSrc
-      markOverlayDownloadDone(0, null)
+      markOverlayDownloadDone(0, null, sessionId)
       return
     }
     const controller = new AbortController()
     overlayImageAbortController.value = controller
+    if (!isSessionActive()) {
+      controller.abort()
+      if (overlayImageAbortController.value === controller) {
+        overlayImageAbortController.value = null
+      }
+      return
+    }
     overlayDownloadState.value = { status: 'loading', loaded: 0, total: null }
     try {
       const response = await fetch(fullImageSrc, {
@@ -2297,13 +2347,17 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
       const total = typeof parsedTotal === 'number' && Number.isFinite(parsedTotal) ? parsedTotal : null
       if (!response.body) {
         const blob = await response.blob()
-        markOverlayDownloadDone(blob.size, total ?? blob.size)
+        markOverlayDownloadDone(blob.size, total ?? blob.size, sessionId)
         applyBlobSrc(blob)
         return
       }
       const reader = response.body.getReader()
       const chunks: ArrayBuffer[] = []
       let loaded = 0
+      if (!isSessionActive()) {
+        await reader.cancel()
+        return
+      }
       overlayDownloadState.value = { status: 'loading', loaded, total }
       while (true) {
         const { done, value } = await reader.read()
@@ -2320,15 +2374,22 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
               })()
           chunks.push(buffer)
           loaded += value.length
+          if (!isSessionActive()) {
+            await reader.cancel()
+            return
+          }
           overlayDownloadState.value = { status: 'loading', loaded, total }
         }
       }
       const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'image/jpeg' })
-      markOverlayDownloadDone(blob.size, total ?? blob.size)
+      markOverlayDownloadDone(blob.size, total ?? blob.size, sessionId)
       applyBlobSrc(blob)
     }
     catch {
       if (controller.signal.aborted) {
+        return
+      }
+      if (!isSessionActive()) {
         return
       }
       overlayDownloadState.value = { status: 'error', loaded: 0, total: null }
@@ -2345,7 +2406,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
         overlayImageSrc.value = previewSrc
       }
       if (previewSrc) {
-        markOverlayDownloadDone(0, null)
+        markOverlayDownloadDone(0, null, sessionId)
       }
       return
     }
@@ -2379,7 +2440,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     overlayImageSrc.value = previewSrc
     overlayImageLoader.value = null
     if (skipFullLoad) {
-      markOverlayDownloadDone(0, null)
+      markOverlayDownloadDone(0, null, sessionId)
       return
     }
     void startFullLoad()
@@ -2390,7 +2451,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
     }
     overlayImageLoader.value = null
     if (skipFullLoad) {
-      markOverlayDownloadDone(0, null)
+      markOverlayDownloadDone(0, null, sessionId)
       return
     }
     void startFullLoad()

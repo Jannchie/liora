@@ -65,10 +65,11 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
 
 async function resolveDepthOutput(output: DepthEstimationPipelineOutput | DepthEstimationPipelineOutput[]): Promise<DepthEstimationPipelineOutput> {
   if (Array.isArray(output)) {
-    if (output.length === 0) {
+    const [first] = output
+    if (!first) {
       throw new Error('Depth estimation returned empty result.')
     }
-    return output[0]
+    return first
   }
   return output
 }

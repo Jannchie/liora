@@ -27,9 +27,9 @@ const depthEasePower = ref(0.5)
 const directionMode = ref<'bottom-up' | 'top-down' | 'left-right' | 'right-left'>('bottom-up')
 const invertDepth = ref(false)
 
-const isViewerReady = computed(() => viewerRef.value?.isReady.value ?? false)
-const isViewerLoading = computed(() => viewerRef.value?.isLoading.value ?? false)
-const isViewerAnimating = computed(() => viewerRef.value?.isAnimating.value ?? false)
+const isViewerReady = computed(() => viewerRef.value?.isReady ?? false)
+const isViewerLoading = computed(() => viewerRef.value?.isLoading ?? false)
+const isViewerAnimating = computed(() => viewerRef.value?.isAnimating ?? false)
 const isBusy = computed(() => isFetching.value || isViewerLoading.value)
 const fileId = computed(() => {
   const raw = route.params.id

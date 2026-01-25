@@ -335,10 +335,16 @@ async function generateMissingDepthMaps(): Promise<void> {
         editingFile.value = updated
       }
     }
+    const summaryParams: Record<string, number> = {
+      total: summary.total,
+      success: summary.success,
+      failed: summary.failed,
+      skipped: summary.skipped,
+    }
     const hasFailures = summary.failed > 0
     toast.add({
       title: toastMessages.value.depthBatchTitle,
-      description: t('admin.files.toast.depthBatchSummary', summary),
+      description: t('admin.files.toast.depthBatchSummary', summaryParams),
       color: hasFailures ? 'warning' : 'primary',
     })
   }
