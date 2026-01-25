@@ -1,3 +1,19 @@
+## v0.21.1
+
+[v0.21.0...v0.21.1](https://github.com/Jannchie/liora/compare/v0.21.0...v0.21.1)
+
+### :sparkles: Features
+
+- **viewer**: add easeInOutPow easing && use for depth curve - By [Jannchie](mailto:jannchie@gmail.com) in [a324964](https://github.com/Jannchie/liora/commit/a324964)
+
+### :zap: Performance Improvements
+
+- **depthmap-viewer**: tune animation timings and easing - By [Jannchie](mailto:jannchie@gmail.com) in [02de9e5](https://github.com/Jannchie/liora/commit/02de9e5)
+
+### :wrench: Chores
+
+- **build**: set vite worker format to es - By [Jannchie](mailto:jannchie@gmail.com) in [b16c1fc](https://github.com/Jannchie/liora/commit/b16c1fc)
+
 ## v0.21.0
 
 [v0.20.1...v0.21.0](https://github.com/Jannchie/liora/compare/v0.20.1...v0.21.0)
