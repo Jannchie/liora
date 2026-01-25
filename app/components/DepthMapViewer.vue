@@ -234,43 +234,6 @@ float sampleDepth(vec2 uv) {
   return clamp(d, 0.0, 1.0);
 }
 
-float getDepthSmoothed(vec2 uv) {
-  float smoothRadius = clamp(uMaxBlur * 0.5, 1.0, 100.0);
-  vec2 texel = smoothRadius / uResolution;
-  float d00 = sampleDepth(uv + texel * vec2(-2.0, -2.0));
-  float d01 = sampleDepth(uv + texel * vec2(-1.0, -2.0));
-  float d02 = sampleDepth(uv + texel * vec2(0.0, -2.0));
-  float d03 = sampleDepth(uv + texel * vec2(1.0, -2.0));
-  float d04 = sampleDepth(uv + texel * vec2(2.0, -2.0));
-  float d10 = sampleDepth(uv + texel * vec2(-2.0, -1.0));
-  float d11 = sampleDepth(uv + texel * vec2(-1.0, -1.0));
-  float d12 = sampleDepth(uv + texel * vec2(0.0, -1.0));
-  float d13 = sampleDepth(uv + texel * vec2(1.0, -1.0));
-  float d14 = sampleDepth(uv + texel * vec2(2.0, -1.0));
-  float d20 = sampleDepth(uv + texel * vec2(-2.0, 0.0));
-  float d21 = sampleDepth(uv + texel * vec2(-1.0, 0.0));
-  float d22 = sampleDepth(uv);
-  float d23 = sampleDepth(uv + texel * vec2(1.0, 0.0));
-  float d24 = sampleDepth(uv + texel * vec2(2.0, 0.0));
-  float d30 = sampleDepth(uv + texel * vec2(-2.0, 1.0));
-  float d31 = sampleDepth(uv + texel * vec2(-1.0, 1.0));
-  float d32 = sampleDepth(uv + texel * vec2(0.0, 1.0));
-  float d33 = sampleDepth(uv + texel * vec2(1.0, 1.0));
-  float d34 = sampleDepth(uv + texel * vec2(2.0, 1.0));
-  float d40 = sampleDepth(uv + texel * vec2(-2.0, 2.0));
-  float d41 = sampleDepth(uv + texel * vec2(-1.0, 2.0));
-  float d42 = sampleDepth(uv + texel * vec2(0.0, 2.0));
-  float d43 = sampleDepth(uv + texel * vec2(1.0, 2.0));
-  float d44 = sampleDepth(uv + texel * vec2(2.0, 2.0));
-  return (
-    d00 * 1.0 + d01 * 4.0 + d02 * 6.0 + d03 * 4.0 + d04 * 1.0
-    + d10 * 4.0 + d11 * 16.0 + d12 * 24.0 + d13 * 16.0 + d14 * 4.0
-    + d20 * 6.0 + d21 * 24.0 + d22 * 36.0 + d23 * 24.0 + d24 * 6.0
-    + d30 * 4.0 + d31 * 16.0 + d32 * 24.0 + d33 * 16.0 + d34 * 4.0
-    + d40 * 1.0 + d41 * 4.0 + d42 * 6.0 + d43 * 4.0 + d44 * 1.0
-  ) / 256.0;
-}
-
 float easePow(float value, float power) {
   float t = clamp(value, 0.0, 1.0);
   float p = max(0.01, power);
@@ -346,7 +309,7 @@ float easePow(float value, float power) {
 /* ---------------- main ---------------- */
 
 void main() {
-  float depth = uUseDepth > 0.5 ? getDepthSmoothed(vUv) : 0.0;
+  float depth = uUseDepth > 0.5 ? sampleDepth(vUv) : 0.0;
 
   float sweep = vUv.y;
   if (uDirectionMode > 0.5 && uDirectionMode < 1.5) {

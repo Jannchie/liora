@@ -75,13 +75,13 @@ const overlayHiddenClass = 'overlay-content-hidden'
 const previewOpen = ref(false)
 const livePhotoPlaying = ref(false)
 
-const livePhotoVideoUrl = computed<string | null>(() => {
+const livePhotoVideoUrl = computed<string | undefined>(() => {
   const rawValue = file.metadata.livePhotoVideoUrl
   if (typeof rawValue !== 'string') {
-    return null
+    return
   }
   const trimmed = rawValue.trim()
-  return trimmed.length > 0 ? trimmed : null
+  return trimmed.length > 0 ? trimmed : undefined
 })
 
 const hasLivePhoto = computed<boolean>(() => Boolean(livePhotoVideoUrl.value))
