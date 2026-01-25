@@ -5,6 +5,7 @@ import type { FileResponse } from '~/types/file'
 import { computed, reactive, ref, watch } from 'vue'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { toLocalInputString } from '~/utils/datetime'
+import { estimateDepthFromUrl } from '~/utils/depth-estimation'
 
 const { t } = useI18n()
 definePageMeta({
@@ -31,6 +32,10 @@ const toastMessages = computed(() => ({
   classifyFailed: t('admin.files.toast.classifyFailed'),
   classifyFailedFallback: t('admin.files.toast.classifyFailedFallback'),
   classifySummary: t('admin.files.toast.classifySummary'),
+  depthSuccess: t('admin.files.toast.depthSuccess'),
+  depthSuccessDescription: t('admin.files.toast.depthSuccessDescription'),
+  depthFailed: t('admin.files.toast.depthFailed'),
+  depthFailedFallback: t('admin.files.toast.depthFailedFallback'),
 }))
 
 useSeoMeta({
@@ -97,6 +102,7 @@ const tableUi = computed(() => ({
   th: 'text-left text-sm font-semibold text-muted',
   td: 'align-middle whitespace-normal break-words',
 }))
+const depthProcessing = reactive<Record<number, boolean>>({})
 
 watch(
   () => totalFiles.value,
@@ -221,6 +227,40 @@ function formatDateTime(value: string): string {
     return ''
   }
   return date.toLocaleString()
+}
+
+async function generateDepthMap(file: FileResponse): Promise<void> {
+  if (!import.meta.client) {
+    return
+  }
+  if (depthProcessing[file.id]) {
+    return
+  }
+  const imageUrl = file.imageUrl?.trim() ?? ''
+  if (!imageUrl) {
+    toast.add({ title: toastMessages.value.depthFailed, description: toastMessages.value.depthFailedFallback, color: 'error' })
+    return
+  }
+
+  depthProcessing[file.id] = true
+  try {
+    const { depthBlob } = await estimateDepthFromUrl(imageUrl, { maxSize: 512 })
+    const formData = new FormData()
+    formData.append('depth', depthBlob, `depth-${file.id}.png`)
+    await $fetch(`/api/files/${file.id}/depth`, {
+      method: 'POST',
+      body: formData,
+    })
+    toast.add({ title: toastMessages.value.depthSuccess, description: toastMessages.value.depthSuccessDescription })
+    await refresh()
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.depthFailedFallback
+    toast.add({ title: toastMessages.value.depthFailed, description: message, color: 'error' })
+  }
+  finally {
+    depthProcessing[file.id] = false
+  }
 }
 
 type EditableForm = MediaFormState
@@ -572,6 +612,17 @@ watch(fetchError, (value) => {
             </template>
             <template #actions-cell="{ row }">
               <div class="flex flex-wrap items-center gap-2">
+                <UButton
+                  size="xs"
+                  variant="soft"
+                  color="primary"
+                  icon="tabler:photo"
+                  :loading="depthProcessing[row.original.id]"
+                  :disabled="depthProcessing[row.original.id]"
+                  @click="generateDepthMap(row.original)"
+                >
+                  {{ t('admin.files.actions.depth') }}
+                </UButton>
                 <UButton
                   size="xs"
                   variant="soft"

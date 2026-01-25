@@ -85,6 +85,21 @@ const classifySource = computed(() => props.classifySource ?? { file: null, imag
 const replacePreviewUrl = ref<string>('')
 const replaceInput = ref<HTMLInputElement | null>(null)
 const replaceFileName = computed(() => replaceFile.value?.name ?? '')
+const depthMapUrl = computed(() => {
+  if (!props.file) {
+    return ''
+  }
+  const raw = props.file.metadata?.depthMapUrl
+  return typeof raw === 'string' ? raw.trim() : ''
+})
+const depthMapWidth = computed(() => {
+  const raw = props.file?.metadata?.depthMapWidth
+  return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : null
+})
+const depthMapHeight = computed(() => {
+  const raw = props.file?.metadata?.depthMapHeight
+  return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : null
+})
 const effectivePreviewAttrs = computed<ImageAttrs | null>(() => {
   const baseAttrs = previewAttrs.value
   if (replacePreviewUrl.value) {
@@ -217,6 +232,26 @@ async function handleReplaceChange(event: Event): Promise<void> {
                       loading="lazy"
                       class="h-auto max-h-[70vh] w-auto max-w-full object-contain"
                     >
+                  </div>
+                  <div v-if="depthMapUrl" class="space-y-2">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                      {{ t('admin.files.depthMap.label') }}
+                    </p>
+                    <div class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60">
+                      <img
+                        :src="depthMapUrl"
+                        :alt="t('admin.files.depthMap.label')"
+                        :width="depthMapWidth ?? undefined"
+                        :height="depthMapHeight ?? undefined"
+                        loading="lazy"
+                        class="h-auto max-h-64 w-auto max-w-full object-contain"
+                      >
+                    </div>
+                    <div v-if="depthMapWidth && depthMapHeight" class="text-xs text-muted">
+                      <span class="rounded-full bg-default/70 px-2 py-0.5">
+                        {{ depthMapWidth }} × {{ depthMapHeight }}
+                      </span>
+                    </div>
                   </div>
                   <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
                     <span class="font-semibold text-highlighted">

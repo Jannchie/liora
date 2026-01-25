@@ -294,6 +294,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     uploadId: '',
     livePhotoVideoUrl: '',
     livePhotoStillTime: undefined,
+    depthMapUrl: undefined,
+    depthMapWidth: undefined,
+    depthMapHeight: undefined,
   })
   const metadata = buildMetadata(fields, characters)
   metadata.fileSize = file.data.length

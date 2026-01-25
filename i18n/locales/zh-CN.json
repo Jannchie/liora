@@ -32,6 +32,56 @@
       "loadFailed": "加载失败"
     }
   },
+  "demoDepth": {
+    "title": "深度图加载演示",
+    "description": "使用深度图驱动模糊到清晰的渐变动画。",
+    "fileLabel": "作品 #{id}：{title}",
+    "inputs": {
+      "title": "输入素材",
+      "imageLabel": "原图",
+      "depthLabel": "深度图",
+      "imagePlaceholder": "粘贴原图 URL",
+      "depthPlaceholder": "粘贴深度图 URL"
+    },
+    "actions": {
+      "useUrl": "使用 URL",
+      "play": "播放动画"
+    },
+    "preview": {
+      "title": "预览",
+      "empty": "请先选择原图与深度图。"
+    },
+    "viewer": {
+      "title": "深度驱动过渡",
+      "description": "基于深度图让画面从模糊逐步变清晰。"
+    },
+    "controls": {
+      "blur": "模糊强度",
+      "direction": "方向延迟",
+      "depthDelay": "深度延迟",
+      "directionDuration": "方向动画时长",
+      "depthDuration": "深度动画时长",
+      "directionMode": "方向",
+      "invert": "反转深度"
+    },
+    "directionOptions": {
+      "bottomUp": "从下往上",
+      "topDown": "从上往下",
+      "leftRight": "从左往右",
+      "rightLeft": "从右往左"
+    },
+    "status": {
+      "fetching": "加载作品信息…",
+      "loading": "加载中…",
+      "waiting": "等待输入"
+    },
+    "errors": {
+      "loadFailed": "加载失败，请检查图片链接。",
+      "fileNotFound": "未找到该作品。",
+      "depthMissing": "该作品暂无深度图，请先生成。",
+      "invalidId": "作品 ID 无效。"
+    }
+  },
   "home": {
     "defaultTitle": "Liora Gallery",
     "defaultDescription": "展示摄影与插画作品的瀑布流画廊。",
@@ -397,15 +447,23 @@
         "classifySuccess": "分类完成",
         "classifyFailed": "分类失败",
         "classifyFailedFallback": "分类失败",
-        "classifySummary": "已更新 {updated} / {total} 条"
+        "classifySummary": "已更新 {updated} / {total} 条",
+        "depthSuccess": "深度图已生成",
+        "depthSuccessDescription": "深度图已上传。",
+        "depthFailed": "生成失败",
+        "depthFailedFallback": "生成深度图失败"
       },
       "title": "数据列表",
       "actions": {
         "reclassify": "补全分类",
-        "refresh": "刷新数据"
+        "refresh": "刷新数据",
+        "depth": "生成深度图"
       },
       "section": {
         "title": "数据总览"
+      },
+      "depthMap": {
+        "label": "深度图"
       },
       "table": {
         "headers": {

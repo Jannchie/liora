@@ -32,6 +32,56 @@
       "loadFailed": "Load failed"
     }
   },
+  "demoDepth": {
+    "title": "Depth Loading Demo",
+    "description": "Depth-driven blur-to-clear transition animation.",
+    "fileLabel": "File #{id}: {title}",
+    "inputs": {
+      "title": "Inputs",
+      "imageLabel": "Image",
+      "depthLabel": "Depth map",
+      "imagePlaceholder": "Paste image URL",
+      "depthPlaceholder": "Paste depth map URL"
+    },
+    "actions": {
+      "useUrl": "Use URL",
+      "play": "Play animation"
+    },
+    "preview": {
+      "title": "Preview",
+      "empty": "Select an image and depth map first."
+    },
+    "viewer": {
+      "title": "Depth-driven transition",
+      "description": "Use the depth map to reveal the image from blur to clear."
+    },
+    "controls": {
+      "blur": "Blur strength",
+      "direction": "Directional delay",
+      "depthDelay": "Depth delay",
+      "directionDuration": "Direction duration",
+      "depthDuration": "Depth duration",
+      "directionMode": "Direction",
+      "invert": "Invert depth"
+    },
+    "directionOptions": {
+      "bottomUp": "Bottom to top",
+      "topDown": "Top to bottom",
+      "leftRight": "Left to right",
+      "rightLeft": "Right to left"
+    },
+    "status": {
+      "fetching": "Loading file data…",
+      "loading": "Loading…",
+      "waiting": "Waiting for input"
+    },
+    "errors": {
+      "loadFailed": "Load failed. Check the image URLs.",
+      "fileNotFound": "File not found.",
+      "depthMissing": "No depth map found. Generate one first.",
+      "invalidId": "Invalid file id."
+    }
+  },
   "home": {
     "defaultTitle": "Liora Gallery",
     "defaultDescription": "A waterfall gallery for photography and illustrations.",
@@ -397,15 +447,23 @@
         "classifySuccess": "Classification finished",
         "classifyFailed": "Classification failed",
         "classifyFailedFallback": "Failed to classify",
-        "classifySummary": "Updated {updated} / {total} items"
+        "classifySummary": "Updated {updated} / {total} items",
+        "depthSuccess": "Depth map generated",
+        "depthSuccessDescription": "Depth map uploaded.",
+        "depthFailed": "Generation failed",
+        "depthFailedFallback": "Failed to generate depth map"
       },
       "title": "Records",
       "actions": {
         "reclassify": "Classify missing",
-        "refresh": "Refresh"
+        "refresh": "Refresh",
+        "depth": "Generate depth map"
       },
       "section": {
         "title": "Data overview"
+      },
+      "depthMap": {
+        "label": "Depth map"
       },
       "table": {
         "headers": {

@@ -42,6 +42,9 @@ export interface FileMetadata {
   uploadId?: string
   livePhotoVideoUrl?: string
   livePhotoStillTime?: number
+  depthMapUrl?: string
+  depthMapWidth?: number
+  depthMapHeight?: number
 }
 
 export interface FilePayload {

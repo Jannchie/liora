@@ -32,6 +32,56 @@
       "loadFailed": "読み込みに失敗しました"
     }
   },
+  "demoDepth": {
+    "title": "深度読み込みデモ",
+    "description": "深度マップでぼかしから鮮明へ切り替わるアニメーション。",
+    "fileLabel": "作品 #{id}：{title}",
+    "inputs": {
+      "title": "入力素材",
+      "imageLabel": "元画像",
+      "depthLabel": "深度マップ",
+      "imagePlaceholder": "画像 URL を貼り付け",
+      "depthPlaceholder": "深度マップ URL を貼り付け"
+    },
+    "actions": {
+      "useUrl": "URL を使用",
+      "play": "アニメーション再生"
+    },
+    "preview": {
+      "title": "プレビュー",
+      "empty": "元画像と深度マップを選択してください。"
+    },
+    "viewer": {
+      "title": "深度駆動トランジション",
+      "description": "深度マップでぼかしから鮮明へ段階的に表示します。"
+    },
+    "controls": {
+      "blur": "ぼかし強度",
+      "direction": "方向ディレイ",
+      "depthDelay": "深度ディレイ",
+      "directionDuration": "方向の再生時間",
+      "depthDuration": "深度の再生時間",
+      "directionMode": "方向",
+      "invert": "深度反転"
+    },
+    "directionOptions": {
+      "bottomUp": "下から上へ",
+      "topDown": "上から下へ",
+      "leftRight": "左から右へ",
+      "rightLeft": "右から左へ"
+    },
+    "status": {
+      "fetching": "作品情報を読み込み中…",
+      "loading": "読み込み中…",
+      "waiting": "入力待ち"
+    },
+    "errors": {
+      "loadFailed": "読み込みに失敗しました。URL を確認してください。",
+      "fileNotFound": "該当作品が見つかりません。",
+      "depthMissing": "深度マップがありません。先に生成してください。",
+      "invalidId": "作品 ID が無効です。"
+    }
+  },
   "home": {
     "defaultTitle": "Liora Gallery",
     "defaultDescription": "写真とイラストのウォーターフォールギャラリーです。",
@@ -397,15 +447,23 @@
         "classifySuccess": "分類が完了しました",
         "classifyFailed": "分類に失敗しました",
         "classifyFailedFallback": "分類に失敗しました",
-        "classifySummary": "{total} 件中 {updated} 件を更新しました"
+        "classifySummary": "{total} 件中 {updated} 件を更新しました",
+        "depthSuccess": "深度マップを生成しました",
+        "depthSuccessDescription": "深度マップをアップロードしました。",
+        "depthFailed": "生成に失敗しました",
+        "depthFailedFallback": "深度マップの生成に失敗しました"
       },
       "title": "レコード",
       "actions": {
         "reclassify": "未分類を分類",
-        "refresh": "再読み込み"
+        "refresh": "再読み込み",
+        "depth": "深度マップ生成"
       },
       "section": {
         "title": "データ概要"
+      },
+      "depthMap": {
+        "label": "深度マップ"
       },
       "table": {
         "headers": {

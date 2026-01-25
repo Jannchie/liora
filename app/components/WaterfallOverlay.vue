@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
-import type { FileLocation, ImageAttrs, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
+import type { FileLocation, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
@@ -20,7 +20,6 @@ const {
   metadataEntries,
   exposureEntries,
   hasMetadata,
-  previewAttrs,
   genreLabel,
   location,
   canEdit = false,
@@ -28,6 +27,7 @@ const {
   previewEnabled = false,
   livePhotoSharing = false,
   livePhotoPreparing = false,
+  overlayImageReady = false,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -43,7 +43,6 @@ const {
   metadataEntries: MetadataEntry[]
   exposureEntries: MetadataEntry[]
   hasMetadata: boolean
-  previewAttrs?: ImageAttrs
   genreLabel?: string | null
   location?: FileLocation | null
   canEdit?: boolean
@@ -51,6 +50,7 @@ const {
   previewEnabled?: boolean
   livePhotoSharing?: boolean
   livePhotoPreparing?: boolean
+  overlayImageReady?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -101,6 +101,44 @@ const previewImageSrc = computed<string | null>(() => {
   }
   return null
 })
+
+const displayImageUrl = computed<string>(() => {
+  const candidates = [
+    overlayImageSrc,
+    file.previewUrl,
+    file.coverUrl,
+    file.imageUrl,
+  ]
+  for (const candidate of candidates) {
+    if (typeof candidate === 'string') {
+      const trimmed = candidate.trim()
+      if (trimmed.length > 0) {
+        return trimmed
+      }
+    }
+  }
+  return ''
+})
+
+const depthMapUrl = computed<string>(() => {
+  const raw = file.metadata.depthMapUrl
+  if (typeof raw !== 'string') {
+    return ''
+  }
+  const trimmed = raw.trim()
+  return trimmed.length > 0 ? trimmed : ''
+})
+
+const placeholderUrl = computed<string>(() => {
+  const raw = file.placeholder
+  if (typeof raw !== 'string') {
+    return ''
+  }
+  const trimmed = raw.trim()
+  return trimmed.length > 0 ? trimmed : ''
+})
+
+const shouldAutoPlay = computed(() => overlayImageReady && !livePhotoPlaying.value)
 
 const { t } = useI18n()
 
@@ -279,21 +317,23 @@ function handleLivePhotoEnded(): void {
             preload="metadata"
             @ended="handleLivePhotoEnded"
           />
-          <img
+          <DepthMapViewer
             v-show="!livePhotoPlaying || !hasLivePhoto"
             :key="file.id"
-            :src="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
-            :srcset="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.srcset : undefined"
-            :sizes="overlayImageSrc === (previewAttrs?.src ?? '') ? previewAttrs?.sizes : undefined"
-            :width="file.width"
-            :height="file.height"
+            :image-url="displayImageUrl"
+            :depth-url="depthMapUrl"
+            :placeholder-url="placeholderUrl"
+            :placeholder-aspect-ratio="file.placeholderAspectRatio"
+            :image-width="file.width"
+            :image-height="file.height"
+            :auto-play="shouldAutoPlay"
             :style="overlayImageTransformStyle"
-            :alt="file.displayTitle"
-            loading="eager"
-            class="h-auto w-full select-none object-contain md:max-h-screen"
-            :class="canOpenPreview ? 'cursor-zoom-in' : undefined"
+            class="w-full select-none bg-transparent rounded-none"
+            :class="[
+              canOpenPreview ? 'cursor-zoom-in' : undefined,
+            ]"
             @click="openPreview"
-          >
+          />
           <button
             v-if="hasLivePhoto"
             type="button"

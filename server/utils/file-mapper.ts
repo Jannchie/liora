@@ -31,9 +31,22 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const parsedLivePhotoStillTime = typeof parsed.livePhotoStillTime === 'number'
     ? parsed.livePhotoStillTime
     : Number(parsed.livePhotoStillTime)
+  const parsedDepthMapUrl = typeof parsed.depthMapUrl === 'string' ? parsed.depthMapUrl : undefined
+  const parsedDepthMapWidth = typeof parsed.depthMapWidth === 'number'
+    ? parsed.depthMapWidth
+    : Number(parsed.depthMapWidth)
+  const parsedDepthMapHeight = typeof parsed.depthMapHeight === 'number'
+    ? parsed.depthMapHeight
+    : Number(parsed.depthMapHeight)
   const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
     ? parsedLivePhotoStillTime
     : fallbacks.livePhotoStillTime
+  const depthMapWidth = Number.isFinite(parsedDepthMapWidth) && parsedDepthMapWidth > 0
+    ? parsedDepthMapWidth
+    : fallbacks.depthMapWidth
+  const depthMapHeight = Number.isFinite(parsedDepthMapHeight) && parsedDepthMapHeight > 0
+    ? parsedDepthMapHeight
+    : fallbacks.depthMapHeight
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -69,6 +82,9 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     uploadId: parsed.uploadId ?? fallbacks.uploadId,
     livePhotoVideoUrl: parsedLivePhotoVideoUrl ?? fallbacks.livePhotoVideoUrl,
     livePhotoStillTime,
+    depthMapUrl: parsedDepthMapUrl ?? fallbacks.depthMapUrl,
+    depthMapWidth,
+    depthMapHeight,
   }
 }
 
@@ -109,6 +125,9 @@ export function toFileResponse(file: FileRow): FileResponse {
     uploadId: '',
     livePhotoVideoUrl: '',
     livePhotoStillTime: undefined,
+    depthMapUrl: undefined,
+    depthMapWidth: undefined,
+    depthMapHeight: undefined,
   })
   const imageUrl = file.imageUrl || ''
   const genre = file.genre?.trim() ?? ''

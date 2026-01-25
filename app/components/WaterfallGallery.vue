@@ -116,6 +116,8 @@ const overlayDragState = ref<{
 const overlayPointers = ref<Map<number, { x: number, y: number }>>(new Map())
 const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 
+const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done')
+
 const fileOverrides = ref<Record<number, FileResponse>>({})
 const isAdmin = computed(() => props.isAuthenticated ?? false)
 const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
@@ -2354,7 +2356,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
           :preview-enabled="isSmallScreen"
-          :preview-attrs="activeFile.previewAttrs"
+          :overlay-image-ready="overlayImageReady"
           :location="locationPoint"
           :genre-label="genreBadgeLabel"
           :can-edit="isAdmin"

@@ -114,6 +114,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     histogram: null,
     livePhotoVideoUrl: '',
     livePhotoStillTime: undefined,
+    depthMapUrl: undefined,
+    depthMapWidth: undefined,
+    depthMapHeight: undefined,
   })
 
   const title = normalizeText(body.title, existing.title)
