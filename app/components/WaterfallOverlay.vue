@@ -9,6 +9,7 @@ const {
   file,
   overlayBackgroundStyle,
   overlayImageSrc,
+  overlayImageFitStyle,
   overlayImageTransformStyle,
   overlayDownloadVisible,
   overlayDownloadLabel,
@@ -32,6 +33,7 @@ const {
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
   overlayImageSrc: string | null
+  overlayImageFitStyle: CSSProperties
   overlayImageTransformStyle: CSSProperties
   overlayDownloadVisible: boolean
   overlayDownloadLabel: string | null
@@ -310,8 +312,8 @@ function handleLivePhotoEnded(): void {
             :poster="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
             :width="file.width"
             :height="file.height"
-            :style="overlayImageTransformStyle"
-            class="h-auto w-full select-none object-contain md:max-h-screen"
+            :style="[overlayImageFitStyle, overlayImageTransformStyle]"
+            class="max-h-full max-w-full select-none object-contain"
             muted
             playsinline
             preload="metadata"
@@ -327,8 +329,8 @@ function handleLivePhotoEnded(): void {
             :image-width="file.width"
             :image-height="file.height"
             :auto-play="shouldAutoPlay"
-            :style="overlayImageTransformStyle"
-            class="w-full select-none bg-transparent rounded-none"
+            :style="[overlayImageFitStyle, overlayImageTransformStyle]"
+            class="max-h-full max-w-full select-none bg-transparent rounded-none"
             :class="[
               canOpenPreview ? 'cursor-zoom-in' : undefined,
             ]"

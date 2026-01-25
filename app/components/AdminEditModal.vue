@@ -8,6 +8,8 @@ import { computed, ref } from 'vue'
 const props = defineProps<{
   file: FileResponse | ResolvedFile | null
   loading?: boolean
+  enableDepthAction?: boolean
+  depthProcessing?: boolean
   classifySource?: {
     file?: File | null
     imageUrl?: string | null
@@ -17,6 +19,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'submit'): void
   (event: 'close'): void
+  (event: 'generateDepth'): void
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -100,6 +103,10 @@ const depthMapHeight = computed(() => {
   const raw = props.file?.metadata?.depthMapHeight
   return typeof raw === 'number' && Number.isFinite(raw) && raw > 0 ? raw : null
 })
+const canGenerateDepth = computed(() => {
+  const source = props.file?.imageUrl?.trim() ?? ''
+  return source.length > 0
+})
 const effectivePreviewAttrs = computed<ImageAttrs | null>(() => {
   const baseAttrs = previewAttrs.value
   if (replacePreviewUrl.value) {
@@ -122,6 +129,13 @@ function handleClose(): void {
   open.value = false
   clearReplaceSelection()
   emit('close')
+}
+
+function handleGenerateDepth(): void {
+  if (!props.enableDepthAction || props.depthProcessing || !canGenerateDepth.value) {
+    return
+  }
+  emit('generateDepth')
 }
 
 function clearReplaceSelection(): void {
@@ -208,6 +222,18 @@ async function handleReplaceChange(event: Event): Promise<void> {
                         @click="replaceInput?.click()"
                       >
                         {{ t('common.actions.changeImage') }}
+                      </UButton>
+                      <UButton
+                        v-if="enableDepthAction"
+                        color="primary"
+                        variant="soft"
+                        size="sm"
+                        icon="tabler:photo"
+                        :loading="depthProcessing"
+                        :disabled="depthProcessing || !canGenerateDepth"
+                        @click="handleGenerateDepth"
+                      >
+                        {{ t('admin.files.actions.depth') }}
                       </UButton>
                       <UButton
                         v-if="replaceFile"

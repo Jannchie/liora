@@ -447,7 +447,7 @@ function scheduleAutoPlay(token: number): void {
   }
   void startReveal(token)
   stopRevealDelay()
-  const delay = Math.max(0, Math.round(props.revealDurationMs * 0.45))
+  const delay = Math.max(0, Math.round(props.revealDurationMs * 0.25))
   revealDelayTimer = setTimeout(() => {
     if (token !== loadToken) {
       return
@@ -487,7 +487,7 @@ function applyTextures(imageTexture: Texture, depthTexture: Texture): void {
   activeDepthTexture = depthTexture
   targetUniforms.uImage.value = imageTexture
   targetUniforms.uDepth.value = depthTexture
-  const image = imageTexture.image as { width?: number; height?: number } | null | undefined
+  const image = imageTexture.image as { width?: number, height?: number } | null | undefined
   imageSize = {
     width: image?.width ?? 1,
     height: image?.height ?? 1,

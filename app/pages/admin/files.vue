@@ -253,6 +253,12 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
     })
     toast.add({ title: toastMessages.value.depthSuccess, description: toastMessages.value.depthSuccessDescription })
     await refresh()
+    if (editingFile.value?.id === file.id) {
+      const updated = filesData.value?.find(item => item.id === file.id)
+      if (updated) {
+        editingFile.value = updated
+      }
+    }
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.depthFailedFallback
@@ -261,6 +267,13 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
   finally {
     depthProcessing[file.id] = false
   }
+}
+
+async function handleGenerateDepthFromEdit(): Promise<void> {
+  if (!editingFile.value) {
+    return
+  }
+  await generateDepthMap(editingFile.value)
 }
 
 type EditableForm = MediaFormState
@@ -616,17 +629,6 @@ watch(fetchError, (value) => {
                   size="xs"
                   variant="soft"
                   color="primary"
-                  icon="tabler:photo"
-                  :loading="depthProcessing[row.original.id]"
-                  :disabled="depthProcessing[row.original.id]"
-                  @click="generateDepthMap(row.original)"
-                >
-                  {{ t('admin.files.actions.depth') }}
-                </UButton>
-                <UButton
-                  size="xs"
-                  variant="soft"
-                  color="primary"
                   icon="tabler:pencil"
                   @click="openEdit(row.original)"
                 >
@@ -662,9 +664,12 @@ watch(fetchError, (value) => {
       v-model:replace-file="replaceFile"
       :file="editingFile"
       :loading="updating"
+      :enable-depth-action="true"
+      :depth-processing="editingFile ? depthProcessing[editingFile.id] : false"
       :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
       @submit="saveEdit"
       @close="closeEdit"
+      @generate-depth="handleGenerateDepthFromEdit"
     />
     <UModal v-model:open="deleteModalOpen">
       <template #content>

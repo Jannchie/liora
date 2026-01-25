@@ -89,6 +89,8 @@ const hoverPreviewQuery = ref<MediaQueryList | null>(null)
 const overlayDownloadHideDelayMs = 500
 const overlayDownloadHideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const overlayViewerRef = ref<HTMLElement | null>(null)
+const overlayViewerSize = ref<{ width: number, height: number }>({ width: 0, height: 0 })
+const overlayViewerResizeObserver = ref<ResizeObserver | null>(null)
 const overlayZoom = ref<number>(1)
 const overlayPan = ref<{
   x: number
@@ -761,6 +763,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   resizeObserver.value?.disconnect()
+  overlayViewerResizeObserver.value?.disconnect()
   if (globalThis.window !== undefined) {
     globalThis.window.removeEventListener('keydown', handleKeydown)
   }
@@ -1646,22 +1649,95 @@ const overlayDownloadVisible = computed<boolean>(() => {
   return state.status === 'loading' || state.status === 'done'
 })
 
+function updateOverlayViewerSize(): void {
+  const viewer = overlayViewerRef.value
+  if (!viewer) {
+    overlayViewerSize.value = { width: 0, height: 0 }
+    return
+  }
+  const width = viewer.clientWidth
+  const height = viewer.clientHeight
+  overlayViewerSize.value = {
+    width: Number.isFinite(width) ? width : 0,
+    height: Number.isFinite(height) ? height : 0,
+  }
+}
+
+watch(
+  overlayViewerRef,
+  (next, _previous, onCleanup) => {
+    overlayViewerResizeObserver.value?.disconnect()
+    overlayViewerResizeObserver.value = null
+    if (!next) {
+      overlayViewerSize.value = { width: 0, height: 0 }
+      return
+    }
+    updateOverlayViewerSize()
+    if (typeof ResizeObserver !== 'undefined') {
+      const observer = new ResizeObserver(() => updateOverlayViewerSize())
+      observer.observe(next)
+      overlayViewerResizeObserver.value = observer
+      onCleanup(() => observer.disconnect())
+    }
+  },
+  { immediate: true },
+)
+
 const overlayBaseScale = computed<number>(() => {
-  const container = overlayViewerRef.value
   const file = activeFile.value
-  if (!container || !file) {
+  const containerWidth = overlayViewerSize.value.width
+  const containerHeight = overlayViewerSize.value.height
+  if (!file || containerWidth <= 0 || containerHeight <= 0) {
     return 1
   }
-  const naturalWidth = Number.isFinite(file.width) && file.width > 0 ? file.width : container.clientWidth
-  const naturalHeight = Number.isFinite(file.height) && file.height > 0 ? file.height : container.clientHeight
+  const naturalWidth = Number.isFinite(file.width) && file.width > 0 ? file.width : containerWidth
+  const naturalHeight = Number.isFinite(file.height) && file.height > 0 ? file.height : containerHeight
   if (naturalWidth <= 0 || naturalHeight <= 0) {
     return 1
   }
-  const scale = Math.min(container.clientWidth / naturalWidth, container.clientHeight / naturalHeight)
+  const scale = Math.min(containerWidth / naturalWidth, containerHeight / naturalHeight)
   if (!Number.isFinite(scale) || scale <= 0) {
     return 1
   }
   return scale
+})
+
+const overlayImageFitStyle = computed<CSSProperties>(() => {
+  const file = activeFile.value
+  const containerWidth = overlayViewerSize.value.width
+  const containerHeight = overlayViewerSize.value.height
+  if (!file || containerWidth <= 0 || containerHeight <= 0) {
+    return {}
+  }
+  const imageWidth = Number.isFinite(file.width) && file.width > 0 ? file.width : 0
+  const imageHeight = Number.isFinite(file.height) && file.height > 0 ? file.height : 0
+  if (imageWidth <= 0 || imageHeight <= 0) {
+    return {
+      width: '100%',
+      height: 'auto',
+      maxWidth: '100%',
+      maxHeight: '100%',
+    }
+  }
+  const containerRatio = containerWidth / containerHeight
+  const imageRatio = imageWidth / imageHeight
+  if (!Number.isFinite(containerRatio) || containerRatio <= 0 || !Number.isFinite(imageRatio) || imageRatio <= 0) {
+    return {}
+  }
+  if (imageRatio >= containerRatio) {
+    return {
+      width: '100%',
+      height: 'auto',
+      maxWidth: '100%',
+      maxHeight: '100%',
+    }
+  }
+  return {
+    width: 'auto',
+    height: '100%',
+    maxWidth: '100%',
+    maxHeight: '100%',
+  }
 })
 
 const overlayZoomMin = computed<number>(() => {
@@ -2344,6 +2420,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           :file="activeFile"
           :overlay-background-style="overlayBackgroundStyle"
           :overlay-image-src="overlayImageSrc || activeFile.previewUrl || activeFile.coverUrl || activeFile.imageUrl"
+          :overlay-image-fit-style="overlayImageFitStyle"
           :overlay-image-transform-style="overlayImageTransformStyle"
           :overlay-download-visible="overlayDownloadVisible"
           :overlay-download-label="overlayDownloadLabel"
