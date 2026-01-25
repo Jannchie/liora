@@ -21,6 +21,7 @@ import { Waterfall } from 'vue-wf'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { brandIconSet } from '~/constants/brand-icons'
 import { toLocalInputString } from '~/utils/datetime'
+import { estimateDepthFromUrl } from '~/utils/depth-estimation'
 import { resolveFileTitle } from '~/utils/file'
 
 const props = withDefaults(
@@ -117,6 +118,7 @@ const overlayDragState = ref<{
 })
 const overlayPointers = ref<Map<number, { x: number, y: number }>>(new Map())
 const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
+const depthProcessing = reactive<Record<number, boolean>>({})
 
 const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done')
 
@@ -1009,6 +1011,10 @@ const editFormModel = computed<MediaFormState>({
 const editToastMessages = computed(() => ({
   updateFailed: t('admin.files.toast.updateFailed'),
   updateFailedFallback: t('admin.files.toast.updateFailedFallback'),
+  depthSuccess: t('admin.files.toast.depthSuccess'),
+  depthSuccessDescription: t('admin.files.toast.depthSuccessDescription'),
+  depthFailed: t('admin.files.toast.depthFailed'),
+  depthFailedFallback: t('admin.files.toast.depthFailedFallback'),
 }))
 
 function resetEditForm(): void {
@@ -1127,6 +1133,45 @@ async function saveEditFromModal(): Promise<void> {
   }
   finally {
     editing.value = false
+  }
+}
+
+async function generateDepthMapFromEdit(): Promise<void> {
+  if (!import.meta.client) {
+    return
+  }
+  const file = editingFile.value
+  if (!file) {
+    return
+  }
+  if (depthProcessing[file.id]) {
+    return
+  }
+  const imageUrl = file.imageUrl?.trim() ?? ''
+  if (!imageUrl) {
+    toast.add({ title: editToastMessages.value.depthFailed, description: editToastMessages.value.depthFailedFallback, color: 'error' })
+    return
+  }
+  depthProcessing[file.id] = true
+  try {
+    const { depthBlob } = await estimateDepthFromUrl(imageUrl)
+    const formData = new FormData()
+    formData.append('depth', depthBlob, `depth-${file.id}.png`)
+    await $fetch(`/api/files/${file.id}/depth`, {
+      method: 'POST',
+      body: formData,
+    })
+    const updated = await $fetch<FileResponse>(`/api/files/${file.id}`)
+    fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
+    editingFile.value = toResolvedFile(updated, columnWidth.value)
+    toast.add({ title: editToastMessages.value.depthSuccess, description: editToastMessages.value.depthSuccessDescription })
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : editToastMessages.value.depthFailedFallback
+    toast.add({ title: editToastMessages.value.depthFailed, description: message, color: 'error' })
+  }
+  finally {
+    depthProcessing[file.id] = false
   }
 }
 
@@ -1583,6 +1628,10 @@ const overlayStats = computed<OverlayStat[]>(() => {
   const uploadedAt = formatDisplayDateTime(file.createdAt)
   if (uploadedAt) {
     stats.push({ label: uploadedAt, icon: 'tabler:upload' })
+  }
+  const depthMapUrl = typeof file.metadata.depthMapUrl === 'string' ? file.metadata.depthMapUrl.trim() : ''
+  if (depthMapUrl) {
+    stats.push({ label: t('gallery.badges.depthMap'), icon: 'tabler:stack-2' })
   }
   return stats
 })
@@ -2459,9 +2508,12 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
           v-model:replace-file="replaceFile"
           :file="editingFile"
           :loading="editing"
+          :enable-depth-action="isAdmin"
+          :depth-processing="editingFile ? depthProcessing[editingFile.id] : false"
           :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
           @submit="saveEditFromModal"
           @close="closeEditModal"
+          @generate-depth="generateDepthMapFromEdit"
         />
       </Teleport>
     </template>

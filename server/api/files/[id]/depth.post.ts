@@ -28,6 +28,7 @@ interface DepthUploadResponse {
 }
 
 const MAX_DEPTH_BYTES = 20 * 1024 * 1024
+const DEPTH_SCALE_FACTOR = 0.25
 
 function parseId(event: H3Event): number {
   const idParam = getRouterParam(event, 'id')
@@ -63,7 +64,11 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   return { file: fileEntry }
 }
 
-async function validateDepthImage(file: MultipartEntry): Promise<{ width: number, height: number }> {
+async function processDepthImage(
+  file: MultipartEntry,
+  originalWidth: number,
+  originalHeight: number,
+): Promise<{ buffer: Buffer, width: number, height: number }> {
   if (file.data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Depth image is empty.' })
   }
@@ -81,7 +86,18 @@ async function validateDepthImage(file: MultipartEntry): Promise<{ width: number
     if (metadata.format && metadata.format !== 'png') {
       throw createError({ statusCode: 415, statusMessage: 'Depth image must be a PNG file.' })
     }
-    return { width, height }
+    const baseWidth = Number.isFinite(originalWidth) && originalWidth > 0 ? originalWidth : width
+    const baseHeight = Number.isFinite(originalHeight) && originalHeight > 0 ? originalHeight : height
+    const targetWidth = Math.max(1, Math.round(baseWidth * DEPTH_SCALE_FACTOR))
+    const targetHeight = Math.max(1, Math.round(baseHeight * DEPTH_SCALE_FACTOR))
+    if (width > targetWidth || height > targetHeight) {
+      const buffer = await sharp(file.data)
+        .resize({ width: targetWidth, height: targetHeight, fit: 'fill' })
+        .png()
+        .toBuffer()
+      return { buffer, width: targetWidth, height: targetHeight }
+    }
+    return { buffer: file.data, width, height }
   }
   catch (error) {
     throw error instanceof Error
@@ -108,11 +124,11 @@ export default defineEventHandler(async (event): Promise<DepthUploadResponse> =>
   }
 
   const { file } = await parseMultipart(event)
-  const { width, height } = await validateDepthImage(file)
+  const { buffer, width, height } = await processDepthImage(file, existing.width, existing.height)
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
   const depthMapUrl = await uploadBufferToS3({
     key: buildDepthKey(id),
-    data: file.data,
+    data: buffer,
     contentType: 'image/png',
     config: storageConfig,
   })

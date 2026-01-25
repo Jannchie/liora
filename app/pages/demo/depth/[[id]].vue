@@ -22,7 +22,8 @@ const directionDurationSeconds = ref(2)
 const depthDurationSeconds = ref(2)
 const maxBlur = ref(200)
 const directionalDelay = ref(0.2)
-const depthDelay = ref(0.6)
+const depthDelay = ref(0.3)
+const depthEasePower = ref(0.5)
 const directionMode = ref<'bottom-up' | 'top-down' | 'left-right' | 'right-left'>('bottom-up')
 const invertDepth = ref(false)
 
@@ -185,6 +186,7 @@ watch(
           :max-blur="maxBlur"
           :directional-delay="directionalDelay"
           :depth-delay="depthDelay"
+          :depth-ease-power="depthEasePower"
           :direction-mode="directionMode"
           :invert-depth="invertDepth"
         />
@@ -222,6 +224,18 @@ watch(
               step="0.02"
               class="w-full"
             >
+          </label>
+          <label class="space-y-2 text-sm text-muted">
+            <span class="font-medium text-highlighted">{{ t('demoDepth.controls.depthCurve') }}</span>
+            <input
+              v-model.number="depthEasePower"
+              type="range"
+              min="0.1"
+              max="5"
+              step="0.1"
+              class="w-full"
+            >
+            <span class="text-xs text-muted">{{ depthEasePower.toFixed(1) }}</span>
           </label>
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.directionMode') }}</span>

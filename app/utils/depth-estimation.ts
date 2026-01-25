@@ -1,7 +1,7 @@
 import type { DepthEstimationPipeline, DepthEstimationPipelineOutput } from '@xenova/transformers'
 
 export interface DepthEstimateOptions {
-  maxSize?: number
+  scaleFactor?: number
 }
 
 export interface DepthEstimateResult {
@@ -15,19 +15,81 @@ type TransformersModule = typeof import('@xenova/transformers')
 type RawImageInstance = InstanceType<TransformersModule['RawImage']>
 
 const MODEL_NAME = 'Xenova/dpt-hybrid-midas'
-const DEFAULT_MAX_SIZE = 512
-const MIN_MAX_SIZE = 128
-const MAX_MAX_SIZE = 2048
+const DEFAULT_SCALE_FACTOR = 0.25
+const MIN_SCALE_FACTOR = 0.01
+const MAX_SCALE_FACTOR = 1
 
 let transformersPromise: Promise<TransformersModule> | null = null
 let pipelinePromise: Promise<DepthEstimationPipeline> | null = null
+let worker: Worker | null = null
+let workerRequestId = 0
+const workerResolvers = new Map<number, {
+  resolve: (value: DepthEstimateResult) => void
+  reject: (error: Error) => void
+}>()
 
-function parseMaxSize(value: number | undefined): number {
+interface WorkerRequest {
+  id: number
+  imageUrl: string
+  scaleFactor: number
+}
+
+interface WorkerResponse {
+  id: number
+  ok: boolean
+  result?: DepthEstimateResult
+  error?: string
+}
+
+function parseScaleFactor(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) {
-    return DEFAULT_MAX_SIZE
+    return DEFAULT_SCALE_FACTOR
   }
-  const clamped = Math.round(value)
-  return Math.min(MAX_MAX_SIZE, Math.max(MIN_MAX_SIZE, clamped))
+  return Math.min(MAX_SCALE_FACTOR, Math.max(MIN_SCALE_FACTOR, value))
+}
+
+function resetWorkerWithError(error: Error): void {
+  for (const resolver of workerResolvers.values()) {
+    resolver.reject(error)
+  }
+  workerResolvers.clear()
+  if (worker) {
+    worker.terminate()
+  }
+  worker = null
+}
+
+function getDepthWorker(): Worker | null {
+  if (!import.meta.client || typeof Worker === 'undefined') {
+    return null
+  }
+  if (!worker) {
+    worker = new Worker(new URL('../workers/depth-estimation.worker.ts', import.meta.url), { type: 'module' })
+    worker.addEventListener('message', (event: MessageEvent<WorkerResponse>) => {
+      const payload = event.data
+      if (!payload || typeof payload.id !== 'number') {
+        return
+      }
+      const resolver = workerResolvers.get(payload.id)
+      if (!resolver) {
+        return
+      }
+      workerResolvers.delete(payload.id)
+      if (payload.ok && payload.result) {
+        resolver.resolve(payload.result)
+        return
+      }
+      const message = payload.error || 'Depth estimation failed.'
+      resolver.reject(new Error(message))
+    })
+    worker.addEventListener('messageerror', () => {
+      resetWorkerWithError(new Error('Depth estimation worker message error.'))
+    })
+    worker.addEventListener('error', () => {
+      resetWorkerWithError(new Error('Depth estimation worker error.'))
+    })
+  }
+  return worker
 }
 
 async function loadTransformers(): Promise<TransformersModule> {
@@ -67,7 +129,7 @@ async function resolveDepthOutput(output: DepthEstimationPipelineOutput | DepthE
   return output
 }
 
-async function loadImageFromUrl(imageUrl: string, maxSize: number): Promise<{ image: RawImageInstance, width: number, height: number }> {
+async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<{ image: RawImageInstance, width: number, height: number }> {
   const { RawImage } = await loadTransformers()
   const response = await fetch(imageUrl)
   if (!response.ok) {
@@ -77,15 +139,49 @@ async function loadImageFromUrl(imageUrl: string, maxSize: number): Promise<{ im
   const image = await RawImage.fromBlob(blob)
   const width = image.width
   const height = image.height
-  const maxDimension = Math.max(width, height)
-  if (maxDimension > maxSize) {
-    const scale = maxSize / maxDimension
-    const targetWidth = Math.max(1, Math.round(width * scale))
-    const targetHeight = Math.max(1, Math.round(height * scale))
+  const clampedScale = Math.min(MAX_SCALE_FACTOR, Math.max(MIN_SCALE_FACTOR, scaleFactor))
+  const targetWidth = Math.max(1, Math.round(width * clampedScale))
+  const targetHeight = Math.max(1, Math.round(height * clampedScale))
+  if (targetWidth !== width || targetHeight !== height) {
     await image.resize(targetWidth, targetHeight)
   }
   image.rgb()
   return { image, width: image.width, height: image.height }
+}
+
+async function estimateDepthInMainThread(imageUrl: string, scaleFactor: number): Promise<DepthEstimateResult> {
+  const depthEstimator = await getDepthPipeline()
+  const { image } = await loadImageFromUrl(imageUrl, scaleFactor)
+  const output = await depthEstimator(image)
+  const resolved = await resolveDepthOutput(output)
+  const depthBlob = await resolved.depth.toBlob('image/png') as Blob
+  return {
+    depthBlob,
+    width: resolved.depth.width,
+    height: resolved.depth.height,
+    model: MODEL_NAME,
+  }
+}
+
+async function estimateDepthInWorker(imageUrl: string, scaleFactor: number): Promise<DepthEstimateResult> {
+  const depthWorker = getDepthWorker()
+  if (!depthWorker) {
+    throw new Error('Depth estimation worker is unavailable.')
+  }
+  const id = workerRequestId + 1
+  workerRequestId = id
+  const request: WorkerRequest = { id, imageUrl, scaleFactor }
+  return await new Promise<DepthEstimateResult>((resolve, reject) => {
+    workerResolvers.set(id, { resolve, reject })
+    try {
+      depthWorker.postMessage(request)
+    }
+    catch (error) {
+      workerResolvers.delete(id)
+      const message = error instanceof Error ? error.message : 'Depth estimation worker failed.'
+      reject(new Error(message))
+    }
+  })
 }
 
 export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstimateOptions = {}): Promise<DepthEstimateResult> {
@@ -96,16 +192,15 @@ export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstim
   if (!trimmedUrl) {
     throw new Error('Image URL is required.')
   }
-  const maxSize = parseMaxSize(options.maxSize)
-  const depthEstimator = await getDepthPipeline()
-  const { image } = await loadImageFromUrl(trimmedUrl, maxSize)
-  const output = await depthEstimator(image)
-  const resolved = await resolveDepthOutput(output)
-  const depthBlob = await resolved.depth.toBlob('image/png') as Blob
-  return {
-    depthBlob,
-    width: resolved.depth.width,
-    height: resolved.depth.height,
-    model: MODEL_NAME,
+  const scaleFactor = parseScaleFactor(options.scaleFactor)
+  const depthWorker = getDepthWorker()
+  if (depthWorker) {
+    try {
+      return await estimateDepthInWorker(trimmedUrl, scaleFactor)
+    }
+    catch {
+      return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
+    }
   }
+  return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
 }

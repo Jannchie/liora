@@ -59,6 +59,7 @@
       "blur": "ぼかし強度",
       "direction": "方向ディレイ",
       "depthDelay": "深度ディレイ",
+      "depthCurve": "S字カーブ強度",
       "directionDuration": "方向の再生時間",
       "depthDuration": "深度の再生時間",
       "directionMode": "方向",
@@ -98,6 +99,9 @@
   "gallery": {
     "empty": "データがありません",
     "viewLarge": "{title} の大きな画像を見る",
+    "badges": {
+      "depthMap": "深度マップあり"
+    },
     "histogram": {
       "title": "ヒストグラム",
       "pending": "計算中…",

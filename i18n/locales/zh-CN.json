@@ -59,6 +59,7 @@
       "blur": "模糊强度",
       "direction": "方向延迟",
       "depthDelay": "深度延迟",
+      "depthCurve": "S 曲线强度",
       "directionDuration": "方向动画时长",
       "depthDuration": "深度动画时长",
       "directionMode": "方向",
@@ -98,6 +99,9 @@
   "gallery": {
     "empty": "暂无数据",
     "viewLarge": "查看 {title} 大图",
+    "badges": {
+      "depthMap": "包含深度图"
+    },
     "histogram": {
       "title": "直方图",
       "pending": "计算中…",

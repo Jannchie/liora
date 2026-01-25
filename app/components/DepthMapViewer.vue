@@ -31,6 +31,7 @@ interface DepthUniforms extends Record<string, DepthUniformValue<unknown>> {
   uMaxBlur: DepthUniformValue<number>
   uDirectionalDelay: DepthUniformValue<number>
   uDepthDelay: DepthUniformValue<number>
+  uDepthCurvePower: DepthUniformValue<number>
   uDirectionMode: DepthUniformValue<number>
   uInvertDepth: DepthUniformValue<number>
   uUseDepth: DepthUniformValue<number>
@@ -51,18 +52,20 @@ const props = withDefaults(defineProps<{
   maxBlur?: number
   directionalDelay?: number
   depthDelay?: number
+  depthEasePower?: number
   directionMode?: DirectionMode
   invertDepth?: boolean
   autoPlay?: boolean
 }>(), {
   depthUrl: '',
   placeholderUrl: '',
-  revealDurationMs: 700,
+  revealDurationMs: 500,
   directionDurationSeconds: 2,
   depthDurationSeconds: 2,
-  maxBlur: 200,
+  maxBlur: 120,
   directionalDelay: 0.2,
-  depthDelay: 0.25,
+  depthDelay: 0.5,
+  depthEasePower: 0.75,
   directionMode: 'bottom-up',
   invertDepth: false,
   autoPlay: true,
@@ -209,6 +212,7 @@ uniform float uDepthProgress;
 uniform float uMaxBlur;          // Max blur radius in pixels.
 uniform float uDirectionalDelay;
 uniform float uDepthDelay;
+uniform float uDepthCurvePower;
 
 uniform float uDirectionMode;    // 0 bottom-up, 1 top-down, 2 left-right, 3 right-left
 uniform float uInvertDepth;      // 0 / 1
@@ -222,6 +226,12 @@ float getDepth(vec2 uv) {
     d = 1.0 - d;
   }
   return clamp(d, 0.0, 1.0);
+}
+
+float easePow(float value, float power) {
+  float t = clamp(value, 0.0, 1.0);
+  float p = max(0.01, power);
+  return pow(t, p);
 }
 
   /* ---------------- blur ---------------- */
@@ -306,8 +316,9 @@ void main() {
 
   float depthProgress = 1.0;
   if (uUseDepth > 0.5) {
+    float depthCurve = easePow(depth, uDepthCurvePower);
     depthProgress =
-      clamp((uDepthProgress - depth * uDepthDelay) / depthDenom, 0.0, 1.0);
+      clamp((uDepthProgress - depthCurve * uDepthDelay) / depthDenom, 0.0, 1.0);
   }
 
   /* ---------- combine ---------- */
@@ -572,6 +583,7 @@ function updateUniforms(): void {
   targetUniforms.uMaxBlur.value = props.maxBlur
   targetUniforms.uDirectionalDelay.value = props.directionalDelay * scale
   targetUniforms.uDepthDelay.value = useDepth ? props.depthDelay * scale : 0
+  targetUniforms.uDepthCurvePower.value = Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1
   targetUniforms.uDirectionMode.value = modeValue
   targetUniforms.uInvertDepth.value = props.invertDepth ? 0 : 1
   targetUniforms.uUseDepth.value = useDepth ? 1 : 0
@@ -644,6 +656,7 @@ function initThree(): void {
     uMaxBlur: { value: props.maxBlur },
     uDirectionalDelay: { value: props.directionalDelay },
     uDepthDelay: { value: props.depthDelay },
+    uDepthCurvePower: { value: Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1 },
     uDirectionMode: { value: 0 },
     uInvertDepth: { value: props.invertDepth ? 0 : 1 },
     uUseDepth: { value: 0 },
@@ -730,6 +743,7 @@ watch(
     props.maxBlur,
     props.directionalDelay,
     props.depthDelay,
+    props.depthEasePower,
     props.directionMode,
     props.invertDepth,
     hasDepth.value,

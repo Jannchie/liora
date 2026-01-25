@@ -59,6 +59,7 @@
       "blur": "Blur strength",
       "direction": "Directional delay",
       "depthDelay": "Depth delay",
+      "depthCurve": "S-curve strength",
       "directionDuration": "Direction duration",
       "depthDuration": "Depth duration",
       "directionMode": "Direction",
@@ -98,6 +99,9 @@
   "gallery": {
     "empty": "No data yet",
     "viewLarge": "View {title} large",
+    "badges": {
+      "depthMap": "Depth map"
+    },
     "histogram": {
       "title": "Histogram",
       "pending": "Calculating…",

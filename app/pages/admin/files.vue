@@ -244,7 +244,7 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
 
   depthProcessing[file.id] = true
   try {
-    const { depthBlob } = await estimateDepthFromUrl(imageUrl, { maxSize: 512 })
+    const { depthBlob } = await estimateDepthFromUrl(imageUrl)
     const formData = new FormData()
     formData.append('depth', depthBlob, `depth-${file.id}.png`)
     await $fetch(`/api/files/${file.id}/depth`, {
