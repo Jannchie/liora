@@ -1,3 +1,23 @@
+## v0.21.0
+
+[v0.20.1...v0.21.0](https://github.com/Jannchie/liora/compare/v0.20.1...v0.21.0)
+
+### :sparkles: Features
+
+- **admin-files**: add batch generate missing depth maps && improve depth blur shader - By [Jannchie](mailto:jannchie@gmail.com) in [fa90d6f](https://github.com/Jannchie/liora/commit/fa90d6f)
+- **depth-estimation**: add webworker depth estimation and viewer controls - By [Jannchie](mailto:jannchie@gmail.com) in [f5d6ed9](https://github.com/Jannchie/liora/commit/f5d6ed9)
+- **depth-map**: add depth map support and viewer - By [Jannchie](mailto:jannchie@gmail.com) in [26e4523](https://github.com/Jannchie/liora/commit/26e4523)
+- **ui**: add depth-generation UI and overlay sizing - By [Jannchie](mailto:jannchie@gmail.com) in [6b549db](https://github.com/Jannchie/liora/commit/6b549db)
+- **viewer**: improve overlay & depth blur behavior - By [Jannchie](mailto:jannchie@gmail.com) in [1bc4434](https://github.com/Jannchie/liora/commit/1bc4434)
+
+### :art: Refactors
+
+- **components**: refine computed types and simplify depth sampling - By [Jannchie](mailto:jannchie@gmail.com) in [68c9a57](https://github.com/Jannchie/liora/commit/68c9a57)
+
+### :zap: Performance Improvements
+
+- **depthmap-viewer**: tweak animation timing and easing - By [Jannchie](mailto:jannchie@gmail.com) in [795257b](https://github.com/Jannchie/liora/commit/795257b)
+
 ## v0.20.1
 
 [v0.20.0...v0.20.1](https://github.com/Jannchie/liora/compare/v0.20.0...v0.20.1)
