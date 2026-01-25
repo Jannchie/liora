@@ -103,15 +103,42 @@ const tableUi = computed(() => ({
   th: 'text-left text-sm font-semibold text-muted',
   td: 'align-middle whitespace-normal break-words',
 }))
-const depthProcessing = reactive<Record<number, boolean>>({})
-const bulkDepthProcessing = ref(false)
-
 interface DepthBatchSummary {
   total: number
   success: number
   failed: number
   skipped: number
 }
+
+interface DepthBatchProgress extends DepthBatchSummary {
+  processed: number
+}
+
+const depthProcessing = reactive<Record<number, boolean>>({})
+const bulkDepthProcessing = ref(false)
+const batchProgress = reactive<DepthBatchProgress>({
+  total: 0,
+  processed: 0,
+  success: 0,
+  failed: 0,
+  skipped: 0,
+})
+const showBatchProgress = computed(() => bulkDepthProcessing.value && batchProgress.total > 0)
+const batchProgressPercent = computed(() => {
+  if (batchProgress.total <= 0) {
+    return 0
+  }
+  return Math.min(100, (batchProgress.processed / batchProgress.total) * 100)
+})
+const batchProgressLabel = computed(() => t('admin.files.batch.progress', {
+  processed: batchProgress.processed,
+  total: batchProgress.total,
+}))
+const batchProgressSummary = computed(() => t('admin.files.batch.summary', {
+  success: batchProgress.success,
+  failed: batchProgress.failed,
+  skipped: batchProgress.skipped,
+}))
 
 watch(
   () => totalFiles.value,
@@ -303,28 +330,29 @@ async function generateMissingDepthMaps(): Promise<void> {
   }
 
   bulkDepthProcessing.value = true
-  const summary: DepthBatchSummary = {
-    total: targets.length,
-    success: 0,
-    failed: 0,
-    skipped: 0,
-  }
+  batchProgress.total = targets.length
+  batchProgress.processed = 0
+  batchProgress.success = 0
+  batchProgress.failed = 0
+  batchProgress.skipped = 0
   try {
     for (const file of targets) {
       if (depthProcessing[file.id]) {
-        summary.skipped += 1
+        batchProgress.skipped += 1
+        batchProgress.processed += 1
         continue
       }
       depthProcessing[file.id] = true
       try {
         await uploadDepthMap(file)
-        summary.success += 1
+        batchProgress.success += 1
       }
       catch {
-        summary.failed += 1
+        batchProgress.failed += 1
       }
       finally {
         depthProcessing[file.id] = false
+        batchProgress.processed += 1
       }
     }
 
@@ -336,12 +364,12 @@ async function generateMissingDepthMaps(): Promise<void> {
       }
     }
     const summaryParams: Record<string, number> = {
-      total: summary.total,
-      success: summary.success,
-      failed: summary.failed,
-      skipped: summary.skipped,
+      total: batchProgress.total,
+      success: batchProgress.success,
+      failed: batchProgress.failed,
+      skipped: batchProgress.skipped,
     }
-    const hasFailures = summary.failed > 0
+    const hasFailures = batchProgress.failed > 0
     toast.add({
       title: toastMessages.value.depthBatchTitle,
       description: t('admin.files.toast.depthBatchSummary', summaryParams),
@@ -631,6 +659,35 @@ watch(fetchError, (value) => {
           </UButton>
         </div>
       </header>
+
+      <section
+        v-if="showBatchProgress"
+        class="space-y-2 rounded-xl border border-default/50 bg-default/80 p-4"
+      >
+        <div class="flex items-center justify-between gap-2 text-sm">
+          <div class="flex items-center gap-2">
+            <Icon name="tabler:stack-2" class="h-4 w-4 text-primary" />
+            <span class="font-semibold text-highlighted">{{ t('admin.files.batch.title') }}</span>
+          </div>
+          <span class="text-xs text-muted">{{ batchProgressPercent.toFixed(1) }}%</span>
+        </div>
+        <div class="h-2 w-full overflow-hidden rounded-full bg-default/50">
+          <div
+            class="h-full bg-primary transition-all"
+            :style="{ width: `${batchProgressPercent}%` }"
+          />
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+          <span class="flex items-center gap-1">
+            <Icon name="tabler:clock" class="h-4 w-4" />
+            <span>{{ batchProgressLabel }}</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <Icon name="tabler:list-check" class="h-4 w-4" />
+            <span>{{ batchProgressSummary }}</span>
+          </span>
+        </div>
+      </section>
 
       <section class="space-y-3">
         <div class="flex items-center justify-between">

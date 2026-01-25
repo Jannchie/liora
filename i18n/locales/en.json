@@ -466,6 +466,11 @@
         "depth": "Generate depth map",
         "depthBatch": "Generate missing depth maps ({count})"
       },
+      "batch": {
+        "title": "Depth map batch",
+        "progress": "Progress {processed}/{total}",
+        "summary": "{success} succeeded, {failed} failed, {skipped} skipped"
+      },
       "section": {
         "title": "Data overview"
       },

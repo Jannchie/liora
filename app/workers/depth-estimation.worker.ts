@@ -30,6 +30,38 @@ const MAX_SCALE_FACTOR = 1
 
 let transformersPromise: Promise<TransformersModule> | null = null
 let pipelinePromise: Promise<DepthEstimationPipeline> | null = null
+let webGpuConfigured = false
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string')
+}
+
+async function configureWebGpuExecutionProvider(): Promise<void> {
+  if (webGpuConfigured) {
+    return
+  }
+  webGpuConfigured = true
+  const supportsWebGpu = globalThis.navigator !== undefined && 'gpu' in globalThis.navigator
+  if (!supportsWebGpu) {
+    return
+  }
+  try {
+    const onnxBackend: unknown = await import('@xenova/transformers/src/backends/onnx.js')
+    if (typeof onnxBackend !== 'object' || onnxBackend === null) {
+      return
+    }
+    const providers = (onnxBackend as { executionProviders?: unknown }).executionProviders
+    if (!isStringArray(providers)) {
+      return
+    }
+    if (!providers.includes('webgpu')) {
+      providers.unshift('webgpu')
+    }
+  }
+  catch {
+    // Ignore and fall back to wasm.
+  }
+}
 
 function parseScaleFactor(value: number | undefined): number {
   if (value === undefined || !Number.isFinite(value)) {
@@ -49,6 +81,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
       const { env, pipeline } = await loadTransformers()
+      await configureWebGpuExecutionProvider()
       env.allowRemoteModels = true
       env.allowLocalModels = false
       env.useBrowserCache = true
@@ -117,13 +150,13 @@ function handleMessage(event: MessageEvent<WorkerRequest>): void {
   estimateDepth(imageUrl.trim(), parsedScaleFactor)
     .then((result) => {
       const response: WorkerResponse = { id, ok: true, result }
-      self.postMessage(response)
+      globalThis.postMessage(response)
     })
     .catch((error) => {
       const message = error instanceof Error ? error.message : 'Depth estimation failed.'
       const response: WorkerResponse = { id, ok: false, error: message }
-      self.postMessage(response)
+      globalThis.postMessage(response)
     })
 }
 
-self.addEventListener('message', handleMessage)
+globalThis.addEventListener('message', handleMessage)

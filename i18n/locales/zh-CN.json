@@ -466,6 +466,11 @@
         "depth": "生成深度图",
         "depthBatch": "生成缺失深度图 ({count})"
       },
+      "batch": {
+        "title": "深度图批量生成",
+        "progress": "进度 {processed}/{total}",
+        "summary": "成功 {success}，失败 {failed}，跳过 {skipped}"
+      },
       "section": {
         "title": "数据总览"
       },

@@ -23,6 +23,7 @@ let transformersPromise: Promise<TransformersModule> | null = null
 let pipelinePromise: Promise<DepthEstimationPipeline> | null = null
 let worker: Worker | null = null
 let workerRequestId = 0
+let webGpuConfigured = false
 const workerResolvers = new Map<number, {
   resolve: (value: DepthEstimateResult) => void
   reject: (error: Error) => void
@@ -46,6 +47,37 @@ function parseScaleFactor(value: number | undefined): number {
     return DEFAULT_SCALE_FACTOR
   }
   return Math.min(MAX_SCALE_FACTOR, Math.max(MIN_SCALE_FACTOR, value))
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string')
+}
+
+async function configureWebGpuExecutionProvider(): Promise<void> {
+  if (webGpuConfigured) {
+    return
+  }
+  webGpuConfigured = true
+  const supportsWebGpu = globalThis.navigator !== undefined && 'gpu' in globalThis.navigator
+  if (!supportsWebGpu) {
+    return
+  }
+  try {
+    const onnxBackend: unknown = await import('@xenova/transformers/src/backends/onnx.js')
+    if (typeof onnxBackend !== 'object' || onnxBackend === null) {
+      return
+    }
+    const providers = (onnxBackend as { executionProviders?: unknown }).executionProviders
+    if (!isStringArray(providers)) {
+      return
+    }
+    if (!providers.includes('webgpu')) {
+      providers.unshift('webgpu')
+    }
+  }
+  catch {
+    // Ignore and fall back to wasm.
+  }
 }
 
 function resetWorkerWithError(error: Error): void {
@@ -106,6 +138,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
       const { env, pipeline } = await loadTransformers()
+      await configureWebGpuExecutionProvider()
       env.allowRemoteModels = true
       env.allowLocalModels = false
       env.useBrowserCache = true

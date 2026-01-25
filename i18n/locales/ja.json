@@ -466,6 +466,11 @@
         "depth": "深度マップ生成",
         "depthBatch": "深度マップ未生成を一括生成（{count}）"
       },
+      "batch": {
+        "title": "深度マップ一括生成",
+        "progress": "進捗 {processed}/{total}",
+        "summary": "成功 {success} 件、失敗 {failed} 件、スキップ {skipped} 件"
+      },
       "section": {
         "title": "データ概要"
       },
