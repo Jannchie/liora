@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<{
   revealDurationMs: 500,
   directionDurationSeconds: 2,
   depthDurationSeconds: 2,
-  maxBlur: 120,
+  maxBlur: 100,
   directionalDelay: 0.2,
   depthDelay: 0.5,
   depthEasePower: 0.75,
@@ -220,12 +220,55 @@ uniform float uUseDepth;         // 0 / 1
 
 /* ---------------- depth ---------------- */
 
-float getDepth(vec2 uv) {
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+
+float sampleDepth(vec2 uv) {
   float d = texture2D(uDepth, uv).r;
   if (uInvertDepth > 0.5) {
     d = 1.0 - d;
   }
   return clamp(d, 0.0, 1.0);
+}
+
+float getDepthSmoothed(vec2 uv) {
+  float smoothRadius = clamp(uMaxBlur * 0.5, 1.0, 100.0);
+  vec2 texel = smoothRadius / uResolution;
+  float d00 = sampleDepth(uv + texel * vec2(-2.0, -2.0));
+  float d01 = sampleDepth(uv + texel * vec2(-1.0, -2.0));
+  float d02 = sampleDepth(uv + texel * vec2(0.0, -2.0));
+  float d03 = sampleDepth(uv + texel * vec2(1.0, -2.0));
+  float d04 = sampleDepth(uv + texel * vec2(2.0, -2.0));
+  float d10 = sampleDepth(uv + texel * vec2(-2.0, -1.0));
+  float d11 = sampleDepth(uv + texel * vec2(-1.0, -1.0));
+  float d12 = sampleDepth(uv + texel * vec2(0.0, -1.0));
+  float d13 = sampleDepth(uv + texel * vec2(1.0, -1.0));
+  float d14 = sampleDepth(uv + texel * vec2(2.0, -1.0));
+  float d20 = sampleDepth(uv + texel * vec2(-2.0, 0.0));
+  float d21 = sampleDepth(uv + texel * vec2(-1.0, 0.0));
+  float d22 = sampleDepth(uv);
+  float d23 = sampleDepth(uv + texel * vec2(1.0, 0.0));
+  float d24 = sampleDepth(uv + texel * vec2(2.0, 0.0));
+  float d30 = sampleDepth(uv + texel * vec2(-2.0, 1.0));
+  float d31 = sampleDepth(uv + texel * vec2(-1.0, 1.0));
+  float d32 = sampleDepth(uv + texel * vec2(0.0, 1.0));
+  float d33 = sampleDepth(uv + texel * vec2(1.0, 1.0));
+  float d34 = sampleDepth(uv + texel * vec2(2.0, 1.0));
+  float d40 = sampleDepth(uv + texel * vec2(-2.0, 2.0));
+  float d41 = sampleDepth(uv + texel * vec2(-1.0, 2.0));
+  float d42 = sampleDepth(uv + texel * vec2(0.0, 2.0));
+  float d43 = sampleDepth(uv + texel * vec2(1.0, 2.0));
+  float d44 = sampleDepth(uv + texel * vec2(2.0, 2.0));
+  return (
+    d00 * 1.0 + d01 * 4.0 + d02 * 6.0 + d03 * 4.0 + d04 * 1.0
+    + d10 * 4.0 + d11 * 16.0 + d12 * 24.0 + d13 * 16.0 + d14 * 4.0
+    + d20 * 6.0 + d21 * 24.0 + d22 * 36.0 + d23 * 24.0 + d24 * 6.0
+    + d30 * 4.0 + d31 * 16.0 + d32 * 24.0 + d33 * 16.0 + d34 * 4.0
+    + d40 * 1.0 + d41 * 4.0 + d42 * 6.0 + d43 * 4.0 + d44 * 1.0
+  ) / 256.0;
 }
 
 float easePow(float value, float power) {
@@ -245,6 +288,9 @@ float easePow(float value, float power) {
     }
 
     vec2 texel = 1.0 / uResolution;
+    float rotation = hash12(uv * uResolution) * 6.2831853;
+    float ca = cos(rotation);
+    float sa = sin(rotation);
     const int SAMPLES = 24;
     const vec2 OFFSETS[24] = vec2[](
       vec2(-0.326, -0.406),
@@ -278,9 +324,14 @@ float easePow(float value, float power) {
     for (int i = 0; i < SAMPLES; i++) {
       vec2 baseOffset = OFFSETS[i];
       float r = length(baseOffset);
-      float angle = atan(baseOffset.y, baseOffset.x);
-      float aperture = 0.9 + 0.1 * cos(6.0 * angle);
-      vec2 offset = baseOffset * aperture * radiusPixels * texel;
+      float sampleAngle = atan(baseOffset.y, baseOffset.x);
+      float aperture = 0.9 + 0.1 * cos(6.0 * sampleAngle);
+      vec2 rotated = vec2(
+        baseOffset.x * ca - baseOffset.y * sa,
+        baseOffset.x * sa + baseOffset.y * ca
+      );
+      float jitter = mix(0.9, 1.1, hash12(uv * uResolution + float(i) * 19.17));
+      vec2 offset = rotated * jitter * aperture * radiusPixels * texel;
       vec4 sampleColor = texture2D(uImage, uv + offset);
       float lum = dot(sampleColor.rgb, vec3(0.2126, 0.7152, 0.0722));
       float edge = smoothstep(0.2, 1.0, r);
@@ -295,10 +346,8 @@ float easePow(float value, float power) {
 /* ---------------- main ---------------- */
 
 void main() {
-  /* ---------- depth ---------- */
-  float depth = uUseDepth > 0.5 ? getDepth(vUv) : 0.0;
+  float depth = uUseDepth > 0.5 ? getDepthSmoothed(vUv) : 0.0;
 
-  /* ---------- directional sweep ---------- */
   float sweep = vUv.y;
   if (uDirectionMode > 0.5 && uDirectionMode < 1.5) {
     sweep = 1.0 - vUv.y;          // top-down
@@ -321,11 +370,7 @@ void main() {
       clamp((uDepthProgress - depthCurve * uDepthDelay) / depthDenom, 0.0, 1.0);
   }
 
-  /* ---------- combine ---------- */
-  // Keep the min blend for a stronger mask feel.
   float localProgress = min(directionProgress, depthProgress);
-
-  // Smooth the transition curve.
   localProgress = smoothstep(0.0, 1.0, localProgress);
 
   /* ---------- blur radius ---------- */

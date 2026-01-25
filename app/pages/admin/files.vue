@@ -36,6 +36,7 @@ const toastMessages = computed(() => ({
   depthSuccessDescription: t('admin.files.toast.depthSuccessDescription'),
   depthFailed: t('admin.files.toast.depthFailed'),
   depthFailedFallback: t('admin.files.toast.depthFailedFallback'),
+  depthBatchTitle: t('admin.files.toast.depthBatchTitle'),
 }))
 
 useSeoMeta({
@@ -103,6 +104,14 @@ const tableUi = computed(() => ({
   td: 'align-middle whitespace-normal break-words',
 }))
 const depthProcessing = reactive<Record<number, boolean>>({})
+const bulkDepthProcessing = ref(false)
+
+interface DepthBatchSummary {
+  total: number
+  success: number
+  failed: number
+  skipped: number
+}
 
 watch(
   () => totalFiles.value,
@@ -122,6 +131,18 @@ const tableColumns = computed(() => [
   { accessorKey: 'createdAt', id: 'createdAt', header: t('admin.files.table.headers.createdAt') },
   { id: 'actions', header: t('admin.files.table.headers.actions'), accessorFn: (row: FileResponse) => row.id },
 ])
+
+function hasDepthMap(file: FileResponse): boolean {
+  const raw = file.metadata.depthMapUrl
+  if (typeof raw === 'string') {
+    return raw.trim().length > 0
+  }
+  return false
+}
+
+const missingDepthFiles = computed<FileResponse[]>(() => files.value.filter(file => !hasDepthMap(file)))
+const missingDepthCount = computed(() => missingDepthFiles.value.length)
+const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', { count: missingDepthCount.value }))
 
 function resolvePreviewUrl(file: FileResponse): string {
   const primary = file.imageUrl.trim()
@@ -229,28 +250,28 @@ function formatDateTime(value: string): string {
   return date.toLocaleString()
 }
 
-async function generateDepthMap(file: FileResponse): Promise<void> {
-  if (!import.meta.client) {
-    return
-  }
-  if (depthProcessing[file.id]) {
-    return
-  }
+async function uploadDepthMap(file: FileResponse): Promise<void> {
   const imageUrl = file.imageUrl?.trim() ?? ''
   if (!imageUrl) {
-    toast.add({ title: toastMessages.value.depthFailed, description: toastMessages.value.depthFailedFallback, color: 'error' })
+    throw new Error(toastMessages.value.depthFailedFallback)
+  }
+  const { depthBlob } = await estimateDepthFromUrl(imageUrl)
+  const formData = new FormData()
+  formData.append('depth', depthBlob, `depth-${file.id}.png`)
+  await $fetch(`/api/files/${file.id}/depth`, {
+    method: 'POST',
+    body: formData,
+  })
+}
+
+async function generateDepthMap(file: FileResponse): Promise<void> {
+  if (!import.meta.client || depthProcessing[file.id]) {
     return
   }
 
   depthProcessing[file.id] = true
   try {
-    const { depthBlob } = await estimateDepthFromUrl(imageUrl)
-    const formData = new FormData()
-    formData.append('depth', depthBlob, `depth-${file.id}.png`)
-    await $fetch(`/api/files/${file.id}/depth`, {
-      method: 'POST',
-      body: formData,
-    })
+    await uploadDepthMap(file)
     toast.add({ title: toastMessages.value.depthSuccess, description: toastMessages.value.depthSuccessDescription })
     await refresh()
     if (editingFile.value?.id === file.id) {
@@ -266,6 +287,60 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
   }
   finally {
     depthProcessing[file.id] = false
+  }
+}
+
+async function generateMissingDepthMaps(): Promise<void> {
+  if (!import.meta.client || bulkDepthProcessing.value) {
+    return
+  }
+  const targets = missingDepthFiles.value
+  if (targets.length === 0) {
+    return
+  }
+
+  bulkDepthProcessing.value = true
+  const summary: DepthBatchSummary = {
+    total: targets.length,
+    success: 0,
+    failed: 0,
+    skipped: 0,
+  }
+  try {
+    for (const file of targets) {
+      if (depthProcessing[file.id]) {
+        summary.skipped += 1
+        continue
+      }
+      depthProcessing[file.id] = true
+      try {
+        await uploadDepthMap(file)
+        summary.success += 1
+      }
+      catch {
+        summary.failed += 1
+      }
+      finally {
+        depthProcessing[file.id] = false
+      }
+    }
+
+    await refresh()
+    if (editingFile.value) {
+      const updated = filesData.value?.find(item => item.id === editingFile.value?.id)
+      if (updated) {
+        editingFile.value = updated
+      }
+    }
+    const hasFailures = summary.failed > 0
+    toast.add({
+      title: toastMessages.value.depthBatchTitle,
+      description: t('admin.files.toast.depthBatchSummary', summary),
+      color: hasFailures ? 'warning' : 'primary',
+    })
+  }
+  finally {
+    bulkDepthProcessing.value = false
   }
 }
 
@@ -525,6 +600,16 @@ watch(fetchError, (value) => {
             @click="reclassifyMissing"
           >
             {{ t('admin.files.actions.reclassify') }}
+          </UButton>
+          <UButton
+            color="primary"
+            variant="soft"
+            :disabled="missingDepthCount === 0 || bulkDepthProcessing"
+            :loading="bulkDepthProcessing"
+            icon="tabler:stack-2"
+            @click="generateMissingDepthMaps"
+          >
+            {{ depthBatchLabel }}
           </UButton>
           <UButton
             color="primary"

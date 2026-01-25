@@ -455,13 +455,16 @@
         "depthSuccess": "深度图已生成",
         "depthSuccessDescription": "深度图已上传。",
         "depthFailed": "生成失败",
-        "depthFailedFallback": "生成深度图失败"
+        "depthFailedFallback": "生成深度图失败",
+        "depthBatchTitle": "批量生成完成",
+        "depthBatchSummary": "共 {total} 条，成功 {success}，失败 {failed}，跳过 {skipped}"
       },
       "title": "数据列表",
       "actions": {
         "reclassify": "补全分类",
         "refresh": "刷新数据",
-        "depth": "生成深度图"
+        "depth": "生成深度图",
+        "depthBatch": "生成缺失深度图 ({count})"
       },
       "section": {
         "title": "数据总览"

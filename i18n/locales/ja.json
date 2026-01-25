@@ -455,13 +455,16 @@
         "depthSuccess": "深度マップを生成しました",
         "depthSuccessDescription": "深度マップをアップロードしました。",
         "depthFailed": "生成に失敗しました",
-        "depthFailedFallback": "深度マップの生成に失敗しました"
+        "depthFailedFallback": "深度マップの生成に失敗しました",
+        "depthBatchTitle": "一括生成が完了しました",
+        "depthBatchSummary": "合計 {total} 件、成功 {success} 件、失敗 {failed} 件、スキップ {skipped} 件"
       },
       "title": "レコード",
       "actions": {
         "reclassify": "未分類を分類",
         "refresh": "再読み込み",
-        "depth": "深度マップ生成"
+        "depth": "深度マップ生成",
+        "depthBatch": "深度マップ未生成を一括生成（{count}）"
       },
       "section": {
         "title": "データ概要"

@@ -455,13 +455,16 @@
         "depthSuccess": "Depth map generated",
         "depthSuccessDescription": "Depth map uploaded.",
         "depthFailed": "Generation failed",
-        "depthFailedFallback": "Failed to generate depth map"
+        "depthFailedFallback": "Failed to generate depth map",
+        "depthBatchTitle": "Batch generation complete",
+        "depthBatchSummary": "{total} total, {success} succeeded, {failed} failed, {skipped} skipped"
       },
       "title": "Records",
       "actions": {
         "reclassify": "Classify missing",
         "refresh": "Refresh",
-        "depth": "Generate depth map"
+        "depth": "Generate depth map",
+        "depthBatch": "Generate missing depth maps ({count})"
       },
       "section": {
         "title": "Data overview"
