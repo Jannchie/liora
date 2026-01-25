@@ -251,6 +251,15 @@ float easePow(float value, float power) {
   return pow(t, p);
 }
 
+float easeInOutPow(float value, float power) {
+  float t = clamp(value, 0.0, 1.0);
+  float p = max(0.01, power);
+  if (t < 0.5) {
+    return 0.5 * pow(2.0 * t, p);
+  }
+  return 1.0 - 0.5 * pow(2.0 * (1.0 - t), p);
+}
+
 float easeSignedPow(float value, float power) {
   float t = clamp(value, 0.0, 1.0);
   float p = abs(power);
@@ -351,7 +360,7 @@ void main() {
 
   float depthProgress = 1.0;
   if (uUseDepth > 0.5) {
-    float depthCurve = easePow(depth, uDepthCurvePower);
+    float depthCurve = easeInOutPow(depth, uDepthCurvePower);
     depthProgress =
       clamp((uDepthProgress - depthCurve * uDepthDelay) / depthDenom, 0.0, 1.0);
   }
