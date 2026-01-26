@@ -1,6 +1,6 @@
 import type { MaybeRefOrGetter } from 'vue'
-import { useSeoMeta } from '#imports'
-import { computed, toValue } from 'vue'
+import { defineOgImageComponent, useSeoMeta } from '#imports'
+import { computed, toValue, watchEffect } from 'vue'
 
 interface PageSeoImageOptions {
   title?: MaybeRefOrGetter<string>
