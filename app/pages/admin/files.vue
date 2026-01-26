@@ -280,6 +280,12 @@ function formatDateTime(value: string): string {
   return date.toLocaleString()
 }
 
+const editCaptureTimeLocal = ref<string>('')
+const editingFile = ref<FileResponse | null>(null)
+const editModalOpen = ref(false)
+const updating = ref(false)
+const replaceFile = ref<File | null>(null)
+
 async function uploadDepthMap(file: FileResponse): Promise<void> {
   const imageUrl = file.imageUrl?.trim() ?? ''
   if (!imageUrl) {
@@ -429,11 +435,6 @@ const editFormModel = computed<EditableForm>({
   },
 })
 
-const editCaptureTimeLocal = ref<string>('')
-const editingFile = ref<FileResponse | null>(null)
-const editModalOpen = ref(false)
-const updating = ref(false)
-const replaceFile = ref<File | null>(null)
 function resetEditForm(): void {
   editForm.title = ''
   editForm.description = ''
