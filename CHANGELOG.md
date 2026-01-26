@@ -1,3 +1,21 @@
+## v0.22.0
+
+[v0.21.1...v0.22.0](https://github.com/Jannchie/liora/compare/v0.21.1...v0.22.0)
+
+### :sparkles: Features
+
+- **files**: add batch depth generation progress UI && enable webgpu provider configuration - By [Jannchie](mailto:jannchie@gmail.com) in [1f5e3f4](https://github.com/Jannchie/liora/commit/1f5e3f4)
+- **overlay**: add overlay session tracking && make image load cancel-safe - By [Jannchie](mailto:jannchie@gmail.com) in [6cfc427](https://github.com/Jannchie/liora/commit/6cfc427)
+- **uploads**: add presigned uploads and live-photo sharing - By [Jannchie](mailto:jannchie@gmail.com) in [9f806b6](https://github.com/Jannchie/liora/commit/9f806b6)
+
+### :art: Refactors
+
+- **admin-files**: move edit modal state declarations earlier - By [Jannchie](mailto:jannchie@gmail.com) in [31b1ac6](https://github.com/Jannchie/liora/commit/31b1ac6)
+
+### :wrench: Chores
+
+- **deps**: bump dependency versions - By [Jannchie](mailto:jannchie@gmail.com) in [31a6501](https://github.com/Jannchie/liora/commit/31a6501)
+
 ## v0.21.1
 
 [v0.21.0...v0.21.1](https://github.com/Jannchie/liora/compare/v0.21.0...v0.21.1)
