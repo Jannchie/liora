@@ -42,6 +42,9 @@ export interface FileMetadata {
   uploadId?: string
   livePhotoVideoUrl?: string
   livePhotoStillTime?: number
+  livePhotoShareImageUrl?: string
+  livePhotoShareVideoUrl?: string
+  livePhotoShareContentId?: string
   depthMapUrl?: string
   depthMapWidth?: number
   depthMapHeight?: number

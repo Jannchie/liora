@@ -822,7 +822,11 @@ watch(fetchError, (value) => {
       @close="closeEdit"
       @generate-depth="handleGenerateDepthFromEdit"
     />
-    <UModal v-model:open="deleteModalOpen">
+    <UModal
+      v-model:open="deleteModalOpen"
+      :title="t('admin.files.delete.heading')"
+      :description="t('admin.files.delete.description')"
+    >
       <template #content>
         <div class="w-full max-w-xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
           <div class="flex items-start justify-between">

@@ -11,7 +11,7 @@ import { requireAdmin } from '../utils/auth'
 import { db, files } from '../utils/db'
 import { joinCharacters } from '../utils/file-mapper'
 import { computeHistogram } from '../utils/histogram'
-import { requireS3Config, uploadBufferToS3 } from '../utils/s3'
+import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, requireS3Config, uploadBufferToS3 } from '../utils/s3'
 import { setUploadStatus } from '../utils/upload-status'
 
 interface MultipartEntry {
@@ -25,6 +25,43 @@ interface ParsedForm {
   image: MultipartEntry
   video?: MultipartEntry
   fields: Record<string, string>
+}
+
+interface DirectUploadBody {
+  imageKey?: string
+  imageContentType?: string
+  videoKey?: string
+  videoContentType?: string
+  originalName?: string
+  title?: string
+  description?: string
+  genre?: string
+  fanworkTitle?: string
+  characters?: string[] | string
+  location?: string
+  locationName?: string
+  latitude?: number | null
+  longitude?: number | null
+  cameraModel?: string
+  lensModel?: string
+  aperture?: string
+  focalLength?: string
+  iso?: string
+  shutterSpeed?: string
+  exposureBias?: string
+  exposureProgram?: string
+  exposureMode?: string
+  meteringMode?: string
+  whiteBalance?: string
+  flash?: string
+  colorSpace?: string
+  resolutionX?: string
+  resolutionY?: string
+  resolutionUnit?: string
+  software?: string
+  captureTime?: string
+  notes?: string
+  livePhotoStillTime?: number
 }
 
 const MAX_FILE_SIZE_BYTES = 60 * 1024 * 1024
@@ -108,7 +145,10 @@ const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
 
 const computeSha256 = (data: Buffer): string => createHash('sha256').update(data).digest('hex')
 
-function parseCharacters(raw: string | undefined): string[] {
+function parseCharacters(raw: string | string[] | undefined): string[] {
+  if (Array.isArray(raw)) {
+    return raw.map(value => value.trim()).filter(value => value.length > 0)
+  }
   return (raw ?? '')
     .split(/[,，\n]/)
     .map(value => value.trim())
@@ -272,6 +312,11 @@ function validateLengths(payload: {
   assertLength(joinedCharacters, LENGTH_LIMITS.characterList.max, LENGTH_LIMITS.characterList.label)
 }
 
+function isMultipartRequest(event: H3Event): boolean {
+  const contentType = event.node.req.headers['content-type'] ?? ''
+  return contentType.includes('multipart/form-data')
+}
+
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   const form = await readMultipartFormData(event)
   if (!form) {
@@ -314,6 +359,88 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   }
 
   return { image: imageEntry, video: videoEntry, fields }
+}
+
+function assertKey(value: string | undefined, label: string): string {
+  const trimmed = value?.trim() ?? ''
+  if (!trimmed) {
+    throw createError({ statusCode: 400, statusMessage: `${label} is required.` })
+  }
+  if (trimmed.includes('..') || trimmed.includes('\\') || trimmed.startsWith('/')) {
+    throw createError({ statusCode: 400, statusMessage: `${label} is invalid.` })
+  }
+  return trimmed
+}
+
+function toFieldString(value: string | number | null | undefined): string {
+  if (value === undefined || value === null) {
+    return ''
+  }
+  return String(value)
+}
+
+function stringifyCharacters(value: string[] | string | undefined): string {
+  if (Array.isArray(value)) {
+    return value.join(', ')
+  }
+  return value ?? ''
+}
+
+function parseDirectBody(body: DirectUploadBody | undefined): {
+  imageKey: string
+  imageContentType?: string
+  videoKey?: string
+  videoContentType?: string
+  originalName: string
+  fields: Record<string, string>
+} {
+  if (!body || typeof body !== 'object') {
+    throw createError({ statusCode: 400, statusMessage: 'Request body is required.' })
+  }
+  const imageKey = assertKey(body.imageKey, 'imageKey')
+  const videoKey = body.videoKey ? assertKey(body.videoKey, 'videoKey') : undefined
+  const originalName = body.originalName?.trim() || basename(imageKey)
+  const imageContentType = body.imageContentType?.trim() || undefined
+  const videoContentType = body.videoContentType?.trim() || undefined
+  const fields: Record<string, string> = {
+    title: toFieldString(body.title),
+    description: toFieldString(body.description),
+    genre: toFieldString(body.genre),
+    fanworkTitle: toFieldString(body.fanworkTitle),
+    characters: stringifyCharacters(body.characters),
+    location: toFieldString(body.location),
+    locationName: toFieldString(body.locationName),
+    latitude: toFieldString(body.latitude),
+    longitude: toFieldString(body.longitude),
+    cameraModel: toFieldString(body.cameraModel),
+    lensModel: toFieldString(body.lensModel),
+    aperture: toFieldString(body.aperture),
+    focalLength: toFieldString(body.focalLength),
+    iso: toFieldString(body.iso),
+    shutterSpeed: toFieldString(body.shutterSpeed),
+    exposureBias: toFieldString(body.exposureBias),
+    exposureProgram: toFieldString(body.exposureProgram),
+    exposureMode: toFieldString(body.exposureMode),
+    meteringMode: toFieldString(body.meteringMode),
+    whiteBalance: toFieldString(body.whiteBalance),
+    flash: toFieldString(body.flash),
+    colorSpace: toFieldString(body.colorSpace),
+    resolutionX: toFieldString(body.resolutionX),
+    resolutionY: toFieldString(body.resolutionY),
+    resolutionUnit: toFieldString(body.resolutionUnit),
+    software: toFieldString(body.software),
+    captureTime: toFieldString(body.captureTime),
+    notes: toFieldString(body.notes),
+    livePhotoStillTime: toFieldString(body.livePhotoStillTime),
+  }
+  return {
+    imageKey,
+    imageContentType,
+    videoKey,
+    videoContentType,
+    originalName,
+    fields,
+  }
 }
 
 function normalizeExt(filename: string | undefined): string {
@@ -453,17 +580,27 @@ async function runMetadataPostProcessing(
   return status
 }
 
-interface UploadJobPayload {
+interface MultipartUploadJobPayload {
   image: MultipartEntry
   video?: MultipartEntry
   fields: Record<string, string>
   storageConfig: S3Config
   uploadId: string
-  sha256: string
 }
 
-async function processUploadJob(payload: UploadJobPayload): Promise<void> {
-  const { image, video, fields, storageConfig, uploadId, sha256 } = payload
+interface DirectUploadJobPayload {
+  imageKey: string
+  imageContentType?: string
+  videoKey?: string
+  videoContentType?: string
+  originalName: string
+  fields: Record<string, string>
+  storageConfig: S3Config
+  uploadId: string
+}
+
+async function processMultipartUpload(payload: MultipartUploadJobPayload): Promise<void> {
+  const { image, video, fields, storageConfig, uploadId } = payload
   try {
     const { width, height, contentType } = await validateImage(image)
     const characters = parseCharacters(fields.characters)
@@ -472,7 +609,7 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
     metadata.cameraModel = deduped.cameraModel
     metadata.lensModel = deduped.lensModel
     metadata.fileSize = image.data.length
-    metadata.sha256 = sha256
+    metadata.sha256 = computeSha256(image.data)
     metadata.processingStatus = 'processing'
     metadata.uploadId = uploadId
     const normalizedTitle = normalizeText(fields.title)
@@ -532,32 +669,168 @@ async function processUploadJob(payload: UploadJobPayload): Promise<void> {
   }
 }
 
-function startBackgroundUpload(payload: UploadJobPayload): void {
+async function processDirectUpload(payload: DirectUploadJobPayload): Promise<void> {
+  const {
+    imageKey,
+    imageContentType,
+    videoKey,
+    originalName,
+    fields,
+    storageConfig,
+    uploadId,
+  } = payload
+  try {
+    const { buffer, contentType, contentLength } = await downloadObjectFromS3({
+      key: imageKey,
+      config: storageConfig,
+    })
+    if (contentLength && contentLength > MAX_FILE_SIZE_BYTES) {
+      throw createError({
+        statusCode: 413,
+        statusMessage: `Image exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+      })
+    }
+    if (buffer.length > MAX_FILE_SIZE_BYTES) {
+      throw createError({
+        statusCode: 413,
+        statusMessage: `Image exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+      })
+    }
+    const image: MultipartEntry = {
+      name: 'image',
+      filename: originalName,
+      type: imageContentType ?? contentType,
+      data: buffer,
+    }
+    const { width, height } = await validateImage(image)
+    const characters = parseCharacters(fields.characters)
+    const metadata = buildMetadata(fields, characters)
+    const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
+    metadata.cameraModel = deduped.cameraModel
+    metadata.lensModel = deduped.lensModel
+    metadata.fileSize = buffer.length
+    metadata.sha256 = computeSha256(buffer)
+    metadata.processingStatus = 'processing'
+    metadata.uploadId = uploadId
+    const normalizedTitle = normalizeText(fields.title)
+    const normalizedDescription = normalizeText(fields.description)
+    const normalizedGenre = normalizeText(fields.genre)
+    validateLengths({
+      title: normalizedTitle,
+      description: normalizedDescription,
+      genre: normalizedGenre,
+      metadata,
+      characters,
+      originalName,
+    })
+    if (videoKey) {
+      const { contentLength } = await headObjectFromS3({
+        key: videoKey,
+        config: storageConfig,
+      })
+      if (contentLength && contentLength > MAX_FILE_SIZE_BYTES) {
+        throw createError({
+          statusCode: 413,
+          statusMessage: `Video exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+        })
+      }
+    }
+    const imageUrl = buildPublicUrl(storageConfig, imageKey)
+    if (videoKey) {
+      metadata.livePhotoVideoUrl = buildPublicUrl(storageConfig, videoKey)
+    }
+
+    const [created] = await db
+      .insert(files)
+      .values({
+        title: normalizedTitle,
+        description: normalizedDescription,
+        originalName,
+        imageUrl,
+        width,
+        height,
+        fanworkTitle: metadata.fanworkTitle,
+        characterList: joinCharacters(characters),
+        location: metadata.location,
+        locationName: metadata.locationName,
+        latitude: metadata.latitude,
+        longitude: metadata.longitude,
+        cameraModel: metadata.cameraModel,
+        aperture: metadata.aperture,
+        focalLength: metadata.focalLength,
+        iso: metadata.iso,
+        shutterSpeed: metadata.shutterSpeed,
+        captureTime: metadata.captureTime,
+        metadata: JSON.stringify(metadata),
+        genre: normalizedGenre,
+      })
+      .returning()
+
+    if (!created) {
+      throw new Error('Failed to create file record.')
+    }
+
+    const status = await runMetadataPostProcessing(created.id, buffer, metadata, uploadId)
+    setUploadStatus(uploadId, status)
+  }
+  catch (error) {
+    setUploadStatus(uploadId, 'failed')
+    console.error('Async upload job failed:', error)
+  }
+}
+
+function startBackgroundUpload(task: () => Promise<void>): void {
   setTimeout(() => {
-    void processUploadJob(payload)
+    void task()
   }, 0)
 }
 
 export default defineEventHandler(async (event): Promise<{ accepted: true, uploadId: string }> => {
   requireAdmin(event)
-  const { image, video, fields } = await parseMultipart(event)
-  if (image.data.length > MAX_FILE_SIZE_BYTES) {
-    throw createError({
-      statusCode: 413,
-      statusMessage: `Image exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
-    })
-  }
-  if (video && video.data.length > MAX_FILE_SIZE_BYTES) {
-    throw createError({
-      statusCode: 413,
-      statusMessage: `Video exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
-    })
-  }
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
-  const uploadId = randomUUID()
-  const sha256 = computeSha256(image.data)
-  setUploadStatus(uploadId, 'processing')
-  startBackgroundUpload({ image, video, fields, storageConfig, uploadId, sha256 })
+  let uploadId = ''
+
+  if (isMultipartRequest(event)) {
+    const { image, video, fields } = await parseMultipart(event)
+    if (image.data.length > MAX_FILE_SIZE_BYTES) {
+      throw createError({
+        statusCode: 413,
+        statusMessage: `Image exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+      })
+    }
+    if (video && video.data.length > MAX_FILE_SIZE_BYTES) {
+      throw createError({
+        statusCode: 413,
+        statusMessage: `Video exceeds the maximum size of ${Math.floor(MAX_FILE_SIZE_BYTES / (1024 * 1024))}MB.`,
+      })
+    }
+    uploadId = randomUUID()
+    setUploadStatus(uploadId, 'processing')
+    startBackgroundUpload(() => processMultipartUpload({
+      image,
+      video,
+      fields,
+      storageConfig,
+      uploadId,
+    }))
+  }
+  else {
+    const body = await readBody<DirectUploadBody>(event)
+    const parsed = parseDirectBody(body)
+    uploadId = randomUUID()
+    setUploadStatus(uploadId, 'processing')
+    startBackgroundUpload(() => processDirectUpload({
+      imageKey: parsed.imageKey,
+      imageContentType: parsed.imageContentType,
+      videoKey: parsed.videoKey,
+      videoContentType: parsed.videoContentType,
+      originalName: parsed.originalName,
+      fields: parsed.fields,
+      storageConfig,
+      uploadId,
+    }))
+  }
+
   event.node.res.statusCode = 202
   return { accepted: true, uploadId }
 })

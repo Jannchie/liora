@@ -1,11 +1,12 @@
-import { randomUUID } from 'node:crypto'
+import type { H3Event } from 'h3'
 import { createReadStream } from 'node:fs'
+import { Readable } from 'node:stream'
 import { eq } from 'drizzle-orm'
-import { createError, getQuery, getRouterParam, sendStream, setHeader } from 'h3'
+import { createError, getRouterParam, sendStream, setHeader } from 'h3'
 import { db, files } from '../../../../utils/db'
-import { createLivePhotoImage, resolveBaseName } from '../../../../utils/live-photo'
-
-type QueryValue = string | string[] | undefined
+import { resolveBaseName } from '../../../../utils/live-photo'
+import { createLivePhotoShareAssets } from '../../../../utils/live-photo-share'
+import { downloadObjectFromS3, extractKeyFromPublicUrl, requireS3Config } from '../../../../utils/s3'
 
 function parseId(value: string | undefined): number {
   const parsed = Number(value)
@@ -15,27 +16,53 @@ function parseId(value: string | undefined): number {
   return parsed
 }
 
-function parseContentId(value: QueryValue): string {
-  const resolved = Array.isArray(value) ? value.find(item => item.trim().length > 0) : value
-  const trimmed = resolved?.trim() ?? ''
-  return trimmed.length > 0 ? trimmed : randomUUID()
-}
-
-function parseMetadata(raw: string): { livePhotoVideoUrl?: string } {
+function parseMetadata(raw: string): {
+  parsed: Record<string, unknown>
+  livePhotoVideoUrl?: string
+  livePhotoStillTime: number
+  shareImageUrl?: string
+  shareVideoUrl?: string
+  shareContentId?: string
+} {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>
     const livePhotoVideoUrl = typeof parsed.livePhotoVideoUrl === 'string' ? parsed.livePhotoVideoUrl : undefined
-    return { livePhotoVideoUrl }
+    const stillTimeRaw = typeof parsed.livePhotoStillTime === 'number'
+      ? parsed.livePhotoStillTime
+      : Number(parsed.livePhotoStillTime)
+    const livePhotoStillTime = Number.isFinite(stillTimeRaw) && stillTimeRaw >= 0 ? stillTimeRaw : 0
+    const shareImageUrl = typeof parsed.livePhotoShareImageUrl === 'string' ? parsed.livePhotoShareImageUrl : undefined
+    const shareVideoUrl = typeof parsed.livePhotoShareVideoUrl === 'string' ? parsed.livePhotoShareVideoUrl : undefined
+    const shareContentId = typeof parsed.livePhotoShareContentId === 'string' ? parsed.livePhotoShareContentId : undefined
+    return {
+      parsed,
+      livePhotoVideoUrl,
+      livePhotoStillTime,
+      shareImageUrl,
+      shareVideoUrl,
+      shareContentId,
+    }
   }
   catch {
-    return {}
+    return { parsed: {}, livePhotoStillTime: 0 }
   }
+}
+
+async function streamFromS3(event: H3Event, url: string, contentType: string, filename: string): Promise<unknown> {
+  const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
+  const key = extractKeyFromPublicUrl(storageConfig, url)
+  if (!key) {
+    throw createError({ statusCode: 500, statusMessage: 'Invalid cached live photo URL.' })
+  }
+  const { buffer } = await downloadObjectFromS3({ key, config: storageConfig })
+  setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
+  setHeader(event, 'Content-Type', contentType)
+  setHeader(event, 'Content-Disposition', `attachment; filename="${filename}"`)
+  return sendStream(event, Readable.from(buffer))
 }
 
 export default defineEventHandler(async (event) => {
   const id = parseId(getRouterParam(event, 'id'))
-  const query = getQuery(event)
-  const contentId = parseContentId(query.contentId as QueryValue)
 
   const file = await db.query.files.findFirst({
     where: eq(files.id, id),
@@ -44,23 +71,47 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 404, statusMessage: 'File not found.' })
   }
 
-  const { livePhotoVideoUrl } = parseMetadata(file.metadata)
-  if (!livePhotoVideoUrl || livePhotoVideoUrl.trim().length === 0) {
+  const metadata = parseMetadata(file.metadata)
+  if (!metadata.livePhotoVideoUrl || metadata.livePhotoVideoUrl.trim().length === 0) {
     throw createError({ statusCode: 404, statusMessage: 'Live photo not available.' })
   }
 
   const baseName = resolveBaseName(file.title || file.originalName || `live-photo-${file.id}`)
-  const asset = await createLivePhotoImage(file.imageUrl, contentId, baseName)
+  const imageFileName = `${baseName}.jpg`
+
+  if (metadata.shareImageUrl && metadata.shareVideoUrl) {
+    return streamFromS3(event, metadata.shareImageUrl, 'image/jpeg', imageFileName)
+  }
+
+  const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
+  const assets = await createLivePhotoShareAssets({
+    file,
+    livePhotoVideoUrl: metadata.livePhotoVideoUrl,
+    livePhotoStillTime: metadata.livePhotoStillTime,
+    contentId: metadata.shareContentId,
+    config: storageConfig,
+  })
+
+  const nextMetadata = {
+    ...metadata.parsed,
+    livePhotoShareImageUrl: assets.imageUrl,
+    livePhotoShareVideoUrl: assets.videoUrl,
+    livePhotoShareContentId: assets.contentId,
+  }
+  await db
+    .update(files)
+    .set({ metadata: JSON.stringify(nextMetadata) })
+    .where(eq(files.id, id))
 
   event.node.res.once('close', () => {
-    void asset.cleanup()
+    void assets.cleanup()
   })
   event.node.res.once('finish', () => {
-    void asset.cleanup()
+    void assets.cleanup()
   })
 
-  setHeader(event, 'Cache-Control', 'no-store')
+  setHeader(event, 'Cache-Control', 'public, max-age=31536000, immutable')
   setHeader(event, 'Content-Type', 'image/jpeg')
-  setHeader(event, 'Content-Disposition', `attachment; filename="${asset.fileName}"`)
-  return sendStream(event, createReadStream(asset.filePath))
+  setHeader(event, 'Content-Disposition', `attachment; filename="${imageFileName}"`)
+  return sendStream(event, createReadStream(assets.imagePath))
 })

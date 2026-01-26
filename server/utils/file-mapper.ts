@@ -38,6 +38,15 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const parsedDepthMapHeight = typeof parsed.depthMapHeight === 'number'
     ? parsed.depthMapHeight
     : Number(parsed.depthMapHeight)
+  const parsedShareImageUrl = typeof parsed.livePhotoShareImageUrl === 'string'
+    ? parsed.livePhotoShareImageUrl
+    : undefined
+  const parsedShareVideoUrl = typeof parsed.livePhotoShareVideoUrl === 'string'
+    ? parsed.livePhotoShareVideoUrl
+    : undefined
+  const parsedShareContentId = typeof parsed.livePhotoShareContentId === 'string'
+    ? parsed.livePhotoShareContentId
+    : undefined
   const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
     ? parsedLivePhotoStillTime
     : fallbacks.livePhotoStillTime
@@ -82,6 +91,9 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     uploadId: parsed.uploadId ?? fallbacks.uploadId,
     livePhotoVideoUrl: parsedLivePhotoVideoUrl ?? fallbacks.livePhotoVideoUrl,
     livePhotoStillTime,
+    livePhotoShareImageUrl: parsedShareImageUrl ?? fallbacks.livePhotoShareImageUrl,
+    livePhotoShareVideoUrl: parsedShareVideoUrl ?? fallbacks.livePhotoShareVideoUrl,
+    livePhotoShareContentId: parsedShareContentId ?? fallbacks.livePhotoShareContentId,
     depthMapUrl: parsedDepthMapUrl ?? fallbacks.depthMapUrl,
     depthMapWidth,
     depthMapHeight,
@@ -125,6 +137,9 @@ export function toFileResponse(file: FileRow): FileResponse {
     uploadId: '',
     livePhotoVideoUrl: '',
     livePhotoStillTime: undefined,
+    livePhotoShareImageUrl: undefined,
+    livePhotoShareVideoUrl: undefined,
+    livePhotoShareContentId: undefined,
     depthMapUrl: undefined,
     depthMapWidth: undefined,
     depthMapHeight: undefined,

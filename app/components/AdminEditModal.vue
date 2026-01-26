@@ -184,6 +184,8 @@ async function handleReplaceChange(event: Event): Promise<void> {
     v-model:open="open"
     fullscreen
     scrollable
+    :title="t('admin.files.editModal.fallbackTitle')"
+    :description="file?.title || t('common.labels.untitled')"
     :ui="{ content: 'fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!' }"
   >
     <template #content>

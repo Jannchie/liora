@@ -18,6 +18,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.2",
     "@aws-sdk/client-s3": "^3.958.0",
+    "@aws-sdk/s3-request-presigner": "^3.975.0",
     "@libsql/client": "^0.15.15",
     "@nuxt/eslint": "1.12.1",
     "@nuxt/hints": "1.0.0-alpha.5",

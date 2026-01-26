@@ -392,18 +392,13 @@ async function prepareLivePhotoShareAssets(file: ResolvedFile): Promise<void> {
   livePhotoShareAbortController.value = controller
   preparingLivePhotoShare.value = true
   try {
-    const contentId = typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(16).slice(2)}`
     const baseName = resolveShareBaseName(file)
-    const [imageResponse, videoResponse] = await Promise.all([
-      fetch(`/api/files/${file.id}/live-photo/image?contentId=${encodeURIComponent(contentId)}`, {
-        signal: controller.signal,
-      }),
-      fetch(`/api/files/${file.id}/live-photo/video?contentId=${encodeURIComponent(contentId)}`, {
-        signal: controller.signal,
-      }),
-    ])
+    const imageResponse = await fetch(`/api/files/${file.id}/live-photo/image`, {
+      signal: controller.signal,
+    })
+    const videoResponse = await fetch(`/api/files/${file.id}/live-photo/video`, {
+      signal: controller.signal,
+    })
     if (!imageResponse.ok || !videoResponse.ok) {
       throw new Error('Failed to prepare live photo files.')
     }

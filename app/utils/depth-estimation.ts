@@ -23,7 +23,8 @@ let transformersPromise: Promise<TransformersModule> | null = null
 let pipelinePromise: Promise<DepthEstimationPipeline> | null = null
 let worker: Worker | null = null
 let workerRequestId = 0
-let webGpuConfigured = false
+let gpuExecutionProviderConfigured = false
+let gpuExecutionProvider: 'webgpu' | 'webgl' | null = null
 const workerResolvers = new Map<number, {
   resolve: (value: DepthEstimateResult) => void
   reject: (error: Error) => void
@@ -53,31 +54,63 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every(item => typeof item === 'string')
 }
 
-async function configureWebGpuExecutionProvider(): Promise<void> {
-  if (webGpuConfigured) {
-    return
+function supportsWebGpu(): boolean {
+  return globalThis.navigator !== undefined && 'gpu' in globalThis.navigator
+}
+
+function supportsWebGl(): boolean {
+  if (typeof document !== 'undefined') {
+    const canvas = document.createElement('canvas')
+    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
   }
-  webGpuConfigured = true
-  const supportsWebGpu = globalThis.navigator !== undefined && 'gpu' in globalThis.navigator
-  if (!supportsWebGpu) {
-    return
+  if (typeof OffscreenCanvas !== 'undefined') {
+    const canvas = new OffscreenCanvas(1, 1)
+    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+  }
+  return false
+}
+
+async function configureGpuExecutionProvider(): Promise<'webgpu' | 'webgl' | null> {
+  if (gpuExecutionProviderConfigured) {
+    return gpuExecutionProvider
+  }
+  gpuExecutionProviderConfigured = true
+  if (globalThis.navigator === undefined) {
+    return gpuExecutionProvider
   }
   try {
     const onnxBackend: unknown = await import('@xenova/transformers/src/backends/onnx.js')
     if (typeof onnxBackend !== 'object' || onnxBackend === null) {
-      return
+      return gpuExecutionProvider
     }
-    const providers = (onnxBackend as { executionProviders?: unknown }).executionProviders
+    const onnxModule = onnxBackend as {
+      executionProviders?: unknown
+      ONNX?: { env?: Record<string, unknown> }
+    }
+    const onnxEnv = onnxModule.ONNX?.env
+    const providers = onnxModule.executionProviders
     if (!isStringArray(providers)) {
-      return
+      return gpuExecutionProvider
     }
-    if (!providers.includes('webgpu')) {
+    const canUseWebGpu = supportsWebGpu() && !!onnxEnv && Object.prototype.hasOwnProperty.call(onnxEnv, 'webgpu')
+    const canUseWebGl = supportsWebGl() && !!onnxEnv && Object.prototype.hasOwnProperty.call(onnxEnv, 'webgl')
+    if (canUseWebGl && !providers.includes('webgl')) {
+      providers.unshift('webgl')
+    }
+    if (canUseWebGpu && !providers.includes('webgpu')) {
       providers.unshift('webgpu')
+    }
+    if (canUseWebGpu) {
+      gpuExecutionProvider = 'webgpu'
+    }
+    else if (canUseWebGl) {
+      gpuExecutionProvider = 'webgl'
     }
   }
   catch {
     // Ignore and fall back to wasm.
   }
+  return gpuExecutionProvider
 }
 
 function resetWorkerWithError(error: Error): void {
@@ -138,7 +171,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
       const { env, pipeline } = await loadTransformers()
-      await configureWebGpuExecutionProvider()
+      await configureGpuExecutionProvider()
       env.allowRemoteModels = true
       env.allowLocalModels = false
       env.useBrowserCache = true
@@ -227,6 +260,22 @@ export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstim
     throw new Error('Image URL is required.')
   }
   const scaleFactor = parseScaleFactor(options.scaleFactor)
+  const preferredProvider = await configureGpuExecutionProvider()
+  if (preferredProvider) {
+    try {
+      return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
+    }
+    catch (error) {
+      const fallbackWorker = getDepthWorker()
+      if (fallbackWorker) {
+        return await estimateDepthInWorker(trimmedUrl, scaleFactor)
+      }
+      if (error instanceof Error) {
+        throw error
+      }
+      throw new Error('Depth estimation failed.')
+    }
+  }
   const depthWorker = getDepthWorker()
   if (depthWorker) {
     try {
