@@ -1,3 +1,12 @@
+## v0.23.0
+
+[v0.22.0...v0.23.0](https://github.com/Jannchie/liora/compare/v0.22.0...v0.23.0)
+
+### :sparkles: Features
+
+- **composables**: inject nuxt composables and i18n/runtime helpers - By [Jannchie](mailto:jannchie@gmail.com) in [04fd9f7](https://github.com/Jannchie/liora/commit/04fd9f7)
+- **overlay**: load resized overlay images on mobile - By [Jannchie](mailto:jannchie@gmail.com) in [af3cb06](https://github.com/Jannchie/liora/commit/af3cb06)
+
 ## v0.22.0
 
 [v0.21.1...v0.22.0](https://github.com/Jannchie/liora/compare/v0.21.1...v0.22.0)
