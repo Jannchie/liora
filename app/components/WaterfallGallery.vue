@@ -97,6 +97,7 @@ const overlayPan = ref<{
   x: number
   y: number
 }>({ x: 0, y: 0 })
+const overlayMobileScale = 2
 const overlayZoomMax = 5
 const overlayZoomStep = 0.2
 const overlayZoomEpsilon = 0.001
@@ -506,6 +507,83 @@ function normalizeImageSize(value: number): number {
     return 1
   }
   return Math.max(1, Math.round(value))
+}
+
+function resolveOverlayContainerSize(): { width: number, height: number } {
+  const measuredWidth = overlayViewerSize.value.width
+  const measuredHeight = overlayViewerSize.value.height
+  if (measuredWidth > 0 && measuredHeight > 0) {
+    return { width: measuredWidth, height: measuredHeight }
+  }
+  if (globalThis.window === undefined) {
+    return { width: 0, height: 0 }
+  }
+  const fallbackWidth = window.innerWidth || document.documentElement?.clientWidth || 0
+  const fallbackHeight = window.innerHeight || document.documentElement?.clientHeight || 0
+  return {
+    width: Number.isFinite(fallbackWidth) ? fallbackWidth : 0,
+    height: Number.isFinite(fallbackHeight) ? fallbackHeight : 0,
+  }
+}
+
+function resolveOverlayDisplaySize(file: ResolvedFile): { width: number, height: number } | null {
+  const container = resolveOverlayContainerSize()
+  if (container.width <= 0 || container.height <= 0) {
+    return null
+  }
+  const imageWidth = Number.isFinite(file.width) && file.width > 0 ? file.width : 0
+  const imageHeight = Number.isFinite(file.height) && file.height > 0 ? file.height : 0
+  if (imageWidth <= 0 || imageHeight <= 0) {
+    return { width: container.width, height: container.height }
+  }
+  const containerRatio = container.width / container.height
+  const imageRatio = imageWidth / imageHeight
+  if (!Number.isFinite(containerRatio) || containerRatio <= 0 || !Number.isFinite(imageRatio) || imageRatio <= 0) {
+    return { width: container.width, height: container.height }
+  }
+  if (imageRatio >= containerRatio) {
+    const width = container.width
+    const height = Math.round(container.width / imageRatio)
+    return { width, height }
+  }
+  const height = container.height
+  const width = Math.round(container.height * imageRatio)
+  return { width, height }
+}
+
+function resolveOverlayTargetWidth(file: ResolvedFile, scale: number): number | null {
+  const displaySize = resolveOverlayDisplaySize(file)
+  if (!displaySize) {
+    return null
+  }
+  const scaledWidth = normalizeImageSize(displaySize.width * scale)
+  const maxWidth = Number.isFinite(file.width) && file.width > 0 ? Math.round(file.width) : null
+  if (maxWidth && maxWidth > 0) {
+    return Math.min(maxWidth, scaledWidth)
+  }
+  return scaledWidth
+}
+
+function resolveOverlayFullImageSrc(source: string | null | undefined, targetWidth: number | null): string {
+  const normalized = source?.trim() ?? ''
+  if (!normalized) {
+    return ''
+  }
+  if (normalized.startsWith('data:') || normalized.startsWith('blob:')) {
+    return normalized
+  }
+  if (targetWidth && targetWidth > 0) {
+    const resized = image.getImage(normalized, {
+      modifiers: {
+        width: targetWidth,
+        fit: 'inside',
+      },
+    })
+    if (resized?.url) {
+      return resized.url
+    }
+  }
+  return resolveCorsSafeUrl(normalized) ?? normalized
 }
 
 function resolveImageAttrs(src: string, displaySize: DisplaySize, fit: 'cover' | 'inside' = 'inside'): ImageAttrs {
@@ -2270,10 +2348,10 @@ function startOverlayImageLoad(
   revokeOverlayObjectUrl()
   resetOverlayDownload()
   overlayImageLoader.value = null
-  const skipFullLoad = isSmallScreen.value
   const previewSrc = file.previewAttrs?.src || file.previewUrl || file.coverUrl || file.imageUrl
   const rawFullImageSrc = file.imageUrl || previewSrc
-  const fullImageSrc = resolveCorsSafeUrl(rawFullImageSrc) ?? rawFullImageSrc
+  const targetWidth = isSmallScreen.value ? resolveOverlayTargetWidth(file, overlayMobileScale) : null
+  const fullImageSrc = resolveOverlayFullImageSrc(rawFullImageSrc, targetWidth)
   const firstAvailable = [
     immediateSrc,
     file.placeholder,
@@ -2302,9 +2380,6 @@ function startOverlayImageLoad(
 
   const startFullLoad = async (): Promise<void> => {
     if (!isSessionActive()) {
-      return
-    }
-    if (skipFullLoad) {
       return
     }
     if (!fullImageSrc) {
@@ -2396,23 +2471,11 @@ function startOverlayImageLoad(
   }
 
   if (!previewSrc || previewSrc === fullImageSrc || previewSrc === overlayImageSrc.value) {
-    if (skipFullLoad) {
-      if (previewSrc && overlayImageSrc.value !== previewSrc) {
-        overlayImageSrc.value = previewSrc
-      }
-      if (previewSrc) {
-        markOverlayDownloadDone(0, null, sessionId)
-      }
-      return
-    }
     void startFullLoad()
     return
   }
 
   if (overlayImageSrc.value && previewSrc === overlayImageSrc.value) {
-    if (skipFullLoad) {
-      return
-    }
     void startFullLoad()
     return
   }
@@ -2434,10 +2497,6 @@ function startOverlayImageLoad(
     }
     overlayImageSrc.value = previewSrc
     overlayImageLoader.value = null
-    if (skipFullLoad) {
-      markOverlayDownloadDone(0, null, sessionId)
-      return
-    }
     void startFullLoad()
   }
   const handlePreviewError = (): void => {
@@ -2445,10 +2504,6 @@ function startOverlayImageLoad(
       return
     }
     overlayImageLoader.value = null
-    if (skipFullLoad) {
-      markOverlayDownloadDone(0, null, sessionId)
-      return
-    }
     void startFullLoad()
   }
   previewLoader.addEventListener('load', handlePreviewLoad)
