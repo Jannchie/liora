@@ -29,6 +29,7 @@ const {
   livePhotoSharing = false,
   livePhotoPreparing = false,
   overlayImageReady = false,
+  previewImageSrc = null,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -53,6 +54,7 @@ const {
   livePhotoSharing?: boolean
   livePhotoPreparing?: boolean
   overlayImageReady?: boolean
+  previewImageSrc?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -86,7 +88,13 @@ const livePhotoVideoUrl = computed<string | undefined>(() => {
 
 const hasLivePhoto = computed<boolean>(() => Boolean(livePhotoVideoUrl.value))
 
-const previewImageSrc = computed<string | null>(() => {
+const resolvedPreviewImageSrc = computed<string | null>(() => {
+  if (typeof previewImageSrc === 'string') {
+    const trimmed = previewImageSrc.trim()
+    if (trimmed.length > 0) {
+      return trimmed
+    }
+  }
   const candidates = [
     file.imageUrl,
     overlayImageSrc,
@@ -153,7 +161,7 @@ const overlayViewerStyle = computed<Record<string, string>>(() => {
 
 const { t } = useI18n()
 
-const canOpenPreview = computed(() => previewEnabled && Boolean(previewImageSrc.value))
+const canOpenPreview = computed(() => previewEnabled && Boolean(resolvedPreviewImageSrc.value))
 const livePhotoLabel = computed(() => (livePhotoPlaying.value ? t('gallery.livePhoto.still') : t('gallery.livePhoto.play')))
 
 const WaterfallHistogramPanel = defineAsyncComponent(() => import('~/components/WaterfallHistogramPanel.vue'))
@@ -517,7 +525,7 @@ function handleLivePhotoEnded(): void {
     </div>
     <WaterfallPreviewOverlay
       v-model:open="previewOpen"
-      :src="previewImageSrc"
+      :src="resolvedPreviewImageSrc"
       :alt="file.displayTitle"
       :width="file.width"
       :height="file.height"

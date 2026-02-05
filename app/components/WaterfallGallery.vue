@@ -97,7 +97,8 @@ const overlayPan = ref<{
   x: number
   y: number
 }>({ x: 0, y: 0 })
-const overlayMobileScale = 2
+const overlayMobileScale = 3
+const overlayPreviewScale = 2
 const overlayZoomMax = 5
 const overlayZoomStep = 0.2
 const overlayZoomEpsilon = 0.001
@@ -122,6 +123,31 @@ const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 const depthProcessing = reactive<Record<number, boolean>>({})
 
 const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done')
+const overlayPreviewSrc = computed<string | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  const original = typeof file.imageUrl === 'string' ? file.imageUrl.trim() : ''
+  if (original.length > 0) {
+    return resolveCorsSafeUrl(original) ?? original
+  }
+  const candidates = [
+    file.previewUrl,
+    file.coverUrl,
+    overlayImageSrc.value,
+  ]
+  const base = candidates.find(value => typeof value === 'string' && value.trim().length > 0)?.trim()
+  if (!base) {
+    return null
+  }
+  if (!isSmallScreen.value) {
+    return base
+  }
+  const targetWidth = resolveOverlayTargetWidth(file, overlayPreviewScale)
+  const resolved = resolveOverlayFullImageSrc(base, targetWidth)
+  return resolved || base
+})
 const overlaySessionId = ref(0)
 
 const fileOverrides = ref<Record<number, FileResponse>>({})
@@ -2601,6 +2627,7 @@ function startOverlayImageLoad(
           :metadata-entries="metadataEntries"
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
+          :preview-image-src="overlayPreviewSrc"
           :preview-enabled="isSmallScreen"
           :overlay-image-ready="overlayImageReady"
           :location="locationPoint"
