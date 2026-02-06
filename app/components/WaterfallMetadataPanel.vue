@@ -5,7 +5,15 @@ import { computed, defineAsyncComponent } from 'vue'
 const props = defineProps<{
   hasMetadata: boolean
   metadataEntries: MetadataEntry[]
+  focusEntry?: MetadataEntry | null
+  cropEntry?: MetadataEntry | null
   exposureEntries: MetadataEntry[]
+  focusIndicatorActive?: boolean
+}>()
+
+const emit = defineEmits<{
+  (event: 'focusHover', value: boolean): void
+  (event: 'focusToggle'): void
 }>()
 
 const BrandIcon = defineAsyncComponent(() => import('~/components/BrandIcon.vue'))
@@ -17,8 +25,19 @@ function isMetadataEntry(value: MetadataEntry | null | undefined): value is Meta
 const { t } = useI18n()
 
 const metadataEntries = computed<MetadataEntry[]>(() => props.metadataEntries)
+const focusEntry = computed<MetadataEntry | null>(() => props.focusEntry ?? null)
+const cropEntry = computed<MetadataEntry | null>(() => props.cropEntry ?? null)
 const exposureEntries = computed<MetadataEntry[]>(() => props.exposureEntries)
 const hasMetadata = computed<boolean>(() => props.hasMetadata)
+const focusIndicatorActive = computed<boolean>(() => props.focusIndicatorActive ?? false)
+
+function handleFocusHover(value: boolean): void {
+  emit('focusHover', value)
+}
+
+function handleFocusToggle(): void {
+  emit('focusToggle')
+}
 
 const primaryExposureLabels = computed(() => ({
   shutterSpeed: t('gallery.metadata.shutterSpeed'),
@@ -55,6 +74,12 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
   const primaryLabels = new Set(Object.values(primaryExposureLabels.value))
   return exposureEntries.value.filter(entry => !primaryLabels.has(entry.label))
 })
+
+const totalEntryCount = computed<number>(() => {
+  const focusCount = focusEntry.value ? 1 : 0
+  const cropCount = cropEntry.value ? 1 : 0
+  return metadataEntries.value.length + exposureEntries.value.length + focusCount + cropCount
+})
 </script>
 
 <template>
@@ -65,7 +90,7 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
         <span>{{ t('gallery.metadata.section') }}</span>
       </div>
       <span class="rounded-full bg-default/60 px-2 py-0.5 text-xs font-semibold text-highlighted ring-1 ring-default/15">
-        {{ metadataEntries.length + exposureEntries.length }}
+        {{ totalEntryCount }}
       </span>
     </div>
     <div v-if="hasMetadata" class="space-y-3 p-3">
@@ -103,10 +128,41 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
           </div>
         </div>
       </div>
-      <div v-if="metadataEntries.length > 0" class="space-y-2">
+      <div v-if="focusEntry || cropEntry || metadataEntries.length > 0" class="space-y-2">
+        <button
+          v-if="focusEntry"
+          type="button"
+          class="grid w-full gap-1 rounded-md bg-default/60 px-2 py-2 text-left ring-1 ring-default/15 transition-colors hover:bg-green-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/60"
+          :class="focusIndicatorActive ? 'bg-green-500/10 ring-green-500/40' : undefined"
+          @mouseenter="handleFocusHover(true)"
+          @mouseleave="handleFocusHover(false)"
+          @focus="handleFocusHover(true)"
+          @blur="handleFocusHover(false)"
+          @click="handleFocusToggle"
+        >
+          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+            <Icon :name="focusEntry.icon" class="h-4 w-4" />
+            <span>{{ focusEntry.label }}</span>
+          </p>
+          <p class="text-sm leading-snug whitespace-pre-line text-highlighted">
+            {{ focusEntry.value }}
+          </p>
+        </button>
+        <div
+          v-if="cropEntry"
+          class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
+        >
+          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+            <Icon :name="cropEntry.icon" class="h-4 w-4" />
+            <span>{{ cropEntry.label }}</span>
+          </p>
+          <p class="text-sm leading-snug whitespace-pre-line text-highlighted">
+            {{ cropEntry.value }}
+          </p>
+        </div>
         <div
           v-for="item in metadataEntries"
-          :key="item.label"
+          :key="item.key ?? item.label"
           class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
           <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">

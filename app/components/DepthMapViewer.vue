@@ -21,6 +21,13 @@ export interface DepthMapViewerExpose {
 
 type DirectionMode = 'bottom-up' | 'top-down' | 'left-right' | 'right-left'
 
+interface FocusBox {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
 interface DepthUniformValue<T> { value: T }
 interface DepthUniforms extends Record<string, DepthUniformValue<unknown>> {
   uImage: DepthUniformValue<Texture | null>
@@ -58,6 +65,7 @@ const props = withDefaults(defineProps<{
   directionMode?: DirectionMode
   invertDepth?: boolean
   autoPlay?: boolean
+  focusBox?: FocusBox | null
 }>(), {
   depthUrl: '',
   placeholderUrl: '',
@@ -71,6 +79,7 @@ const props = withDefaults(defineProps<{
   directionMode: 'bottom-up',
   invertDepth: false,
   autoPlay: true,
+  focusBox: null,
 })
 
 const { t } = useI18n()
@@ -149,6 +158,28 @@ const overlayText = computed(() => {
     return statusMessage.value
   }
   return t('demoDepth.status.waiting')
+})
+
+const focusBoxStyle = computed<Record<string, string> | null>(() => {
+  const focusBox = props.focusBox
+  if (!focusBox) {
+    return null
+  }
+  const left = Math.max(0, Math.min(1, focusBox.left))
+  const top = Math.max(0, Math.min(1, focusBox.top))
+  const right = Math.max(0, Math.min(1, focusBox.left + focusBox.width))
+  const bottom = Math.max(0, Math.min(1, focusBox.top + focusBox.height))
+  const width = right - left
+  const height = bottom - top
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null
+  }
+  return {
+    left: `${(left * 100).toFixed(4)}%`,
+    top: `${(top * 100).toFixed(4)}%`,
+    width: `${(width * 100).toFixed(4)}%`,
+    height: `${(height * 100).toFixed(4)}%`,
+  }
 })
 
 const revealMaskStyle = computed<Record<string, string> | undefined>(() => {
@@ -849,6 +880,12 @@ watch(
       class="absolute inset-0 z-30 flex items-center justify-center text-sm text-muted"
     >
       {{ overlayText }}
+    </div>
+    <div v-if="focusBoxStyle" class="pointer-events-none absolute inset-0 z-40">
+      <div
+        class="absolute rounded-[2px] border-2 border-green-500"
+        :style="focusBoxStyle"
+      />
     </div>
   </div>
 </template>

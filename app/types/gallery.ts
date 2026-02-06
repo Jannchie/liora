@@ -36,6 +36,7 @@ export interface FileLocation {
 }
 
 export interface MetadataEntry {
+  key?: string
   label: string
   value: string
   icon: string

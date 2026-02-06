@@ -24,6 +24,16 @@ function parseMetadata(raw: string): Partial<FileMetadata> {
   }
 }
 
+function parseTextMetadataField(value: unknown): string | undefined {
+  if (typeof value === 'string') {
+    return value
+  }
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return String(value)
+  }
+  return undefined
+}
+
 export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }): FileMetadata {
   const parsed = parseMetadata(raw)
   const parsedFileSize = typeof parsed.fileSize === 'number' ? parsed.fileSize : Number(parsed.fileSize)
@@ -47,6 +57,23 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const parsedShareContentId = typeof parsed.livePhotoShareContentId === 'string'
     ? parsed.livePhotoShareContentId
     : undefined
+  const parsedFocusDistance = parseTextMetadataField(parsed.focusDistance)
+  const parsedFocusFrameSize = parseTextMetadataField(parsed.focusFrameSize)
+  const parsedFocusLocation = parseTextMetadataField(parsed.focusLocation)
+  const parsedFocusMode = parseTextMetadataField(parsed.focusMode)
+  const parsedFocusPosition = parseTextMetadataField(parsed.focusPosition)
+  const parsedHasCrop = parseTextMetadataField(parsed.hasCrop)
+  const parsedCropLeft = parseTextMetadataField(parsed.cropLeft)
+  const parsedCropTop = parseTextMetadataField(parsed.cropTop)
+  const parsedCropRight = parseTextMetadataField(parsed.cropRight)
+  const parsedCropBottom = parseTextMetadataField(parsed.cropBottom)
+  const parsedCropAngle = parseTextMetadataField(parsed.cropAngle)
+  const parsedPerspectiveHorizontal = parseTextMetadataField(parsed.perspectiveHorizontal)
+  const parsedPerspectiveVertical = parseTextMetadataField(parsed.perspectiveVertical)
+  const parsedPerspectiveRotate = parseTextMetadataField(parsed.perspectiveRotate)
+  const parsedPerspectiveScale = parseTextMetadataField(parsed.perspectiveScale)
+  const parsedPerspectiveUpright = parseTextMetadataField(parsed.perspectiveUpright)
+  const parsedUprightTransform = parseTextMetadataField(parsed.uprightTransform)
   const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
     ? parsedLivePhotoStillTime
     : fallbacks.livePhotoStillTime
@@ -81,6 +108,23 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     resolutionUnit: parsed.resolutionUnit ?? fallbacks.resolutionUnit,
     software: parsed.software ?? fallbacks.software,
     captureTime: parsed.captureTime ?? fallbacks.captureTime,
+    focusDistance: parsedFocusDistance ?? fallbacks.focusDistance,
+    focusFrameSize: parsedFocusFrameSize ?? fallbacks.focusFrameSize,
+    focusLocation: parsedFocusLocation ?? fallbacks.focusLocation,
+    focusMode: parsedFocusMode ?? fallbacks.focusMode,
+    focusPosition: parsedFocusPosition ?? fallbacks.focusPosition,
+    hasCrop: parsedHasCrop ?? fallbacks.hasCrop,
+    cropLeft: parsedCropLeft ?? fallbacks.cropLeft,
+    cropTop: parsedCropTop ?? fallbacks.cropTop,
+    cropRight: parsedCropRight ?? fallbacks.cropRight,
+    cropBottom: parsedCropBottom ?? fallbacks.cropBottom,
+    cropAngle: parsedCropAngle ?? fallbacks.cropAngle,
+    perspectiveHorizontal: parsedPerspectiveHorizontal ?? fallbacks.perspectiveHorizontal,
+    perspectiveVertical: parsedPerspectiveVertical ?? fallbacks.perspectiveVertical,
+    perspectiveRotate: parsedPerspectiveRotate ?? fallbacks.perspectiveRotate,
+    perspectiveScale: parsedPerspectiveScale ?? fallbacks.perspectiveScale,
+    perspectiveUpright: parsedPerspectiveUpright ?? fallbacks.perspectiveUpright,
+    uprightTransform: parsedUprightTransform ?? fallbacks.uprightTransform,
     notes: parsed.notes ?? fallbacks.notes,
     fileSize: Number.isFinite(parsedFileSize) && parsedFileSize >= 0 ? parsedFileSize : fallbacks.fileSize,
     thumbhash: parsed.thumbhash ?? fallbacks.thumbhash,
@@ -127,6 +171,23 @@ export function toFileResponse(file: FileRow): FileResponse {
     resolutionUnit: '',
     software: '',
     captureTime: file.captureTime,
+    focusDistance: undefined,
+    focusFrameSize: undefined,
+    focusLocation: undefined,
+    focusMode: undefined,
+    focusPosition: undefined,
+    hasCrop: undefined,
+    cropLeft: undefined,
+    cropTop: undefined,
+    cropRight: undefined,
+    cropBottom: undefined,
+    cropAngle: undefined,
+    perspectiveHorizontal: undefined,
+    perspectiveVertical: undefined,
+    perspectiveRotate: undefined,
+    perspectiveScale: undefined,
+    perspectiveUpright: undefined,
+    uprightTransform: undefined,
     notes: '',
     fileSize: 0,
     thumbhash: undefined,

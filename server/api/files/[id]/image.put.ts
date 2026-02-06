@@ -9,6 +9,7 @@ import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
 import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
+import { extractFocusMetadataFromBuffer } from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
 
@@ -120,6 +121,23 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     resolutionUnit: normalizeText(fields.resolutionUnit),
     software: normalizeText(fields.software),
     captureTime: normalizeText(fields.captureTime),
+    focusDistance: normalizeText(fields.focusDistance),
+    focusFrameSize: normalizeText(fields.focusFrameSize),
+    focusLocation: normalizeText(fields.focusLocation),
+    focusMode: normalizeText(fields.focusMode),
+    focusPosition: normalizeText(fields.focusPosition),
+    hasCrop: normalizeText(fields.hasCrop),
+    cropLeft: normalizeText(fields.cropLeft),
+    cropTop: normalizeText(fields.cropTop),
+    cropRight: normalizeText(fields.cropRight),
+    cropBottom: normalizeText(fields.cropBottom),
+    cropAngle: normalizeText(fields.cropAngle),
+    perspectiveHorizontal: normalizeText(fields.perspectiveHorizontal),
+    perspectiveVertical: normalizeText(fields.perspectiveVertical),
+    perspectiveRotate: normalizeText(fields.perspectiveRotate),
+    perspectiveScale: normalizeText(fields.perspectiveScale),
+    perspectiveUpright: normalizeText(fields.perspectiveUpright),
+    uprightTransform: normalizeText(fields.uprightTransform),
     notes: normalizeText(fields.notes),
     fileSize: 0,
     thumbhash: undefined,
@@ -302,6 +320,24 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     depthMapHeight: undefined,
   })
   const metadata = buildMetadata(fields, characters)
+  const focusMetadata = await extractFocusMetadataFromBuffer(file.data, file.filename)
+  metadata.focusDistance = focusMetadata.focusDistance ?? metadata.focusDistance
+  metadata.focusFrameSize = focusMetadata.focusFrameSize ?? metadata.focusFrameSize
+  metadata.focusLocation = focusMetadata.focusLocation ?? metadata.focusLocation
+  metadata.focusMode = focusMetadata.focusMode ?? metadata.focusMode
+  metadata.focusPosition = focusMetadata.focusPosition ?? metadata.focusPosition
+  metadata.hasCrop = focusMetadata.hasCrop ?? metadata.hasCrop
+  metadata.cropLeft = focusMetadata.cropLeft ?? metadata.cropLeft
+  metadata.cropTop = focusMetadata.cropTop ?? metadata.cropTop
+  metadata.cropRight = focusMetadata.cropRight ?? metadata.cropRight
+  metadata.cropBottom = focusMetadata.cropBottom ?? metadata.cropBottom
+  metadata.cropAngle = focusMetadata.cropAngle ?? metadata.cropAngle
+  metadata.perspectiveHorizontal = focusMetadata.perspectiveHorizontal ?? metadata.perspectiveHorizontal
+  metadata.perspectiveVertical = focusMetadata.perspectiveVertical ?? metadata.perspectiveVertical
+  metadata.perspectiveRotate = focusMetadata.perspectiveRotate ?? metadata.perspectiveRotate
+  metadata.perspectiveScale = focusMetadata.perspectiveScale ?? metadata.perspectiveScale
+  metadata.perspectiveUpright = focusMetadata.perspectiveUpright ?? metadata.perspectiveUpright
+  metadata.uprightTransform = focusMetadata.uprightTransform ?? metadata.uprightTransform
   metadata.fileSize = file.data.length
   metadata.processingStatus = 'completed'
 
@@ -347,6 +383,23 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     resolutionUnit: metadata.resolutionUnit || existingMetadata.resolutionUnit,
     software: metadata.software || existingMetadata.software,
     captureTime: metadata.captureTime || existingMetadata.captureTime,
+    focusDistance: metadata.focusDistance || existingMetadata.focusDistance,
+    focusFrameSize: metadata.focusFrameSize || existingMetadata.focusFrameSize,
+    focusLocation: metadata.focusLocation || existingMetadata.focusLocation,
+    focusMode: metadata.focusMode || existingMetadata.focusMode,
+    focusPosition: metadata.focusPosition || existingMetadata.focusPosition,
+    hasCrop: metadata.hasCrop || existingMetadata.hasCrop,
+    cropLeft: metadata.cropLeft || existingMetadata.cropLeft,
+    cropTop: metadata.cropTop || existingMetadata.cropTop,
+    cropRight: metadata.cropRight || existingMetadata.cropRight,
+    cropBottom: metadata.cropBottom || existingMetadata.cropBottom,
+    cropAngle: metadata.cropAngle || existingMetadata.cropAngle,
+    perspectiveHorizontal: metadata.perspectiveHorizontal || existingMetadata.perspectiveHorizontal,
+    perspectiveVertical: metadata.perspectiveVertical || existingMetadata.perspectiveVertical,
+    perspectiveRotate: metadata.perspectiveRotate || existingMetadata.perspectiveRotate,
+    perspectiveScale: metadata.perspectiveScale || existingMetadata.perspectiveScale,
+    perspectiveUpright: metadata.perspectiveUpright || existingMetadata.perspectiveUpright,
+    uprightTransform: metadata.uprightTransform || existingMetadata.uprightTransform,
     notes: metadata.notes || existingMetadata.notes,
     fileSize: metadata.fileSize,
     thumbhash: metadata.thumbhash ?? existingMetadata.thumbhash,

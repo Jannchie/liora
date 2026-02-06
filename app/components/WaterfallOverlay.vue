@@ -19,6 +19,8 @@ const {
   overlayStats,
   histogram,
   metadataEntries,
+  focusEntry,
+  cropEntry,
   exposureEntries,
   hasMetadata,
   genreLabel,
@@ -44,6 +46,8 @@ const {
   overlayStats: OverlayStat[]
   histogram: HistogramData | null
   metadataEntries: MetadataEntry[]
+  focusEntry: MetadataEntry | null
+  cropEntry: MetadataEntry | null
   exposureEntries: MetadataEntry[]
   hasMetadata: boolean
   genreLabel?: string | null
@@ -76,6 +80,8 @@ const videoRef = ref<HTMLVideoElement | null>(null)
 const overlayHiddenClass = 'overlay-content-hidden'
 const previewOpen = ref(false)
 const livePhotoPlaying = ref(false)
+const focusBoxPinned = ref(false)
+const focusBoxHovered = ref(false)
 
 const livePhotoVideoUrl = computed<string | undefined>(() => {
   const rawValue = file.metadata.livePhotoVideoUrl
@@ -130,6 +136,228 @@ const displayImageUrl = computed<string>(() => {
   return ''
 })
 
+interface FocusPoint {
+  x: number
+  y: number
+}
+
+interface FocusBoxRect {
+  left: number
+  top: number
+  width: number
+  height: number
+}
+
+function parseNumbers(value: string | undefined): number[] {
+  if (!value) {
+    return []
+  }
+  const matches = value.match(/-?\d+(?:\.\d+)?/g)
+  if (!matches) {
+    return []
+  }
+  return matches
+    .map(Number)
+    .filter(number => Number.isFinite(number))
+}
+
+function parseMetadataNumber(value: string | undefined): number | null {
+  if (!value) {
+    return null
+  }
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function parseUprightTransform(value: string | undefined): number[] | null {
+  const numbers = parseNumbers(value)
+  if (numbers.length < 9) {
+    return null
+  }
+  return numbers.slice(0, 9)
+}
+
+function rotateAroundCenter(point: FocusPoint, angleDegrees: number): FocusPoint {
+  const radians = angleDegrees * Math.PI / 180
+  const cos = Math.cos(radians)
+  const sin = Math.sin(radians)
+  const dx = point.x - 0.5
+  const dy = point.y - 0.5
+  return {
+    x: 0.5 + dx * cos - dy * sin,
+    y: 0.5 + dx * sin + dy * cos,
+  }
+}
+
+function applyHomography(point: FocusPoint, matrix: number[]): FocusPoint | null {
+  const m0 = matrix[0]
+  const m1 = matrix[1]
+  const m2 = matrix[2]
+  const m3 = matrix[3]
+  const m4 = matrix[4]
+  const m5 = matrix[5]
+  const m6 = matrix[6]
+  const m7 = matrix[7]
+  const m8 = matrix[8]
+  if (
+    m0 === undefined
+    || m1 === undefined
+    || m2 === undefined
+    || m3 === undefined
+    || m4 === undefined
+    || m5 === undefined
+    || m6 === undefined
+    || m7 === undefined
+    || m8 === undefined
+  ) {
+    return null
+  }
+  const denominator = m6 * point.x + m7 * point.y + m8
+  if (!Number.isFinite(denominator) || Math.abs(denominator) < 1e-8) {
+    return null
+  }
+  const x = (m0 * point.x + m1 * point.y + m2) / denominator
+  const y = (m3 * point.x + m4 * point.y + m5) / denominator
+  if (!Number.isFinite(x) || !Number.isFinite(y)) {
+    return null
+  }
+  return { x, y }
+}
+
+function applyPerspectiveApproximation(
+  point: FocusPoint,
+  perspectiveHorizontal: number,
+  perspectiveVertical: number,
+  perspectiveRotate: number,
+  perspectiveScale: number,
+): FocusPoint {
+  let next = { ...point }
+  if (Math.abs(perspectiveHorizontal) > 1e-6) {
+    next.x += (perspectiveHorizontal / 100) * (next.y - 0.5)
+  }
+  if (Math.abs(perspectiveVertical) > 1e-6) {
+    next.y += (perspectiveVertical / 100) * (next.x - 0.5)
+  }
+  if (Math.abs(perspectiveRotate) > 1e-6) {
+    next = rotateAroundCenter(next, perspectiveRotate)
+  }
+  if (Math.abs(perspectiveScale - 100) > 1e-6 && perspectiveScale > 0) {
+    const scale = perspectiveScale / 100
+    next = {
+      x: 0.5 + (next.x - 0.5) * scale,
+      y: 0.5 + (next.y - 0.5) * scale,
+    }
+  }
+  return next
+}
+
+function applyCrop(point: FocusPoint, cropLeft: number, cropTop: number, cropRight: number, cropBottom: number): FocusPoint {
+  const cropWidth = cropRight - cropLeft
+  const cropHeight = cropBottom - cropTop
+  if (cropWidth <= 0 || cropHeight <= 0) {
+    return point
+  }
+  return {
+    x: (point.x - cropLeft) / cropWidth,
+    y: (point.y - cropTop) / cropHeight,
+  }
+}
+
+function clamp01(value: number): number {
+  return Math.min(1, Math.max(0, value))
+}
+
+const transformedFocusBox = computed<FocusBoxRect | null>(() => {
+  const metadata = file.metadata
+  const focusLocationValues = parseNumbers(metadata.focusLocation)
+  if (focusLocationValues.length < 4) {
+    return null
+  }
+  const sourceWidth = focusLocationValues[0] ?? 0
+  const sourceHeight = focusLocationValues[1] ?? 0
+  const centerX = focusLocationValues[2] ?? 0
+  const centerY = focusLocationValues[3] ?? 0
+  if (sourceWidth <= 0 || sourceHeight <= 0) {
+    return null
+  }
+
+  const frameSizeValues = parseNumbers(metadata.focusFrameSize)
+  const frameWidth = (frameSizeValues[0] ?? Math.max(sourceWidth * 0.03, 40))
+  const frameHeight = (frameSizeValues[1] ?? Math.max(sourceHeight * 0.03, 40))
+  if (frameWidth <= 0 || frameHeight <= 0) {
+    return null
+  }
+
+  const halfFrameWidth = frameWidth / 2
+  const halfFrameHeight = frameHeight / 2
+  const corners: FocusPoint[] = [
+    { x: (centerX - halfFrameWidth) / sourceWidth, y: (centerY - halfFrameHeight) / sourceHeight },
+    { x: (centerX + halfFrameWidth) / sourceWidth, y: (centerY - halfFrameHeight) / sourceHeight },
+    { x: (centerX + halfFrameWidth) / sourceWidth, y: (centerY + halfFrameHeight) / sourceHeight },
+    { x: (centerX - halfFrameWidth) / sourceWidth, y: (centerY + halfFrameHeight) / sourceHeight },
+  ]
+
+  const matrix = parseUprightTransform(metadata.uprightTransform)
+  const perspectiveHorizontal = parseMetadataNumber(metadata.perspectiveHorizontal) ?? 0
+  const perspectiveVertical = parseMetadataNumber(metadata.perspectiveVertical) ?? 0
+  const perspectiveRotate = parseMetadataNumber(metadata.perspectiveRotate) ?? 0
+  const perspectiveScale = parseMetadataNumber(metadata.perspectiveScale) ?? 100
+  const cropLeft = parseMetadataNumber(metadata.cropLeft)
+  const cropTop = parseMetadataNumber(metadata.cropTop)
+  const cropRight = parseMetadataNumber(metadata.cropRight)
+  const cropBottom = parseMetadataNumber(metadata.cropBottom)
+  const cropAngle = parseMetadataNumber(metadata.cropAngle) ?? 0
+
+  const transformed = corners
+    .map((corner) => {
+      let next: FocusPoint | null = matrix
+        ? applyHomography(corner, matrix)
+        : applyPerspectiveApproximation(
+            corner,
+            perspectiveHorizontal,
+            perspectiveVertical,
+            perspectiveRotate,
+            perspectiveScale,
+          )
+      if (!next) {
+        return null
+      }
+      if (Math.abs(cropAngle) > 1e-6) {
+        next = rotateAroundCenter(next, cropAngle)
+      }
+      if (cropLeft !== null && cropTop !== null && cropRight !== null && cropBottom !== null) {
+        next = applyCrop(next, cropLeft, cropTop, cropRight, cropBottom)
+      }
+      return next
+    })
+    .filter((point): point is FocusPoint => point !== null)
+
+  if (transformed.length !== 4) {
+    return null
+  }
+
+  const xs = transformed.map(point => point.x)
+  const ys = transformed.map(point => point.y)
+  const left = clamp01(Math.min(...xs))
+  const right = clamp01(Math.max(...xs))
+  const top = clamp01(Math.min(...ys))
+  const bottom = clamp01(Math.max(...ys))
+  const width = right - left
+  const height = bottom - top
+  if (width <= 0 || height <= 0) {
+    return null
+  }
+  return {
+    left,
+    top,
+    width,
+    height,
+  }
+})
+
+const focusBoxVisible = computed<boolean>(() => focusBoxPinned.value || focusBoxHovered.value)
+const overlayFocusBox = computed<FocusBoxRect | null>(() => (focusBoxVisible.value ? transformedFocusBox.value : null))
+
 const depthMapUrl = computed<string>(() => {
   const raw = file.metadata.depthMapUrl
   if (typeof raw !== 'string') {
@@ -180,6 +408,8 @@ watch(
   () => {
     previewOpen.value = false
     livePhotoPlaying.value = false
+    focusBoxPinned.value = false
+    focusBoxHovered.value = false
     if (hasLivePhoto.value) {
       void nextTick(() => {
         if (hasLivePhoto.value) {
@@ -290,6 +520,14 @@ function toggleLivePhoto(): void {
 function handleLivePhotoEnded(): void {
   livePhotoPlaying.value = false
 }
+
+function handleFocusHover(value: boolean): void {
+  focusBoxHovered.value = value
+}
+
+function handleFocusToggle(): void {
+  focusBoxPinned.value = !focusBoxPinned.value
+}
 </script>
 
 <template>
@@ -346,6 +584,7 @@ function handleLivePhotoEnded(): void {
             :image-width="file.width"
             :image-height="file.height"
             :auto-play="shouldAutoPlay"
+            :focus-box="overlayFocusBox"
             :style="[overlayImageFitStyle, overlayImageTransformStyle]"
             class="max-h-full max-w-full select-none bg-transparent rounded-none"
             :class="[
@@ -486,8 +725,13 @@ function handleLivePhotoEnded(): void {
             <WaterfallLocationMap v-if="location" :location="location" />
             <WaterfallMetadataPanel
               :metadata-entries="metadataEntries"
+              :focus-entry="focusEntry"
+              :crop-entry="cropEntry"
               :exposure-entries="exposureEntries"
               :has-metadata="hasMetadata"
+              :focus-indicator-active="focusBoxVisible"
+              @focus-hover="handleFocusHover"
+              @focus-toggle="handleFocusToggle"
             />
           </div>
           <div

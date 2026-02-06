@@ -10,6 +10,7 @@ import { rgbaToThumbHash } from 'thumbhash'
 import { requireAdmin } from '../utils/auth'
 import { db, files } from '../utils/db'
 import { joinCharacters } from '../utils/file-mapper'
+import { extractFocusMetadataFromBuffer } from '../utils/focus-metadata'
 import { computeHistogram } from '../utils/histogram'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, requireS3Config, uploadBufferToS3 } from '../utils/s3'
 import { setUploadStatus } from '../utils/upload-status'
@@ -60,6 +61,23 @@ interface DirectUploadBody {
   resolutionUnit?: string
   software?: string
   captureTime?: string
+  focusDistance?: string
+  focusFrameSize?: string
+  focusLocation?: string
+  focusMode?: string
+  focusPosition?: string
+  hasCrop?: string
+  cropLeft?: string
+  cropTop?: string
+  cropRight?: string
+  cropBottom?: string
+  cropAngle?: string
+  perspectiveHorizontal?: string
+  perspectiveVertical?: string
+  perspectiveRotate?: string
+  perspectiveScale?: string
+  perspectiveUpright?: string
+  uprightTransform?: string
   notes?: string
   livePhotoStillTime?: number
 }
@@ -105,6 +123,23 @@ const LENGTH_LIMITS = {
   resolutionUnit: { max: 32, label: 'Resolution unit' },
   software: { max: 256, label: 'Software' },
   captureTime: { max: 128, label: 'Capture time' },
+  focusDistance: { max: 64, label: 'Focus distance' },
+  focusFrameSize: { max: 64, label: 'Focus frame size' },
+  focusLocation: { max: 64, label: 'Focus location' },
+  focusMode: { max: 64, label: 'Focus mode' },
+  focusPosition: { max: 64, label: 'Focus position' },
+  hasCrop: { max: 16, label: 'Has crop' },
+  cropLeft: { max: 32, label: 'Crop left' },
+  cropTop: { max: 32, label: 'Crop top' },
+  cropRight: { max: 32, label: 'Crop right' },
+  cropBottom: { max: 32, label: 'Crop bottom' },
+  cropAngle: { max: 32, label: 'Crop angle' },
+  perspectiveHorizontal: { max: 32, label: 'Perspective horizontal' },
+  perspectiveVertical: { max: 32, label: 'Perspective vertical' },
+  perspectiveRotate: { max: 32, label: 'Perspective rotate' },
+  perspectiveScale: { max: 32, label: 'Perspective scale' },
+  perspectiveUpright: { max: 32, label: 'Perspective upright' },
+  uprightTransform: { max: 256, label: 'Upright transform' },
   notes: { max: 4000, label: 'Notes' },
   originalName: { max: 512, label: 'Original filename' },
 } as const
@@ -183,6 +218,23 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     resolutionUnit: normalizeText(fields.resolutionUnit),
     software: normalizeText(fields.software),
     captureTime: normalizeText(fields.captureTime),
+    focusDistance: normalizeText(fields.focusDistance),
+    focusFrameSize: normalizeText(fields.focusFrameSize),
+    focusLocation: normalizeText(fields.focusLocation),
+    focusMode: normalizeText(fields.focusMode),
+    focusPosition: normalizeText(fields.focusPosition),
+    hasCrop: normalizeText(fields.hasCrop),
+    cropLeft: normalizeText(fields.cropLeft),
+    cropTop: normalizeText(fields.cropTop),
+    cropRight: normalizeText(fields.cropRight),
+    cropBottom: normalizeText(fields.cropBottom),
+    cropAngle: normalizeText(fields.cropAngle),
+    perspectiveHorizontal: normalizeText(fields.perspectiveHorizontal),
+    perspectiveVertical: normalizeText(fields.perspectiveVertical),
+    perspectiveRotate: normalizeText(fields.perspectiveRotate),
+    perspectiveScale: normalizeText(fields.perspectiveScale),
+    perspectiveUpright: normalizeText(fields.perspectiveUpright),
+    uprightTransform: normalizeText(fields.uprightTransform),
     notes: normalizeText(fields.notes),
     fileSize: 0,
     thumbhash: undefined,
@@ -302,6 +354,23 @@ function validateLengths(payload: {
   assertLength(payload.metadata.resolutionUnit, LENGTH_LIMITS.resolutionUnit.max, LENGTH_LIMITS.resolutionUnit.label)
   assertLength(payload.metadata.software, LENGTH_LIMITS.software.max, LENGTH_LIMITS.software.label)
   assertLength(payload.metadata.captureTime, LENGTH_LIMITS.captureTime.max, LENGTH_LIMITS.captureTime.label)
+  assertLength(payload.metadata.focusDistance ?? '', LENGTH_LIMITS.focusDistance.max, LENGTH_LIMITS.focusDistance.label)
+  assertLength(payload.metadata.focusFrameSize ?? '', LENGTH_LIMITS.focusFrameSize.max, LENGTH_LIMITS.focusFrameSize.label)
+  assertLength(payload.metadata.focusLocation ?? '', LENGTH_LIMITS.focusLocation.max, LENGTH_LIMITS.focusLocation.label)
+  assertLength(payload.metadata.focusMode ?? '', LENGTH_LIMITS.focusMode.max, LENGTH_LIMITS.focusMode.label)
+  assertLength(payload.metadata.focusPosition ?? '', LENGTH_LIMITS.focusPosition.max, LENGTH_LIMITS.focusPosition.label)
+  assertLength(payload.metadata.hasCrop ?? '', LENGTH_LIMITS.hasCrop.max, LENGTH_LIMITS.hasCrop.label)
+  assertLength(payload.metadata.cropLeft ?? '', LENGTH_LIMITS.cropLeft.max, LENGTH_LIMITS.cropLeft.label)
+  assertLength(payload.metadata.cropTop ?? '', LENGTH_LIMITS.cropTop.max, LENGTH_LIMITS.cropTop.label)
+  assertLength(payload.metadata.cropRight ?? '', LENGTH_LIMITS.cropRight.max, LENGTH_LIMITS.cropRight.label)
+  assertLength(payload.metadata.cropBottom ?? '', LENGTH_LIMITS.cropBottom.max, LENGTH_LIMITS.cropBottom.label)
+  assertLength(payload.metadata.cropAngle ?? '', LENGTH_LIMITS.cropAngle.max, LENGTH_LIMITS.cropAngle.label)
+  assertLength(payload.metadata.perspectiveHorizontal ?? '', LENGTH_LIMITS.perspectiveHorizontal.max, LENGTH_LIMITS.perspectiveHorizontal.label)
+  assertLength(payload.metadata.perspectiveVertical ?? '', LENGTH_LIMITS.perspectiveVertical.max, LENGTH_LIMITS.perspectiveVertical.label)
+  assertLength(payload.metadata.perspectiveRotate ?? '', LENGTH_LIMITS.perspectiveRotate.max, LENGTH_LIMITS.perspectiveRotate.label)
+  assertLength(payload.metadata.perspectiveScale ?? '', LENGTH_LIMITS.perspectiveScale.max, LENGTH_LIMITS.perspectiveScale.label)
+  assertLength(payload.metadata.perspectiveUpright ?? '', LENGTH_LIMITS.perspectiveUpright.max, LENGTH_LIMITS.perspectiveUpright.label)
+  assertLength(payload.metadata.uprightTransform ?? '', LENGTH_LIMITS.uprightTransform.max, LENGTH_LIMITS.uprightTransform.label)
   assertLength(payload.metadata.notes, LENGTH_LIMITS.notes.max, LENGTH_LIMITS.notes.label)
   assertLength(payload.originalName, LENGTH_LIMITS.originalName.max, LENGTH_LIMITS.originalName.label)
 
@@ -430,6 +499,23 @@ function parseDirectBody(body: DirectUploadBody | undefined): {
     resolutionUnit: toFieldString(body.resolutionUnit),
     software: toFieldString(body.software),
     captureTime: toFieldString(body.captureTime),
+    focusDistance: toFieldString(body.focusDistance),
+    focusFrameSize: toFieldString(body.focusFrameSize),
+    focusLocation: toFieldString(body.focusLocation),
+    focusMode: toFieldString(body.focusMode),
+    focusPosition: toFieldString(body.focusPosition),
+    hasCrop: toFieldString(body.hasCrop),
+    cropLeft: toFieldString(body.cropLeft),
+    cropTop: toFieldString(body.cropTop),
+    cropRight: toFieldString(body.cropRight),
+    cropBottom: toFieldString(body.cropBottom),
+    cropAngle: toFieldString(body.cropAngle),
+    perspectiveHorizontal: toFieldString(body.perspectiveHorizontal),
+    perspectiveVertical: toFieldString(body.perspectiveVertical),
+    perspectiveRotate: toFieldString(body.perspectiveRotate),
+    perspectiveScale: toFieldString(body.perspectiveScale),
+    perspectiveUpright: toFieldString(body.perspectiveUpright),
+    uprightTransform: toFieldString(body.uprightTransform),
     notes: toFieldString(body.notes),
     livePhotoStillTime: toFieldString(body.livePhotoStillTime),
   }
@@ -608,6 +694,24 @@ async function processMultipartUpload(payload: MultipartUploadJobPayload): Promi
     const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
     metadata.cameraModel = deduped.cameraModel
     metadata.lensModel = deduped.lensModel
+    const focusMetadata = await extractFocusMetadataFromBuffer(image.data, image.filename)
+    metadata.focusDistance = focusMetadata.focusDistance
+    metadata.focusFrameSize = focusMetadata.focusFrameSize
+    metadata.focusLocation = focusMetadata.focusLocation
+    metadata.focusMode = focusMetadata.focusMode
+    metadata.focusPosition = focusMetadata.focusPosition
+    metadata.hasCrop = focusMetadata.hasCrop
+    metadata.cropLeft = focusMetadata.cropLeft
+    metadata.cropTop = focusMetadata.cropTop
+    metadata.cropRight = focusMetadata.cropRight
+    metadata.cropBottom = focusMetadata.cropBottom
+    metadata.cropAngle = focusMetadata.cropAngle
+    metadata.perspectiveHorizontal = focusMetadata.perspectiveHorizontal
+    metadata.perspectiveVertical = focusMetadata.perspectiveVertical
+    metadata.perspectiveRotate = focusMetadata.perspectiveRotate
+    metadata.perspectiveScale = focusMetadata.perspectiveScale
+    metadata.perspectiveUpright = focusMetadata.perspectiveUpright
+    metadata.uprightTransform = focusMetadata.uprightTransform
     metadata.fileSize = image.data.length
     metadata.sha256 = computeSha256(image.data)
     metadata.processingStatus = 'processing'
@@ -708,6 +812,24 @@ async function processDirectUpload(payload: DirectUploadJobPayload): Promise<voi
     const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
     metadata.cameraModel = deduped.cameraModel
     metadata.lensModel = deduped.lensModel
+    const focusMetadata = await extractFocusMetadataFromBuffer(buffer, originalName)
+    metadata.focusDistance = focusMetadata.focusDistance
+    metadata.focusFrameSize = focusMetadata.focusFrameSize
+    metadata.focusLocation = focusMetadata.focusLocation
+    metadata.focusMode = focusMetadata.focusMode
+    metadata.focusPosition = focusMetadata.focusPosition
+    metadata.hasCrop = focusMetadata.hasCrop
+    metadata.cropLeft = focusMetadata.cropLeft
+    metadata.cropTop = focusMetadata.cropTop
+    metadata.cropRight = focusMetadata.cropRight
+    metadata.cropBottom = focusMetadata.cropBottom
+    metadata.cropAngle = focusMetadata.cropAngle
+    metadata.perspectiveHorizontal = focusMetadata.perspectiveHorizontal
+    metadata.perspectiveVertical = focusMetadata.perspectiveVertical
+    metadata.perspectiveRotate = focusMetadata.perspectiveRotate
+    metadata.perspectiveScale = focusMetadata.perspectiveScale
+    metadata.perspectiveUpright = focusMetadata.perspectiveUpright
+    metadata.uprightTransform = focusMetadata.uprightTransform
     metadata.fileSize = buffer.length
     metadata.sha256 = computeSha256(buffer)
     metadata.processingStatus = 'processing'

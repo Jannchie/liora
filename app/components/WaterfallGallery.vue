@@ -201,6 +201,8 @@ const metadataLabels = computed(() => ({
   camera: t('gallery.metadata.device'),
   lens: t('gallery.metadata.lens'),
   exposure: t('gallery.metadata.exposure'),
+  focus: t('gallery.metadata.focus'),
+  crop: t('gallery.metadata.crop'),
   captureTime: t('gallery.metadata.captureTime'),
   exposureBias: t('gallery.metadata.exposureBias'),
   exposureProgram: t('gallery.metadata.exposureProgram'),
@@ -211,6 +213,14 @@ const metadataLabels = computed(() => ({
   colorSpace: t('gallery.metadata.colorSpace'),
   resolution: t('gallery.metadata.resolution'),
   software: t('gallery.metadata.software'),
+  focusDistance: t('gallery.metadata.focusDistance'),
+  focusFrameSize: t('gallery.metadata.focusFrameSize'),
+  focusLocation: t('gallery.metadata.focusLocation'),
+  focusMode: t('gallery.metadata.focusMode'),
+  focusPosition: t('gallery.metadata.focusPosition'),
+  cropRect: t('gallery.metadata.cropRect'),
+  cropAngle: t('gallery.metadata.cropAngle'),
+  perspective: t('gallery.metadata.perspective'),
   size: t('gallery.metadata.size'),
 }))
 
@@ -1503,6 +1513,70 @@ function formatResolutionValue(
   return x ?? y ?? undefined
 }
 
+function parseMetadataNumber(value: string | undefined): number | null {
+  const text = toDisplayText(value)
+  if (!text) {
+    return null
+  }
+  const parsed = Number(text)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function formatCropRectValue(metadata: {
+  cropLeft?: string
+  cropTop?: string
+  cropRight?: string
+  cropBottom?: string
+}): string | undefined {
+  const left = parseMetadataNumber(metadata.cropLeft)
+  const top = parseMetadataNumber(metadata.cropTop)
+  const right = parseMetadataNumber(metadata.cropRight)
+  const bottom = parseMetadataNumber(metadata.cropBottom)
+  if (left === null || top === null || right === null || bottom === null) {
+    return undefined
+  }
+  return `L ${(left * 100).toFixed(2)}% · T ${(top * 100).toFixed(2)}% · R ${(right * 100).toFixed(2)}% · B ${(bottom * 100).toFixed(2)}%`
+}
+
+function formatCropAngleValue(value: string | undefined): string | undefined {
+  const numeric = parseMetadataNumber(value)
+  if (numeric === null) {
+    return toDisplayText(value)
+  }
+  return `${numeric.toFixed(3)}°`
+}
+
+function formatPerspectiveValue(metadata: {
+  perspectiveHorizontal?: string
+  perspectiveVertical?: string
+  perspectiveRotate?: string
+  perspectiveScale?: string
+  perspectiveUpright?: string
+}): string | undefined {
+  const parts: string[] = []
+  const horizontal = parseMetadataNumber(metadata.perspectiveHorizontal)
+  const vertical = parseMetadataNumber(metadata.perspectiveVertical)
+  const rotate = parseMetadataNumber(metadata.perspectiveRotate)
+  const scale = parseMetadataNumber(metadata.perspectiveScale)
+  const upright = toDisplayText(metadata.perspectiveUpright)
+  if (horizontal !== null) {
+    parts.push(`H ${horizontal.toFixed(2)}`)
+  }
+  if (vertical !== null) {
+    parts.push(`V ${vertical.toFixed(2)}`)
+  }
+  if (rotate !== null) {
+    parts.push(`R ${rotate.toFixed(2)}`)
+  }
+  if (scale !== null) {
+    parts.push(`S ${scale.toFixed(2)}`)
+  }
+  if (upright) {
+    parts.push(`Upright ${upright}`)
+  }
+  return parts.length > 0 ? parts.join(' · ') : undefined
+}
+
 function translateEnum(value: string | undefined, dictionary: Record<string, string>): string | undefined {
   const text = toDisplayText(value)
   if (!text) {
@@ -1637,6 +1711,62 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   return entries
 })
 
+const focusEntry = computed<MetadataEntry | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  const { metadata } = file
+  const focusLines: string[] = []
+  const focusMode = toDisplayText(metadata.focusMode)
+  if (focusMode) {
+    focusLines.push(`${metadataLabels.value.focusMode}: ${focusMode}`)
+  }
+  const focusDistance = toDisplayText(metadata.focusDistance)
+  if (focusDistance) {
+    focusLines.push(`${metadataLabels.value.focusDistance}: ${focusDistance}`)
+  }
+  if (focusLines.length === 0) {
+    return null
+  }
+  return {
+    key: 'focus',
+    label: metadataLabels.value.focus,
+    value: focusLines.join('\n'),
+    icon: 'tabler:focus-2',
+  }
+})
+
+const cropEntry = computed<MetadataEntry | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  const { metadata } = file
+  const cropLines: string[] = []
+  const cropRect = formatCropRectValue(metadata)
+  if (cropRect) {
+    cropLines.push(`${metadataLabels.value.cropRect}: ${cropRect}`)
+  }
+  const cropAngle = formatCropAngleValue(metadata.cropAngle)
+  if (cropAngle) {
+    cropLines.push(`${metadataLabels.value.cropAngle}: ${cropAngle}`)
+  }
+  const perspective = formatPerspectiveValue(metadata)
+  if (perspective) {
+    cropLines.push(`${metadataLabels.value.perspective}: ${perspective}`)
+  }
+  if (cropLines.length === 0) {
+    return null
+  }
+  return {
+    key: 'crop',
+    label: metadataLabels.value.crop,
+    value: cropLines.join('\n'),
+    icon: 'tabler:crop',
+  }
+})
+
 const exposureEntries = computed<MetadataEntry[]>(() => {
   const file = activeFile.value
   if (!file) {
@@ -1727,7 +1857,12 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
   return entries
 })
 
-const hasMetadata = computed<boolean>(() => metadataEntries.value.length > 0 || exposureEntries.value.length > 0)
+const hasMetadata = computed<boolean>(() =>
+  metadataEntries.value.length > 0
+  || exposureEntries.value.length > 0
+  || focusEntry.value !== null
+  || cropEntry.value !== null,
+)
 
 const overlayStats = computed<OverlayStat[]>(() => {
   const currentLocale = locale.value
@@ -2625,6 +2760,8 @@ function startOverlayImageLoad(
           :overlay-stats="overlayStats"
           :histogram="histogram"
           :metadata-entries="metadataEntries"
+          :focus-entry="focusEntry"
+          :crop-entry="cropEntry"
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
           :preview-image-src="overlayPreviewSrc"

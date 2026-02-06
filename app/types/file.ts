@@ -32,6 +32,23 @@ export interface FileMetadata {
   resolutionUnit: string
   software: string
   captureTime: string
+  focusDistance?: string
+  focusFrameSize?: string
+  focusLocation?: string
+  focusMode?: string
+  focusPosition?: string
+  hasCrop?: string
+  cropLeft?: string
+  cropTop?: string
+  cropRight?: string
+  cropBottom?: string
+  cropAngle?: string
+  perspectiveHorizontal?: string
+  perspectiveVertical?: string
+  perspectiveRotate?: string
+  perspectiveScale?: string
+  perspectiveUpright?: string
+  uprightTransform?: string
   notes: string
   fileSize: number
   thumbhash?: string
@@ -80,6 +97,23 @@ export interface FilePayload {
   resolutionUnit?: string
   software?: string
   captureTime?: string
+  focusDistance?: string
+  focusFrameSize?: string
+  focusLocation?: string
+  focusMode?: string
+  focusPosition?: string
+  hasCrop?: string
+  cropLeft?: string
+  cropTop?: string
+  cropRight?: string
+  cropBottom?: string
+  cropAngle?: string
+  perspectiveHorizontal?: string
+  perspectiveVertical?: string
+  perspectiveRotate?: string
+  perspectiveScale?: string
+  perspectiveUpright?: string
+  uprightTransform?: string
   notes?: string
 }
 
