@@ -1,3 +1,16 @@
+## v0.24.0
+
+[v0.23.0...v0.24.0](https://github.com/Jannchie/liora/compare/v0.23.0...v0.24.0)
+
+### :sparkles: Features
+
+- **gallery**: add responsive overlay preview handling - By [Jannchie](mailto:jannchie@gmail.com) in [16f76f8](https://github.com/Jannchie/liora/commit/16f76f8)
+- **lightroom**: support tone curve parsing and display - By [Jannchie](mailto:jannchie@gmail.com) in [a2bb49f](https://github.com/Jannchie/liora/commit/a2bb49f)
+- **metadata**: display camera look from lightroom metadata - By [Jannchie](mailto:jannchie@gmail.com) in [42a0448](https://github.com/Jannchie/liora/commit/42a0448)
+- **metadata**: add lightroom recipe metadata parsing && ui - By [Jannchie](mailto:jannchie@gmail.com) in [e5e58fc](https://github.com/Jannchie/liora/commit/e5e58fc)
+- **metadata**: add focus/crop metadata extraction and UI - By [Jannchie](mailto:jannchie@gmail.com) in [05609e0](https://github.com/Jannchie/liora/commit/05609e0)
+- **upload**: add admin upload flow and domain services - By [Jannchie](mailto:jannchie@gmail.com) in [f67414d](https://github.com/Jannchie/liora/commit/f67414d)
+
 ## v0.23.0
 
 [v0.22.0...v0.23.0](https://github.com/Jannchie/liora/compare/v0.22.0...v0.23.0)
