@@ -178,12 +178,30 @@ interface LightroomColorGradingAdjustments {
 interface LightroomRecipePayload {
   processVersion?: string
   profile?: string
+  cameraLook?: string
   whiteBalance?: string
   toneCurve?: LightroomToneCurvePayload
   basic?: Record<string, number>
   hsl?: Record<string, LightroomColorAdjustments>
   colorGrading?: LightroomColorGradingAdjustments
   calibration?: Record<string, number>
+}
+
+function resolveCameraCreativeLook(tags: Record<string, unknown>): string | undefined {
+  return pickFirstTagValue(tags, [
+    'PictureStyle',
+    'PictureStyle2',
+    'PictureControlName',
+    'CreativeStyle',
+    'FilmMode',
+    'FilmSimulation',
+    'PhotoStyle',
+    'PictureMode',
+    'PictureEffect',
+    'ColorMode',
+    'ArtFilter',
+    'CreativeFilter',
+  ])
 }
 
 function extractNumbers(value: unknown): number[] {
@@ -438,13 +456,17 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   const hasColorGrading = hasEntries(colorGrading as Record<string, unknown>)
   const hasCalibration = hasEntries(calibration)
   const toneCurve = buildToneCurvePayload(tags)
-  if (!hasBasic && !hasHsl && !hasColorGrading && !hasCalibration && !toneCurve) {
+  const profile = pickFirstTagValue(tags, ['Profile', 'CameraProfile', 'Look'])
+  const cameraLook = resolveCameraCreativeLook(tags)
+  const hasLookInfo = Boolean(profile || cameraLook)
+  if (!hasBasic && !hasHsl && !hasColorGrading && !hasCalibration && !toneCurve && !hasLookInfo) {
     return undefined
   }
 
   const payload: LightroomRecipePayload = {
     processVersion: pickFirstTagValue(tags, ['ProcessVersion']),
-    profile: pickFirstTagValue(tags, ['Profile', 'CameraProfile', 'Look']),
+    profile,
+    cameraLook,
     whiteBalance: hasCustomWhiteBalance ? whiteBalance : undefined,
     toneCurve: toneCurve ?? undefined,
     basic: hasBasic ? basic : undefined,

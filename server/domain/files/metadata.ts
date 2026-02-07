@@ -46,7 +46,7 @@ const LENGTH_LIMITS = {
   perspectiveScale: { max: 32, label: 'Perspective scale' },
   perspectiveUpright: { max: 32, label: 'Perspective upright' },
   uprightTransform: { max: 256, label: 'Upright transform' },
-  lightroomRecipe: { max: 2048, label: 'Lightroom recipe' },
+  lightroomRecipe: { max: 16_000, label: 'Lightroom recipe' },
   notes: { max: 4000, label: 'Notes' },
   originalName: { max: 512, label: 'Original filename' },
 } as const

@@ -78,13 +78,6 @@ const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
   return exposureEntries.value.filter(entry => !primaryLabels.has(entry.label))
 })
 
-const totalEntryCount = computed<number>(() => {
-  const focusCount = focusEntry.value ? 1 : 0
-  const cropCount = cropEntry.value ? 1 : 0
-  const lightroomCount = lightroomRecipe.value ? 1 : 0
-  return metadataEntries.value.length + exposureEntries.value.length + focusCount + cropCount + lightroomCount
-})
-
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
@@ -166,6 +159,51 @@ const toneCurveName = computed<string | null>(() => {
   return null
 })
 
+const cameraLook = computed<string | null>(() => {
+  const raw = lightroomRecipe.value?.cameraLook
+  if (!raw || raw.trim().length === 0) {
+    return null
+  }
+  return raw.trim()
+})
+
+const lightroomProfile = computed<string | null>(() => {
+  const raw = lightroomRecipe.value?.profile
+  if (!raw || raw.trim().length === 0) {
+    return null
+  }
+  return raw.trim()
+})
+
+function normalizeLookKey(value: string | null | undefined): string {
+  if (!value) {
+    return ''
+  }
+  return value.toLowerCase().replaceAll(/[^a-z0-9]+/g, '')
+}
+
+const isLookOverridden = computed<boolean>(() => {
+  if (!cameraLook.value || !lightroomProfile.value) {
+    return false
+  }
+  const cameraKey = normalizeLookKey(cameraLook.value)
+  const profileKey = normalizeLookKey(lightroomProfile.value)
+  if (!cameraKey || !profileKey) {
+    return false
+  }
+  return cameraKey !== profileKey
+})
+
+const showCameraLookCard = computed<boolean>(() => Boolean(cameraLook.value) && !isLookOverridden.value)
+
+const totalEntryCount = computed<number>(() => {
+  const focusCount = focusEntry.value ? 1 : 0
+  const cropCount = cropEntry.value ? 1 : 0
+  const lightroomCount = lightroomRecipe.value ? 1 : 0
+  const cameraLookCount = showCameraLookCard.value ? 1 : 0
+  return metadataEntries.value.length + exposureEntries.value.length + focusCount + cropCount + lightroomCount + cameraLookCount
+})
+
 function buildToneCurvePath(points: LightroomCurvePoint[]): string {
   if (points.length < 2) {
     return ''
@@ -227,7 +265,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           </div>
         </div>
       </div>
-      <div v-if="focusEntry || cropEntry || lightroomRecipe || metadataEntries.length > 0" class="space-y-2">
+      <div v-if="focusEntry || cropEntry || lightroomRecipe || showCameraLookCard || metadataEntries.length > 0" class="space-y-2">
         <button
           v-if="focusEntry"
           type="button"
@@ -268,7 +306,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
             <span>{{ t('gallery.metadata.lightroom') }}</span>
           </p>
           <div
-            v-if="lightroomRecipe.processVersion || lightroomRecipe.profile || lightroomRecipe.whiteBalance || toneCurveName"
+            v-if="lightroomRecipe.processVersion || lightroomProfile || isLookOverridden || lightroomRecipe.whiteBalance || toneCurveName"
             class="flex flex-wrap gap-1.5"
           >
             <span
@@ -278,10 +316,16 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
               {{ `PV ${lightroomRecipe.processVersion}` }}
             </span>
             <span
-              v-if="lightroomRecipe.profile"
+              v-if="lightroomProfile"
               class="inline-flex items-center rounded-full bg-default/30 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
             >
-              {{ lightroomRecipe.profile }}
+              {{ `${t('gallery.metadata.lightroomProfile')}: ${lightroomProfile}` }}
+            </span>
+            <span
+              v-if="isLookOverridden && cameraLook"
+              class="inline-flex items-center rounded-full bg-default/30 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
+            >
+              {{ t('gallery.metadata.cameraLookOverriddenWithValue', { value: cameraLook }) }}
             </span>
             <span
               v-if="lightroomRecipe.whiteBalance"
@@ -365,6 +409,18 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
               </div>
             </div>
           </div>
+        </div>
+        <div
+          v-if="showCameraLookCard && cameraLook"
+          class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
+        >
+          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+            <Icon name="tabler:camera" class="h-4 w-4" />
+            <span>{{ t('gallery.metadata.cameraLook') }}</span>
+          </p>
+          <p class="text-sm leading-snug text-highlighted">
+            {{ cameraLook }}
+          </p>
         </div>
         <div
           v-for="item in metadataEntries"

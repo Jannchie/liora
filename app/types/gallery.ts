@@ -77,6 +77,7 @@ export interface LightroomToneCurve {
 export interface LightroomRecipeView {
   processVersion?: string
   profile?: string
+  cameraLook?: string
   whiteBalance?: string
   toneCurve?: LightroomToneCurve
   groups: LightroomAdjustmentGroup[]

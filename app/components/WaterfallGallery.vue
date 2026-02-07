@@ -1623,7 +1623,9 @@ function formatPerspectiveValue(metadata: {
   if (scale !== null && Math.abs(scale - 100) >= 1e-3) {
     parts.push(`S ${scale.toFixed(2)}`)
   }
-  if (upright && upright.toLowerCase() !== 'auto') {
+  const uprightKey = upright?.trim().toLowerCase()
+  const hiddenUprightValues = new Set(['auto', 'off', 'none', '0', 'false', 'n/a', 'na'])
+  if (upright && (!uprightKey || !hiddenUprightValues.has(uprightKey))) {
     parts.push(`Upright ${upright}`)
   }
   return parts.length > 0 ? parts.join(' · ') : undefined
@@ -1646,6 +1648,7 @@ interface LightroomToneCurvePayload {
 interface LightroomRecipePayload {
   processVersion?: unknown
   profile?: unknown
+  cameraLook?: unknown
   whiteBalance?: unknown
   toneCurve?: unknown
   basic?: unknown
@@ -2101,12 +2104,27 @@ function parseLightroomRecipeView(value: string | undefined): LightroomRecipeVie
   const toneCurve = parseToneCurvePayload(parsedObject.toneCurve)
 
   if (groups.length === 0 && !toneCurve) {
-    return null
+    const processVersion = parseRecipeText(parsedObject.processVersion)
+    const profile = parseRecipeText(parsedObject.profile)
+    const cameraLook = parseRecipeText(parsedObject.cameraLook)
+    const whiteBalance = parseRecipeText(parsedObject.whiteBalance)
+    if (!processVersion && !profile && !cameraLook && !whiteBalance) {
+      return null
+    }
+    return {
+      processVersion,
+      profile,
+      cameraLook,
+      whiteBalance,
+      toneCurve,
+      groups,
+    }
   }
 
   return {
     processVersion: parseRecipeText(parsedObject.processVersion),
     profile: parseRecipeText(parsedObject.profile),
+    cameraLook: parseRecipeText(parsedObject.cameraLook),
     whiteBalance: parseRecipeText(parsedObject.whiteBalance),
     toneCurve,
     groups,
