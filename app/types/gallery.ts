@@ -44,6 +44,31 @@ export interface MetadataEntry {
   valueIconLabel?: string
 }
 
+export interface LightroomAdjustmentItem {
+  key: string
+  label: string
+  value: number
+  min: number
+  max: number
+  digits?: number
+  unit?: string
+  zeroCentered?: boolean
+}
+
+export interface LightroomAdjustmentGroup {
+  key: string
+  label: string
+  items: LightroomAdjustmentItem[]
+}
+
+export interface LightroomRecipeView {
+  processVersion?: string
+  profile?: string
+  whiteBalance?: string
+  toneCurve?: string
+  groups: LightroomAdjustmentGroup[]
+}
+
 export interface SocialLink {
   label: string
   url: string

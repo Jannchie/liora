@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
-import type { FileLocation, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
+import type { FileLocation, LightroomRecipeView, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
@@ -21,6 +21,7 @@ const {
   metadataEntries,
   focusEntry,
   cropEntry,
+  lightroomRecipe,
   exposureEntries,
   hasMetadata,
   genreLabel,
@@ -48,6 +49,7 @@ const {
   metadataEntries: MetadataEntry[]
   focusEntry: MetadataEntry | null
   cropEntry: MetadataEntry | null
+  lightroomRecipe: LightroomRecipeView | null
   exposureEntries: MetadataEntry[]
   hasMetadata: boolean
   genreLabel?: string | null
@@ -282,8 +284,11 @@ const transformedFocusBox = computed<FocusBoxRect | null>(() => {
   }
 
   const frameSizeValues = parseNumbers(metadata.focusFrameSize)
-  const frameWidth = (frameSizeValues[0] ?? Math.max(sourceWidth * 0.03, 40))
-  const frameHeight = (frameSizeValues[1] ?? Math.max(sourceHeight * 0.03, 40))
+  if (frameSizeValues.length < 2) {
+    return null
+  }
+  const frameWidth = frameSizeValues[0] ?? 0
+  const frameHeight = frameSizeValues[1] ?? 0
   if (frameWidth <= 0 || frameHeight <= 0) {
     return null
   }
@@ -727,6 +732,7 @@ function handleFocusToggle(): void {
               :metadata-entries="metadataEntries"
               :focus-entry="focusEntry"
               :crop-entry="cropEntry"
+              :lightroom-recipe="lightroomRecipe"
               :exposure-entries="exposureEntries"
               :has-metadata="hasMetadata"
               :focus-indicator-active="focusBoxVisible"

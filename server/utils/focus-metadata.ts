@@ -23,6 +23,7 @@ type FocusMetadata = Pick<
   | 'perspectiveScale'
   | 'perspectiveUpright'
   | 'uprightTransform'
+  | 'lightroomRecipe'
 >
 
 function normalizeMetadataText(value: unknown): string | undefined {
@@ -107,6 +108,240 @@ function resolveTempExtension(filename: string | undefined): string {
   return extension
 }
 
+function parseTagNumber(tags: Record<string, unknown>, tagNames: string[]): number | null {
+  const raw = pickFirstTagValue(tags, tagNames)
+  if (!raw) {
+    return null
+  }
+  const parsed = Number(raw)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function isNearlyEqual(value: number, target: number, epsilon: number = 1e-3): boolean {
+  return Math.abs(value - target) <= epsilon
+}
+
+function normalizeNumber(value: number, digits: number = 2): number {
+  const factor = 10 ** digits
+  const rounded = Math.round(value * factor) / factor
+  return isNearlyEqual(rounded, 0) ? 0 : rounded
+}
+
+function hasEntries(value: Record<string, unknown>): boolean {
+  return Object.keys(value).length > 0
+}
+
+function assignIfChanged(
+  target: Record<string, number>,
+  key: string,
+  value: number | null,
+  options: {
+    defaultValue?: number
+    digits?: number
+  } = {},
+): void {
+  if (value === null) {
+    return
+  }
+  const normalized = normalizeNumber(value, options.digits ?? 2)
+  if (isNearlyEqual(normalized, options.defaultValue ?? 0)) {
+    return
+  }
+  target[key] = normalized
+}
+
+interface LightroomColorAdjustments {
+  hue?: number
+  saturation?: number
+  luminance?: number
+}
+
+interface LightroomColorGradingAdjustments {
+  shadows?: LightroomColorAdjustments
+  midtones?: LightroomColorAdjustments
+  highlights?: LightroomColorAdjustments
+  global?: LightroomColorAdjustments
+  blending?: number
+  balance?: number
+}
+
+interface LightroomRecipePayload {
+  processVersion?: string
+  profile?: string
+  whiteBalance?: string
+  toneCurve?: string
+  basic?: Record<string, number>
+  hsl?: Record<string, LightroomColorAdjustments>
+  colorGrading?: LightroomColorGradingAdjustments
+  calibration?: Record<string, number>
+}
+
+function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
+  hue: string[]
+  saturation: string[]
+  luminance: string[]
+}): LightroomColorAdjustments | null {
+  const hue = parseTagNumber(tags, candidates.hue)
+  const saturation = parseTagNumber(tags, candidates.saturation)
+  const luminance = parseTagNumber(tags, candidates.luminance)
+  const tone: LightroomColorAdjustments = {}
+  const normalizedSaturation = saturation === null ? null : normalizeNumber(saturation)
+  const normalizedHue = hue === null ? null : normalizeNumber(hue)
+  if (normalizedSaturation !== null && !isNearlyEqual(normalizedSaturation, 0)) {
+    tone.saturation = normalizedSaturation
+  }
+  if (
+    normalizedHue !== null
+    && (
+      !isNearlyEqual(normalizedHue, 0)
+      || (normalizedSaturation !== null && !isNearlyEqual(normalizedSaturation, 0))
+    )
+  ) {
+    tone.hue = normalizedHue
+  }
+  if (luminance !== null && !isNearlyEqual(luminance, 0)) {
+    tone.luminance = normalizeNumber(luminance)
+  }
+  return hasEntries(tone as Record<string, unknown>) ? tone : null
+}
+
+function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined {
+  const basic: Record<string, number> = {}
+  assignIfChanged(basic, 'exposure', parseTagNumber(tags, ['Exposure2012', 'Exposure']), { digits: 2 })
+  assignIfChanged(basic, 'contrast', parseTagNumber(tags, ['Contrast2012', 'Contrast']), { digits: 0 })
+  assignIfChanged(basic, 'highlights', parseTagNumber(tags, ['Highlights2012', 'Highlights']), { digits: 0 })
+  assignIfChanged(basic, 'shadows', parseTagNumber(tags, ['Shadows2012', 'Shadows']), { digits: 0 })
+  assignIfChanged(basic, 'whites', parseTagNumber(tags, ['Whites2012', 'Whites']), { digits: 0 })
+  assignIfChanged(basic, 'blacks', parseTagNumber(tags, ['Blacks2012', 'Blacks']), { digits: 0 })
+  assignIfChanged(basic, 'texture', parseTagNumber(tags, ['Texture', 'Texture2019']), { digits: 0 })
+  assignIfChanged(basic, 'clarity', parseTagNumber(tags, ['Clarity2012', 'Clarity']), { digits: 0 })
+  assignIfChanged(basic, 'dehaze', parseTagNumber(tags, ['Dehaze']), { digits: 0 })
+  assignIfChanged(basic, 'vibrance', parseTagNumber(tags, ['Vibrance']), { digits: 0 })
+  assignIfChanged(basic, 'saturation', parseTagNumber(tags, ['Saturation', 'Saturation2']), { digits: 0 })
+
+  const whiteBalance = pickFirstTagValue(tags, ['WhiteBalance2', 'WhiteBalance'])
+  const normalizedWhiteBalance = whiteBalance?.trim().toLowerCase() ?? ''
+  const hasCustomWhiteBalance = normalizedWhiteBalance.length > 0
+    && normalizedWhiteBalance !== 'as shot'
+    && normalizedWhiteBalance !== 'auto'
+  const temperature = parseTagNumber(tags, ['Temperature'])
+  const tint = parseTagNumber(tags, ['Tint'])
+  if (temperature !== null && (hasCustomWhiteBalance || (tint !== null && !isNearlyEqual(tint, 0)))) {
+    basic.temperature = normalizeNumber(temperature, 0)
+  }
+  if (tint !== null && (hasCustomWhiteBalance || !isNearlyEqual(tint, 0))) {
+    basic.tint = normalizeNumber(tint, 0)
+  }
+
+  const hsl: Record<string, LightroomColorAdjustments> = {}
+  const hslColors = [
+    { key: 'red', suffix: 'Red' },
+    { key: 'orange', suffix: 'Orange' },
+    { key: 'yellow', suffix: 'Yellow' },
+    { key: 'green', suffix: 'Green' },
+    { key: 'aqua', suffix: 'Aqua' },
+    { key: 'blue', suffix: 'Blue' },
+    { key: 'purple', suffix: 'Purple' },
+    { key: 'magenta', suffix: 'Magenta' },
+  ] as const
+  for (const color of hslColors) {
+    const adjustments: LightroomColorAdjustments = {}
+    assignIfChanged(adjustments as Record<string, number>, 'hue', parseTagNumber(tags, [
+      `HueAdjustment${color.suffix}`,
+      `Hue${color.suffix}`,
+    ]))
+    assignIfChanged(adjustments as Record<string, number>, 'saturation', parseTagNumber(tags, [
+      `SaturationAdjustment${color.suffix}`,
+      `Saturation${color.suffix}`,
+    ]))
+    assignIfChanged(adjustments as Record<string, number>, 'luminance', parseTagNumber(tags, [
+      `LuminanceAdjustment${color.suffix}`,
+      `Luminance${color.suffix}`,
+    ]))
+    if (hasEntries(adjustments as Record<string, unknown>)) {
+      hsl[color.key] = adjustments
+    }
+  }
+
+  const colorGrading: LightroomColorGradingAdjustments = {}
+  const shadows = buildColorGradingTone(tags, {
+    hue: ['ColorGradeShadowHue', 'ColorGradeShadowsHue', 'SplitToningShadowHue'],
+    saturation: ['ColorGradeShadowSat', 'ColorGradeShadowsSat', 'SplitToningShadowSaturation'],
+    luminance: ['ColorGradeShadowLum', 'ColorGradeShadowsLum'],
+  })
+  const midtones = buildColorGradingTone(tags, {
+    hue: ['ColorGradeMidtoneHue', 'ColorGradeMidtonesHue'],
+    saturation: ['ColorGradeMidtoneSat', 'ColorGradeMidtonesSat'],
+    luminance: ['ColorGradeMidtoneLum', 'ColorGradeMidtonesLum'],
+  })
+  const highlights = buildColorGradingTone(tags, {
+    hue: ['ColorGradeHighlightHue', 'ColorGradeHighlightsHue', 'SplitToningHighlightHue'],
+    saturation: ['ColorGradeHighlightSat', 'ColorGradeHighlightsSat', 'SplitToningHighlightSaturation'],
+    luminance: ['ColorGradeHighlightLum', 'ColorGradeHighlightsLum'],
+  })
+  const global = buildColorGradingTone(tags, {
+    hue: ['ColorGradeGlobalHue'],
+    saturation: ['ColorGradeGlobalSat'],
+    luminance: ['ColorGradeGlobalLum'],
+  })
+  if (shadows) {
+    colorGrading.shadows = shadows
+  }
+  if (midtones) {
+    colorGrading.midtones = midtones
+  }
+  if (highlights) {
+    colorGrading.highlights = highlights
+  }
+  if (global) {
+    colorGrading.global = global
+  }
+  const blending = parseTagNumber(tags, ['ColorGradeBlending'])
+  if (blending !== null && !isNearlyEqual(blending, 50)) {
+    colorGrading.blending = normalizeNumber(blending)
+  }
+  const balance = parseTagNumber(tags, ['ColorGradeBalance', 'SplitToningBalance'])
+  if (balance !== null && !isNearlyEqual(balance, 0)) {
+    colorGrading.balance = normalizeNumber(balance)
+  }
+
+  const calibration: Record<string, number> = {}
+  assignIfChanged(calibration, 'shadowTint', parseTagNumber(tags, ['ShadowTint']), { digits: 0 })
+  assignIfChanged(calibration, 'redPrimaryHue', parseTagNumber(tags, ['RedPrimaryHue', 'RedHue']), { digits: 0 })
+  assignIfChanged(calibration, 'redPrimarySaturation', parseTagNumber(tags, ['RedPrimarySaturation', 'RedSaturation']), { digits: 0 })
+  assignIfChanged(calibration, 'greenPrimaryHue', parseTagNumber(tags, ['GreenPrimaryHue', 'GreenHue']), { digits: 0 })
+  assignIfChanged(calibration, 'greenPrimarySaturation', parseTagNumber(tags, ['GreenPrimarySaturation', 'GreenSaturation']), { digits: 0 })
+  assignIfChanged(calibration, 'bluePrimaryHue', parseTagNumber(tags, ['BluePrimaryHue', 'BlueHue']), { digits: 0 })
+  assignIfChanged(calibration, 'bluePrimarySaturation', parseTagNumber(tags, ['BluePrimarySaturation', 'BlueSaturation']), { digits: 0 })
+
+  const hasBasic = hasEntries(basic)
+  const hasHsl = hasEntries(hsl as Record<string, unknown>)
+  const hasColorGrading = hasEntries(colorGrading as Record<string, unknown>)
+  const hasCalibration = hasEntries(calibration)
+  if (!hasBasic && !hasHsl && !hasColorGrading && !hasCalibration) {
+    return undefined
+  }
+
+  const payload: LightroomRecipePayload = {
+    processVersion: pickFirstTagValue(tags, ['ProcessVersion']),
+    profile: pickFirstTagValue(tags, ['Profile', 'CameraProfile', 'Look']),
+    whiteBalance: hasCustomWhiteBalance ? whiteBalance : undefined,
+    toneCurve: (() => {
+      const toneCurveName = pickFirstTagValue(tags, ['ToneCurveName2012', 'ToneCurveName'])
+      if (!toneCurveName || toneCurveName.toLowerCase() === 'linear') {
+        return
+      }
+      return toneCurveName
+    })(),
+    basic: hasBasic ? basic : undefined,
+    hsl: hasHsl ? hsl : undefined,
+    colorGrading: hasColorGrading ? colorGrading : undefined,
+    calibration: hasCalibration ? calibration : undefined,
+  }
+
+  return JSON.stringify(payload)
+}
+
 export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata> {
   const workspace = await mkdtemp(join(tmpdir(), 'liora-focus-'))
   const sourcePath = join(workspace, `source${resolveTempExtension(filename)}`)
@@ -132,6 +367,7 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
       perspectiveScale: pickFirstTagValue(tags, ['PerspectiveScale']),
       perspectiveUpright,
       uprightTransform: resolveUprightTransform(tags, perspectiveUpright),
+      lightroomRecipe: buildLightroomRecipe(tags),
     }
   }
   catch (error) {

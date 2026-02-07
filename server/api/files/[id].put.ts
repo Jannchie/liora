@@ -106,6 +106,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     resolutionUnit: '',
     software: '',
     captureTime: existing.captureTime,
+    lightroomRecipe: undefined,
     notes: '',
     fileSize: 0,
     thumbhash: undefined,
@@ -172,6 +173,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     perspectiveScale: normalizeText(body.perspectiveScale, existingMetadata.perspectiveScale ?? ''),
     perspectiveUpright: normalizeText(body.perspectiveUpright, existingMetadata.perspectiveUpright ?? ''),
     uprightTransform: normalizeText(body.uprightTransform, existingMetadata.uprightTransform ?? ''),
+    lightroomRecipe: normalizeText(body.lightroomRecipe, existingMetadata.lightroomRecipe ?? ''),
     notes: normalizeText(body.notes, existingMetadata.notes),
   }
 

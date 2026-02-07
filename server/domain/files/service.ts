@@ -57,6 +57,7 @@ function applyFocusMetadata(metadata: FileMetadata, focusMetadata: Awaited<Retur
   metadata.perspectiveScale = focusMetadata.perspectiveScale
   metadata.perspectiveUpright = focusMetadata.perspectiveUpright
   metadata.uprightTransform = focusMetadata.uprightTransform
+  metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
 }
 
 async function runMetadataPostProcessing(

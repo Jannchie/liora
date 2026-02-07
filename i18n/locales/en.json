@@ -127,6 +127,7 @@
       "exposure": "Exposure",
       "focus": "Focus",
       "crop": "Crop",
+      "lightroom": "Lightroom",
       "aperture": "Aperture",
       "shutterSpeed": "Shutter",
       "iso": "ISO",

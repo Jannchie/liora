@@ -46,6 +46,7 @@ const LENGTH_LIMITS = {
   perspectiveScale: { max: 32, label: 'Perspective scale' },
   perspectiveUpright: { max: 32, label: 'Perspective upright' },
   uprightTransform: { max: 256, label: 'Upright transform' },
+  lightroomRecipe: { max: 2048, label: 'Lightroom recipe' },
   notes: { max: 4000, label: 'Notes' },
   originalName: { max: 512, label: 'Original filename' },
 } as const
@@ -107,6 +108,7 @@ export function buildMetadata(fields: Record<string, string>, characters: string
     perspectiveScale: normalizeText(fields.perspectiveScale),
     perspectiveUpright: normalizeText(fields.perspectiveUpright),
     uprightTransform: normalizeText(fields.uprightTransform),
+    lightroomRecipe: normalizeText(fields.lightroomRecipe),
     notes: normalizeText(fields.notes),
     fileSize: 0,
     thumbhash: undefined,
@@ -217,6 +219,7 @@ export function validateLengths(payload: {
   assertLength(payload.metadata.perspectiveScale ?? '', LENGTH_LIMITS.perspectiveScale.max, LENGTH_LIMITS.perspectiveScale.label)
   assertLength(payload.metadata.perspectiveUpright ?? '', LENGTH_LIMITS.perspectiveUpright.max, LENGTH_LIMITS.perspectiveUpright.label)
   assertLength(payload.metadata.uprightTransform ?? '', LENGTH_LIMITS.uprightTransform.max, LENGTH_LIMITS.uprightTransform.label)
+  assertLength(payload.metadata.lightroomRecipe ?? '', LENGTH_LIMITS.lightroomRecipe.max, LENGTH_LIMITS.lightroomRecipe.label)
   assertLength(payload.metadata.notes, LENGTH_LIMITS.notes.max, LENGTH_LIMITS.notes.label)
   assertLength(payload.originalName, LENGTH_LIMITS.originalName.max, LENGTH_LIMITS.originalName.label)
 

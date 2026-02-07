@@ -138,6 +138,7 @@ function buildMetadata(fields: Record<string, string>, characters: string[]): Fi
     perspectiveScale: normalizeText(fields.perspectiveScale),
     perspectiveUpright: normalizeText(fields.perspectiveUpright),
     uprightTransform: normalizeText(fields.uprightTransform),
+    lightroomRecipe: normalizeText(fields.lightroomRecipe),
     notes: normalizeText(fields.notes),
     fileSize: 0,
     thumbhash: undefined,
@@ -302,6 +303,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     resolutionUnit: '',
     software: '',
     captureTime: existing.captureTime,
+    lightroomRecipe: undefined,
     notes: '',
     thumbhash: undefined,
     perceptualHash: undefined,
@@ -338,6 +340,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   metadata.perspectiveScale = focusMetadata.perspectiveScale ?? metadata.perspectiveScale
   metadata.perspectiveUpright = focusMetadata.perspectiveUpright ?? metadata.perspectiveUpright
   metadata.uprightTransform = focusMetadata.uprightTransform ?? metadata.uprightTransform
+  metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
   metadata.fileSize = file.data.length
   metadata.processingStatus = 'completed'
 
@@ -400,6 +403,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     perspectiveScale: metadata.perspectiveScale || existingMetadata.perspectiveScale,
     perspectiveUpright: metadata.perspectiveUpright || existingMetadata.perspectiveUpright,
     uprightTransform: metadata.uprightTransform || existingMetadata.uprightTransform,
+    lightroomRecipe: metadata.lightroomRecipe || existingMetadata.lightroomRecipe,
     notes: metadata.notes || existingMetadata.notes,
     fileSize: metadata.fileSize,
     thumbhash: metadata.thumbhash ?? existingMetadata.thumbhash,

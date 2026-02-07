@@ -49,6 +49,7 @@ export interface FileMetadata {
   perspectiveScale?: string
   perspectiveUpright?: string
   uprightTransform?: string
+  lightroomRecipe?: string
   notes: string
   fileSize: number
   thumbhash?: string
@@ -114,6 +115,7 @@ export interface FilePayload {
   perspectiveScale?: string
   perspectiveUpright?: string
   uprightTransform?: string
+  lightroomRecipe?: string
   notes?: string
 }
 

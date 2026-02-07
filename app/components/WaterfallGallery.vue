@@ -6,6 +6,9 @@ import type {
   DisplaySize,
   FileLocation,
   ImageAttrs,
+  LightroomAdjustmentGroup,
+  LightroomAdjustmentItem,
+  LightroomRecipeView,
   MetadataEntry,
   OverlayStat,
   ResolvedFile,
@@ -203,6 +206,7 @@ const metadataLabels = computed(() => ({
   exposure: t('gallery.metadata.exposure'),
   focus: t('gallery.metadata.focus'),
   crop: t('gallery.metadata.crop'),
+  lightroom: t('gallery.metadata.lightroom'),
   captureTime: t('gallery.metadata.captureTime'),
   exposureBias: t('gallery.metadata.exposureBias'),
   exposureProgram: t('gallery.metadata.exposureProgram'),
@@ -1522,26 +1526,74 @@ function parseMetadataNumber(value: string | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function isNearlyEqual(value: number, target: number, epsilon: number = 1e-4): boolean {
+  return Math.abs(value - target) <= epsilon
+}
+
+interface CropRectSummary {
+  left: number
+  top: number
+  right: number
+  bottom: number
+  width: number
+  height: number
+}
+
+function parseCropRectSummary(metadata: {
+  cropLeft?: string
+  cropTop?: string
+  cropRight?: string
+  cropBottom?: string
+}): CropRectSummary | null {
+  const left = parseMetadataNumber(metadata.cropLeft)
+  const top = parseMetadataNumber(metadata.cropTop)
+  const right = parseMetadataNumber(metadata.cropRight)
+  const bottom = parseMetadataNumber(metadata.cropBottom)
+  if (left === null || top === null || right === null || bottom === null) {
+    return null
+  }
+  const width = right - left
+  const height = bottom - top
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return null
+  }
+  return {
+    left,
+    top,
+    right,
+    bottom,
+    width,
+    height,
+  }
+}
+
 function formatCropRectValue(metadata: {
   cropLeft?: string
   cropTop?: string
   cropRight?: string
   cropBottom?: string
 }): string | undefined {
-  const left = parseMetadataNumber(metadata.cropLeft)
-  const top = parseMetadataNumber(metadata.cropTop)
-  const right = parseMetadataNumber(metadata.cropRight)
-  const bottom = parseMetadataNumber(metadata.cropBottom)
-  if (left === null || top === null || right === null || bottom === null) {
+  const summary = parseCropRectSummary(metadata)
+  if (!summary) {
     return undefined
   }
-  return `L ${(left * 100).toFixed(2)}% · T ${(top * 100).toFixed(2)}% · R ${(right * 100).toFixed(2)}% · B ${(bottom * 100).toFixed(2)}%`
+  const isFullFrame = isNearlyEqual(summary.left, 0)
+    && isNearlyEqual(summary.top, 0)
+    && isNearlyEqual(summary.right, 1)
+    && isNearlyEqual(summary.bottom, 1)
+  if (isFullFrame) {
+    return undefined
+  }
+  return `${(summary.width * 100).toFixed(2)}% × ${(summary.height * 100).toFixed(2)}% @ ${(summary.left * 100).toFixed(2)}%, ${(summary.top * 100).toFixed(2)}%`
 }
 
 function formatCropAngleValue(value: string | undefined): string | undefined {
   const numeric = parseMetadataNumber(value)
   if (numeric === null) {
     return toDisplayText(value)
+  }
+  if (Math.abs(numeric) < 1e-3) {
+    return undefined
   }
   return `${numeric.toFixed(3)}°`
 }
@@ -1559,22 +1611,436 @@ function formatPerspectiveValue(metadata: {
   const rotate = parseMetadataNumber(metadata.perspectiveRotate)
   const scale = parseMetadataNumber(metadata.perspectiveScale)
   const upright = toDisplayText(metadata.perspectiveUpright)
-  if (horizontal !== null) {
+  if (horizontal !== null && Math.abs(horizontal) >= 1e-3) {
     parts.push(`H ${horizontal.toFixed(2)}`)
   }
-  if (vertical !== null) {
+  if (vertical !== null && Math.abs(vertical) >= 1e-3) {
     parts.push(`V ${vertical.toFixed(2)}`)
   }
-  if (rotate !== null) {
+  if (rotate !== null && Math.abs(rotate) >= 1e-3) {
     parts.push(`R ${rotate.toFixed(2)}`)
   }
-  if (scale !== null) {
+  if (scale !== null && Math.abs(scale - 100) >= 1e-3) {
     parts.push(`S ${scale.toFixed(2)}`)
   }
-  if (upright) {
+  if (upright && upright.toLowerCase() !== 'auto') {
     parts.push(`Upright ${upright}`)
   }
   return parts.length > 0 ? parts.join(' · ') : undefined
+}
+
+interface LightroomColorAdjustmentsPayload {
+  hue?: unknown
+  saturation?: unknown
+  luminance?: unknown
+}
+
+interface LightroomRecipePayload {
+  processVersion?: unknown
+  profile?: unknown
+  whiteBalance?: unknown
+  toneCurve?: unknown
+  basic?: unknown
+  hsl?: unknown
+  colorGrading?: unknown
+  calibration?: unknown
+}
+
+function asObject(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+  return value as Record<string, unknown>
+}
+
+function parseRecipeNumber(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? value : null
+  }
+  if (typeof value === 'string') {
+    const parsed = Number(value)
+    return Number.isFinite(parsed) ? parsed : null
+  }
+  return null
+}
+
+function parseRecipeText(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+  const trimmed = value.trim()
+  return trimmed.length > 0 ? trimmed : undefined
+}
+
+function createLightroomItem(params: {
+  key: string
+  label: string
+  source: unknown
+  min: number
+  max: number
+  digits?: number
+  defaultValue?: number
+  zeroCentered?: boolean
+  unit?: string
+}): LightroomAdjustmentItem | null {
+  const value = parseRecipeNumber(params.source)
+  if (value === null) {
+    return null
+  }
+  if (isNearlyEqual(value, params.defaultValue ?? 0)) {
+    return null
+  }
+  return {
+    key: params.key,
+    label: params.label,
+    value,
+    min: params.min,
+    max: params.max,
+    digits: params.digits,
+    zeroCentered: params.zeroCentered,
+    unit: params.unit,
+  }
+}
+
+function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustmentItem[] {
+  const colorMap = [
+    { key: 'red', label: 'Red' },
+    { key: 'orange', label: 'Orange' },
+    { key: 'yellow', label: 'Yellow' },
+    { key: 'green', label: 'Green' },
+    { key: 'aqua', label: 'Aqua' },
+    { key: 'blue', label: 'Blue' },
+    { key: 'purple', label: 'Purple' },
+    { key: 'magenta', label: 'Magenta' },
+  ] as const
+  const items: LightroomAdjustmentItem[] = []
+  for (const color of colorMap) {
+    const payload = asObject(hslPayload[color.key]) as LightroomColorAdjustmentsPayload | null
+    if (!payload) {
+      continue
+    }
+    const hue = createLightroomItem({
+      key: `${color.key}-hue`,
+      label: `${color.label} Hue`,
+      source: payload.hue,
+      min: -100,
+      max: 100,
+      digits: 0,
+    })
+    const saturation = createLightroomItem({
+      key: `${color.key}-saturation`,
+      label: `${color.label} Sat`,
+      source: payload.saturation,
+      min: -100,
+      max: 100,
+      digits: 0,
+    })
+    const luminance = createLightroomItem({
+      key: `${color.key}-luminance`,
+      label: `${color.label} Lum`,
+      source: payload.luminance,
+      min: -100,
+      max: 100,
+      digits: 0,
+    })
+    if (hue) {
+      items.push(hue)
+    }
+    if (saturation) {
+      items.push(saturation)
+    }
+    if (luminance) {
+      items.push(luminance)
+    }
+  }
+  return items
+}
+
+function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdjustmentItem[] {
+  const items: LightroomAdjustmentItem[] = []
+  const toneMap = [
+    { key: 'shadows', label: 'Shadows' },
+    { key: 'midtones', label: 'Midtones' },
+    { key: 'highlights', label: 'Highlights' },
+    { key: 'global', label: 'Global' },
+  ] as const
+  for (const tone of toneMap) {
+    const tonePayload = asObject(payload[tone.key]) as LightroomColorAdjustmentsPayload | null
+    if (!tonePayload) {
+      continue
+    }
+    const hue = createLightroomItem({
+      key: `${tone.key}-hue`,
+      label: `${tone.label} Hue`,
+      source: tonePayload.hue,
+      min: 0,
+      max: 360,
+      digits: 0,
+      zeroCentered: false,
+    })
+    const saturation = createLightroomItem({
+      key: `${tone.key}-saturation`,
+      label: `${tone.label} Sat`,
+      source: tonePayload.saturation,
+      min: 0,
+      max: 100,
+      digits: 0,
+      zeroCentered: false,
+    })
+    const luminance = createLightroomItem({
+      key: `${tone.key}-luminance`,
+      label: `${tone.label} Lum`,
+      source: tonePayload.luminance,
+      min: -100,
+      max: 100,
+      digits: 0,
+    })
+    if (hue) {
+      items.push(hue)
+    }
+    if (saturation) {
+      items.push(saturation)
+    }
+    if (luminance) {
+      items.push(luminance)
+    }
+  }
+  const blending = createLightroomItem({
+    key: 'color-grading-blending',
+    label: 'Blending',
+    source: payload.blending,
+    min: 0,
+    max: 100,
+    digits: 0,
+    defaultValue: 50,
+    zeroCentered: false,
+  })
+  const balance = createLightroomItem({
+    key: 'color-grading-balance',
+    label: 'Balance',
+    source: payload.balance,
+    min: -100,
+    max: 100,
+    digits: 0,
+  })
+  if (blending) {
+    items.push(blending)
+  }
+  if (balance) {
+    items.push(balance)
+  }
+  return items
+}
+
+function buildCalibrationItems(payload: Record<string, unknown>): LightroomAdjustmentItem[] {
+  const items: LightroomAdjustmentItem[] = []
+  const configs = [
+    { key: 'shadowTint', label: 'Shadow Tint' },
+    { key: 'redPrimaryHue', label: 'Red Primary Hue' },
+    { key: 'redPrimarySaturation', label: 'Red Primary Sat' },
+    { key: 'greenPrimaryHue', label: 'Green Primary Hue' },
+    { key: 'greenPrimarySaturation', label: 'Green Primary Sat' },
+    { key: 'bluePrimaryHue', label: 'Blue Primary Hue' },
+    { key: 'bluePrimarySaturation', label: 'Blue Primary Sat' },
+  ] as const
+  for (const config of configs) {
+    const item = createLightroomItem({
+      key: config.key,
+      label: config.label,
+      source: payload[config.key],
+      min: -100,
+      max: 100,
+      digits: 0,
+    })
+    if (item) {
+      items.push(item)
+    }
+  }
+  return items
+}
+
+function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | null {
+  const tokens = text
+    .split('·')
+    .map(part => part.trim())
+    .filter(part => part.length > 0)
+  if (tokens.length === 0) {
+    return null
+  }
+  const basicPayload: Record<string, number> = {}
+  let processVersion: string | undefined
+  let profile: string | undefined
+  let whiteBalance: string | undefined
+  let toneCurve: string | undefined
+  for (const token of tokens) {
+    if (token.startsWith('PV ')) {
+      processVersion = token.slice(3).trim()
+      continue
+    }
+    if (token.startsWith('Profile ')) {
+      profile = token.slice(8).trim()
+      continue
+    }
+    if (token.startsWith('WB ')) {
+      whiteBalance = token.slice(3).trim()
+      continue
+    }
+    if (token.startsWith('Curve ')) {
+      toneCurve = token.slice(6).trim()
+      continue
+    }
+    const match = token.match(/^([a-z]+)\s+([+-]?\d+(?:\.\d+)?)$/i)
+    if (!match) {
+      continue
+    }
+    const key = match[1]?.toLowerCase()
+    const value = Number(match[2])
+    if (!Number.isFinite(value) || !key) {
+      continue
+    }
+    const keyMap: Record<string, string> = {
+      exp: 'exposure',
+      ctr: 'contrast',
+      hl: 'highlights',
+      shd: 'shadows',
+      wht: 'whites',
+      blk: 'blacks',
+      tex: 'texture',
+      clr: 'clarity',
+      dhz: 'dehaze',
+      vib: 'vibrance',
+      sat: 'saturation',
+      temp: 'temperature',
+      tint: 'tint',
+    }
+    const mapped = keyMap[key]
+    if (mapped) {
+      basicPayload[mapped] = value
+    }
+  }
+
+  const basicItems = [
+    createLightroomItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
+    createLightroomItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+    createLightroomItem({
+      key: 'temperature',
+      label: 'Temperature',
+      source: basicPayload.temperature,
+      min: 2000,
+      max: 50_000,
+      digits: 0,
+      zeroCentered: false,
+      unit: 'K',
+    }),
+    createLightroomItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
+  ].filter((item): item is LightroomAdjustmentItem => item !== null)
+
+  if (basicItems.length === 0) {
+    return null
+  }
+
+  return {
+    processVersion,
+    profile,
+    whiteBalance,
+    toneCurve,
+    groups: [{ key: 'basic', label: 'Basic', items: basicItems }],
+  }
+}
+
+function parseLightroomRecipeView(value: string | undefined): LightroomRecipeView | null {
+  const text = toDisplayText(value)
+  if (!text) {
+    return null
+  }
+  let parsed: LightroomRecipePayload
+  try {
+    parsed = JSON.parse(text) as LightroomRecipePayload
+  }
+  catch {
+    return parseLegacyLightroomRecipeView(text)
+  }
+  const parsedObject = asObject(parsed)
+  if (!parsedObject) {
+    return null
+  }
+
+  const groups: LightroomAdjustmentGroup[] = []
+  const basicPayload = asObject(parsedObject.basic)
+  if (basicPayload) {
+    const items = [
+      createLightroomItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
+      createLightroomItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+      createLightroomItem({
+        key: 'temperature',
+        label: 'Temperature',
+        source: basicPayload.temperature,
+        min: 2000,
+        max: 50_000,
+        digits: 0,
+        zeroCentered: false,
+        unit: 'K',
+      }),
+      createLightroomItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
+    ].filter((item): item is LightroomAdjustmentItem => item !== null)
+    if (items.length > 0) {
+      groups.push({ key: 'basic', label: 'Basic', items })
+    }
+  }
+
+  const hslPayload = asObject(parsedObject.hsl)
+  if (hslPayload) {
+    const items = buildHslItems(hslPayload)
+    if (items.length > 0) {
+      groups.push({ key: 'hsl', label: 'HSL / Color Mixer', items })
+    }
+  }
+
+  const colorGradingPayload = asObject(parsedObject.colorGrading)
+  if (colorGradingPayload) {
+    const items = buildColorGradingItems(colorGradingPayload)
+    if (items.length > 0) {
+      groups.push({ key: 'color-grading', label: 'Color Grading', items })
+    }
+  }
+
+  const calibrationPayload = asObject(parsedObject.calibration)
+  if (calibrationPayload) {
+    const items = buildCalibrationItems(calibrationPayload)
+    if (items.length > 0) {
+      groups.push({ key: 'calibration', label: 'Calibration', items })
+    }
+  }
+
+  if (groups.length === 0) {
+    return null
+  }
+
+  return {
+    processVersion: parseRecipeText(parsedObject.processVersion),
+    profile: parseRecipeText(parsedObject.profile),
+    whiteBalance: parseRecipeText(parsedObject.whiteBalance),
+    toneCurve: parseRecipeText(parsedObject.toneCurve),
+    groups,
+  }
 }
 
 function translateEnum(value: string | undefined, dictionary: Record<string, string>): string | undefined {
@@ -1717,22 +2183,18 @@ const focusEntry = computed<MetadataEntry | null>(() => {
     return null
   }
   const { metadata } = file
-  const focusLines: string[] = []
   const focusMode = toDisplayText(metadata.focusMode)
-  if (focusMode) {
-    focusLines.push(`${metadataLabels.value.focusMode}: ${focusMode}`)
-  }
   const focusDistance = toDisplayText(metadata.focusDistance)
-  if (focusDistance) {
-    focusLines.push(`${metadataLabels.value.focusDistance}: ${focusDistance}`)
-  }
-  if (focusLines.length === 0) {
+  if (!focusMode && !focusDistance) {
     return null
   }
+  const focusValue = focusMode && focusDistance
+    ? `${focusMode} (${focusDistance})`
+    : (focusMode ?? focusDistance ?? '')
   return {
     key: 'focus',
     label: metadataLabels.value.focus,
-    value: focusLines.join('\n'),
+    value: focusValue,
     icon: 'tabler:focus-2',
   }
 })
@@ -1743,28 +2205,36 @@ const cropEntry = computed<MetadataEntry | null>(() => {
     return null
   }
   const { metadata } = file
-  const cropLines: string[] = []
+  const cropParts: string[] = []
   const cropRect = formatCropRectValue(metadata)
   if (cropRect) {
-    cropLines.push(`${metadataLabels.value.cropRect}: ${cropRect}`)
+    cropParts.push(cropRect)
   }
   const cropAngle = formatCropAngleValue(metadata.cropAngle)
   if (cropAngle) {
-    cropLines.push(`${metadataLabels.value.cropAngle}: ${cropAngle}`)
+    cropParts.push(`Rot ${cropAngle}`)
   }
   const perspective = formatPerspectiveValue(metadata)
   if (perspective) {
-    cropLines.push(`${metadataLabels.value.perspective}: ${perspective}`)
+    cropParts.push(`P ${perspective}`)
   }
-  if (cropLines.length === 0) {
+  if (cropParts.length === 0) {
     return null
   }
   return {
     key: 'crop',
     label: metadataLabels.value.crop,
-    value: cropLines.join('\n'),
+    value: cropParts.join(' · '),
     icon: 'tabler:crop',
   }
+})
+
+const lightroomRecipe = computed<LightroomRecipeView | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  return parseLightroomRecipeView(file.metadata.lightroomRecipe)
 })
 
 const exposureEntries = computed<MetadataEntry[]>(() => {
@@ -1861,7 +2331,8 @@ const hasMetadata = computed<boolean>(() =>
   metadataEntries.value.length > 0
   || exposureEntries.value.length > 0
   || focusEntry.value !== null
-  || cropEntry.value !== null,
+  || cropEntry.value !== null
+  || lightroomRecipe.value !== null,
 )
 
 const overlayStats = computed<OverlayStat[]>(() => {
@@ -2762,6 +3233,7 @@ function startOverlayImageLoad(
           :metadata-entries="metadataEntries"
           :focus-entry="focusEntry"
           :crop-entry="cropEntry"
+          :lightroom-recipe="lightroomRecipe"
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
           :preview-image-src="overlayPreviewSrc"
