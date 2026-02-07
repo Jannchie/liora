@@ -1,110 +1,18 @@
 import type { FileResponse, FileSummary } from '~/types/file'
 import { desc } from 'drizzle-orm'
 import { getQuery } from 'h3'
+import { parseListQuery, toWaterfallSummary } from '../domain/files/listing'
 import { db, files } from '../utils/db'
 import { toFileResponse } from '../utils/file-mapper'
-
-type QueryInput = unknown
-
-function resolveQueryValue(value: QueryInput): string | number | boolean | null {
-  if (Array.isArray(value)) {
-    for (const entry of value) {
-      if (typeof entry === 'string') {
-        if (entry.trim().length > 0) {
-          return entry
-        }
-      }
-      else if (typeof entry === 'number') {
-        if (Number.isFinite(entry)) {
-          return entry
-        }
-      }
-      else if (typeof entry === 'boolean') {
-        return entry
-      }
-    }
-    return null
-  }
-  if (typeof value === 'string') {
-    if (value.trim().length === 0) {
-      return null
-    }
-    return value
-  }
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null
-  }
-  if (typeof value === 'boolean') {
-    return value
-  }
-  return null
-}
-
-function parseQueryNumber(value: QueryInput): number | null {
-  const normalized = resolveQueryValue(value)
-  if (typeof normalized === 'number') {
-    return normalized >= 0 ? normalized : null
-  }
-  if (typeof normalized !== 'string') {
-    return null
-  }
-  const parsed = Number.parseInt(normalized, 10)
-  if (!Number.isFinite(parsed) || parsed < 0) {
-    return null
-  }
-  return parsed
-}
-
-function parseQueryBoolean(value: QueryInput): boolean {
-  const normalized = resolveQueryValue(value)
-  if (typeof normalized === 'boolean') {
-    return normalized
-  }
-  if (typeof normalized === 'number') {
-    return normalized === 1
-  }
-  if (typeof normalized !== 'string') {
-    return false
-  }
-  const trimmed = normalized.trim().toLowerCase()
-  return trimmed === 'true' || trimmed === '1'
-}
-
-function parseMetadata(value: string | null | undefined): Record<string, unknown> | null {
-  if (!value) {
-    return null
-  }
-  try {
-    return JSON.parse(value) as Record<string, unknown>
-  }
-  catch {
-    return null
-  }
-}
-
-function extractThumbhash(metadata: Record<string, unknown> | null): string | undefined {
-  if (!metadata) {
-    return undefined
-  }
-  return typeof metadata.thumbhash === 'string' ? metadata.thumbhash : undefined
-}
-
-function extractLivePhotoVideoUrl(metadata: Record<string, unknown> | null): string | undefined {
-  if (!metadata) {
-    return undefined
-  }
-  const value = metadata.livePhotoVideoUrl
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined
-}
 
 export default defineEventHandler(async (event): Promise<FileResponse[] | FileSummary[]> => {
   setHeader(event, 'Cache-Control', 'no-store')
   setHeader(event, 'Pragma', 'no-cache')
   setHeader(event, 'Expires', '0')
+
   const query = getQuery(event)
-  const limit = parseQueryNumber(query.limit)
-  const offset = parseQueryNumber(query.offset)
-  const waterfallOnly = parseQueryBoolean(query.waterfall)
+  const { limit, offset, waterfallOnly } = parseListQuery(query as Record<string, unknown>)
+
   if (waterfallOnly) {
     const baseQuery = db
       .select({
@@ -119,18 +27,9 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
     const limitedQuery = typeof limit === 'number' ? baseQuery.limit(limit) : baseQuery
     const offsetQuery = typeof offset === 'number' ? limitedQuery.offset(offset) : limitedQuery
     const rows = await offsetQuery
-    return rows.map((row) => {
-      const metadata = parseMetadata(row.metadata)
-      return {
-        id: row.id,
-        imageUrl: row.imageUrl ?? '',
-        width: row.width,
-        height: row.height,
-        thumbhash: extractThumbhash(metadata),
-        livePhotoVideoUrl: extractLivePhotoVideoUrl(metadata),
-      }
-    })
+    return rows.map(row => toWaterfallSummary(row))
   }
+
   const rows = await db.query.files.findMany({
     orderBy: [desc(files.captureTime), desc(files.createdAt)],
     ...(typeof limit === 'number' ? { limit } : {}),
