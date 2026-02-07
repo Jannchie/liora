@@ -156,6 +156,16 @@ interface LightroomColorAdjustments {
   luminance?: number
 }
 
+type CurvePointTuple = [number, number]
+
+interface LightroomToneCurvePayload {
+  name?: string
+  composite?: CurvePointTuple[]
+  red?: CurvePointTuple[]
+  green?: CurvePointTuple[]
+  blue?: CurvePointTuple[]
+}
+
 interface LightroomColorGradingAdjustments {
   shadows?: LightroomColorAdjustments
   midtones?: LightroomColorAdjustments
@@ -169,11 +179,120 @@ interface LightroomRecipePayload {
   processVersion?: string
   profile?: string
   whiteBalance?: string
-  toneCurve?: string
+  toneCurve?: LightroomToneCurvePayload
   basic?: Record<string, number>
   hsl?: Record<string, LightroomColorAdjustments>
   colorGrading?: LightroomColorGradingAdjustments
   calibration?: Record<string, number>
+}
+
+function extractNumbers(value: unknown): number[] {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) ? [value] : []
+  }
+  if (typeof value === 'string') {
+    const matches = value.match(/-?\d+(?:\.\d+)?/g)
+    if (!matches) {
+      return []
+    }
+    return matches
+      .map(Number)
+      .filter(element => Number.isFinite(element))
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap(element => extractNumbers(element))
+  }
+  if (value && typeof value === 'object' && typeof (value as { toString?: unknown }).toString === 'function') {
+    return extractNumbers(String(value))
+  }
+  return []
+}
+
+function normalizeCurvePoints(raw: unknown): CurvePointTuple[] | null {
+  const numbers = extractNumbers(raw)
+  if (numbers.length < 4) {
+    return null
+  }
+  const normalized: CurvePointTuple[] = []
+  const pairCount = Math.floor(numbers.length / 2)
+  const max = Math.max(...numbers.map(value => Math.abs(value)))
+  const scale = max <= 1.5 ? 255 : 1
+  for (let index = 0; index < pairCount; index += 1) {
+    const x = numbers[index * 2]
+    const y = numbers[index * 2 + 1]
+    if (x === undefined || y === undefined) {
+      continue
+    }
+    const scaledX = Math.max(0, Math.min(255, x * scale))
+    const scaledY = Math.max(0, Math.min(255, y * scale))
+    normalized.push([normalizeNumber(scaledX, 2), normalizeNumber(scaledY, 2)])
+  }
+  if (normalized.length < 2) {
+    return null
+  }
+  normalized.sort((left, right) => left[0] - right[0])
+  const deduped: CurvePointTuple[] = []
+  for (const point of normalized) {
+    const previous = deduped.at(-1)
+    if (!previous || !isNearlyEqual(previous[0], point[0])) {
+      deduped.push(point)
+      continue
+    }
+    deduped[deduped.length - 1] = point
+  }
+  if (deduped.length < 2) {
+    return null
+  }
+  const first = deduped[0]
+  if (first && first[0] > 0) {
+    deduped.unshift([0, 0])
+  }
+  const last = deduped.at(-1)
+  if (last && last[0] < 255) {
+    deduped.push([255, 255])
+  }
+  return deduped
+}
+
+function isLinearCurve(points: CurvePointTuple[]): boolean {
+  return points.every(([x, y]) => isNearlyEqual(x, y, 2))
+}
+
+function pickCurvePoints(tags: Record<string, unknown>, tagNames: string[]): CurvePointTuple[] | null {
+  for (const tagName of tagNames) {
+    const points = normalizeCurvePoints(tags[tagName])
+    if (points) {
+      return points
+    }
+  }
+  return null
+}
+
+function buildToneCurvePayload(tags: Record<string, unknown>): LightroomToneCurvePayload | null {
+  const name = pickFirstTagValue(tags, ['ToneCurveName2012', 'ToneCurveName'])
+  const composite = pickCurvePoints(tags, ['ToneCurvePV2012', 'ToneCurve'])
+  const red = pickCurvePoints(tags, ['ToneCurvePV2012Red', 'ToneCurveRed'])
+  const green = pickCurvePoints(tags, ['ToneCurvePV2012Green', 'ToneCurveGreen'])
+  const blue = pickCurvePoints(tags, ['ToneCurvePV2012Blue', 'ToneCurveBlue'])
+
+  const payload: LightroomToneCurvePayload = {}
+  if (name && name.toLowerCase() !== 'linear') {
+    payload.name = name
+  }
+  if (composite && !isLinearCurve(composite)) {
+    payload.composite = composite
+  }
+  if (red && !isLinearCurve(red)) {
+    payload.red = red
+  }
+  if (green && !isLinearCurve(green)) {
+    payload.green = green
+  }
+  if (blue && !isLinearCurve(blue)) {
+    payload.blue = blue
+  }
+
+  return hasEntries(payload as Record<string, unknown>) ? payload : null
 }
 
 function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
@@ -318,7 +437,8 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   const hasHsl = hasEntries(hsl as Record<string, unknown>)
   const hasColorGrading = hasEntries(colorGrading as Record<string, unknown>)
   const hasCalibration = hasEntries(calibration)
-  if (!hasBasic && !hasHsl && !hasColorGrading && !hasCalibration) {
+  const toneCurve = buildToneCurvePayload(tags)
+  if (!hasBasic && !hasHsl && !hasColorGrading && !hasCalibration && !toneCurve) {
     return undefined
   }
 
@@ -326,13 +446,7 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
     processVersion: pickFirstTagValue(tags, ['ProcessVersion']),
     profile: pickFirstTagValue(tags, ['Profile', 'CameraProfile', 'Look']),
     whiteBalance: hasCustomWhiteBalance ? whiteBalance : undefined,
-    toneCurve: (() => {
-      const toneCurveName = pickFirstTagValue(tags, ['ToneCurveName2012', 'ToneCurveName'])
-      if (!toneCurveName || toneCurveName.toLowerCase() === 'linear') {
-        return
-      }
-      return toneCurveName
-    })(),
+    toneCurve: toneCurve ?? undefined,
     basic: hasBasic ? basic : undefined,
     hsl: hasHsl ? hsl : undefined,
     colorGrading: hasColorGrading ? colorGrading : undefined,

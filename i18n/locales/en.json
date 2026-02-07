@@ -151,6 +151,7 @@
       "focusLocation": "Focus location",
       "focusMode": "Focus mode",
       "focusPosition": "Focus position",
+      "toneCurve": "Tone curve",
       "cropRect": "Crop rectangle",
       "cropAngle": "Crop rotation",
       "perspective": "Perspective",

@@ -61,11 +61,24 @@ export interface LightroomAdjustmentGroup {
   items: LightroomAdjustmentItem[]
 }
 
+export interface LightroomCurvePoint {
+  x: number
+  y: number
+}
+
+export interface LightroomToneCurve {
+  name?: string
+  composite?: LightroomCurvePoint[]
+  red?: LightroomCurvePoint[]
+  green?: LightroomCurvePoint[]
+  blue?: LightroomCurvePoint[]
+}
+
 export interface LightroomRecipeView {
   processVersion?: string
   profile?: string
   whiteBalance?: string
-  toneCurve?: string
+  toneCurve?: LightroomToneCurve
   groups: LightroomAdjustmentGroup[]
 }
 

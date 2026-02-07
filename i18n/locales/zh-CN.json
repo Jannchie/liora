@@ -151,6 +151,7 @@
       "focusLocation": "对焦位置",
       "focusMode": "对焦模式",
       "focusPosition": "对焦位置索引",
+      "toneCurve": "色调曲线",
       "cropRect": "裁切区域",
       "cropAngle": "裁切旋转",
       "perspective": "透视变形",

@@ -1635,6 +1635,14 @@ interface LightroomColorAdjustmentsPayload {
   luminance?: unknown
 }
 
+interface LightroomToneCurvePayload {
+  name?: unknown
+  composite?: unknown
+  red?: unknown
+  green?: unknown
+  blue?: unknown
+}
+
 interface LightroomRecipePayload {
   processVersion?: unknown
   profile?: unknown
@@ -1670,6 +1678,66 @@ function parseRecipeText(value: unknown): string | undefined {
   }
   const trimmed = value.trim()
   return trimmed.length > 0 ? trimmed : undefined
+}
+
+function parseCurvePoints(source: unknown): { x: number, y: number }[] {
+  if (!Array.isArray(source)) {
+    return []
+  }
+  const points: { x: number, y: number }[] = []
+  for (const element of source) {
+    if (Array.isArray(element) && element.length >= 2) {
+      const x = parseRecipeNumber(element[0])
+      const y = parseRecipeNumber(element[1])
+      if (x !== null && y !== null) {
+        points.push({ x, y })
+      }
+      continue
+    }
+    const object = asObject(element)
+    if (object) {
+      const x = parseRecipeNumber(object.x)
+      const y = parseRecipeNumber(object.y)
+      if (x !== null && y !== null) {
+        points.push({ x, y })
+      }
+    }
+  }
+  return points.length >= 2 ? points : []
+}
+
+function parseToneCurvePayload(source: unknown): LightroomRecipeView['toneCurve'] | undefined {
+  const text = parseRecipeText(source)
+  if (text) {
+    return { name: text }
+  }
+  const payload = asObject(source) as LightroomToneCurvePayload | null
+  if (!payload) {
+    return undefined
+  }
+  const toneCurve: NonNullable<LightroomRecipeView['toneCurve']> = {}
+  const name = parseRecipeText(payload.name)
+  if (name) {
+    toneCurve.name = name
+  }
+  const composite = parseCurvePoints(payload.composite)
+  if (composite.length > 0) {
+    toneCurve.composite = composite
+  }
+  const red = parseCurvePoints(payload.red)
+  if (red.length > 0) {
+    toneCurve.red = red
+  }
+  const green = parseCurvePoints(payload.green)
+  if (green.length > 0) {
+    toneCurve.green = green
+  }
+  const blue = parseCurvePoints(payload.blue)
+  if (blue.length > 0) {
+    toneCurve.blue = blue
+  }
+  const hasCurveData = toneCurve.composite || toneCurve.red || toneCurve.green || toneCurve.blue || toneCurve.name
+  return hasCurveData ? toneCurve : undefined
 }
 
 function createLightroomItem(params: {
@@ -1871,7 +1939,7 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
   let processVersion: string | undefined
   let profile: string | undefined
   let whiteBalance: string | undefined
-  let toneCurve: string | undefined
+  let toneCurveName: string | undefined
   for (const token of tokens) {
     if (token.startsWith('PV ')) {
       processVersion = token.slice(3).trim()
@@ -1886,7 +1954,7 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
       continue
     }
     if (token.startsWith('Curve ')) {
-      toneCurve = token.slice(6).trim()
+      toneCurveName = token.slice(6).trim()
       continue
     }
     const match = token.match(/^([a-z]+)\s+([+-]?\d+(?:\.\d+)?)$/i)
@@ -1944,7 +2012,7 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
     createLightroomItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
   ].filter((item): item is LightroomAdjustmentItem => item !== null)
 
-  if (basicItems.length === 0) {
+  if (basicItems.length === 0 && !processVersion && !profile && !whiteBalance && !toneCurveName) {
     return null
   }
 
@@ -1952,8 +2020,8 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
     processVersion,
     profile,
     whiteBalance,
-    toneCurve,
-    groups: [{ key: 'basic', label: 'Basic', items: basicItems }],
+    toneCurve: toneCurveName ? { name: toneCurveName } : undefined,
+    groups: basicItems.length > 0 ? [{ key: 'basic', label: 'Basic', items: basicItems }] : [],
   }
 }
 
@@ -2030,7 +2098,9 @@ function parseLightroomRecipeView(value: string | undefined): LightroomRecipeVie
     }
   }
 
-  if (groups.length === 0) {
+  const toneCurve = parseToneCurvePayload(parsedObject.toneCurve)
+
+  if (groups.length === 0 && !toneCurve) {
     return null
   }
 
@@ -2038,7 +2108,7 @@ function parseLightroomRecipeView(value: string | undefined): LightroomRecipeVie
     processVersion: parseRecipeText(parsedObject.processVersion),
     profile: parseRecipeText(parsedObject.profile),
     whiteBalance: parseRecipeText(parsedObject.whiteBalance),
-    toneCurve: parseRecipeText(parsedObject.toneCurve),
+    toneCurve,
     groups,
   }
 }

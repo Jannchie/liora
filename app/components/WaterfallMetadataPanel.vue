@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import type { LightroomAdjustmentItem, LightroomRecipeView, MetadataEntry } from '~/types/gallery'
+import type { LightroomAdjustmentItem, LightroomCurvePoint, LightroomRecipeView, MetadataEntry } from '~/types/gallery'
 import { computed, defineAsyncComponent } from 'vue'
 
 const props = defineProps<{
@@ -133,6 +133,52 @@ function sliderFillClass(item: LightroomAdjustmentItem): string {
   }
   return 'bg-primary'
 }
+
+interface ToneCurveChannel {
+  key: 'composite' | 'red' | 'green' | 'blue'
+  label: string
+  color: string
+  points: LightroomCurvePoint[]
+}
+
+const toneCurveChannels = computed<ToneCurveChannel[]>(() => {
+  const toneCurve = lightroomRecipe.value?.toneCurve
+  if (!toneCurve) {
+    return []
+  }
+  const candidates: ToneCurveChannel[] = [
+    { key: 'composite', label: 'RGB', color: '#9ca3af', points: toneCurve.composite ?? [] },
+    { key: 'red', label: 'R', color: '#ef4444', points: toneCurve.red ?? [] },
+    { key: 'green', label: 'G', color: '#22c55e', points: toneCurve.green ?? [] },
+    { key: 'blue', label: 'B', color: '#3b82f6', points: toneCurve.blue ?? [] },
+  ]
+  return candidates.filter(channel => channel.points.length >= 2)
+})
+
+const toneCurveName = computed<string | null>(() => {
+  const named = lightroomRecipe.value?.toneCurve?.name
+  if (named && named.trim().length > 0) {
+    return named
+  }
+  if (toneCurveChannels.value.length > 0) {
+    return 'Custom'
+  }
+  return null
+})
+
+function buildToneCurvePath(points: LightroomCurvePoint[]): string {
+  if (points.length < 2) {
+    return ''
+  }
+  return points
+    .map((point, index) => {
+      const x = clamp(point.x, 0, 255)
+      const y = 255 - clamp(point.y, 0, 255)
+      const command = index === 0 ? 'M' : 'L'
+      return `${command}${x.toFixed(2)} ${y.toFixed(2)}`
+    })
+    .join(' ')
+}
 </script>
 
 <template>
@@ -222,7 +268,7 @@ function sliderFillClass(item: LightroomAdjustmentItem): string {
             <span>{{ t('gallery.metadata.lightroom') }}</span>
           </p>
           <div
-            v-if="lightroomRecipe.processVersion || lightroomRecipe.profile || lightroomRecipe.whiteBalance || lightroomRecipe.toneCurve"
+            v-if="lightroomRecipe.processVersion || lightroomRecipe.profile || lightroomRecipe.whiteBalance || toneCurveName"
             class="flex flex-wrap gap-1.5"
           >
             <span
@@ -244,11 +290,46 @@ function sliderFillClass(item: LightroomAdjustmentItem): string {
               {{ `WB ${lightroomRecipe.whiteBalance}` }}
             </span>
             <span
-              v-if="lightroomRecipe.toneCurve"
+              v-if="toneCurveName"
               class="inline-flex items-center rounded-full bg-default/30 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
             >
-              {{ `Curve ${lightroomRecipe.toneCurve}` }}
+              {{ `Curve ${toneCurveName}` }}
             </span>
+          </div>
+          <div
+            v-if="toneCurveChannels.length > 0"
+            class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
+          >
+            <div class="flex items-center justify-between text-[10px] uppercase tracking-wide text-muted">
+              <span>{{ t('gallery.metadata.toneCurve') }}</span>
+              <span v-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
+            </div>
+            <svg
+              viewBox="0 0 255 255"
+              class="h-28 w-full rounded border border-default/10 bg-default/20"
+              role="img"
+              :aria-label="t('gallery.metadata.toneCurve')"
+            >
+              <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
+              <path
+                v-for="channel in toneCurveChannels"
+                :key="channel.key"
+                :d="buildToneCurvePath(channel.points)"
+                :stroke="channel.color"
+                stroke-width="2"
+                fill="none"
+              />
+            </svg>
+            <div class="flex flex-wrap gap-1">
+              <span
+                v-for="channel in toneCurveChannels"
+                :key="`${channel.key}-legend`"
+                class="inline-flex items-center gap-1 rounded-full bg-default/25 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
+              >
+                <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
+                <span>{{ channel.label }}</span>
+              </span>
+            </div>
           </div>
           <div class="space-y-2">
             <div
@@ -269,7 +350,7 @@ function sliderFillClass(item: LightroomAdjustmentItem): string {
                     <span class="font-medium text-highlighted">{{ item.label }}</span>
                     <span>{{ formatAdjustmentValue(item) }}</span>
                   </div>
-                  <div class="relative h-px rounded bg-default/35 ring-1 ring-default/15">
+                  <div class="relative h-px rounded bg-accented ring-1 ring-default/10">
                     <div
                       v-if="isZeroCentered(item)"
                       class="pointer-events-none absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-default/60"
