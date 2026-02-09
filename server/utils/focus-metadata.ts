@@ -26,6 +26,53 @@ type FocusMetadata = Pick<
   | 'lightroomRecipe'
 >
 
+const DEFAULT_FOCUS_METADATA_TIMEOUT_MS = 8000
+const MIN_FOCUS_METADATA_TIMEOUT_MS = 500
+const MAX_FOCUS_METADATA_TIMEOUT_MS = 60_000
+const FOCUS_METADATA_BACKOFF_MS = 5 * 60 * 1000
+
+let focusMetadataDisabledUntil = 0
+
+function resolveFocusMetadataTimeoutMs(): number {
+  const raw = process.env.FOCUS_METADATA_TIMEOUT_MS ?? process.env.NUXT_FOCUS_METADATA_TIMEOUT_MS
+  const parsed = Number.parseInt(raw ?? '', 10)
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_FOCUS_METADATA_TIMEOUT_MS
+  }
+  return Math.max(MIN_FOCUS_METADATA_TIMEOUT_MS, Math.min(MAX_FOCUS_METADATA_TIMEOUT_MS, parsed))
+}
+
+function shouldBackoffFocusMetadata(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false
+  }
+  const normalized = error.message.toLowerCase()
+  return normalized.includes('timed out')
+    || normalized.includes('enoent')
+    || normalized.includes('spawn')
+    || normalized.includes('exiftool')
+}
+
+function disableFocusMetadataExtraction(error: unknown): void {
+  focusMetadataDisabledUntil = Date.now() + FOCUS_METADATA_BACKOFF_MS
+  console.warn('Focus metadata extraction temporarily disabled for 5 minutes.', error)
+}
+
+function readFocusTagsWithTimeout(sourcePath: string, timeoutMs: number): Promise<Record<string, unknown>> {
+  let timeoutId: ReturnType<typeof setTimeout> | undefined
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(new Error(`Focus metadata extraction timed out after ${timeoutMs}ms.`))
+    }, timeoutMs)
+  })
+  const readPromise = exiftool.read(sourcePath) as Promise<Record<string, unknown>>
+  return Promise.race([readPromise, timeoutPromise]).finally(() => {
+    if (timeoutId !== undefined) {
+      clearTimeout(timeoutId)
+    }
+  }) as Promise<Record<string, unknown>>
+}
+
 function normalizeMetadataText(value: unknown): string | undefined {
   if (typeof value === 'string') {
     const normalized = value.trim()
@@ -479,11 +526,16 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
 }
 
 export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata> {
+  if (Date.now() < focusMetadataDisabledUntil) {
+    return {}
+  }
+
+  const timeoutMs = resolveFocusMetadataTimeoutMs()
   const workspace = await mkdtemp(join(tmpdir(), 'liora-focus-'))
   const sourcePath = join(workspace, `source${resolveTempExtension(filename)}`)
   try {
     await writeFile(sourcePath, buffer)
-    const tags = (await exiftool.read(sourcePath)) as Record<string, unknown>
+    const tags = await readFocusTagsWithTimeout(sourcePath, timeoutMs)
     const perspectiveUpright = pickFirstTagValue(tags, ['PerspectiveUpright'])
     return {
       focusDistance: pickFirstTagValue(tags, ['FocusDistance2', 'FocusDistance', 'SubjectDistance']),
@@ -507,6 +559,9 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
     }
   }
   catch (error) {
+    if (shouldBackoffFocusMetadata(error)) {
+      disableFocusMetadataExtraction(error)
+    }
     console.warn('Focus metadata extraction failed:', error)
     return {}
   }
