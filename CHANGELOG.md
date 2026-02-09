@@ -1,3 +1,11 @@
+## v0.24.1
+
+[v0.24.0...v0.24.1](https://github.com/Jannchie/liora/compare/v0.24.0...v0.24.1)
+
+### :adhesive_bandage: Fixes
+
+- **focus-metadata**: add timeout and backoff to focus metadata extraction - By [Jannchie](mailto:jannchie@gmail.com) in [bc1ba16](https://github.com/Jannchie/liora/commit/bc1ba16)
+
 ## v0.24.0
 
 [v0.23.0...v0.24.0](https://github.com/Jannchie/liora/compare/v0.23.0...v0.24.0)
