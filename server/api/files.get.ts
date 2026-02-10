@@ -23,7 +23,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
         metadata: files.metadata,
       })
       .from(files)
-      .orderBy(desc(files.captureTime), desc(files.createdAt))
+      .orderBy(desc(files.captureTime), desc(files.createdAt), desc(files.id))
     const limitedQuery = typeof limit === 'number' ? baseQuery.limit(limit) : baseQuery
     const offsetQuery = typeof offset === 'number' ? limitedQuery.offset(offset) : limitedQuery
     const rows = await offsetQuery
@@ -31,7 +31,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
   }
 
   const rows = await db.query.files.findMany({
-    orderBy: [desc(files.captureTime), desc(files.createdAt)],
+    orderBy: [desc(files.captureTime), desc(files.createdAt), desc(files.id)],
     ...(typeof limit === 'number' ? { limit } : {}),
     ...(typeof offset === 'number' ? { offset } : {}),
   })
