@@ -1,3 +1,11 @@
+## v0.24.2
+
+[v0.24.1...v0.24.2](https://github.com/Jannchie/liora/compare/v0.24.1...v0.24.2)
+
+### :wrench: Chores
+
+- **docker**: install openssl perl and exiftool in image - By [Jannchie](mailto:jannchie@gmail.com) in [b816977](https://github.com/Jannchie/liora/commit/b816977)
+
 ## v0.24.1
 
 [v0.24.0...v0.24.1](https://github.com/Jannchie/liora/compare/v0.24.0...v0.24.1)
