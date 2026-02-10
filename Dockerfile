@@ -4,7 +4,9 @@ FROM node:22-bookworm-slim AS base
 ENV PNPM_HOME="/usr/local/share/pnpm"
 ENV PATH="${PNPM_HOME}:${PATH}"
 RUN corepack enable
-RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl perl libimage-exiftool-perl \
+  && rm -rf /var/lib/apt/lists/*
 ENV DATABASE_URL=file:/data/data.db
 
 FROM base AS deps

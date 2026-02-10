@@ -103,6 +103,7 @@ Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCI
 
 - Defaults: listens on `0.0.0.0:3000`; `DATABASE_URL=file:/data/data.db`. Override `HOST`/`PORT` or mount `/data` to persist SQLite.
 - Drizzle migrations (`pnpm run db:migrate`) run at container start. Use `scripts/build-docker.sh` and `scripts/publish-docker.sh` to tag/push images (`IMAGE_NAME` overridable).
+- Docker image includes `perl` and `exiftool` runtime dependencies required by metadata extraction, so host-level installation is not needed.
 - Persist SQLite with a host directory (example: `/srv/liora-db`):
 
   ```bash
