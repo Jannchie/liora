@@ -4,7 +4,7 @@ import type { FileMetadata, FileResponse, FileSummary } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()
@@ -221,9 +221,11 @@ if (import.meta.client) {
   void loadSiteSettings()
   watch(
     data,
-    (nextData) => {
+    async (nextData) => {
       const resolved = Array.isArray(nextData) ? nextData : []
       syncInitialFiles(resolved)
+      await nextTick()
+      refreshLoadMoreObserver()
       void ensureRouteFile()
     },
     { immediate: true },
@@ -270,7 +272,11 @@ async function loadMore(): Promise<void> {
     nextOffset.value += nextBatch.length
     if (nextBatch.length < pageSize) {
       hasMore.value = false
+      refreshLoadMoreObserver()
+      return
     }
+    await nextTick()
+    refreshLoadMoreObserver()
   }
   catch {
     loadMoreError.value = true
@@ -301,6 +307,14 @@ function setupLoadMoreObserver(): void {
     },
   )
   loadMoreObserver.value.observe(loadMoreSentinel.value)
+}
+
+function refreshLoadMoreObserver(): void {
+  loadMoreObserver.value?.disconnect()
+  if (!hasMore.value || !showLoadMoreSentinel.value) {
+    return
+  }
+  setupLoadMoreObserver()
 }
 
 const infoPlacement = computed<SiteInfoPlacement>(() => {
@@ -348,7 +362,7 @@ onMounted(() => {
   if (root instanceof HTMLElement) {
     scrollElementRef.value = root
   }
-  setupLoadMoreObserver()
+  refreshLoadMoreObserver()
 })
 
 onBeforeUnmount(() => {
