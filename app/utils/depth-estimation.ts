@@ -1,4 +1,4 @@
-import type { DepthEstimationPipeline, DepthEstimationPipelineOutput } from '@xenova/transformers'
+import type { DepthEstimationPipeline, DepthEstimationPipelineOutput, DeviceType } from '@huggingface/transformers'
 
 export interface DepthEstimateOptions {
   scaleFactor?: number
@@ -11,7 +11,7 @@ export interface DepthEstimateResult {
   model: string
 }
 
-type TransformersModule = typeof import('@xenova/transformers')
+type TransformersModule = typeof import('@huggingface/transformers')
 type RawImageInstance = InstanceType<TransformersModule['RawImage']>
 
 const MODEL_NAME = 'Xenova/dpt-hybrid-midas'
@@ -23,8 +23,8 @@ let transformersPromise: Promise<TransformersModule> | null = null
 let pipelinePromise: Promise<DepthEstimationPipeline> | null = null
 let worker: Worker | null = null
 let workerRequestId = 0
-let gpuExecutionProviderConfigured = false
-let gpuExecutionProvider: 'webgpu' | 'webgl' | null = null
+let preferredDeviceConfigured = false
+let preferredDevice: DeviceType | null = null
 const workerResolvers = new Map<number, {
   resolve: (value: DepthEstimateResult) => void
   reject: (error: Error) => void
@@ -50,67 +50,19 @@ function parseScaleFactor(value: number | undefined): number {
   return Math.min(MAX_SCALE_FACTOR, Math.max(MIN_SCALE_FACTOR, value))
 }
 
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every(item => typeof item === 'string')
-}
-
 function supportsWebGpu(): boolean {
   return globalThis.navigator !== undefined && 'gpu' in globalThis.navigator
 }
 
-function supportsWebGl(): boolean {
-  if (typeof document !== 'undefined') {
-    const canvas = document.createElement('canvas')
-    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+function resolvePreferredDevice(): DeviceType | null {
+  if (preferredDeviceConfigured) {
+    return preferredDevice
   }
-  if (typeof OffscreenCanvas !== 'undefined') {
-    const canvas = new OffscreenCanvas(1, 1)
-    return Boolean(canvas.getContext('webgl2') ?? canvas.getContext('webgl'))
+  preferredDeviceConfigured = true
+  if (supportsWebGpu()) {
+    preferredDevice = 'webgpu'
   }
-  return false
-}
-
-async function configureGpuExecutionProvider(): Promise<'webgpu' | 'webgl' | null> {
-  if (gpuExecutionProviderConfigured) {
-    return gpuExecutionProvider
-  }
-  gpuExecutionProviderConfigured = true
-  if (globalThis.navigator === undefined) {
-    return gpuExecutionProvider
-  }
-  try {
-    const onnxBackend: unknown = await import('@xenova/transformers/src/backends/onnx.js')
-    if (typeof onnxBackend !== 'object' || onnxBackend === null) {
-      return gpuExecutionProvider
-    }
-    const onnxModule = onnxBackend as {
-      executionProviders?: unknown
-      ONNX?: { env?: Record<string, unknown> }
-    }
-    const onnxEnv = onnxModule.ONNX?.env
-    const providers = onnxModule.executionProviders
-    if (!isStringArray(providers)) {
-      return gpuExecutionProvider
-    }
-    const canUseWebGpu = supportsWebGpu() && !!onnxEnv && Object.prototype.hasOwnProperty.call(onnxEnv, 'webgpu')
-    const canUseWebGl = supportsWebGl() && !!onnxEnv && Object.prototype.hasOwnProperty.call(onnxEnv, 'webgl')
-    if (canUseWebGl && !providers.includes('webgl')) {
-      providers.unshift('webgl')
-    }
-    if (canUseWebGpu && !providers.includes('webgpu')) {
-      providers.unshift('webgpu')
-    }
-    if (canUseWebGpu) {
-      gpuExecutionProvider = 'webgpu'
-    }
-    else if (canUseWebGl) {
-      gpuExecutionProvider = 'webgl'
-    }
-  }
-  catch {
-    // Ignore and fall back to wasm.
-  }
-  return gpuExecutionProvider
+  return preferredDevice
 }
 
 function resetWorkerWithError(error: Error): void {
@@ -159,7 +111,7 @@ function getDepthWorker(): Worker | null {
 
 async function loadTransformers(): Promise<TransformersModule> {
   if (!transformersPromise) {
-    transformersPromise = import('@xenova/transformers')
+    transformersPromise = import('@huggingface/transformers')
   }
   return transformersPromise
 }
@@ -171,7 +123,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   if (!pipelinePromise) {
     pipelinePromise = (async () => {
       const { env, pipeline } = await loadTransformers()
-      await configureGpuExecutionProvider()
+      const device = resolvePreferredDevice()
       env.allowRemoteModels = true
       env.allowLocalModels = false
       env.useBrowserCache = true
@@ -179,7 +131,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
       if (env.backends?.onnx?.wasm) {
         env.backends.onnx.wasm.numThreads = maxThreads
       }
-      return pipeline('depth-estimation', MODEL_NAME)
+      return pipeline('depth-estimation', MODEL_NAME, device ? { device } : undefined)
     })()
   }
   return pipelinePromise
@@ -260,8 +212,8 @@ export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstim
     throw new Error('Image URL is required.')
   }
   const scaleFactor = parseScaleFactor(options.scaleFactor)
-  const preferredProvider = await configureGpuExecutionProvider()
-  if (preferredProvider) {
+  const preferredDevice = resolvePreferredDevice()
+  if (preferredDevice) {
     try {
       return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
     }
