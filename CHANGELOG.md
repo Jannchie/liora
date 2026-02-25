@@ -1,3 +1,12 @@
+## v0.24.3
+
+[v0.24.2...v0.24.3](https://github.com/Jannchie/liora/compare/v0.24.2...v0.24.3)
+
+### :adhesive_bandage: Fixes
+
+- **files-api**: include id in ordering to stabilize results - By [Jannchie](mailto:jannchie@gmail.com) in [75158de](https://github.com/Jannchie/liora/commit/75158de)
+- **gallery**: ensure load-more observer updates correctly - By [Jannchie](mailto:jannchie@gmail.com) in [df2447a](https://github.com/Jannchie/liora/commit/df2447a)
+
 ## v0.24.2
 
 [v0.24.1...v0.24.2](https://github.com/Jannchie/liora/compare/v0.24.1...v0.24.2)
