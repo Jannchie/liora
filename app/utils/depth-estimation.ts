@@ -131,7 +131,8 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
       if (env.backends?.onnx?.wasm) {
         env.backends.onnx.wasm.numThreads = maxThreads
       }
-      return pipeline('depth-estimation', MODEL_NAME, device ? { device } : undefined)
+      const pipelineOptions = device === null ? undefined : { device }
+      return pipeline<'depth-estimation'>('depth-estimation', MODEL_NAME, pipelineOptions)
     })()
   }
   return pipelinePromise

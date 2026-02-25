@@ -25,6 +25,8 @@ interface ViewBox {
   height: number
 }
 
+type IconClass = string | string[] | Record<string, boolean>
+
 const attrs = useAttrs()
 
 const collection = simpleIcons as { icons: Record<string, SimpleIcon>, width?: number, height?: number }
@@ -118,6 +120,8 @@ const mergedStyle = computed<StyleValue[]>(() => {
   return base
 })
 
+const mergedClass = computed<IconClass | undefined>(() => attrs.class as IconClass | undefined)
+
 const passthroughAttrs = computed<Record<string, unknown>>(() => {
   const { class: _class, style: _style, ...rest } = attrs
   return rest
@@ -133,7 +137,7 @@ const passthroughAttrs = computed<Record<string, unknown>>(() => {
     aria-hidden="true"
     focusable="false"
     role="img"
-    :class="attrs.class"
+    :class="mergedClass"
     :style="mergedStyle"
     v-bind="passthroughAttrs"
   >
