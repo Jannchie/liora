@@ -1,3 +1,11 @@
+## v0.25.0
+
+[v0.24.3...v0.25.0](https://github.com/Jannchie/liora/compare/v0.24.3...v0.25.0)
+
+### :sparkles: Features
+
+- **depth-estimation**: switch to huggingface transformers and prefer webgpu device - By [Jannchie](mailto:jannchie@gmail.com) in [7646a5c](https://github.com/Jannchie/liora/commit/7646a5c)
+
 ## v0.24.3
 
 [v0.24.2...v0.24.3](https://github.com/Jannchie/liora/compare/v0.24.2...v0.24.3)
