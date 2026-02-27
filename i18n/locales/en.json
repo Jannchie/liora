@@ -22,7 +22,9 @@
       "changeImage": "Change image",
       "changeVideo": "Change video",
       "remove": "Remove",
-      "switchLanguage": "Switch language"
+      "switchLanguage": "Switch language",
+      "add": "Add",
+      "retry": "Retry"
     },
     "kinds": {
       "photography": "Photography",
@@ -190,7 +192,8 @@
       "viewFrontend": "View site",
       "logout": "Sign out",
       "logoutSuccess": "Signed out",
-      "logoutFailed": "Failed to sign out"
+      "logoutFailed": "Failed to sign out",
+      "series": "Series"
     },
     "redirecting": "Redirecting to upload…",
     "login": {
@@ -705,6 +708,101 @@
       "actions": {
         "save": "Save site info"
       }
+    },
+    "series": {
+      "seoTitle": "Series | Liora",
+      "seoDescription": "Manage series and manual ordering.",
+      "title": "Series",
+      "listTitle": "All series",
+      "count": "{count} photos",
+      "deleteConfirm": "Delete this series?",
+      "create": {
+        "title": "Create series",
+        "action": "Create"
+      },
+      "edit": {
+        "title": "Edit series"
+      },
+      "form": {
+        "title": "Title",
+        "titlePlaceholder": "Series title",
+        "slug": "Slug",
+        "slugPlaceholder": "series-slug",
+        "description": "Description",
+        "descriptionPlaceholder": "Optional description",
+        "cover": "Cover",
+        "coverPlaceholder": "Choose cover file"
+      },
+      "files": {
+        "title": "Series files",
+        "saveOrder": "Save order",
+        "searchPlaceholder": "Search files by title or id",
+        "noCandidate": "No available files.",
+        "empty": "No files in this series."
+      },
+      "toast": {
+        "titleRequired": "Title is required.",
+        "loadFailed": "Failed to load series.",
+        "loadFailedFallback": "Failed to load series detail.",
+        "loadFilesFailed": "Failed to load files.",
+        "createSuccess": "Series created.",
+        "createFailed": "Failed to create series.",
+        "createFailedFallback": "Create series failed.",
+        "updateSuccess": "Series updated.",
+        "updateFailed": "Failed to update series.",
+        "updateFailedFallback": "Update series failed.",
+        "deleteSuccess": "Series deleted.",
+        "deleteFailed": "Failed to delete series.",
+        "deleteFailedFallback": "Delete series failed.",
+        "addFileFailed": "Failed to add file.",
+        "addFileFailedFallback": "Add file failed.",
+        "removeFileFailed": "Failed to remove file.",
+        "removeFileFailedFallback": "Remove file failed.",
+        "reorderSuccess": "Series order saved.",
+        "reorderFailed": "Failed to save order.",
+        "reorderFailedFallback": "Save order failed."
+      }
+    }
+  },
+  "series": {
+    "common": {
+      "backHome": "Back to home",
+      "backSeries": "Back to series"
+    },
+    "special": {
+      "uncategorizedTitle": "Uncategorized",
+      "uncategorizedDescription": "Photos that have not been assigned to any series."
+    },
+    "assign": {
+      "manage": "Manage series",
+      "title": "Manage series",
+      "description": "Add or remove this photo from series.",
+      "searchPlaceholder": "Search by title or slug",
+      "noSeries": "No series available. Create one in admin first.",
+      "emptyFiltered": "No matching series.",
+      "saveSuccess": "Series updated.",
+      "saveFailed": "Failed to update series.",
+      "saveFailedFallback": "Update failed."
+    },
+    "list": {
+      "navLabel": "Series",
+      "seoTitle": "Series | Liora",
+      "seoDescription": "Browse all photo series.",
+      "title": "Series",
+      "description": "Browse grouped photo stories and projects.",
+      "manage": "Manage series",
+      "loadFailed": "Failed to load series.",
+      "empty": "No series yet.",
+      "noCover": "No cover",
+      "count": "{count} photos"
+    },
+    "detail": {
+      "seoTitle": "Series | Liora",
+      "seoDescription": "Series detail",
+      "titleFallback": "Series",
+      "descriptionFallback": "No description.",
+      "loadFailed": "Failed to load this series.",
+      "empty": "No photos in this series yet."
     }
   }
 }

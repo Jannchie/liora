@@ -66,6 +66,7 @@ const {
 const emit = defineEmits<{
   (event: 'close'): void
   (event: 'edit'): void
+  (event: 'manageSeries'): void
   (event: 'wheel', value: WheelEvent): void
   (event: 'dblclick', value: MouseEvent): void
   (event: 'pointerdown', value: PointerEvent): void
@@ -676,6 +677,16 @@ function handleFocusToggle(): void {
                 <span>{{ genreLabel }}</span>
               </span>
             </div>
+            <div v-if="file.series.length > 0" class="flex flex-wrap items-center gap-2">
+              <span
+                v-for="item in file.series"
+                :key="item.id"
+                class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-xs text-muted ring-1 ring-default/30"
+              >
+                <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
+                <span>{{ item.title }}</span>
+              </span>
+            </div>
           </div>
           <div class="space-y-3">
             <Suspense>
@@ -754,6 +765,16 @@ function handleFocusToggle(): void {
                 @click="emit('edit')"
               >
                 {{ t('common.actions.edit') }}
+              </UButton>
+              <UButton
+                v-if="canEdit"
+                type="button"
+                icon="tabler:stack-3"
+                size="md"
+                variant="soft"
+                @click="emit('manageSeries')"
+              >
+                {{ t('series.assign.manage') }}
               </UButton>
               <UButton
                 v-if="hasLivePhoto"

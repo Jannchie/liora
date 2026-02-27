@@ -22,6 +22,20 @@
       "when": 1766300703800,
       "tag": "0002_add_site_custom_css",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1772085565799,
+      "tag": "0003_add_series",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1772086492941,
+      "tag": "0004_series_integrity_fix",
+      "breakpoints": true
     }
   ]
 }

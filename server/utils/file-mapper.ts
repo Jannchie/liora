@@ -1,5 +1,5 @@
 import type { FileRow } from './db'
-import type { FileMetadata, FileResponse } from '~/types/file'
+import type { FileMetadata, FileResponse, FileSeriesRef } from '~/types/file'
 
 export function mapCharacters(characterList: string): string[] {
   return characterList
@@ -146,7 +146,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   }
 }
 
-export function toFileResponse(file: FileRow): FileResponse {
+export function toFileResponse(file: FileRow, options?: { series?: FileSeriesRef[] }): FileResponse {
   const characters = mapCharacters(file.characterList)
   const metadata = ensureMetadata(file.metadata, {
     fanworkTitle: file.fanworkTitle,
@@ -226,6 +226,7 @@ export function toFileResponse(file: FileRow): FileResponse {
     characters,
     metadata,
     genre,
+    series: options?.series ?? [],
     fileSize: metadata.fileSize,
     createdAt: Number.isNaN(createdAt.getTime()) ? new Date().toISOString() : createdAt.toISOString(),
   }

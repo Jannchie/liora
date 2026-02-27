@@ -2,6 +2,7 @@
 import type { SessionState } from '~/types/auth'
 import type { FileMetadata, FileResponse, FileSummary } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
+import type { SeriesSummary } from '~/types/series'
 import type { SiteSettings } from '~/types/site'
 import { defineOgImageComponent } from '#imports'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -74,6 +75,7 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
     cameraModel: '',
     characters: [],
     genre: '',
+    series: [],
     fileSize: 0,
     createdAt: '',
   }
@@ -94,6 +96,10 @@ const { data, pending, error } = useFetch<FileSummary[]>('/api/files', {
     offset: 0,
     waterfall: '1',
   },
+  server: false,
+})
+const { data: seriesData, pending: pendingSeries, error: seriesError, refresh: refreshSeries } = useFetch<SeriesSummary[]>('/api/series', {
+  default: () => [],
   server: false,
 })
 
@@ -134,6 +140,10 @@ const emptyText = computed(() => t('home.emptyText'))
 const scrollElementRef = ref<HTMLElement | undefined>()
 const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
+const seriesList = computed(() => seriesData.value ?? [])
+const hasRealSeries = computed(() => seriesList.value.some(item => !item.isVirtual))
+const showSeriesLanding = computed(() => route.path === '/' && hasRealSeries.value)
+const seriesErrorMessage = computed(() => seriesError.value?.message ?? null)
 
 const routePhotoId = computed<number | null>(() => {
   const normalized = normalizeRouteParam(route.params.id)
@@ -411,6 +421,17 @@ defineOgImageComponent('LioraCard', {
         </div>
         <div class="flex items-center gap-2 md:shrink-0">
           <UButton
+            v-if="!showSeriesLanding"
+            to="/series"
+            color="primary"
+            variant="soft"
+            size="sm"
+            icon="tabler:stack-3"
+            class="shrink-0"
+          >
+            {{ t('series.list.navLabel') }}
+          </UButton>
+          <UButton
             v-if="isAuthenticated"
             to="/admin"
             color="primary"
@@ -431,6 +452,17 @@ defineOgImageComponent('LioraCard', {
         class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3"
       >
         <UButton
+          v-if="!showSeriesLanding"
+          to="/series"
+          color="primary"
+          variant="soft"
+          size="sm"
+          class="shrink-0"
+          icon="tabler:stack-3"
+        >
+          {{ t('series.list.navLabel') }}
+        </UButton>
+        <UButton
           v-if="isAuthenticated"
           to="/admin"
           color="primary"
@@ -443,35 +475,55 @@ defineOgImageComponent('LioraCard', {
         </UButton>
         <LanguageSwitcher class="hidden md:block" />
       </div>
-      <UAlert
-        v-if="fetchError"
-        color="error"
-        variant="soft"
-        :title="alertTitle"
-        :description="alertDescription"
-      >
-        <template #icon>
-          <Icon name="tabler:alert-circle" class="h-5 w-5" />
-        </template>
-      </UAlert>
+      <template v-if="showSeriesLanding">
+        <section class="space-y-4 px-3 py-4 md:px-4">
+          <header class="space-y-1">
+            <h2 class="text-xl font-semibold text-highlighted">
+              {{ t('series.list.title') }}
+            </h2>
+            <p class="text-sm text-muted">
+              {{ t('series.list.description') }}
+            </p>
+          </header>
+          <SeriesGrid
+            :series-list="seriesList"
+            :pending="pendingSeries"
+            :error-message="seriesErrorMessage"
+            @retry="refreshSeries"
+          />
+        </section>
+      </template>
+      <template v-else>
+        <UAlert
+          v-if="fetchError"
+          color="error"
+          variant="soft"
+          :title="alertTitle"
+          :description="alertDescription"
+        >
+          <template #icon>
+            <Icon name="tabler:alert-circle" class="h-5 w-5" />
+          </template>
+        </UAlert>
 
-      <WaterfallGallery
-        :files="files"
-        :is-loading="isLoading"
-        :site-settings="siteSettings ?? undefined"
-        :scroll-element="scrollElementRef"
-        :empty-text="emptyText"
-        :is-authenticated="isAuthenticated"
-      />
-      <div
-        v-show="showLoadMoreSentinel"
-        ref="loadMoreSentinel"
-        class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
-        aria-live="polite"
-      >
-        <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
-        <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
-      </div>
+        <WaterfallGallery
+          :files="files"
+          :is-loading="isLoading"
+          :site-settings="siteSettings ?? undefined"
+          :scroll-element="scrollElementRef"
+          :empty-text="emptyText"
+          :is-authenticated="isAuthenticated"
+        />
+        <div
+          v-show="showLoadMoreSentinel"
+          ref="loadMoreSentinel"
+          class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
+          aria-live="polite"
+        >
+          <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
+          <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
+        </div>
+      </template>
     </div>
     <div class="hidden">
       <slot />

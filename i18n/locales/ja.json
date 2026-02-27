@@ -22,7 +22,9 @@
       "changeImage": "画像を変更",
       "changeVideo": "動画を変更",
       "remove": "削除",
-      "switchLanguage": "言語を切り替える"
+      "switchLanguage": "言語を切り替える",
+      "add": "追加",
+      "retry": "再試行"
     },
     "kinds": {
       "photography": "写真",
@@ -190,7 +192,8 @@
       "viewFrontend": "サイトを表示",
       "logout": "サインアウト",
       "logoutSuccess": "サインアウトしました",
-      "logoutFailed": "サインアウトに失敗しました"
+      "logoutFailed": "サインアウトに失敗しました",
+      "series": "シリーズ"
     },
     "redirecting": "アップロードにリダイレクトしています…",
     "login": {
@@ -705,6 +708,101 @@
       "actions": {
         "save": "サイト情報を保存"
       }
+    },
+    "series": {
+      "seoTitle": "シリーズ管理 | Liora",
+      "seoDescription": "シリーズ、カバー、並び順を管理します。",
+      "title": "シリーズ管理",
+      "listTitle": "シリーズ一覧",
+      "count": "{count} 枚",
+      "deleteConfirm": "このシリーズを削除しますか？",
+      "create": {
+        "title": "シリーズ作成",
+        "action": "作成"
+      },
+      "edit": {
+        "title": "シリーズ編集"
+      },
+      "form": {
+        "title": "タイトル",
+        "titlePlaceholder": "シリーズタイトル",
+        "slug": "Slug",
+        "slugPlaceholder": "series-slug",
+        "description": "説明",
+        "descriptionPlaceholder": "任意の説明",
+        "cover": "カバー",
+        "coverPlaceholder": "カバー作品を選択"
+      },
+      "files": {
+        "title": "シリーズ内作品",
+        "saveOrder": "並び順を保存",
+        "searchPlaceholder": "タイトルまたはIDで検索",
+        "noCandidate": "追加できる作品がありません。",
+        "empty": "このシリーズに作品がありません。"
+      },
+      "toast": {
+        "titleRequired": "タイトルを入力してください。",
+        "loadFailed": "シリーズの読み込みに失敗しました。",
+        "loadFailedFallback": "シリーズ詳細の読み込みに失敗しました。",
+        "loadFilesFailed": "作品一覧の読み込みに失敗しました。",
+        "createSuccess": "シリーズを作成しました。",
+        "createFailed": "シリーズの作成に失敗しました。",
+        "createFailedFallback": "シリーズ作成に失敗しました。",
+        "updateSuccess": "シリーズを更新しました。",
+        "updateFailed": "シリーズの更新に失敗しました。",
+        "updateFailedFallback": "シリーズ更新に失敗しました。",
+        "deleteSuccess": "シリーズを削除しました。",
+        "deleteFailed": "シリーズの削除に失敗しました。",
+        "deleteFailedFallback": "シリーズ削除に失敗しました。",
+        "addFileFailed": "作品の追加に失敗しました。",
+        "addFileFailedFallback": "作品追加に失敗しました。",
+        "removeFileFailed": "作品の削除に失敗しました。",
+        "removeFileFailedFallback": "作品削除に失敗しました。",
+        "reorderSuccess": "並び順を保存しました。",
+        "reorderFailed": "並び順の保存に失敗しました。",
+        "reorderFailedFallback": "並び順保存に失敗しました。"
+      }
+    }
+  },
+  "series": {
+    "common": {
+      "backHome": "ホームへ戻る",
+      "backSeries": "シリーズへ戻る"
+    },
+    "special": {
+      "uncategorizedTitle": "未分類",
+      "uncategorizedDescription": "まだどのシリーズにも分類されていない作品です。"
+    },
+    "assign": {
+      "manage": "シリーズ管理",
+      "title": "シリーズ分類を管理",
+      "description": "この作品を複数シリーズへ追加・削除できます。",
+      "searchPlaceholder": "タイトルまたは slug で検索",
+      "noSeries": "利用可能なシリーズがありません。先に管理画面で作成してください。",
+      "emptyFiltered": "一致するシリーズがありません。",
+      "saveSuccess": "シリーズ分類を更新しました。",
+      "saveFailed": "シリーズ分類の更新に失敗しました。",
+      "saveFailedFallback": "更新に失敗しました。"
+    },
+    "list": {
+      "navLabel": "シリーズ",
+      "seoTitle": "シリーズ | Liora",
+      "seoDescription": "すべてのシリーズを閲覧します。",
+      "title": "シリーズ",
+      "description": "テーマ別・プロジェクト別に作品を閲覧します。",
+      "manage": "シリーズ管理",
+      "loadFailed": "シリーズの読み込みに失敗しました。",
+      "empty": "シリーズはまだありません。",
+      "noCover": "カバーなし",
+      "count": "{count} 枚"
+    },
+    "detail": {
+      "seoTitle": "シリーズ | Liora",
+      "seoDescription": "シリーズ詳細",
+      "titleFallback": "シリーズ",
+      "descriptionFallback": "説明はありません。",
+      "loadFailed": "シリーズの読み込みに失敗しました。",
+      "empty": "このシリーズにはまだ作品がありません。"
     }
   }
 }

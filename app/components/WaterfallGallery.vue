@@ -16,6 +16,7 @@ import type {
   SocialLink,
   WaterfallEntry,
 } from '~/types/gallery'
+import type { SeriesSummary } from '~/types/series'
 import type { SiteSettings } from '~/types/site'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
@@ -36,6 +37,9 @@ const props = withDefaults(
     siteSettings?: SiteSettings | null
     isAuthenticated?: boolean
     totalCount?: number | null
+    overlayRootPath?: string
+    overlayBasePath?: string
+    overlayRouteParam?: string
   }>(),
   {
     emptyText: undefined,
@@ -43,6 +47,9 @@ const props = withDefaults(
     siteSettings: undefined,
     isAuthenticated: false,
     totalCount: undefined,
+    overlayRootPath: '/',
+    overlayBasePath: '/photo',
+    overlayRouteParam: 'id',
   },
 )
 
@@ -154,6 +161,7 @@ const overlayPreviewSrc = computed<string | null>(() => {
 const overlaySessionId = ref(0)
 
 const fileOverrides = ref<Record<number, FileResponse>>({})
+const hiddenFileIds = ref<Set<number>>(new Set())
 const isAdmin = computed(() => props.isAuthenticated ?? false)
 const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
 const showLoadingState = computed(() => !isHydrated.value || (props.isLoading && props.files.length === 0))
@@ -176,9 +184,6 @@ interface LivePhotoShareAssets {
   imageFile: File
   videoFile: File
 }
-
-const baseRouteName = 'index'
-const overlayRouteParam = 'id'
 
 interface OverlayPointer {
   clientX: number
@@ -741,8 +746,10 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
 }
 
 const resolvedFiles = computed<ResolvedFile[]>(() => {
+  const hidden = hiddenFileIds.value
   const displayWidth = columnWidth.value
   const items = [...filesWithOverrides.value]
+    .filter(file => !hidden.has(file.id))
     .map(file => toResolvedFile(file, displayWidth))
   if (!items.every(file => hasSortTimestamp(file))) {
     return items
@@ -921,13 +928,38 @@ function resolveOverlayRouteId(value: string | string[] | null | undefined): num
   return Number.isFinite(parsed) ? parsed : null
 }
 
+function normalizeOverlayPath(value: string | undefined, fallback: string): string {
+  const normalized = value?.trim() ?? ''
+  if (!normalized) {
+    return fallback
+  }
+  const withPrefix = normalized.startsWith('/') ? normalized : `/${normalized}`
+  return withPrefix.length > 1 ? withPrefix.replaceAll(/\/+$/g, '') : withPrefix
+}
+
+function escapeOverlayPathRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
+}
+
+const resolvedOverlayRootPath = computed(() => normalizeOverlayPath(props.overlayRootPath, '/'))
+const resolvedOverlayBasePath = computed(() => normalizeOverlayPath(props.overlayBasePath, '/photo'))
+const currentSeriesSlug = computed<string | null>(() => {
+  const match = resolvedOverlayRootPath.value.match(/^\/series\/([^/]+)$/)
+  return match?.[1] ? decodeURIComponent(match[1]) : null
+})
+const resolvedOverlayRouteParam = computed(() => {
+  const key = props.overlayRouteParam?.trim() ?? ''
+  return key.length > 0 ? key : 'id'
+})
+const overlayPathPattern = computed(() => new RegExp(String.raw`^${escapeOverlayPathRegExp(resolvedOverlayBasePath.value)}/(\d+)/?$`))
+
 function resolveOverlayRouteIdFromPathParam(): number | null {
-  const param = route.params[overlayRouteParam]
+  const param = route.params[resolvedOverlayRouteParam.value]
   const normalized = Array.isArray(param)
     ? param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
     : param
   if (typeof normalized !== 'string') {
-    const pathMatch = route.path.match(/^\/photo\/(\d+)\/?$/)
+    const pathMatch = route.path.match(overlayPathPattern.value)
     if (!pathMatch?.[1]) {
       return null
     }
@@ -944,18 +976,18 @@ async function syncOverlayRoute(fileId: number | null, navigation: 'push' | 'rep
   const navigate = navigation === 'replace' ? router.replace : router.push
   const nextQuery = { ...route.query }
   const currentId = getOverlayRouteIdFromRoute()
-  if (fileId === null && currentId === null && route.path === '/') {
+  if (fileId === null && currentId === null && route.path === resolvedOverlayRootPath.value) {
     return
   }
-  if (fileId !== null && currentId === fileId && route.path === `/photo/${fileId}`) {
+  if (fileId !== null && currentId === fileId && route.path === `${resolvedOverlayBasePath.value}/${fileId}`) {
     return
   }
   if (fileId === null) {
-    await navigate({ name: baseRouteName, query: nextQuery, hash: route.hash })
+    await navigate({ path: resolvedOverlayRootPath.value, query: nextQuery, hash: route.hash })
     return
   }
   await navigate({
-    path: `/photo/${fileId}`,
+    path: `${resolvedOverlayBasePath.value}/${fileId}`,
     query: nextQuery,
     hash: route.hash,
   })
@@ -1021,6 +1053,7 @@ watch(
 function handleOverlayClose(): void {
   runViewTransition(() => {
     closeEditModal()
+    closeSeriesManageModal()
     closeOverlay()
   })
 }
@@ -1144,6 +1177,119 @@ const editToastMessages = computed(() => ({
   depthFailed: t('admin.files.toast.depthFailed'),
   depthFailedFallback: t('admin.files.toast.depthFailedFallback'),
 }))
+
+const seriesManageOpen = ref(false)
+const seriesManageSaving = ref(false)
+const seriesManageQuery = ref('')
+const seriesSelectedIds = ref<number[]>([])
+const { data: seriesOptionsData, pending: seriesOptionsPending, error: seriesOptionsError, refresh: refreshSeriesOptions } = useFetch<SeriesSummary[]>('/api/series', {
+  default: () => [],
+  server: false,
+  immediate: false,
+})
+
+const availableSeriesOptions = computed(() => (seriesOptionsData.value ?? []).filter(item => !item.isVirtual))
+const seriesSelectedIdSet = computed(() => new Set(seriesSelectedIds.value))
+const filteredSeriesOptions = computed(() => {
+  const query = seriesManageQuery.value.trim().toLowerCase()
+  if (!query) {
+    return availableSeriesOptions.value
+  }
+  return availableSeriesOptions.value.filter((item) => {
+    const title = item.title.trim().toLowerCase()
+    const slug = item.slug.trim().toLowerCase()
+    return title.includes(query) || slug.includes(query)
+  })
+})
+const seriesManageErrorMessage = computed(() => seriesOptionsError.value?.message ?? null)
+
+function syncSeriesSelectionFromFile(file: FileResponse | null): void {
+  const ids = file?.series.map(item => item.id) ?? []
+  seriesSelectedIds.value = [...new Set(ids)]
+}
+
+function toggleSeriesSelection(seriesId: number, checked: boolean): void {
+  const next = new Set(seriesSelectedIds.value)
+  if (checked) {
+    next.add(seriesId)
+  }
+  else {
+    next.delete(seriesId)
+  }
+  seriesSelectedIds.value = [...next]
+}
+
+function handleSeriesCheckboxChange(seriesId: number, event: Event): void {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement)) {
+    return
+  }
+  toggleSeriesSelection(seriesId, target.checked)
+}
+
+function shouldKeepInCurrentSeries(file: FileResponse): boolean {
+  const slug = currentSeriesSlug.value
+  if (!slug) {
+    return true
+  }
+  if (slug === '__uncategorized__') {
+    return file.series.length === 0
+  }
+  return file.series.some(item => item.slug === slug)
+}
+
+async function openSeriesManageModal(): Promise<void> {
+  if (!isAdmin.value || !activeFile.value) {
+    return
+  }
+  await refreshSeriesOptions()
+  syncSeriesSelectionFromFile(activeFile.value)
+  seriesManageQuery.value = ''
+  seriesManageOpen.value = true
+}
+
+function closeSeriesManageModal(): void {
+  seriesManageOpen.value = false
+  seriesManageSaving.value = false
+  seriesManageQuery.value = ''
+}
+
+async function saveSeriesAssignments(): Promise<void> {
+  const file = activeFile.value
+  if (!file || seriesManageSaving.value) {
+    return
+  }
+
+  seriesManageSaving.value = true
+  try {
+    await $fetch(`/api/files/${file.id}/series`, {
+      method: 'PUT',
+      body: {
+        seriesIds: seriesSelectedIds.value,
+      },
+    })
+    const updated = await $fetch<FileResponse>(`/api/files/${file.id}`)
+    fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
+    if (activeFile.value?.id === updated.id) {
+      activeFile.value = toResolvedFile(updated, columnWidth.value)
+    }
+    if (!shouldKeepInCurrentSeries(updated)) {
+      const nextHidden = new Set(hiddenFileIds.value)
+      nextHidden.add(updated.id)
+      hiddenFileIds.value = nextHidden
+      closeOverlay()
+    }
+    closeSeriesManageModal()
+    toast.add({ title: t('series.assign.saveSuccess'), color: 'success' })
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : t('series.assign.saveFailedFallback')
+    toast.add({ title: t('series.assign.saveFailed'), description: message, color: 'error' })
+  }
+  finally {
+    seriesManageSaving.value = false
+  }
+}
 
 function resetEditForm(): void {
   editForm.title = ''
@@ -2722,6 +2868,41 @@ watch(
 )
 
 watch(
+  () => props.files.map(file => file.id),
+  (ids) => {
+    if (hiddenFileIds.value.size === 0) {
+      return
+    }
+    const idSet = new Set(ids)
+    const next = new Set<number>()
+    for (const id of hiddenFileIds.value) {
+      if (idSet.has(id)) {
+        next.add(id)
+      }
+    }
+    hiddenFileIds.value = next
+  },
+  { immediate: true },
+)
+
+watch(
+  currentSeriesSlug,
+  () => {
+    hiddenFileIds.value = new Set()
+  },
+)
+
+watch(
+  () => activeFile.value,
+  (file) => {
+    if (!seriesManageOpen.value) {
+      return
+    }
+    syncSeriesSelectionFromFile(file)
+  },
+)
+
+watch(
   overlayBaseScale,
   (nextBase) => {
     if (!Number.isFinite(nextBase) || nextBase <= 0) {
@@ -3335,6 +3516,7 @@ function startOverlayImageLoad(
           :live-photo-preparing="preparingLivePhotoShare"
           @close="handleOverlayClose"
           @edit="handleOverlayEdit"
+          @manage-series="openSeriesManageModal"
           @share-live-photo="handleShareLivePhoto"
           @wheel="handleOverlayWheel"
           @dblclick="handleOverlayDoubleClick"
@@ -3359,6 +3541,117 @@ function startOverlayImageLoad(
           @close="closeEditModal"
           @generate-depth="generateDepthMapFromEdit"
         />
+        <UModal
+          v-model:open="seriesManageOpen"
+          :title="t('series.assign.title')"
+          :description="t('series.assign.description')"
+        >
+          <template #content>
+            <div class="w-full max-w-xl space-y-4 rounded-lg bg-default/90 p-4">
+              <div class="flex items-start justify-between gap-3">
+                <div class="space-y-1">
+                  <h3 class="text-lg font-semibold text-highlighted">
+                    {{ t('series.assign.title') }}
+                  </h3>
+                  <p class="text-xs text-muted">
+                    {{ t('series.assign.description') }}
+                  </p>
+                </div>
+                <UButton
+                  variant="soft"
+                  color="neutral"
+                  icon="tabler:x"
+                  :aria-label="t('common.actions.close')"
+                  @click="closeSeriesManageModal"
+                />
+              </div>
+
+              <UAlert
+                v-if="seriesManageErrorMessage"
+                color="error"
+                variant="soft"
+                :title="t('series.list.loadFailed')"
+                :description="seriesManageErrorMessage"
+              >
+                <template #actions>
+                  <UButton
+                    size="sm"
+                    color="error"
+                    variant="soft"
+                    icon="tabler:refresh"
+                    @click="refreshSeriesOptions"
+                  >
+                    {{ t('common.actions.retry') }}
+                  </UButton>
+                </template>
+              </UAlert>
+
+              <UInput
+                v-model="seriesManageQuery"
+                :placeholder="t('series.assign.searchPlaceholder')"
+                icon="tabler:search"
+              />
+
+              <div
+                v-if="seriesOptionsPending"
+                class="flex min-h-24 items-center justify-center text-sm text-muted"
+              >
+                {{ t('common.loading') }}
+              </div>
+
+              <div
+                v-else-if="availableSeriesOptions.length === 0"
+                class="rounded-lg border border-default/40 bg-default/70 p-4 text-sm text-muted"
+              >
+                {{ t('series.assign.noSeries') }}
+              </div>
+
+              <div
+                v-else-if="filteredSeriesOptions.length === 0"
+                class="rounded-lg border border-default/40 bg-default/70 p-4 text-sm text-muted"
+              >
+                {{ t('series.assign.emptyFiltered') }}
+              </div>
+
+              <div v-else class="max-h-80 space-y-2 overflow-y-auto pr-1">
+                <label
+                  v-for="item in filteredSeriesOptions"
+                  :key="item.id"
+                  class="flex items-center justify-between gap-3 rounded-md border border-default/30 px-3 py-2 text-sm"
+                >
+                  <div class="min-w-0 space-y-0.5">
+                    <p class="truncate text-highlighted">
+                      {{ item.title }}
+                    </p>
+                    <p class="truncate text-xs text-muted">
+                      /{{ item.slug }} · {{ t('series.list.count', { count: item.fileCount }) }}
+                    </p>
+                  </div>
+                  <input
+                    :checked="seriesSelectedIdSet.has(item.id)"
+                    type="checkbox"
+                    class="h-4 w-4 accent-blue-600"
+                    @change="handleSeriesCheckboxChange(item.id, $event)"
+                  >
+                </label>
+              </div>
+
+              <div class="flex items-center justify-end gap-2 border-t border-default/20 pt-3">
+                <UButton variant="soft" color="neutral" @click="closeSeriesManageModal">
+                  {{ t('common.actions.cancel') }}
+                </UButton>
+                <UButton
+                  color="primary"
+                  :loading="seriesManageSaving"
+                  :disabled="seriesOptionsPending"
+                  @click="saveSeriesAssignments"
+                >
+                  {{ t('common.actions.save') }}
+                </UButton>
+              </div>
+            </div>
+          </template>
+        </UModal>
       </Teleport>
     </template>
     <div

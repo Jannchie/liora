@@ -17,6 +17,7 @@ const loggingOut = ref(false)
 const navItems = computed<NavItem[]>(() => [
   { label: t('admin.nav.upload'), to: '/admin/upload', icon: 'tabler:upload', value: '/admin/upload' },
   { label: t('admin.nav.files'), to: '/admin/files', icon: 'tabler:list', value: '/admin/files' },
+  { label: t('admin.nav.series'), to: '/admin/series', icon: 'tabler:stack-3', value: '/admin/series' },
   { label: t('admin.nav.site'), to: '/admin/site', icon: 'tabler:globe', value: '/admin/site' },
 ])
 

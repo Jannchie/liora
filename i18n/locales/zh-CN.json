@@ -22,7 +22,9 @@
       "changeImage": "更换图片",
       "changeVideo": "更换视频",
       "remove": "移除",
-      "switchLanguage": "切换语言"
+      "switchLanguage": "切换语言",
+      "add": "添加",
+      "retry": "重试"
     },
     "kinds": {
       "photography": "摄影",
@@ -190,7 +192,8 @@
       "viewFrontend": "查看前台",
       "logout": "退出",
       "logoutSuccess": "已退出登录",
-      "logoutFailed": "退出失败，请重试"
+      "logoutFailed": "退出失败，请重试",
+      "series": "系列"
     },
     "redirecting": "正在跳转到上传管理…",
     "login": {
@@ -705,6 +708,101 @@
       "actions": {
         "save": "保存站点信息"
       }
+    },
+    "series": {
+      "seoTitle": "系列管理 | Liora",
+      "seoDescription": "管理系列、封面与排序。",
+      "title": "系列管理",
+      "listTitle": "全部系列",
+      "count": "{count} 张",
+      "deleteConfirm": "确认删除这个系列吗？",
+      "create": {
+        "title": "新建系列",
+        "action": "创建系列"
+      },
+      "edit": {
+        "title": "编辑系列"
+      },
+      "form": {
+        "title": "标题",
+        "titlePlaceholder": "系列标题",
+        "slug": "Slug",
+        "slugPlaceholder": "series-slug",
+        "description": "描述",
+        "descriptionPlaceholder": "可选描述",
+        "cover": "封面",
+        "coverPlaceholder": "选择封面作品"
+      },
+      "files": {
+        "title": "系列作品",
+        "saveOrder": "保存顺序",
+        "searchPlaceholder": "按标题或 ID 搜索作品",
+        "noCandidate": "暂无可添加作品。",
+        "empty": "该系列暂无作品。"
+      },
+      "toast": {
+        "titleRequired": "请先填写标题。",
+        "loadFailed": "加载系列失败。",
+        "loadFailedFallback": "加载系列详情失败。",
+        "loadFilesFailed": "加载作品列表失败。",
+        "createSuccess": "系列创建成功。",
+        "createFailed": "系列创建失败。",
+        "createFailedFallback": "创建系列失败。",
+        "updateSuccess": "系列已更新。",
+        "updateFailed": "系列更新失败。",
+        "updateFailedFallback": "更新系列失败。",
+        "deleteSuccess": "系列已删除。",
+        "deleteFailed": "删除系列失败。",
+        "deleteFailedFallback": "删除系列失败。",
+        "addFileFailed": "添加作品失败。",
+        "addFileFailedFallback": "添加作品失败。",
+        "removeFileFailed": "移除作品失败。",
+        "removeFileFailedFallback": "移除作品失败。",
+        "reorderSuccess": "排序已保存。",
+        "reorderFailed": "保存排序失败。",
+        "reorderFailedFallback": "保存排序失败。"
+      }
+    }
+  },
+  "series": {
+    "common": {
+      "backHome": "返回首页",
+      "backSeries": "返回系列"
+    },
+    "special": {
+      "uncategorizedTitle": "未归类",
+      "uncategorizedDescription": "尚未归入任何系列的作品。"
+    },
+    "assign": {
+      "manage": "管理系列",
+      "title": "管理系列归类",
+      "description": "可将当前作品加入或移出多个系列。",
+      "searchPlaceholder": "按标题或 slug 搜索",
+      "noSeries": "暂无可归类系列，请先在后台创建。",
+      "emptyFiltered": "没有匹配的系列。",
+      "saveSuccess": "系列归类已更新。",
+      "saveFailed": "更新系列归类失败。",
+      "saveFailedFallback": "更新失败。"
+    },
+    "list": {
+      "navLabel": "系列",
+      "seoTitle": "系列 | Liora",
+      "seoDescription": "浏览所有系列。",
+      "title": "系列",
+      "description": "按项目和主题浏览作品。",
+      "manage": "管理系列",
+      "loadFailed": "系列加载失败。",
+      "empty": "暂无系列。",
+      "noCover": "无封面",
+      "count": "{count} 张"
+    },
+    "detail": {
+      "seoTitle": "系列 | Liora",
+      "seoDescription": "系列详情",
+      "titleFallback": "系列",
+      "descriptionFallback": "暂无描述。",
+      "loadFailed": "系列加载失败。",
+      "empty": "该系列暂无作品。"
     }
   }
 }

@@ -128,6 +128,12 @@ export interface FileSummary {
   livePhotoVideoUrl?: string
 }
 
+export interface FileSeriesRef {
+  id: number
+  slug: string
+  title: string
+}
+
 export interface FileResponse {
   id: number
   title: string
@@ -142,6 +148,7 @@ export interface FileResponse {
   cameraModel: string
   characters: string[]
   genre: string
+  series: FileSeriesRef[]
   fileSize: number
   createdAt: string
 }
