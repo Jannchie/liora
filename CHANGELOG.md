@@ -1,3 +1,16 @@
+## v0.26.0
+
+[v0.25.0...v0.26.0](https://github.com/Jannchie/liora/compare/v0.25.0...v0.26.0)
+
+### :sparkles: Features
+
+- **series**: add series assignment UI and API integration - By [Jannchie](mailto:jannchie@gmail.com) in [7c5df5b](https://github.com/Jannchie/liora/commit/7c5df5b)
+- **series**: add series feature (models, api, admin, ui) - By [Jannchie](mailto:jannchie@gmail.com) in [39df578](https://github.com/Jannchie/liora/commit/39df578)
+
+### :art: Refactors
+
+- **depth-estimation**: narrow pipeline generics and clean options handling && expose merged class in BrandIcon - By [Jannchie](mailto:jannchie@gmail.com) in [7d9b3e1](https://github.com/Jannchie/liora/commit/7d9b3e1)
+
 ## v0.25.0
 
 [v0.24.3...v0.25.0](https://github.com/Jannchie/liora/compare/v0.24.3...v0.25.0)
