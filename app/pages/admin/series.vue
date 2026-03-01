@@ -21,12 +21,12 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const { data: seriesData, pending: pendingSeries, error: seriesError, refresh: refreshSeries } = await useFetch<SeriesSummary[]>('/api/series', {
+const { data: seriesData, pending: pendingSeries, error: seriesError, refresh: refreshSeries } = useFetch<SeriesSummary[]>('/api/series', {
   default: () => [],
   server: false,
 })
 
-const { data: filesData, pending: pendingFiles, error: filesError } = await useFetch<FileResponse[]>('/api/files', {
+const { data: filesData, pending: pendingFiles, error: filesError } = useFetch<FileResponse[]>('/api/files', {
   default: () => [],
   server: false,
 })

@@ -1,5 +1,6 @@
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
+import type { FileSeriesUpdatePayload } from '~/types/series'
 import { useRequestFetch } from '#imports'
 
 function normalizeDimensions(form: MediaFormState, fallbackWidth: number, fallbackHeight: number): { width: number, height: number } {
@@ -75,7 +76,18 @@ export function useFileEditApi() {
     })
   }
 
+  const updateFileSeries = async (id: number, seriesIds: number[]): Promise<void> => {
+    const payload: FileSeriesUpdatePayload = {
+      seriesIds,
+    }
+    await request(`/api/files/${id}/series`, {
+      method: 'PUT',
+      body: payload,
+    })
+  }
+
   return {
     updateFile,
+    updateFileSeries,
   }
 }

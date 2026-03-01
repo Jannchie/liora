@@ -45,11 +45,11 @@ export const seriesFiles = sqliteTable('SeriesFile', {
     .references(() => files.id, { onDelete: 'cascade' }),
   sortOrder: integer('sortOrder').notNull().default(0),
   createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-}, table => ({
-  pk: primaryKey({ columns: [table.seriesId, table.fileId] }),
-  seriesSortIdx: index('SeriesFile_series_sort_idx').on(table.seriesId, table.sortOrder),
-  fileIdx: index('SeriesFile_file_idx').on(table.fileId),
-}))
+}, table => [
+  primaryKey({ columns: [table.seriesId, table.fileId] }),
+  index('SeriesFile_series_sort_idx').on(table.seriesId, table.sortOrder),
+  index('SeriesFile_file_idx').on(table.fileId),
+])
 
 export const siteSettings = sqliteTable('SiteSetting', {
   id: integer('id').primaryKey().notNull().default(1),

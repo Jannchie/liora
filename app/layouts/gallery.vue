@@ -393,90 +393,15 @@ defineOgImageComponent('LioraCard', {
 
 <template>
   <div class="home-display-font min-h-screen w-full">
-    <header
-      v-if="showHeaderInfo"
-      class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
-    >
-      <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-500 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
-        <div class="flex w-full flex-col items-center gap-1 md:flex-1 md:flex-row md:items-center md:gap-3">
-          <h1 class="home-title-font text-sm font-semibold leading-tight text-highlighted md:text-lg">
-            {{ pageTitle }}
-          </h1>
-          <div class="flex flex-wrap items-center justify-center gap-2 text-muted md:justify-start">
-            <UButton
-              v-for="link in headerSocialLinks"
-              :key="link.label"
-              :href="link.url"
-              target="_blank"
-              rel="noopener noreferrer"
-              variant="soft"
-              color="neutral"
-              square
-              size="sm"
-              class="text-muted"
-              :icon="link.icon"
-              :aria-label="link.label"
-            />
-          </div>
-        </div>
-        <div class="flex items-center gap-2 md:shrink-0">
-          <UButton
-            v-if="!showSeriesLanding"
-            to="/series"
-            color="primary"
-            variant="soft"
-            size="sm"
-            icon="tabler:stack-3"
-            class="shrink-0"
-          >
-            {{ t('series.list.navLabel') }}
-          </UButton>
-          <UButton
-            v-if="isAuthenticated"
-            to="/admin"
-            color="primary"
-            variant="soft"
-            size="sm"
-            icon="tabler:shield-check"
-            class="shrink-0"
-          >
-            {{ t('admin.nav.label') }}
-          </UButton>
-          <LanguageSwitcher class="hidden md:block" />
-        </div>
-      </div>
-    </header>
+    <GalleryHeaderBar
+      :title="pageTitle"
+      :social-links="headerSocialLinks"
+      :show-header-info="showHeaderInfo"
+      :is-authenticated="isAuthenticated"
+    />
     <div class="max-w-500 m-auto">
-      <div
-        v-if="!showHeaderInfo"
-        class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3"
-      >
-        <UButton
-          v-if="!showSeriesLanding"
-          to="/series"
-          color="primary"
-          variant="soft"
-          size="sm"
-          class="shrink-0"
-          icon="tabler:stack-3"
-        >
-          {{ t('series.list.navLabel') }}
-        </UButton>
-        <UButton
-          v-if="isAuthenticated"
-          to="/admin"
-          color="primary"
-          variant="soft"
-          size="sm"
-          class="shrink-0"
-          icon="tabler:shield-check"
-        >
-          {{ t('admin.nav.label') }}
-        </UButton>
-        <LanguageSwitcher class="hidden md:block" />
-      </div>
       <template v-if="showSeriesLanding">
-        <section class="space-y-4 px-3 py-4 md:px-4">
+        <section class="space-y-4 py-4">
           <header class="space-y-1">
             <h2 class="text-xl font-semibold text-highlighted">
               {{ t('series.list.title') }}

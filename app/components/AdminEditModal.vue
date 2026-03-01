@@ -2,8 +2,9 @@
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
 import type { ImageAttrs, ResolvedFile } from '~/types/gallery'
+import type { SeriesSummary } from '~/types/series'
 import { thumbHashToDataURL } from 'thumbhash'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   file: FileResponse | ResolvedFile | null
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { required: true })
 const form = defineModel<MediaFormState>('form', { required: true })
+const seriesIds = defineModel<number[]>('seriesIds', { default: () => [] })
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
 const replaceFile = defineModel<File | null>('replaceFile', { default: null })
 
@@ -88,6 +90,70 @@ const classifySource = computed(() => props.classifySource ?? { file: null, imag
 const replacePreviewUrl = ref<string>('')
 const replaceInput = ref<HTMLInputElement | null>(null)
 const replaceFileName = computed(() => replaceFile.value?.name ?? '')
+const { data: seriesOptionsData, pending: seriesOptionsPending, error: seriesOptionsError, refresh: refreshSeriesOptions } = useFetch<SeriesSummary[]>('/api/series', {
+  default: () => [],
+  server: false,
+  immediate: false,
+})
+interface SeriesOptionItem {
+  value: number
+  label: string
+  slug: string
+  fileCount: number
+}
+
+const seriesOptionItems = computed<SeriesOptionItem[]>(() => {
+  const options = seriesOptionsData.value ?? []
+  return options
+    .filter(item => !item.isVirtual)
+    .map(item => ({
+      value: item.id,
+      label: item.title,
+      slug: item.slug,
+      fileCount: item.fileCount,
+    }))
+})
+const fallbackSeriesItems = computed<SeriesOptionItem[]>(() => {
+  const fileSeries = props.file?.series ?? []
+  return fileSeries.map(item => ({
+    value: item.id,
+    label: item.title,
+    slug: item.slug,
+    fileCount: 0,
+  }))
+})
+const seriesOptionMap = computed(() => {
+  const map = new Map<number, SeriesOptionItem>()
+  for (const item of fallbackSeriesItems.value) {
+    map.set(item.value, item)
+  }
+  for (const item of seriesOptionItems.value) {
+    map.set(item.value, item)
+  }
+  return map
+})
+const mergedSeriesOptionItems = computed<SeriesOptionItem[]>(() => {
+  return [...seriesOptionMap.value.values()]
+})
+const selectedSeriesValues = computed<number[]>({
+  get: () => seriesIds.value,
+  set: (values) => {
+    const normalized = values
+      .map((value) => {
+        if (typeof value === 'number') {
+          return Number.isInteger(value) && value > 0 ? value : null
+        }
+        if (typeof value === 'string') {
+          const parsed = Number.parseInt(value, 10)
+          return Number.isInteger(parsed) && parsed > 0 ? parsed : null
+        }
+        return null
+      })
+      .filter((value): value is number => value !== null)
+    seriesIds.value = [...new Set(normalized)]
+  },
+})
+const seriesManageErrorMessage = computed(() => seriesOptionsError.value?.message ?? null)
 const depthMapUrl = computed(() => {
   if (!props.file) {
     return ''
@@ -177,6 +243,15 @@ async function handleReplaceChange(event: Event): Promise<void> {
   replaceFile.value = file
   await detectReplaceSize(file)
 }
+
+watch(
+  open,
+  (isOpen) => {
+    if (isOpen) {
+      void refreshSeriesOptions()
+    }
+  },
+)
 </script>
 
 <template>
@@ -186,7 +261,11 @@ async function handleReplaceChange(event: Event): Promise<void> {
     scrollable
     :title="t('admin.files.editModal.fallbackTitle')"
     :description="file?.title || t('common.labels.untitled')"
-    :ui="{ content: 'fixed inset-0 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!' }"
+    :ui="{
+      overlay: 'z-[70]',
+      wrapper: 'z-[71]',
+      content: 'fixed inset-0 z-[72] w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
+    }"
   >
     <template #content>
       <div class="flex h-full flex-col bg-default/85 backdrop-blur">
@@ -301,7 +380,76 @@ async function handleReplaceChange(event: Event): Promise<void> {
                   >
                 </div>
 
-                <div class="flex-1">
+                <div class="flex-1 space-y-4">
+                  <section class="space-y-4">
+                    <div class="space-y-4">
+                      <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
+                        <Icon name="tabler:stack-3" class="h-4 w-4 text-primary" />
+                        <div>
+                          <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                            Series
+                          </p>
+                        </div>
+                      </div>
+
+                      <div class="flex w-full flex-col gap-4">
+                        <UAlert
+                          v-if="seriesManageErrorMessage"
+                          color="error"
+                          variant="soft"
+                          :title="t('series.list.loadFailed')"
+                          :description="seriesManageErrorMessage"
+                        >
+                          <template #actions>
+                            <UButton
+                              size="sm"
+                              color="error"
+                              variant="soft"
+                              icon="tabler:refresh"
+                              @click="refreshSeriesOptions"
+                            >
+                              {{ t('common.actions.retry') }}
+                            </UButton>
+                          </template>
+                        </UAlert>
+
+                        <div class="space-y-3 rounded-xl border border-default/50 bg-elevated/70 p-3">
+                          <UInputMenu
+                            v-model="selectedSeriesValues"
+                            multiple
+                            value-key="value"
+                            label-key="label"
+                            :items="mergedSeriesOptionItems"
+                            :loading="seriesOptionsPending"
+                            :filter-fields="['label', 'slug']"
+                            :portal="false"
+                            :placeholder="t('series.assign.searchPlaceholder')"
+                            icon="tabler:search"
+                            class="w-full"
+                          >
+                            <template #item-label="{ item }">
+                              <div class="min-w-0">
+                                <p class="truncate text-sm text-highlighted">
+                                  {{ item.label }}
+                                </p>
+                                <p class="truncate text-xs text-muted">
+                                  /{{ item.slug }} · {{ t('series.list.count', { count: item.fileCount }) }}
+                                </p>
+                              </div>
+                            </template>
+                          </UInputMenu>
+
+                          <div
+                            v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
+                            class="rounded-lg border border-default/40 bg-default/70 p-4 text-sm text-muted"
+                          >
+                            {{ t('series.assign.noSeries') }}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+
                   <AdminMetadataForm
                     v-model:form="form"
                     v-model:capture-time-local="captureTimeLocal"

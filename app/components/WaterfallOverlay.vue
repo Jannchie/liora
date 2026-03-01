@@ -66,7 +66,6 @@ const {
 const emit = defineEmits<{
   (event: 'close'): void
   (event: 'edit'): void
-  (event: 'manageSeries'): void
   (event: 'wheel', value: WheelEvent): void
   (event: 'dblclick', value: MouseEvent): void
   (event: 'pointerdown', value: PointerEvent): void
@@ -765,16 +764,6 @@ function handleFocusToggle(): void {
                 @click="emit('edit')"
               >
                 {{ t('common.actions.edit') }}
-              </UButton>
-              <UButton
-                v-if="canEdit"
-                type="button"
-                icon="tabler:stack-3"
-                size="md"
-                variant="soft"
-                @click="emit('manageSeries')"
-              >
-                {{ t('series.assign.manage') }}
               </UButton>
               <UButton
                 v-if="hasLivePhoto"

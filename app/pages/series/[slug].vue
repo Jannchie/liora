@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { SessionState } from '~/types/auth'
 import type { FileMetadata, FileResponse, FileSummary } from '~/types/file'
+import type { SocialLink } from '~/types/gallery'
 import type { SeriesDetail } from '~/types/series'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
@@ -94,6 +96,7 @@ definePageMeta({
 
 const { t } = useI18n()
 const route = useRoute()
+const runtimeConfig = useRuntimeConfig()
 
 const pageSize = 36
 const summaryIds = new Set<number>()
@@ -103,7 +106,6 @@ const overlayRootPath = computed(() => `/series/${slug.value}`)
 const overlayBasePath = computed(() => `/series/${slug.value}/photo`)
 
 const { data, pending, error } = useFetch<SeriesDetail>(() => `/api/series/by-slug/${encodeURIComponent(slug.value)}`, {
-  default: () => null,
   query: {
     limit: pageSize,
     offset: 0,
@@ -125,6 +127,39 @@ const loadMoreObserver = ref<IntersectionObserver | null>(null)
 const scrollElementRef = ref<HTMLElement | undefined>()
 
 const siteSettings = computed(() => siteSettingsState.value)
+const showHeaderInfo = computed(() => {
+  const placement = siteSettings.value?.infoPlacement?.trim()
+  return placement !== 'waterfall'
+})
+const pageHeaderTitle = computed(() => {
+  const name = siteSettings.value?.name?.trim()
+  if (name && name.length > 0) {
+    return name
+  }
+  return t('home.defaultTitle')
+})
+const headerSocialLinks = computed<SocialLink[]>(() => {
+  const links: SocialLink[] = []
+  const social = siteSettings.value?.social ?? runtimeConfig.public.social
+
+  const appendLink = (label: string, url: string | undefined, icon: string): void => {
+    const trimmed = (url ?? '').trim()
+    if (trimmed.length > 0) {
+      links.push({ label, url: trimmed, icon })
+    }
+  }
+
+  appendLink('Homepage', social?.homepage, 'tabler:home')
+  appendLink('GitHub', social?.github, 'tabler:brand-github')
+  appendLink('X', social?.twitter, 'tabler:brand-x')
+  appendLink('Instagram', social?.instagram, 'tabler:brand-instagram')
+  appendLink('YouTube', social?.youtube, 'tabler:brand-youtube')
+  appendLink('TikTok', social?.tiktok, 'tabler:brand-tiktok')
+  appendLink('Bilibili', social?.bilibili, 'tabler:brand-bilibili')
+  appendLink('LinkedIn', social?.linkedin, 'tabler:brand-linkedin')
+  appendLink('Weibo', social?.weibo, 'tabler:brand-weibo')
+  return links
+})
 const isLoading = computed(() => pending.value || isLoadingMore.value)
 const showLoadMoreSentinel = computed(() => files.value.length > 0)
 const displaySeriesTitle = computed(() => {
@@ -166,6 +201,13 @@ const routePhotoId = computed<number | null>(() => {
   }
   return parsed
 })
+
+const { data: sessionState } = useFetch<SessionState>('/api/auth/session', {
+  default: () => ({ authenticated: false }),
+  server: false,
+})
+
+const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
 
 useSeoMeta({
   title: () => pageTitle.value,
@@ -301,8 +343,8 @@ async function loadMore(): Promise<void> {
 watch(
   data,
   async (nextData) => {
-    seriesDetail.value = nextData
-    syncInitialFiles(nextData)
+    seriesDetail.value = nextData ?? null
+    syncInitialFiles(nextData ?? null)
     await nextTick()
     refreshLoadMoreObserver()
     void ensureRouteFile()
@@ -337,7 +379,13 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-6 py-8">
+    <GalleryHeaderBar
+      :title="pageHeaderTitle"
+      :social-links="headerSocialLinks"
+      :show-header-info="showHeaderInfo"
+      :is-authenticated="isAuthenticated"
+    />
+    <div class="max-w-500 m-auto space-y-6 py-8">
       <header class="flex flex-wrap items-center justify-between gap-3">
         <div class="space-y-1">
           <h1 class="text-2xl font-semibold text-highlighted">
@@ -351,9 +399,6 @@ onBeforeUnmount(() => {
           </p>
         </div>
         <div class="flex items-center gap-2">
-          <UButton to="/series" variant="soft" color="neutral" icon="tabler:arrow-left">
-            {{ t('series.common.backSeries') }}
-          </UButton>
           <UButton to="/" variant="soft" color="neutral" icon="tabler:home">
             {{ t('series.common.backHome') }}
           </UButton>
@@ -371,6 +416,7 @@ onBeforeUnmount(() => {
       <WaterfallGallery
         :files="files"
         :is-loading="isLoading"
+        :is-authenticated="isAuthenticated"
         :site-settings="siteSettings ?? undefined"
         :scroll-element="scrollElementRef"
         :empty-text="t('series.detail.empty')"
@@ -389,6 +435,6 @@ onBeforeUnmount(() => {
         <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
         <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
       </div>
-    </UContainer>
+    </div>
   </div>
 </template>

@@ -14,7 +14,7 @@ definePageMeta({
 
 const toast = useToast()
 const image = useImage()
-const { updateFile } = useFileEditApi()
+const { updateFile, updateFileSeries } = useFileEditApi()
 
 const pageTitle = computed(() => t('admin.files.seoTitle'))
 const pageDescription = computed(() => t('admin.files.seoDescription'))
@@ -47,7 +47,7 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const { data: filesData, pending: pendingFiles, refresh, error: fetchError } = await useFetch<FileResponse[]>('/api/files', {
+const { data: filesData, pending: pendingFiles, refresh, error: fetchError } = useFetch<FileResponse[]>('/api/files', {
   default: () => [],
   server: false,
 })
@@ -285,6 +285,7 @@ const editingFile = ref<FileResponse | null>(null)
 const editModalOpen = ref(false)
 const updating = ref(false)
 const replaceFile = ref<File | null>(null)
+const editSeriesIds = ref<number[]>([])
 
 async function uploadDepthMap(file: FileResponse): Promise<void> {
   const imageUrl = file.imageUrl?.trim() ?? ''
@@ -472,6 +473,7 @@ function resetEditForm(): void {
 
 function fillEditForm(file: FileResponse): void {
   const metadata = file.metadata
+  editSeriesIds.value = [...new Set(file.series.map(item => item.id))]
   editForm.title = file.title ?? ''
   editForm.description = file.description ?? ''
   editForm.width = file.width
@@ -508,6 +510,7 @@ function fillEditForm(file: FileResponse): void {
 function closeEdit(): void {
   editModalOpen.value = false
   editingFile.value = null
+  editSeriesIds.value = []
   resetEditForm()
 }
 
@@ -517,14 +520,17 @@ async function saveEdit(): Promise<void> {
   }
   updating.value = true
   try {
-    const updated = await updateFile(
+    await updateFile(
       editingFile.value.id,
       editForm,
       replaceFile.value,
       editingFile.value.width,
       editingFile.value.height,
     )
+    await updateFileSeries(editingFile.value.id, [...new Set(editSeriesIds.value)])
+    const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`)
     filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
+    editingFile.value = updated
     toast.add({ title: toastMessages.value.updateSuccess, description: toastMessages.value.updateSuccessDescription, color: 'primary' })
     closeEdit()
   }
@@ -812,6 +818,7 @@ watch(fetchError, (value) => {
     <AdminEditModal
       v-model:open="editModalOpen"
       v-model:form="editFormModel"
+      v-model:series-ids="editSeriesIds"
       v-model:capture-time-local="editCaptureTimeLocal"
       v-model:replace-file="replaceFile"
       :file="editingFile"

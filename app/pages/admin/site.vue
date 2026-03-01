@@ -36,7 +36,7 @@ const {
   setSettings,
 } = useSiteSettingsState()
 
-await loadSettings(true)
+void loadSettings(true)
 
 const loadingSettings = computed(() => loadingSettingsState.value)
 const settingsError = computed(() => settingsErrorState.value)

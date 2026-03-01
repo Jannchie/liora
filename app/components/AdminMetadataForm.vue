@@ -31,6 +31,9 @@ const {
 } = useExposureOptions()
 const { geocodeQuery, geocoding, geocodeResults, searchLocation, applyGeocodeResult } = useLocationSearch(form.value)
 const classifyingGenre = ref(false)
+const selectMenuUi = {
+  content: 'z-[90]',
+}
 
 const genreOptions = computed(() => [
   { label: t('admin.files.genreOptions.portrait'), value: 'PORTRAIT' },
@@ -147,7 +150,7 @@ watch(
 
 <template>
   <section class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:gap-6">
-    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+    <section class="space-y-4">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="tabler:shape" class="h-4 w-4 text-primary" />
@@ -181,7 +184,9 @@ watch(
                       :items="genreOptions"
                       value-attribute="value"
                       option-attribute="label"
+                      :portal="false"
                       :placeholder="t('admin.files.form.genre.placeholder')"
+                      :ui="selectMenuUi"
                     />
                   </div>
                   <UButton
@@ -214,7 +219,7 @@ watch(
       </div>
     </section>
 
-    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+    <section class="space-y-4">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="tabler:map-pin" class="h-4 w-4 text-primary" />
@@ -306,7 +311,7 @@ watch(
       </div>
     </section>
 
-    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+    <section class="space-y-4">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="tabler:camera" class="h-4 w-4 text-primary" />
@@ -361,7 +366,9 @@ watch(
                 :items="exposureProgramOptions"
                 value-attribute="value"
                 option-attribute="label"
+                :portal="false"
                 :placeholder="t('admin.upload.fields.exposureProgram.placeholder')"
+                :ui="selectMenuUi"
               />
             </UFormField>
             <UFormField :label="t('admin.upload.fields.exposureMode.label')" name="exposureMode" class="col-span-12 md:col-span-6 xl:col-span-4">
@@ -371,7 +378,9 @@ watch(
                 :items="exposureModeOptions"
                 value-attribute="value"
                 option-attribute="label"
+                :portal="false"
                 :placeholder="t('admin.upload.fields.exposureMode.placeholder')"
+                :ui="selectMenuUi"
               />
             </UFormField>
             <UFormField :label="t('admin.upload.fields.meteringMode.label')" name="meteringMode" class="col-span-12 md:col-span-6 xl:col-span-4">
@@ -381,7 +390,9 @@ watch(
                 :items="meteringModeOptions"
                 value-attribute="value"
                 option-attribute="label"
+                :portal="false"
                 :placeholder="t('admin.upload.fields.meteringMode.placeholder')"
+                :ui="selectMenuUi"
               />
             </UFormField>
             <UFormField :label="t('admin.upload.fields.whiteBalance.label')" name="whiteBalance" class="col-span-12 md:col-span-6 xl:col-span-4">
@@ -391,7 +402,9 @@ watch(
                 :items="whiteBalanceOptions"
                 value-attribute="value"
                 option-attribute="label"
+                :portal="false"
                 :placeholder="t('admin.upload.fields.whiteBalance.placeholder')"
+                :ui="selectMenuUi"
               />
             </UFormField>
             <UFormField :label="t('admin.upload.fields.flash.label')" name="flash" class="col-span-12 md:col-span-6 xl:col-span-4">
@@ -401,7 +414,9 @@ watch(
                 :items="flashOptions"
                 value-attribute="value"
                 option-attribute="label"
+                :portal="false"
                 :placeholder="t('admin.upload.fields.flash.placeholder')"
+                :ui="selectMenuUi"
               />
             </UFormField>
           </div>
@@ -409,7 +424,7 @@ watch(
       </div>
     </section>
 
-    <section class="space-y-4 rounded-2xl border border-default/50 bg-default/70 p-4 lg:p-5">
+    <section class="space-y-4">
       <div class="space-y-4">
         <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
           <Icon name="tabler:palette" class="h-4 w-4 text-primary" />
