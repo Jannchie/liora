@@ -62,7 +62,8 @@ export default defineEventHandler(async (event): Promise<{ added: number }> => {
     return { added: 0 }
   }
 
-  const baseSort = Number.isInteger(maxSortRow[0]?.maxSort) ? maxSortRow[0].maxSort : 0
+  const maxSort = maxSortRow[0]?.maxSort
+  const baseSort = typeof maxSort === 'number' && Number.isInteger(maxSort) ? maxSort : 0
   await db.insert(seriesFiles).values(
     missingIds.map((fileId, index) => ({
       seriesId,

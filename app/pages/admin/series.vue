@@ -60,6 +60,13 @@ const editForm = reactive({
   coverFileId: null as number | null,
 })
 
+const coverFileIdModel = computed<number | undefined>({
+  get: () => editForm.coverFileId ?? undefined,
+  set: (value) => {
+    editForm.coverFileId = value ?? null
+  },
+})
+
 const selectedSeries = computed(() => seriesList.value.find(item => item.id === selectedSeriesId.value) ?? null)
 const selectedFileIdSet = computed(() => new Set(selectedFileIds.value))
 
@@ -443,7 +450,7 @@ watch(filesError, (value) => {
 
           <UFormField :label="t('admin.series.form.cover')">
             <USelect
-              v-model="editForm.coverFileId"
+              v-model="coverFileIdModel"
               :items="coverOptions"
               value-attribute="value"
               option-attribute="label"

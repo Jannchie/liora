@@ -204,6 +204,10 @@ function handleGenerateDepth(): void {
   emit('generateDepth')
 }
 
+function handleRefreshSeriesOptions(): void {
+  void refreshSeriesOptions()
+}
+
 function clearReplaceSelection(): void {
   if (replacePreviewUrl.value) {
     URL.revokeObjectURL(replacePreviewUrl.value)
@@ -406,7 +410,7 @@ watch(
                               color="error"
                               variant="soft"
                               icon="tabler:refresh"
-                              @click="refreshSeriesOptions"
+                              @click="handleRefreshSeriesOptions"
                             >
                               {{ t('common.actions.retry') }}
                             </UButton>
