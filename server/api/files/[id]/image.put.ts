@@ -6,9 +6,10 @@ import { eq } from 'drizzle-orm'
 import { createError, getRouterParam, readMultipartFormData } from 'h3'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
+import { buildMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
-import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
+import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
 import { extractFocusMetadataFromBuffer } from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
@@ -30,7 +31,6 @@ interface ImageHashes {
   sha256: string
 }
 
-const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
 const FORMAT_MIME_MAP: Record<string, string> = {
   jpeg: 'image/jpeg',
   jpg: 'image/jpeg',
@@ -86,65 +86,6 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   }
 
   return { file: fileEntry, fields }
-}
-
-function parseCharacters(raw: string | undefined): string[] {
-  return (raw ?? '')
-    .split(/[,，\n]/)
-    .map(value => value.trim())
-    .filter(value => value.length > 0)
-}
-
-function buildMetadata(fields: Record<string, string>, characters: string[]): FileMetadata {
-  return {
-    fanworkTitle: normalizeText(fields.fanworkTitle),
-    characters,
-    location: normalizeText(fields.location),
-    locationName: normalizeText(fields.locationName),
-    latitude: fields.latitude ? Number(fields.latitude) : null,
-    longitude: fields.longitude ? Number(fields.longitude) : null,
-    cameraModel: normalizeText(fields.cameraModel),
-    lensModel: normalizeText(fields.lensModel),
-    aperture: normalizeText(fields.aperture),
-    focalLength: normalizeText(fields.focalLength),
-    iso: normalizeText(fields.iso),
-    shutterSpeed: normalizeText(fields.shutterSpeed),
-    exposureBias: normalizeText(fields.exposureBias),
-    exposureProgram: normalizeText(fields.exposureProgram),
-    exposureMode: normalizeText(fields.exposureMode),
-    meteringMode: normalizeText(fields.meteringMode),
-    whiteBalance: normalizeText(fields.whiteBalance),
-    flash: normalizeText(fields.flash),
-    colorSpace: normalizeText(fields.colorSpace),
-    resolutionX: normalizeText(fields.resolutionX),
-    resolutionY: normalizeText(fields.resolutionY),
-    resolutionUnit: normalizeText(fields.resolutionUnit),
-    software: normalizeText(fields.software),
-    captureTime: normalizeText(fields.captureTime),
-    focusDistance: normalizeText(fields.focusDistance),
-    focusFrameSize: normalizeText(fields.focusFrameSize),
-    focusLocation: normalizeText(fields.focusLocation),
-    focusMode: normalizeText(fields.focusMode),
-    focusPosition: normalizeText(fields.focusPosition),
-    hasCrop: normalizeText(fields.hasCrop),
-    cropLeft: normalizeText(fields.cropLeft),
-    cropTop: normalizeText(fields.cropTop),
-    cropRight: normalizeText(fields.cropRight),
-    cropBottom: normalizeText(fields.cropBottom),
-    cropAngle: normalizeText(fields.cropAngle),
-    perspectiveHorizontal: normalizeText(fields.perspectiveHorizontal),
-    perspectiveVertical: normalizeText(fields.perspectiveVertical),
-    perspectiveRotate: normalizeText(fields.perspectiveRotate),
-    perspectiveScale: normalizeText(fields.perspectiveScale),
-    perspectiveUpright: normalizeText(fields.perspectiveUpright),
-    uprightTransform: normalizeText(fields.uprightTransform),
-    lightroomRecipe: normalizeText(fields.lightroomRecipe),
-    notes: normalizeText(fields.notes),
-    fileSize: 0,
-    thumbhash: undefined,
-    perceptualHash: undefined,
-    sha256: undefined,
-  }
 }
 
 function resolveContentType(format: string | undefined, fallback: string | undefined): string | undefined {
@@ -278,49 +219,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       return 0
     }
   })()
-  const existingMetadata = ensureMetadata(existing.metadata, {
-    fanworkTitle: existing.fanworkTitle,
-    characters: existingCharacters,
-    location: existing.location,
-    locationName: existing.locationName,
-    latitude: existing.latitude ?? null,
-    longitude: existing.longitude ?? null,
-    cameraModel: existing.cameraModel,
-    lensModel: '',
-    aperture: existing.aperture,
-    focalLength: existing.focalLength,
-    iso: existing.iso,
-    shutterSpeed: existing.shutterSpeed,
-    exposureBias: '',
-    exposureProgram: '',
-    exposureMode: '',
-    meteringMode: '',
-    whiteBalance: '',
-    flash: '',
-    colorSpace: '',
-    resolutionX: '',
-    resolutionY: '',
-    resolutionUnit: '',
-    software: '',
-    captureTime: existing.captureTime,
-    lightroomRecipe: undefined,
-    notes: '',
-    thumbhash: undefined,
-    perceptualHash: undefined,
-    sha256: undefined,
-    histogram: null,
+  const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, existingCharacters, {
     fileSize: existingFileSize,
-    processingStatus: 'completed',
-    uploadId: '',
-    livePhotoVideoUrl: '',
-    livePhotoStillTime: undefined,
-    livePhotoShareImageUrl: undefined,
-    livePhotoShareVideoUrl: undefined,
-    livePhotoShareContentId: undefined,
-    depthMapUrl: undefined,
-    depthMapWidth: undefined,
-    depthMapHeight: undefined,
-  })
+  }))
   const metadata = buildMetadata(fields, characters)
   const focusMetadata = await extractFocusMetadataFromBuffer(file.data, file.filename)
   metadata.focusDistance = focusMetadata.focusDistance ?? metadata.focusDistance
@@ -360,51 +261,11 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   const originalName = file.filename ? basename(file.filename) : existing.originalName
   const charactersToSave = metadata.characters.length > 0 ? metadata.characters : existingMetadata.characters
-  const mergedMetadata: FileMetadata = {
+  const metadataBase: FileMetadata = {
     ...existingMetadata,
-    fanworkTitle: normalizeText(fields.fanworkTitle) || existingMetadata.fanworkTitle,
     characters: charactersToSave,
-    location: metadata.location || existingMetadata.location,
-    locationName: metadata.locationName || existingMetadata.locationName,
     latitude: Number.isFinite(metadata.latitude ?? null) ? metadata.latitude : existingMetadata.latitude,
     longitude: Number.isFinite(metadata.longitude ?? null) ? metadata.longitude : existingMetadata.longitude,
-    cameraModel: metadata.cameraModel || existingMetadata.cameraModel,
-    lensModel: metadata.lensModel || existingMetadata.lensModel,
-    aperture: metadata.aperture || existingMetadata.aperture,
-    focalLength: metadata.focalLength || existingMetadata.focalLength,
-    iso: metadata.iso || existingMetadata.iso,
-    shutterSpeed: metadata.shutterSpeed || existingMetadata.shutterSpeed,
-    exposureBias: metadata.exposureBias || existingMetadata.exposureBias,
-    exposureProgram: metadata.exposureProgram || existingMetadata.exposureProgram,
-    exposureMode: metadata.exposureMode || existingMetadata.exposureMode,
-    meteringMode: metadata.meteringMode || existingMetadata.meteringMode,
-    whiteBalance: metadata.whiteBalance || existingMetadata.whiteBalance,
-    flash: metadata.flash || existingMetadata.flash,
-    colorSpace: metadata.colorSpace || existingMetadata.colorSpace,
-    resolutionX: metadata.resolutionX || existingMetadata.resolutionX,
-    resolutionY: metadata.resolutionY || existingMetadata.resolutionY,
-    resolutionUnit: metadata.resolutionUnit || existingMetadata.resolutionUnit,
-    software: metadata.software || existingMetadata.software,
-    captureTime: metadata.captureTime || existingMetadata.captureTime,
-    focusDistance: metadata.focusDistance || existingMetadata.focusDistance,
-    focusFrameSize: metadata.focusFrameSize || existingMetadata.focusFrameSize,
-    focusLocation: metadata.focusLocation || existingMetadata.focusLocation,
-    focusMode: metadata.focusMode || existingMetadata.focusMode,
-    focusPosition: metadata.focusPosition || existingMetadata.focusPosition,
-    hasCrop: metadata.hasCrop || existingMetadata.hasCrop,
-    cropLeft: metadata.cropLeft || existingMetadata.cropLeft,
-    cropTop: metadata.cropTop || existingMetadata.cropTop,
-    cropRight: metadata.cropRight || existingMetadata.cropRight,
-    cropBottom: metadata.cropBottom || existingMetadata.cropBottom,
-    cropAngle: metadata.cropAngle || existingMetadata.cropAngle,
-    perspectiveHorizontal: metadata.perspectiveHorizontal || existingMetadata.perspectiveHorizontal,
-    perspectiveVertical: metadata.perspectiveVertical || existingMetadata.perspectiveVertical,
-    perspectiveRotate: metadata.perspectiveRotate || existingMetadata.perspectiveRotate,
-    perspectiveScale: metadata.perspectiveScale || existingMetadata.perspectiveScale,
-    perspectiveUpright: metadata.perspectiveUpright || existingMetadata.perspectiveUpright,
-    uprightTransform: metadata.uprightTransform || existingMetadata.uprightTransform,
-    lightroomRecipe: metadata.lightroomRecipe || existingMetadata.lightroomRecipe,
-    notes: metadata.notes || existingMetadata.notes,
     fileSize: metadata.fileSize,
     thumbhash: metadata.thumbhash ?? existingMetadata.thumbhash,
     perceptualHash: metadata.perceptualHash ?? existingMetadata.perceptualHash,
@@ -413,6 +274,10 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     processingStatus: metadata.processingStatus ?? existingMetadata.processingStatus ?? 'completed',
     uploadId: metadata.uploadId ?? existingMetadata.uploadId ?? '',
   }
+  const metadataTextUpdates = normalizeMetadataTextUpdates(metadata)
+  const mergedMetadata: FileMetadata = mergeMetadataTextUpdates(metadataBase, metadataTextUpdates, {
+    preserveOnEmpty: true,
+  })
 
   const [updated] = await db
     .update(files)

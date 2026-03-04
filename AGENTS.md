@@ -12,6 +12,7 @@
 - Use pnpm for all tasks: `pnpm install`.
 - Local dev: `pnpm dev` (<http://localhost:3000>). Production bundle: `pnpm build`; preview: `pnpm preview`. Static export when needed: `pnpm generate`.
 - Database workflow: `pnpm run db:generate` to create migrations from the schema; `pnpm run db:migrate` to apply migrations to the target database.
+- After every code change, always run `pnpm exec eslint .` and `pnpm exec nuxi typecheck`; consider the task complete only when both pass.
 - Testing: run Vitest (add it if missing) with Nuxt test utils, e.g., `pnpm exec vitest`. Keep CI fast; prefer `--runInBand` when hitting the real DB.
 
 ## Coding Style & Naming Conventions

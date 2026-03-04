@@ -23,9 +23,9 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, w
 import { Waterfall } from 'vue-wf'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { brandIconSet } from '~/constants/brand-icons'
-import { toLocalInputString } from '~/utils/datetime'
 import { estimateDepthFromUrl } from '~/utils/depth-estimation'
 import { resolveFileTitle } from '~/utils/file'
+import { createEmptyMediaFormState, fillMediaFormStateFromFile } from '~/utils/media-form'
 
 const props = withDefaults(
   defineProps<{
@@ -1129,38 +1129,7 @@ const editingFile = ref<ResolvedFile | null>(null)
 const editSeriesIds = ref<number[]>([])
 const editCaptureTimeLocal = ref<string>('')
 const replaceFile = ref<File | null>(null)
-const editForm = reactive<MediaFormState>({
-  title: '',
-  description: '',
-  genre: '',
-  width: 0,
-  height: 0,
-  fanworkTitle: '',
-  characters: [],
-  location: '',
-  locationName: '',
-  latitude: null,
-  longitude: null,
-  cameraModel: '',
-  lensModel: '',
-  aperture: '',
-  focalLength: '',
-  iso: '',
-  shutterSpeed: '',
-  exposureBias: '',
-  exposureProgram: '',
-  exposureMode: '',
-  meteringMode: '',
-  whiteBalance: '',
-  flash: '',
-  colorSpace: '',
-  resolutionX: '',
-  resolutionY: '',
-  resolutionUnit: '',
-  software: '',
-  captureTime: '',
-  notes: '',
-})
+const editForm = reactive<MediaFormState>(createEmptyMediaFormState())
 const editFormModel = computed<MediaFormState>({
   get: () => editForm,
   set: (value) => {
@@ -1188,77 +1157,10 @@ function shouldKeepInCurrentSeries(file: FileResponse): boolean {
   return file.series.some(item => item.slug === slug)
 }
 
-function resetEditForm(): void {
-  editForm.title = ''
-  editForm.description = ''
-  editForm.genre = ''
-  editForm.width = 0
-  editForm.height = 0
-  editForm.fanworkTitle = ''
-  editForm.characters = []
-  editForm.location = ''
-  editForm.locationName = ''
-  editForm.latitude = null
-  editForm.longitude = null
-  editForm.cameraModel = ''
-  editForm.lensModel = ''
-  editForm.aperture = ''
-  editForm.focalLength = ''
-  editForm.iso = ''
-  editForm.shutterSpeed = ''
-  editForm.exposureBias = ''
-  editForm.exposureProgram = ''
-  editForm.exposureMode = ''
-  editForm.meteringMode = ''
-  editForm.whiteBalance = ''
-  editForm.flash = ''
-  editForm.colorSpace = ''
-  editForm.resolutionX = ''
-  editForm.resolutionY = ''
-  editForm.resolutionUnit = ''
-  editForm.software = ''
-  editForm.captureTime = ''
-  editCaptureTimeLocal.value = ''
-  editForm.notes = ''
-  editSeriesIds.value = []
-  replaceFile.value = null
-}
-
 function fillEditForm(file: FileResponse): void {
-  const metadata = file.metadata
-  resetEditForm()
-  editSeriesIds.value = [...new Set(file.series.map(item => item.id))]
-  editForm.title = file.title ?? ''
-  editForm.description = file.description ?? ''
-  editForm.genre = file.genre || ''
-  editForm.width = file.width
-  editForm.height = file.height
-  editForm.fanworkTitle = metadata.fanworkTitle || file.fanworkTitle || ''
-  editForm.characters = metadata.characters ?? file.characters ?? []
-  editForm.location = metadata.location || file.location || ''
-  editForm.locationName = metadata.locationName
-  editForm.latitude = metadata.latitude
-  editForm.longitude = metadata.longitude
-  editForm.cameraModel = metadata.cameraModel || file.cameraModel || ''
-  editForm.lensModel = metadata.lensModel || ''
-  editForm.aperture = metadata.aperture || ''
-  editForm.focalLength = metadata.focalLength || ''
-  editForm.iso = metadata.iso || ''
-  editForm.shutterSpeed = metadata.shutterSpeed || ''
-  editForm.exposureBias = metadata.exposureBias || ''
-  editForm.exposureProgram = metadata.exposureProgram || ''
-  editForm.exposureMode = metadata.exposureMode || ''
-  editForm.meteringMode = metadata.meteringMode || ''
-  editForm.whiteBalance = metadata.whiteBalance || ''
-  editForm.flash = metadata.flash || ''
-  editForm.colorSpace = metadata.colorSpace || ''
-  editForm.resolutionX = metadata.resolutionX || ''
-  editForm.resolutionY = metadata.resolutionY || ''
-  editForm.resolutionUnit = metadata.resolutionUnit || ''
-  editForm.software = metadata.software || ''
-  editForm.captureTime = metadata.captureTime || ''
-  editCaptureTimeLocal.value = editForm.captureTime ? toLocalInputString(editForm.captureTime) : ''
-  editForm.notes = metadata.notes || ''
+  const { captureTimeLocal, seriesIds } = fillMediaFormStateFromFile(editForm, file)
+  editCaptureTimeLocal.value = captureTimeLocal
+  editSeriesIds.value = seriesIds
 }
 
 function openEditModal(target?: ResolvedFile): void {

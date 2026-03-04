@@ -2,9 +2,10 @@ import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { eq } from 'drizzle-orm'
 import { createError, getRouterParam, readBody } from 'h3'
+import { mergeMetadataTextUpdates, normalizeMetadataTextUpdates } from '../../domain/files/metadata'
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
-import { ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
+import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
 import replaceImageHandler from './[id]/image.put'
 
 type UpdateBody = Partial<FilePayload>
@@ -81,47 +82,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   }
 
   const existingCharacters = mapCharacters(existing.characterList)
-  const existingMetadata = ensureMetadata(existing.metadata, {
-    fanworkTitle: existing.fanworkTitle,
-    characters: existingCharacters,
-    location: existing.location,
-    locationName: existing.locationName,
-    latitude: existing.latitude ?? null,
-    longitude: existing.longitude ?? null,
-    cameraModel: existing.cameraModel,
-    lensModel: '',
-    aperture: existing.aperture,
-    focalLength: existing.focalLength,
-    iso: existing.iso,
-    shutterSpeed: existing.shutterSpeed,
-    exposureBias: '',
-    exposureProgram: '',
-    exposureMode: '',
-    meteringMode: '',
-    whiteBalance: '',
-    flash: '',
-    colorSpace: '',
-    resolutionX: '',
-    resolutionY: '',
-    resolutionUnit: '',
-    software: '',
-    captureTime: existing.captureTime,
-    lightroomRecipe: undefined,
-    notes: '',
-    fileSize: 0,
-    thumbhash: undefined,
-    perceptualHash: undefined,
-    sha256: undefined,
-    histogram: null,
-    livePhotoVideoUrl: '',
-    livePhotoStillTime: undefined,
-    livePhotoShareImageUrl: undefined,
-    livePhotoShareVideoUrl: undefined,
-    livePhotoShareContentId: undefined,
-    depthMapUrl: undefined,
-    depthMapWidth: undefined,
-    depthMapHeight: undefined,
-  })
+  const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, existingCharacters))
 
   const title = normalizeText(body.title, existing.title)
   const description = normalizeText(body.description, existing.description)
@@ -130,52 +91,14 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const characters = normalizeCharacters(body.characters, existingMetadata.characters)
   const genre = normalizeText(body.genre, existing.genre ?? '')
 
-  const mergedMetadata = {
+  const metadataBase = {
     ...existingMetadata,
-    fanworkTitle: normalizeText(body.fanworkTitle, existingMetadata.fanworkTitle),
     characters,
-    location: normalizeText(body.location, existingMetadata.location),
-    locationName: normalizeText(body.locationName, existingMetadata.locationName),
     latitude: parseNullableNumber(body.latitude, existingMetadata.latitude, 'Latitude'),
     longitude: parseNullableNumber(body.longitude, existingMetadata.longitude, 'Longitude'),
-    cameraModel: normalizeText(body.cameraModel, existingMetadata.cameraModel),
-    lensModel: normalizeText(body.lensModel, existingMetadata.lensModel),
-    aperture: normalizeText(body.aperture, existingMetadata.aperture),
-    focalLength: normalizeText(body.focalLength, existingMetadata.focalLength),
-    iso: normalizeText(body.iso, existingMetadata.iso),
-    shutterSpeed: normalizeText(body.shutterSpeed, existingMetadata.shutterSpeed),
-    exposureBias: normalizeText(body.exposureBias, existingMetadata.exposureBias),
-    exposureProgram: normalizeText(body.exposureProgram, existingMetadata.exposureProgram),
-    exposureMode: normalizeText(body.exposureMode, existingMetadata.exposureMode),
-    meteringMode: normalizeText(body.meteringMode, existingMetadata.meteringMode),
-    whiteBalance: normalizeText(body.whiteBalance, existingMetadata.whiteBalance),
-    flash: normalizeText(body.flash, existingMetadata.flash),
-    colorSpace: normalizeText(body.colorSpace, existingMetadata.colorSpace),
-    resolutionX: normalizeText(body.resolutionX, existingMetadata.resolutionX),
-    resolutionY: normalizeText(body.resolutionY, existingMetadata.resolutionY),
-    resolutionUnit: normalizeText(body.resolutionUnit, existingMetadata.resolutionUnit),
-    software: normalizeText(body.software, existingMetadata.software),
-    captureTime: normalizeText(body.captureTime, existingMetadata.captureTime),
-    focusDistance: normalizeText(body.focusDistance, existingMetadata.focusDistance ?? ''),
-    focusFrameSize: normalizeText(body.focusFrameSize, existingMetadata.focusFrameSize ?? ''),
-    focusLocation: normalizeText(body.focusLocation, existingMetadata.focusLocation ?? ''),
-    focusMode: normalizeText(body.focusMode, existingMetadata.focusMode ?? ''),
-    focusPosition: normalizeText(body.focusPosition, existingMetadata.focusPosition ?? ''),
-    hasCrop: normalizeText(body.hasCrop, existingMetadata.hasCrop ?? ''),
-    cropLeft: normalizeText(body.cropLeft, existingMetadata.cropLeft ?? ''),
-    cropTop: normalizeText(body.cropTop, existingMetadata.cropTop ?? ''),
-    cropRight: normalizeText(body.cropRight, existingMetadata.cropRight ?? ''),
-    cropBottom: normalizeText(body.cropBottom, existingMetadata.cropBottom ?? ''),
-    cropAngle: normalizeText(body.cropAngle, existingMetadata.cropAngle ?? ''),
-    perspectiveHorizontal: normalizeText(body.perspectiveHorizontal, existingMetadata.perspectiveHorizontal ?? ''),
-    perspectiveVertical: normalizeText(body.perspectiveVertical, existingMetadata.perspectiveVertical ?? ''),
-    perspectiveRotate: normalizeText(body.perspectiveRotate, existingMetadata.perspectiveRotate ?? ''),
-    perspectiveScale: normalizeText(body.perspectiveScale, existingMetadata.perspectiveScale ?? ''),
-    perspectiveUpright: normalizeText(body.perspectiveUpright, existingMetadata.perspectiveUpright ?? ''),
-    uprightTransform: normalizeText(body.uprightTransform, existingMetadata.uprightTransform ?? ''),
-    lightroomRecipe: normalizeText(body.lightroomRecipe, existingMetadata.lightroomRecipe ?? ''),
-    notes: normalizeText(body.notes, existingMetadata.notes),
   }
+  const metadataTextUpdates = normalizeMetadataTextUpdates(body)
+  const mergedMetadata = mergeMetadataTextUpdates(metadataBase, metadataTextUpdates)
 
   const [updated] = await db
     .update(files)

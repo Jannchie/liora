@@ -53,6 +53,94 @@ const LENGTH_LIMITS = {
 
 export const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
 
+export const METADATA_TEXT_FIELDS = [
+  'fanworkTitle',
+  'location',
+  'locationName',
+  'cameraModel',
+  'lensModel',
+  'aperture',
+  'focalLength',
+  'iso',
+  'shutterSpeed',
+  'exposureBias',
+  'exposureProgram',
+  'exposureMode',
+  'meteringMode',
+  'whiteBalance',
+  'flash',
+  'colorSpace',
+  'resolutionX',
+  'resolutionY',
+  'resolutionUnit',
+  'software',
+  'captureTime',
+  'focusDistance',
+  'focusFrameSize',
+  'focusLocation',
+  'focusMode',
+  'focusPosition',
+  'hasCrop',
+  'cropLeft',
+  'cropTop',
+  'cropRight',
+  'cropBottom',
+  'cropAngle',
+  'perspectiveHorizontal',
+  'perspectiveVertical',
+  'perspectiveRotate',
+  'perspectiveScale',
+  'perspectiveUpright',
+  'uprightTransform',
+  'lightroomRecipe',
+  'notes',
+] as const
+
+export type MetadataTextField = (typeof METADATA_TEXT_FIELDS)[number]
+
+export function readMetadataTextValues(source: Partial<Record<MetadataTextField, string | undefined>>): Record<MetadataTextField, string> {
+  const values = {} as Record<MetadataTextField, string>
+  for (const field of METADATA_TEXT_FIELDS) {
+    values[field] = normalizeText(source[field])
+  }
+  return values
+}
+
+export function normalizeMetadataTextUpdates(
+  source: Partial<Record<MetadataTextField, string | undefined>>,
+): Partial<Record<MetadataTextField, string>> {
+  const updates: Partial<Record<MetadataTextField, string>> = {}
+  for (const field of METADATA_TEXT_FIELDS) {
+    const value = source[field]
+    if (value === undefined) {
+      continue
+    }
+    updates[field] = normalizeText(value)
+  }
+  return updates
+}
+
+export function mergeMetadataTextUpdates(
+  base: FileMetadata,
+  updates: Partial<Record<MetadataTextField, string>>,
+  options: {
+    preserveOnEmpty?: boolean
+  } = {},
+): FileMetadata {
+  const next: FileMetadata = { ...base }
+  for (const field of METADATA_TEXT_FIELDS) {
+    const value = updates[field]
+    if (value === undefined) {
+      continue
+    }
+    if (options.preserveOnEmpty && value.length === 0) {
+      continue
+    }
+    next[field] = value
+  }
+  return next
+}
+
 export function parseCharacters(raw: string | string[] | undefined): string[] {
   if (Array.isArray(raw)) {
     return raw.map(value => value.trim()).filter(value => value.length > 0)
@@ -66,50 +154,12 @@ export function parseCharacters(raw: string | string[] | undefined): string[] {
 export function buildMetadata(fields: Record<string, string>, characters: string[]): FileMetadata {
   const parsedStillTime = fields.livePhotoStillTime ? Number(fields.livePhotoStillTime) : Number.NaN
   const livePhotoStillTime = Number.isFinite(parsedStillTime) && parsedStillTime >= 0 ? parsedStillTime : undefined
+  const textValues = readMetadataTextValues(fields)
   return {
-    fanworkTitle: normalizeText(fields.fanworkTitle),
+    ...textValues,
     characters,
-    location: normalizeText(fields.location),
-    locationName: normalizeText(fields.locationName),
     latitude: fields.latitude ? Number(fields.latitude) : null,
     longitude: fields.longitude ? Number(fields.longitude) : null,
-    cameraModel: normalizeText(fields.cameraModel),
-    lensModel: normalizeText(fields.lensModel),
-    aperture: normalizeText(fields.aperture),
-    focalLength: normalizeText(fields.focalLength),
-    iso: normalizeText(fields.iso),
-    shutterSpeed: normalizeText(fields.shutterSpeed),
-    exposureBias: normalizeText(fields.exposureBias),
-    exposureProgram: normalizeText(fields.exposureProgram),
-    exposureMode: normalizeText(fields.exposureMode),
-    meteringMode: normalizeText(fields.meteringMode),
-    whiteBalance: normalizeText(fields.whiteBalance),
-    flash: normalizeText(fields.flash),
-    colorSpace: normalizeText(fields.colorSpace),
-    resolutionX: normalizeText(fields.resolutionX),
-    resolutionY: normalizeText(fields.resolutionY),
-    resolutionUnit: normalizeText(fields.resolutionUnit),
-    software: normalizeText(fields.software),
-    captureTime: normalizeText(fields.captureTime),
-    focusDistance: normalizeText(fields.focusDistance),
-    focusFrameSize: normalizeText(fields.focusFrameSize),
-    focusLocation: normalizeText(fields.focusLocation),
-    focusMode: normalizeText(fields.focusMode),
-    focusPosition: normalizeText(fields.focusPosition),
-    hasCrop: normalizeText(fields.hasCrop),
-    cropLeft: normalizeText(fields.cropLeft),
-    cropTop: normalizeText(fields.cropTop),
-    cropRight: normalizeText(fields.cropRight),
-    cropBottom: normalizeText(fields.cropBottom),
-    cropAngle: normalizeText(fields.cropAngle),
-    perspectiveHorizontal: normalizeText(fields.perspectiveHorizontal),
-    perspectiveVertical: normalizeText(fields.perspectiveVertical),
-    perspectiveRotate: normalizeText(fields.perspectiveRotate),
-    perspectiveScale: normalizeText(fields.perspectiveScale),
-    perspectiveUpright: normalizeText(fields.perspectiveUpright),
-    uprightTransform: normalizeText(fields.uprightTransform),
-    lightroomRecipe: normalizeText(fields.lightroomRecipe),
-    notes: normalizeText(fields.notes),
     fileSize: 0,
     thumbhash: undefined,
     perceptualHash: undefined,

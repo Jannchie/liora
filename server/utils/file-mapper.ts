@@ -146,9 +146,24 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   }
 }
 
-export function toFileResponse(file: FileRow, options?: { series?: FileSeriesRef[] }): FileResponse {
-  const characters = mapCharacters(file.characterList)
-  const metadata = ensureMetadata(file.metadata, {
+type MetadataFallbackRow = Pick<FileRow, | 'fanworkTitle'
+  | 'location'
+  | 'locationName'
+  | 'latitude'
+  | 'longitude'
+  | 'cameraModel'
+  | 'aperture'
+  | 'focalLength'
+  | 'iso'
+  | 'shutterSpeed'
+  | 'captureTime'>
+
+export function buildMetadataFallbacks(
+  file: MetadataFallbackRow,
+  characters: string[],
+  overrides: Partial<Omit<FileMetadata, 'characters'>> = {},
+): Omit<FileMetadata, 'characters'> & { characters: string[] } {
+  return {
     fanworkTitle: file.fanworkTitle,
     characters,
     location: file.location,
@@ -207,7 +222,13 @@ export function toFileResponse(file: FileRow, options?: { series?: FileSeriesRef
     depthMapUrl: undefined,
     depthMapWidth: undefined,
     depthMapHeight: undefined,
-  })
+    ...overrides,
+  }
+}
+
+export function toFileResponse(file: FileRow, options?: { series?: FileSeriesRef[] }): FileResponse {
+  const characters = mapCharacters(file.characterList)
+  const metadata = ensureMetadata(file.metadata, buildMetadataFallbacks(file, characters))
   const imageUrl = file.imageUrl || ''
   const genre = file.genre?.trim() ?? ''
   const createdAt = new Date(file.createdAt)
