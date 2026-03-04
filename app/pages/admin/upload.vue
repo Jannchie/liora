@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import type { MediaFormState } from '~/types/admin'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAdminUploadForm } from '~/composables/useAdminUploadForm'
 import { useExifExtraction } from '~/composables/useExifExtraction'
 import { useLivePhotoFrame } from '~/composables/useLivePhotoFrame'
 import { useUploadProcessingPoll } from '~/composables/useUploadProcessingPoll'
 import { useUploadTransport } from '~/composables/useUploadTransport'
+import { createEmptyMediaFormState } from '~/utils/media-form'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -39,6 +41,12 @@ const toastMessages = computed(() => ({
   processingDoneDescription: t('admin.upload.toast.processingDoneDescription'),
   processingFailedTitle: t('admin.upload.toast.processingFailedTitle'),
   processingFailedDescription: t('admin.upload.toast.processingFailedDescription'),
+  batchSelectFiles: t('admin.upload.toast.batchSelectFiles'),
+  batchSelectTarget: t('admin.upload.toast.batchSelectTarget'),
+  batchSelectFields: t('admin.upload.toast.batchSelectFields'),
+  batchApplyDone: t('admin.upload.toast.batchApplyDone'),
+  batchUploadDone: t('admin.upload.toast.batchUploadDone'),
+  batchUploadFailed: t('admin.upload.toast.batchUploadFailed'),
 }))
 
 useSeoMeta({
@@ -105,6 +113,28 @@ const uploadSpeedText = computed(() => formatSpeed(uploadSpeed.value))
 const uploadTotalText = computed(() => formatFileSize(uploadTotalBytes.value))
 const uploadedBytesText = computed(() => formatFileSize(uploadBytesSent.value))
 const isUploading = computed(() => submitting.value)
+
+type BatchUploadStatus = 'pending' | 'uploading' | 'success' | 'failed'
+
+interface BatchUploadItem {
+  id: string
+  file: File
+  previewUrl: string
+  form: MediaFormState
+  selected: boolean
+  status: BatchUploadStatus
+  errorMessage: string
+}
+
+const batchInputRef = ref<HTMLInputElement | null>(null)
+const batchItems = ref<BatchUploadItem[]>([])
+const batchSubmitting = ref(false)
+const batchSelectedCount = computed(() => batchItems.value.filter(item => item.selected).length)
+const batchPendingCount = computed(() => batchItems.value.filter(item => item.status === 'pending').length)
+const batchUploadingCount = computed(() => batchItems.value.filter(item => item.status === 'uploading').length)
+const batchSuccessCount = computed(() => batchItems.value.filter(item => item.status === 'success').length)
+const batchFailedCount = computed(() => batchItems.value.filter(item => item.status === 'failed').length)
+
 let activeMetadataToken = 0
 const {
   videoPreviewUrl,
@@ -421,6 +451,160 @@ async function submit(): Promise<void> {
   }
 }
 
+function openBatchFileDialog(): void {
+  batchInputRef.value?.click()
+}
+
+function clearBatchQueue(): void {
+  for (const item of batchItems.value) {
+    if (item.previewUrl) {
+      URL.revokeObjectURL(item.previewUrl)
+    }
+  }
+  batchItems.value = []
+}
+
+function buildBatchItemId(file: File): string {
+  return `${file.name}-${file.size}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
+async function readImageSize(file: File): Promise<{ width: number, height: number, previewUrl: string }> {
+  const preview = URL.createObjectURL(file)
+  return new Promise((resolve, reject) => {
+    const image = new Image()
+    image.addEventListener('load', () => {
+      resolve({
+        width: image.naturalWidth,
+        height: image.naturalHeight,
+        previewUrl: preview,
+      })
+    })
+    image.addEventListener('error', () => {
+      URL.revokeObjectURL(preview)
+      reject(new Error(t('admin.upload.toast.sizeReadError')))
+    })
+    image.src = preview
+  })
+}
+
+async function buildBatchItem(file: File): Promise<BatchUploadItem> {
+  const formState = createEmptyMediaFormState()
+  const { width, height, previewUrl } = await readImageSize(file)
+  formState.width = width
+  formState.height = height
+
+  const exifResult = await extractExif({
+    file,
+    token: 1,
+    isActiveToken: () => true,
+    form: formState,
+    captureTimeLocal: { value: '' },
+    exifFailedFallback: toastMessages.value.exifFailedFallback,
+  })
+  if (exifResult.errorMessage) {
+    toast.add({ title: toastMessages.value.exifFailed, description: exifResult.errorMessage, color: 'warning' })
+  }
+
+  return {
+    id: buildBatchItemId(file),
+    file,
+    previewUrl,
+    form: formState,
+    selected: true,
+    status: 'pending',
+    errorMessage: '',
+  }
+}
+
+async function handleBatchFilesPicked(event: Event): Promise<void> {
+  const target = event.target as HTMLInputElement | null
+  const files = target?.files ? [...target.files] : []
+  if (files.length === 0) {
+    return
+  }
+
+  const imageFiles = files.filter(file => file.type.startsWith('image/'))
+  if (imageFiles.length === 0) {
+    toast.add({ title: toastMessages.value.batchSelectFiles, color: 'warning' })
+    return
+  }
+
+  for (const file of imageFiles) {
+    try {
+      const item = await buildBatchItem(file)
+      batchItems.value.push(item)
+    }
+    catch (error) {
+      const message = error instanceof Error ? error.message : toastMessages.value.sizeFailedFallback
+      toast.add({ title: toastMessages.value.sizeFailed, description: message, color: 'error' })
+    }
+  }
+  if (target) {
+    target.value = ''
+  }
+}
+
+function setAllBatchSelected(checked: boolean): void {
+  batchItems.value = batchItems.value.map(item => ({
+    ...item,
+    selected: checked,
+  }))
+}
+
+function removeBatchItem(itemId: string): void {
+  const target = batchItems.value.find(item => item.id === itemId)
+  if (target?.previewUrl) {
+    URL.revokeObjectURL(target.previewUrl)
+  }
+  batchItems.value = batchItems.value.filter(item => item.id !== itemId)
+}
+
+async function submitBatchUpload(): Promise<void> {
+  if (batchItems.value.length === 0) {
+    toast.add({ title: toastMessages.value.batchSelectFiles, color: 'warning' })
+    return
+  }
+  if (batchPendingCount.value === 0) {
+    toast.add({ title: toastMessages.value.batchUploadDone, color: 'primary' })
+    return
+  }
+
+  batchSubmitting.value = true
+  for (const item of batchItems.value) {
+    if (item.status !== 'pending') {
+      continue
+    }
+    item.status = 'uploading'
+    item.errorMessage = ''
+    try {
+      await sendFileWithProgress({
+        imageFile: item.file,
+        videoFile: null,
+        form: item.form,
+        isLiveMode: false,
+        liveFrameTime: 0,
+        requestFetch: requestFetchForUpload,
+      })
+      item.status = 'success'
+    }
+    catch (error) {
+      item.status = 'failed'
+      item.errorMessage = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
+    }
+  }
+  batchSubmitting.value = false
+
+  if (batchFailedCount.value > 0) {
+    toast.add({
+      title: toastMessages.value.batchUploadFailed,
+      description: `${batchSuccessCount.value}/${batchItems.value.length}`,
+      color: 'warning',
+    })
+    return
+  }
+  toast.add({ title: toastMessages.value.batchUploadDone, color: 'success' })
+}
+
 onBeforeUnmount(() => {
   const target = typeof globalThis.removeEventListener === 'function' ? (globalThis as unknown as Window) : null
   if (pasteListener && target) {
@@ -428,6 +612,7 @@ onBeforeUnmount(() => {
   }
   stopProcessingStatusPoll()
   clearSelectedFile()
+  clearBatchQueue()
 })
 </script>
 
@@ -443,7 +628,108 @@ onBeforeUnmount(() => {
             <span>{{ t('admin.upload.title') }}</span>
           </h1>
         </div>
+        <div class="flex items-center gap-2">
+          <UButton
+            size="sm"
+            color="primary"
+            icon="tabler:photo-plus"
+            @click="openBatchFileDialog"
+          >
+            {{ t('admin.upload.batch.pickFiles') }}
+          </UButton>
+          <UButton
+            v-if="batchItems.length > 0"
+            size="sm"
+            color="neutral"
+            variant="soft"
+            icon="tabler:trash"
+            @click="clearBatchQueue"
+          >
+            {{ t('admin.upload.batch.clearQueue') }}
+          </UButton>
+        </div>
       </header>
+
+      <input
+        ref="batchInputRef"
+        type="file"
+        accept="image/*"
+        multiple
+        class="hidden"
+        @change="handleBatchFilesPicked"
+      >
+      <UCard v-if="batchItems.length > 0">
+        <template #header>
+          <h2 class="text-lg font-semibold">
+            {{ t('admin.upload.batch.title') }}
+          </h2>
+        </template>
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
+            <span>{{ t('admin.upload.batch.stats.total', { count: batchItems.length }) }}</span>
+            <span>{{ t('admin.upload.batch.stats.selected', { count: batchSelectedCount }) }}</span>
+            <span>{{ t('admin.upload.batch.stats.pending', { count: batchPendingCount }) }}</span>
+            <span>{{ t('admin.upload.batch.stats.uploading', { count: batchUploadingCount }) }}</span>
+            <span>{{ t('admin.upload.batch.stats.success', { count: batchSuccessCount }) }}</span>
+            <span>{{ t('admin.upload.batch.stats.failed', { count: batchFailedCount }) }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <UButton size="xs" color="neutral" variant="soft" @click="setAllBatchSelected(true)">
+              {{ t('admin.upload.batch.selectAll') }}
+            </UButton>
+            <UButton size="xs" color="neutral" variant="soft" @click="setAllBatchSelected(false)">
+              {{ t('admin.upload.batch.selectNone') }}
+            </UButton>
+            <UButton
+              size="xs"
+              color="primary"
+              icon="tabler:upload"
+              :loading="batchSubmitting"
+              @click="submitBatchUpload"
+            >
+              {{ t('admin.upload.batch.startUpload') }}
+            </UButton>
+          </div>
+          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            <div
+              v-for="item in batchItems"
+              :key="item.id"
+              class="space-y-2 rounded-lg border border-default/50 bg-default/60 p-2"
+            >
+              <div class="flex items-center justify-between gap-2">
+                <label class="flex items-center gap-2 text-sm font-medium">
+                  <input
+                    v-model="item.selected"
+                    type="checkbox"
+                    class="h-4 w-4 rounded border-default text-primary"
+                  >
+                  <span class="truncate">{{ item.file.name }}</span>
+                </label>
+                <UButton
+                  size="xs"
+                  color="neutral"
+                  variant="ghost"
+                  icon="tabler:x"
+                  @click="removeBatchItem(item.id)"
+                />
+              </div>
+              <img
+                :src="item.previewUrl"
+                :alt="item.file.name"
+                class="h-36 w-full rounded-md object-cover"
+              >
+              <div class="flex items-center justify-between text-xs text-muted">
+                <span>{{ item.form.width }} × {{ item.form.height }}</span>
+                <span>{{ formatFileSize(item.file.size) }}</span>
+              </div>
+              <p class="text-xs" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
+                {{ t(`admin.upload.batch.status.${item.status}`) }}
+                <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </UCard>
 
       <AdminUploadPickerCard
         v-show="!hasSelection"

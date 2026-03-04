@@ -119,6 +119,96 @@ export interface FilePayload {
   notes?: string
 }
 
+export const BATCH_METADATA_FIELDS = [
+  'title',
+  'description',
+  'genre',
+  'width',
+  'height',
+  'fanworkTitle',
+  'characters',
+  'location',
+  'locationName',
+  'latitude',
+  'longitude',
+  'cameraModel',
+  'lensModel',
+  'aperture',
+  'focalLength',
+  'iso',
+  'shutterSpeed',
+  'exposureBias',
+  'exposureProgram',
+  'exposureMode',
+  'meteringMode',
+  'whiteBalance',
+  'flash',
+  'colorSpace',
+  'resolutionX',
+  'resolutionY',
+  'resolutionUnit',
+  'software',
+  'captureTime',
+  'notes',
+] as const
+
+export type BatchMetadataField = (typeof BATCH_METADATA_FIELDS)[number]
+
+export interface BatchMetadataPayload {
+  fileIds: number[]
+  fieldMask: BatchMetadataField[]
+  changes: Partial<FilePayload> & {
+    title?: string
+    description?: string
+    genre?: string
+  }
+}
+
+export interface BatchSeriesPayload {
+  fileIds: number[]
+  seriesId: number
+  action: 'add'
+}
+
+export interface BatchUploadItemPayload {
+  imageKey: string
+  imageContentType?: string
+  originalName?: string
+  metadataOverrides?: BatchMetadataPayload['changes']
+}
+
+export interface BatchUploadPayload {
+  items: BatchUploadItemPayload[]
+  fieldMask: BatchMetadataField[]
+  sharedChanges: BatchMetadataPayload['changes']
+}
+
+export interface BatchActionFailure {
+  id: number | null
+  message: string
+}
+
+export interface BatchActionResult {
+  total: number
+  success: number
+  failed: number
+  failures: BatchActionFailure[]
+}
+
+export interface BatchUploadItemResult {
+  index: number
+  originalName: string
+  uploadId: string
+  status: UploadProcessingStatus | 'unknown'
+}
+
+export interface BatchUploadResult {
+  total: number
+  success: number
+  failed: number
+  items: BatchUploadItemResult[]
+}
+
 export interface FileSummary {
   id: number
   imageUrl: string

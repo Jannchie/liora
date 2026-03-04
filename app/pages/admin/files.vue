@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import type { ImageSizes } from '@nuxt/image'
 import type { MediaFormState } from '~/types/admin'
-import type { FileResponse } from '~/types/file'
+import type { BatchMetadataField, FileResponse } from '~/types/file'
+import type { SeriesSummary } from '~/types/series'
 import { computed, reactive, ref, watch } from 'vue'
 import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
+import { toIsoWithOffset } from '~/utils/datetime'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile, resetMediaFormState } from '~/utils/media-form'
 
 const { t, locale } = useI18n()
@@ -14,7 +16,11 @@ definePageMeta({
 
 const toast = useToast()
 const image = useImage()
-const { saveFileEdit } = useFileEditApi()
+const {
+  saveFileEdit,
+  updateFilesBatchMetadata,
+  addFilesToSeriesBatch,
+} = useFileEditApi()
 const { uploadDepthMap } = useDepthMapUpload()
 
 const pageTitle = computed(() => t('admin.files.seoTitle'))
@@ -38,6 +44,13 @@ const toastMessages = computed(() => ({
   depthFailed: t('admin.files.toast.depthFailed'),
   depthFailedFallback: t('admin.files.toast.depthFailedFallback'),
   depthBatchTitle: t('admin.files.toast.depthBatchTitle'),
+  bulkNoSelection: t('admin.files.toast.bulkNoSelection'),
+  bulkNoFields: t('admin.files.toast.bulkNoFields'),
+  bulkMetadataSuccess: t('admin.files.toast.bulkMetadataSuccess'),
+  bulkMetadataFailed: t('admin.files.toast.bulkMetadataFailed'),
+  bulkSeriesSuccess: t('admin.files.toast.bulkSeriesSuccess'),
+  bulkSeriesFailed: t('admin.files.toast.bulkSeriesFailed'),
+  bulkFailedFallback: t('admin.files.toast.bulkFailedFallback'),
 }))
 
 useSeoMeta({
@@ -153,12 +166,101 @@ watch(
 )
 
 const tableColumns = computed(() => [
+  { id: 'select', header: t('admin.files.table.headers.select'), accessorFn: (row: FileResponse) => row.id },
   { id: 'preview', header: t('admin.files.table.headers.preview'), accessorFn: (row: FileResponse) => row.imageUrl },
   { accessorKey: 'title', id: 'title', header: t('admin.files.table.headers.title') },
   { id: 'captureTime', header: t('admin.files.table.headers.captureTime'), accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt },
   { accessorKey: 'createdAt', id: 'createdAt', header: t('admin.files.table.headers.createdAt') },
   { id: 'actions', header: t('admin.files.table.headers.actions'), accessorFn: (row: FileResponse) => row.id },
 ])
+
+const selectedFileIds = ref<number[]>([])
+const selectedFileIdSet = computed(() => new Set(selectedFileIds.value))
+const selectedCount = computed(() => selectedFileIds.value.length)
+const pageFileIds = computed<number[]>(() => paginatedFiles.value.map(file => file.id))
+const selectedCountOnPage = computed(() => pageFileIds.value.filter(id => selectedFileIdSet.value.has(id)).length)
+const allOnPageSelected = computed(() => pageFileIds.value.length > 0 && selectedCountOnPage.value === pageFileIds.value.length)
+const someOnPageSelected = computed(() => selectedCountOnPage.value > 0 && !allOnPageSelected.value)
+
+const bulkMetadataModalOpen = ref(false)
+const bulkMetadataSaving = ref(false)
+const bulkMetadataForm = reactive<MediaFormState>(createEmptyMediaFormState())
+const bulkMetadataCaptureTimeLocal = ref('')
+const selectedBatchFields = ref<BatchMetadataField[]>([])
+
+const bulkSeriesModalOpen = ref(false)
+const bulkSeriesSaving = ref(false)
+const selectedSeriesIdForBatch = ref<number | null>(null)
+const selectedSeriesIdForBatchModel = computed<number | undefined>({
+  get: () => selectedSeriesIdForBatch.value ?? undefined,
+  set: (value) => {
+    selectedSeriesIdForBatch.value = typeof value === 'number' ? value : null
+  },
+})
+const { data: seriesOptionsData, refresh: refreshSeriesOptions } = useFetch<SeriesSummary[]>('/api/series', {
+  default: () => [],
+  server: false,
+  immediate: false,
+})
+
+const batchEditableFields = computed<Array<{ key: BatchMetadataField, label: string }>>(() => [
+  { key: 'title', label: t('admin.files.form.title.label') },
+  { key: 'description', label: t('admin.files.form.description.label') },
+  { key: 'genre', label: t('admin.files.form.genre.label') },
+  { key: 'fanworkTitle', label: t('admin.files.form.fanworkTitle.label') },
+  { key: 'characters', label: t('admin.files.form.characters.label') },
+  { key: 'location', label: t('admin.files.form.location.label') },
+  { key: 'locationName', label: t('admin.files.form.locationName.label') },
+  { key: 'latitude', label: t('admin.files.form.latitude.label') },
+  { key: 'longitude', label: t('admin.files.form.longitude.label') },
+  { key: 'cameraModel', label: t('admin.files.form.cameraModel.label') },
+  { key: 'lensModel', label: t('admin.upload.fields.lensModel.label') },
+  { key: 'aperture', label: t('admin.upload.fields.aperture.label') },
+  { key: 'focalLength', label: t('admin.upload.fields.focalLength.label') },
+  { key: 'iso', label: 'ISO' },
+  { key: 'shutterSpeed', label: t('admin.upload.fields.shutterSpeed.label') },
+  { key: 'exposureBias', label: t('admin.upload.fields.exposureBias.label') },
+  { key: 'exposureProgram', label: t('admin.upload.fields.exposureProgram.label') },
+  { key: 'exposureMode', label: t('admin.upload.fields.exposureMode.label') },
+  { key: 'meteringMode', label: t('admin.upload.fields.meteringMode.label') },
+  { key: 'whiteBalance', label: t('admin.upload.fields.whiteBalance.label') },
+  { key: 'flash', label: t('admin.upload.fields.flash.label') },
+  { key: 'colorSpace', label: t('admin.upload.fields.colorSpace.label') },
+  { key: 'resolutionX', label: t('admin.upload.fields.resolutionX.label') },
+  { key: 'resolutionY', label: t('admin.upload.fields.resolutionY.label') },
+  { key: 'resolutionUnit', label: t('admin.upload.fields.resolutionUnit.label') },
+  { key: 'software', label: t('admin.upload.fields.software.label') },
+  { key: 'captureTime', label: t('admin.upload.fields.captureTime.label') },
+  { key: 'notes', label: t('admin.upload.fields.notes.label') },
+  { key: 'width', label: t('admin.files.form.width.label') },
+  { key: 'height', label: t('admin.files.form.height.label') },
+])
+
+const seriesSelectItems = computed(() => {
+  const rows = seriesOptionsData.value ?? []
+  return rows
+    .filter(row => !row.isVirtual)
+    .map(row => ({
+      label: row.title,
+      value: row.id,
+    }))
+})
+
+watch(
+  files,
+  (items) => {
+    const available = new Set(items.map(item => item.id))
+    selectedFileIds.value = selectedFileIds.value.filter(id => available.has(id))
+  },
+  { immediate: true },
+)
+
+watch(
+  bulkMetadataCaptureTimeLocal,
+  (value) => {
+    bulkMetadataForm.captureTime = value ? toIsoWithOffset(value) : ''
+  },
+)
 
 function hasDepthMap(file: FileResponse): boolean {
   const raw = file.metadata.depthMapUrl
@@ -279,6 +381,31 @@ function formatDateTime(value: string): string {
     return ''
   }
   return date.toLocaleString()
+}
+
+function normalizeSelectedIds(ids: number[]): number[] {
+  return [...new Set(ids.filter(id => Number.isInteger(id) && id > 0))]
+}
+
+function toggleSelectOnPage(checked: boolean): void {
+  if (checked) {
+    selectedFileIds.value = normalizeSelectedIds([...selectedFileIds.value, ...pageFileIds.value])
+    return
+  }
+  const removeSet = new Set(pageFileIds.value)
+  selectedFileIds.value = selectedFileIds.value.filter(id => !removeSet.has(id))
+}
+
+function toggleFileSelection(fileId: number, checked: boolean): void {
+  if (checked) {
+    selectedFileIds.value = normalizeSelectedIds([...selectedFileIds.value, fileId])
+    return
+  }
+  selectedFileIds.value = selectedFileIds.value.filter(id => id !== fileId)
+}
+
+function clearSelection(): void {
+  selectedFileIds.value = []
 }
 
 const editCaptureTimeLocal = ref<string>('')
@@ -452,6 +579,141 @@ function openEdit(file: FileResponse): void {
   fillEditForm(file)
   editModalOpen.value = true
 }
+
+function resetBulkMetadataForm(): void {
+  resetMediaFormState(bulkMetadataForm)
+  bulkMetadataCaptureTimeLocal.value = ''
+  selectedBatchFields.value = []
+}
+
+function openBulkMetadataModal(): void {
+  if (selectedCount.value === 0) {
+    toast.add({ title: toastMessages.value.bulkNoSelection, color: 'warning' })
+    return
+  }
+  resetBulkMetadataForm()
+  bulkMetadataModalOpen.value = true
+}
+
+function openBulkSeriesModal(): void {
+  if (selectedCount.value === 0) {
+    toast.add({ title: toastMessages.value.bulkNoSelection, color: 'warning' })
+    return
+  }
+  selectedSeriesIdForBatch.value = null
+  bulkSeriesModalOpen.value = true
+  void refreshSeriesOptions()
+}
+
+function buildBatchMetadataChanges(): Record<string, unknown> {
+  return {
+    title: bulkMetadataForm.title,
+    description: bulkMetadataForm.description,
+    genre: bulkMetadataForm.genre,
+    width: bulkMetadataForm.width,
+    height: bulkMetadataForm.height,
+    fanworkTitle: bulkMetadataForm.fanworkTitle,
+    characters: bulkMetadataForm.characters,
+    location: bulkMetadataForm.location,
+    locationName: bulkMetadataForm.locationName,
+    latitude: bulkMetadataForm.latitude,
+    longitude: bulkMetadataForm.longitude,
+    cameraModel: bulkMetadataForm.cameraModel,
+    lensModel: bulkMetadataForm.lensModel,
+    aperture: bulkMetadataForm.aperture,
+    focalLength: bulkMetadataForm.focalLength,
+    iso: bulkMetadataForm.iso,
+    shutterSpeed: bulkMetadataForm.shutterSpeed,
+    exposureBias: bulkMetadataForm.exposureBias,
+    exposureProgram: bulkMetadataForm.exposureProgram,
+    exposureMode: bulkMetadataForm.exposureMode,
+    meteringMode: bulkMetadataForm.meteringMode,
+    whiteBalance: bulkMetadataForm.whiteBalance,
+    flash: bulkMetadataForm.flash,
+    colorSpace: bulkMetadataForm.colorSpace,
+    resolutionX: bulkMetadataForm.resolutionX,
+    resolutionY: bulkMetadataForm.resolutionY,
+    resolutionUnit: bulkMetadataForm.resolutionUnit,
+    software: bulkMetadataForm.software,
+    captureTime: bulkMetadataForm.captureTime,
+    notes: bulkMetadataForm.notes,
+  }
+}
+
+async function saveBulkMetadata(): Promise<void> {
+  if (selectedCount.value === 0) {
+    toast.add({ title: toastMessages.value.bulkNoSelection, color: 'warning' })
+    return
+  }
+  if (selectedBatchFields.value.length === 0) {
+    toast.add({ title: toastMessages.value.bulkNoFields, color: 'warning' })
+    return
+  }
+
+  bulkMetadataSaving.value = true
+  try {
+    const result = await updateFilesBatchMetadata({
+      fileIds: selectedFileIds.value,
+      fieldMask: selectedBatchFields.value,
+      changes: buildBatchMetadataChanges(),
+    })
+    await refresh()
+    const hasFailures = result.failed > 0
+    toast.add({
+      title: hasFailures ? toastMessages.value.bulkMetadataFailed : toastMessages.value.bulkMetadataSuccess,
+      description: `${result.success}/${result.total}`,
+      color: hasFailures ? 'warning' : 'primary',
+    })
+    if (!hasFailures) {
+      bulkMetadataModalOpen.value = false
+    }
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.bulkFailedFallback
+    toast.add({ title: toastMessages.value.bulkMetadataFailed, description: message, color: 'error' })
+  }
+  finally {
+    bulkMetadataSaving.value = false
+  }
+}
+
+async function saveBulkSeries(): Promise<void> {
+  if (selectedCount.value === 0) {
+    toast.add({ title: toastMessages.value.bulkNoSelection, color: 'warning' })
+    return
+  }
+  if (!selectedSeriesIdForBatch.value) {
+    toast.add({ title: t('admin.files.bulk.seriesRequired'), color: 'warning' })
+    return
+  }
+
+  bulkSeriesSaving.value = true
+  try {
+    const result = await addFilesToSeriesBatch({
+      fileIds: selectedFileIds.value,
+      seriesId: selectedSeriesIdForBatch.value,
+      action: 'add',
+    })
+    await refresh()
+    const hasFailures = result.failed > 0
+    toast.add({
+      title: hasFailures ? toastMessages.value.bulkSeriesFailed : toastMessages.value.bulkSeriesSuccess,
+      description: `${result.success}/${result.total}`,
+      color: hasFailures ? 'warning' : 'primary',
+    })
+    if (!hasFailures) {
+      bulkSeriesModalOpen.value = false
+    }
+  }
+  catch (error) {
+    const message = error instanceof Error ? error.message : toastMessages.value.bulkFailedFallback
+    toast.add({ title: toastMessages.value.bulkSeriesFailed, description: message, color: 'error' })
+  }
+  finally {
+    bulkSeriesSaving.value = false
+  }
+}
+
 const deletingId = ref<number | null>(null)
 const deleteTarget = ref<FileResponse | null>(null)
 const deleteModalOpen = ref(false)
@@ -517,6 +779,7 @@ async function confirmDelete(): Promise<void> {
 async function handleRefresh(): Promise<void> {
   await refresh()
   page.value = 1
+  clearSelection()
 }
 
 watch(fetchError, (value) => {
@@ -614,6 +877,41 @@ watch(fetchError, (value) => {
           </div>
         </div>
         <div class="rounded-xl bg-default/80 p-4">
+          <div
+            v-if="selectedCount > 0"
+            class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2"
+          >
+            <span class="text-sm font-medium text-highlighted">
+              {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
+            </span>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="soft"
+              icon="tabler:edit"
+              @click="openBulkMetadataModal"
+            >
+              {{ t('admin.files.bulk.editMetadata') }}
+            </UButton>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="soft"
+              icon="tabler:photo-up"
+              @click="openBulkSeriesModal"
+            >
+              {{ t('admin.files.bulk.addToSeries') }}
+            </UButton>
+            <UButton
+              size="xs"
+              color="neutral"
+              variant="ghost"
+              icon="tabler:x"
+              @click="clearSelection"
+            >
+              {{ t('admin.files.bulk.clearSelection') }}
+            </UButton>
+          </div>
           <UTable
             :columns="tableColumns"
             :data="paginatedFiles"
@@ -621,6 +919,18 @@ watch(fetchError, (value) => {
             :empty="tableEmptyText"
             :ui="tableUi"
           >
+            <template #select-header>
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  :checked="allOnPageSelected"
+                  :aria-label="t('admin.files.bulk.selectPage')"
+                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
+                  @change="toggleSelectOnPage(($event.target as HTMLInputElement).checked)"
+                >
+                <span v-if="someOnPageSelected" class="sr-only">{{ t('admin.files.bulk.partialSelected') }}</span>
+              </div>
+            </template>
             <template #title-header>
               <button
                 type="button"
@@ -653,6 +963,17 @@ watch(fetchError, (value) => {
                 <span>{{ t('admin.files.table.headers.createdAt') }}</span>
                 <Icon :name="resolveSortIcon('createdAt')" class="h-4 w-4 text-muted" />
               </button>
+            </template>
+            <template #select-cell="{ row }">
+              <div class="flex items-center">
+                <input
+                  type="checkbox"
+                  :checked="selectedFileIdSet.has(row.original.id)"
+                  :aria-label="t('admin.files.bulk.selectOne', { id: row.original.id })"
+                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
+                  @change="toggleFileSelection(row.original.id, ($event.target as HTMLInputElement).checked)"
+                >
+              </div>
             </template>
             <template #preview-cell="{ row }">
               <div class="h-14 w-24 overflow-hidden rounded-md bg-black/5">
@@ -776,6 +1097,99 @@ watch(fetchError, (value) => {
               @click="confirmDelete"
             >
               {{ t('admin.files.delete.confirm') }}
+            </UButton>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="bulkMetadataModalOpen"
+      :title="t('admin.files.bulk.editMetadata')"
+      :description="t('admin.files.bulk.selected', { count: selectedCount })"
+    >
+      <template #content>
+        <div class="w-full max-w-5xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+              {{ t('admin.files.bulk.fields') }}
+            </p>
+            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              <label
+                v-for="field in batchEditableFields"
+                :key="field.key"
+                class="flex items-center gap-2 rounded-md border border-default/50 px-2 py-1 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
+                  :checked="selectedBatchFields.includes(field.key)"
+                  @change="(event) => {
+                    const checked = (event.target as HTMLInputElement).checked
+                    if (checked) {
+                      selectedBatchFields = [...new Set([...selectedBatchFields, field.key])]
+                    }
+                    else {
+                      selectedBatchFields = selectedBatchFields.filter(item => item !== field.key)
+                    }
+                  }"
+                >
+                <span>{{ field.label }}</span>
+              </label>
+            </div>
+          </div>
+
+          <UForm :state="bulkMetadataForm" @submit.prevent="saveBulkMetadata">
+            <AdminMetadataForm
+              v-model:form="bulkMetadataForm"
+              v-model:capture-time-local="bulkMetadataCaptureTimeLocal"
+              :classify-source="{ imageUrl: '' }"
+            />
+            <div class="mt-4 flex justify-end gap-2">
+              <UButton variant="soft" color="neutral" icon="tabler:x" @click="bulkMetadataModalOpen = false">
+                {{ t('common.actions.cancel') }}
+              </UButton>
+              <UButton
+                color="primary"
+                type="submit"
+                icon="tabler:device-floppy"
+                :loading="bulkMetadataSaving"
+              >
+                {{ t('common.actions.save') }}
+              </UButton>
+            </div>
+          </UForm>
+        </div>
+      </template>
+    </UModal>
+
+    <UModal
+      v-model:open="bulkSeriesModalOpen"
+      :title="t('admin.files.bulk.addToSeries')"
+      :description="t('admin.files.bulk.selected', { count: selectedCount })"
+    >
+      <template #content>
+        <div class="w-full max-w-xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
+          <UFormField :label="t('admin.files.bulk.seriesTarget')">
+            <USelect
+              v-model="selectedSeriesIdForBatchModel"
+              :items="seriesSelectItems"
+              value-attribute="value"
+              option-attribute="label"
+              :placeholder="t('admin.files.bulk.seriesPlaceholder')"
+            />
+          </UFormField>
+          <div class="flex justify-end gap-2">
+            <UButton variant="soft" color="neutral" icon="tabler:x" @click="bulkSeriesModalOpen = false">
+              {{ t('common.actions.cancel') }}
+            </UButton>
+            <UButton
+              color="primary"
+              icon="tabler:photo-up"
+              :loading="bulkSeriesSaving"
+              @click="saveBulkSeries"
+            >
+              {{ t('admin.files.bulk.confirmAddSeries') }}
             </UButton>
           </div>
         </div>

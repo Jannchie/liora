@@ -244,9 +244,50 @@
         "genreAutoMissingSource": "まず画像を選択するか、画像 URL を入力してください。",
         "genreAutoSuccess": "自動分類を反映しました",
         "genreAutoFailedTitle": "自動分類に失敗しました",
-        "genreAutoFailedFallback": "この画像を分類できませんでした。"
+        "genreAutoFailedFallback": "この画像を分類できませんでした。",
+        "batchSelectFiles": "先に画像を選択してください。",
+        "batchSelectTarget": "操作対象の画像を選択してください。",
+        "batchSelectFields": "適用するメタデータ項目を選択してください。",
+        "batchApplyDone": "選択した画像に適用しました。",
+        "batchUploadDone": "一括アップロードが完了しました。",
+        "batchUploadFailed": "一括アップロードは完了しましたが失敗項目があります。",
+        "batchSeriesRequired": "先にシリーズを選択してください。",
+        "batchSeriesApplied": "選択画像へのシリーズ割り当てを設定しました。",
+        "batchSeriesAssignFailed": "アップロード後のシリーズ割り当てに失敗しました。"
       },
       "title": "作品をアップロード",
+      "mode": {
+        "single": "単体",
+        "batch": "一括"
+      },
+      "batch": {
+        "title": "一括キュー",
+        "metadataTitle": "一括メタデータ",
+        "pickFiles": "画像を選択",
+        "clearQueue": "キューをクリア",
+        "applyMetadata": "選択に適用",
+        "applySeries": "シリーズを適用",
+        "seriesPlaceholder": "シリーズを選択",
+        "seriesAssigned": "{count} 件のシリーズを設定済み",
+        "startUpload": "未処理をアップロード",
+        "selectAll": "すべて選択",
+        "selectNone": "選択解除",
+        "empty": "キューに画像がありません。",
+        "stats": {
+          "total": "合計: {count}",
+          "selected": "選択中: {count}",
+          "pending": "待機中: {count}",
+          "uploading": "アップロード中: {count}",
+          "success": "成功: {count}",
+          "failed": "失敗: {count}"
+        },
+        "status": {
+          "pending": "待機中",
+          "uploading": "アップロード中",
+          "success": "成功",
+          "failed": "失敗"
+        }
+      },
       "sections": {
         "upload": {
           "label": "写真をアップロード",
@@ -476,7 +517,14 @@
         "depthFailed": "生成に失敗しました",
         "depthFailedFallback": "深度マップの生成に失敗しました",
         "depthBatchTitle": "一括生成が完了しました",
-        "depthBatchSummary": "合計 {total} 件、成功 {success} 件、失敗 {failed} 件、スキップ {skipped} 件"
+        "depthBatchSummary": "合計 {total} 件、成功 {success} 件、失敗 {failed} 件、スキップ {skipped} 件",
+        "bulkNoSelection": "先にレコードを1件以上選択してください。",
+        "bulkNoFields": "メタデータ項目を1つ以上選択してください。",
+        "bulkMetadataSuccess": "一括メタデータ更新が完了しました。",
+        "bulkMetadataFailed": "一括メタデータ更新は完了しましたが失敗項目があります。",
+        "bulkSeriesSuccess": "一括シリーズ追加が完了しました。",
+        "bulkSeriesFailed": "一括シリーズ追加は完了しましたが失敗項目があります。",
+        "bulkFailedFallback": "一括操作に失敗しました。"
       },
       "title": "レコード",
       "actions": {
@@ -498,6 +546,7 @@
       },
       "table": {
         "headers": {
+          "select": "選択",
           "preview": "プレビュー",
           "title": "タイトル",
           "kind": "タイプ",
@@ -508,6 +557,20 @@
           "actions": "操作"
         },
         "empty": "データがありません。まずはレコードを追加してください。"
+      },
+      "bulk": {
+        "selected": "{count} 件を選択中",
+        "editMetadata": "メタデータを一括編集",
+        "addToSeries": "シリーズへ一括追加",
+        "clearSelection": "選択解除",
+        "selectPage": "このページをすべて選択",
+        "partialSelected": "このページは一部選択されています",
+        "selectOne": "レコード #{id} を選択",
+        "fields": "適用する項目",
+        "seriesTarget": "追加先シリーズ",
+        "seriesPlaceholder": "シリーズを選択",
+        "seriesRequired": "シリーズを選択してください。",
+        "confirmAddSeries": "選択項目を追加"
       },
       "editModal": {
         "fallbackTitle": "メタデータを調整"

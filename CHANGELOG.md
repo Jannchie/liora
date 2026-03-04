@@ -1,3 +1,19 @@
+## v0.27.0
+
+[v0.26.0...v0.27.0](https://github.com/Jannchie/liora/compare/v0.26.0...v0.27.0)
+
+### :sparkles: Features
+
+- **files**: add robust file param handling && normalize exposure parsing && extract depth upload logic - By [Jannchie](mailto:jannchie@gmail.com) in [915f5cb](https://github.com/Jannchie/liora/commit/915f5cb)
+
+### :adhesive_bandage: Fixes
+
+- **series**: fix select model and click handler bindings && guard maxSort numeric check - By [Jannchie](mailto:jannchie@gmail.com) in [45df1ce](https://github.com/Jannchie/liora/commit/45df1ce)
+
+### :art: Refactors
+
+- **files**: extract media form and metadata helpers - By [Jannchie](mailto:jannchie@gmail.com) in [c6e96e1](https://github.com/Jannchie/liora/commit/c6e96e1)
+
 ## v0.26.0
 
 [v0.25.0...v0.26.0](https://github.com/Jannchie/liora/compare/v0.25.0...v0.26.0)

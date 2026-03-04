@@ -244,9 +244,50 @@
         "genreAutoMissingSource": "Upload an image or provide an image URL first.",
         "genreAutoSuccess": "Genre updated from AI",
         "genreAutoFailedTitle": "Auto classify failed",
-        "genreAutoFailedFallback": "Could not classify this image."
+        "genreAutoFailedFallback": "Could not classify this image.",
+        "batchSelectFiles": "Please select images first.",
+        "batchSelectTarget": "Please select at least one target image.",
+        "batchSelectFields": "Please select metadata fields to apply.",
+        "batchApplyDone": "Applied metadata to selected images.",
+        "batchUploadDone": "Batch upload completed.",
+        "batchUploadFailed": "Batch upload finished with failures.",
+        "batchSeriesRequired": "Choose a series first.",
+        "batchSeriesApplied": "Series assignment has been staged for selected images.",
+        "batchSeriesAssignFailed": "Failed to assign series after upload."
       },
       "title": "Upload work",
+      "mode": {
+        "single": "Single",
+        "batch": "Batch"
+      },
+      "batch": {
+        "title": "Batch queue",
+        "metadataTitle": "Batch metadata",
+        "pickFiles": "Pick images",
+        "clearQueue": "Clear queue",
+        "applyMetadata": "Apply to selected",
+        "applySeries": "Add series",
+        "seriesPlaceholder": "Select series",
+        "seriesAssigned": "{count} series assigned",
+        "startUpload": "Upload pending",
+        "selectAll": "Select all",
+        "selectNone": "Select none",
+        "empty": "No images in queue.",
+        "stats": {
+          "total": "Total: {count}",
+          "selected": "Selected: {count}",
+          "pending": "Pending: {count}",
+          "uploading": "Uploading: {count}",
+          "success": "Success: {count}",
+          "failed": "Failed: {count}"
+        },
+        "status": {
+          "pending": "Pending",
+          "uploading": "Uploading",
+          "success": "Success",
+          "failed": "Failed"
+        }
+      },
       "sections": {
         "upload": {
           "label": "Upload photo",
@@ -476,7 +517,14 @@
         "depthFailed": "Generation failed",
         "depthFailedFallback": "Failed to generate depth map",
         "depthBatchTitle": "Batch generation complete",
-        "depthBatchSummary": "{total} total, {success} succeeded, {failed} failed, {skipped} skipped"
+        "depthBatchSummary": "{total} total, {success} succeeded, {failed} failed, {skipped} skipped",
+        "bulkNoSelection": "Select at least one record first.",
+        "bulkNoFields": "Select at least one metadata field.",
+        "bulkMetadataSuccess": "Batch metadata update completed.",
+        "bulkMetadataFailed": "Batch metadata update finished with failures.",
+        "bulkSeriesSuccess": "Batch series assignment completed.",
+        "bulkSeriesFailed": "Batch series assignment finished with failures.",
+        "bulkFailedFallback": "Batch action failed."
       },
       "title": "Records",
       "actions": {
@@ -498,6 +546,7 @@
       },
       "table": {
         "headers": {
+          "select": "Select",
           "preview": "Preview",
           "title": "Title",
           "kind": "Type",
@@ -508,6 +557,20 @@
           "actions": "Actions"
         },
         "empty": "No data yet. Add your first record."
+      },
+      "bulk": {
+        "selected": "{count} selected",
+        "editMetadata": "Batch edit metadata",
+        "addToSeries": "Add to series",
+        "clearSelection": "Clear selection",
+        "selectPage": "Select all rows on this page",
+        "partialSelected": "Partially selected on this page",
+        "selectOne": "Select record #{id}",
+        "fields": "Fields to apply",
+        "seriesTarget": "Target series",
+        "seriesPlaceholder": "Choose a series",
+        "seriesRequired": "Please choose a series.",
+        "confirmAddSeries": "Add selected"
       },
       "editModal": {
         "fallbackTitle": "Adjust metadata"

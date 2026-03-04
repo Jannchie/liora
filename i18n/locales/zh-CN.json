@@ -244,9 +244,50 @@
         "genreAutoMissingSource": "请先选择图片或提供图片链接。",
         "genreAutoSuccess": "已应用自动分类",
         "genreAutoFailedTitle": "自动分类失败",
-        "genreAutoFailedFallback": "暂时无法识别该图片。"
+        "genreAutoFailedFallback": "暂时无法识别该图片。",
+        "batchSelectFiles": "请先选择图片。",
+        "batchSelectTarget": "请先选择要操作的图片。",
+        "batchSelectFields": "请先勾选要应用的字段。",
+        "batchApplyDone": "已应用到选中图片。",
+        "batchUploadDone": "批量上传完成。",
+        "batchUploadFailed": "批量上传完成，但存在失败项。",
+        "batchSeriesRequired": "请先选择系列。",
+        "batchSeriesApplied": "已为选中图片设置系列分配。",
+        "batchSeriesAssignFailed": "上传后分配系列失败。"
       },
       "title": "作品上传",
+      "mode": {
+        "single": "单张",
+        "batch": "批量"
+      },
+      "batch": {
+        "title": "批量队列",
+        "metadataTitle": "批量元数据",
+        "pickFiles": "选择图片",
+        "clearQueue": "清空队列",
+        "applyMetadata": "应用到选中",
+        "applySeries": "应用系列",
+        "seriesPlaceholder": "选择系列",
+        "seriesAssigned": "已分配 {count} 个系列",
+        "startUpload": "上传待处理项",
+        "selectAll": "全选",
+        "selectNone": "取消全选",
+        "empty": "队列为空。",
+        "stats": {
+          "total": "总数：{count}",
+          "selected": "已选：{count}",
+          "pending": "待上传：{count}",
+          "uploading": "上传中：{count}",
+          "success": "成功：{count}",
+          "failed": "失败：{count}"
+        },
+        "status": {
+          "pending": "待上传",
+          "uploading": "上传中",
+          "success": "成功",
+          "failed": "失败"
+        }
+      },
       "sections": {
         "upload": {
           "label": "上传照片",
@@ -476,7 +517,14 @@
         "depthFailed": "生成失败",
         "depthFailedFallback": "生成深度图失败",
         "depthBatchTitle": "批量生成完成",
-        "depthBatchSummary": "共 {total} 条，成功 {success}，失败 {failed}，跳过 {skipped}"
+        "depthBatchSummary": "共 {total} 条，成功 {success}，失败 {failed}，跳过 {skipped}",
+        "bulkNoSelection": "请先选择至少一条记录。",
+        "bulkNoFields": "请至少勾选一个元数据字段。",
+        "bulkMetadataSuccess": "批量元数据更新完成。",
+        "bulkMetadataFailed": "批量元数据更新完成，但有失败项。",
+        "bulkSeriesSuccess": "批量加入系列完成。",
+        "bulkSeriesFailed": "批量加入系列完成，但有失败项。",
+        "bulkFailedFallback": "批量操作失败。"
       },
       "title": "数据列表",
       "actions": {
@@ -498,6 +546,7 @@
       },
       "table": {
         "headers": {
+          "select": "选择",
           "preview": "预览",
           "title": "标题",
           "kind": "类型",
@@ -508,6 +557,20 @@
           "actions": "操作"
         },
         "empty": "暂无数据，先录入一条。"
+      },
+      "bulk": {
+        "selected": "已选 {count} 条",
+        "editMetadata": "批量编辑元数据",
+        "addToSeries": "批量加入系列",
+        "clearSelection": "清空选择",
+        "selectPage": "选择当前页全部",
+        "partialSelected": "当前页部分已选",
+        "selectOne": "选择记录 #{id}",
+        "fields": "应用字段",
+        "seriesTarget": "目标系列",
+        "seriesPlaceholder": "选择系列",
+        "seriesRequired": "请先选择系列。",
+        "confirmAddSeries": "加入所选系列"
       },
       "editModal": {
         "fallbackTitle": "调整元数据"

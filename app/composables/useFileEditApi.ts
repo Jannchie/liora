@@ -1,5 +1,10 @@
 import type { MediaFormState } from '~/types/admin'
-import type { FileResponse } from '~/types/file'
+import type {
+  BatchActionResult,
+  BatchMetadataPayload,
+  BatchSeriesPayload,
+  FileResponse,
+} from '~/types/file'
 import type { FileSeriesUpdatePayload } from '~/types/series'
 import { useRequestFetch } from '#imports'
 
@@ -86,6 +91,29 @@ export function useFileEditApi() {
     })
   }
 
+  const updateFilesBatchMetadata = async (payload: BatchMetadataPayload): Promise<BatchActionResult> => {
+    return request<BatchActionResult>('/api/files/batch-metadata', {
+      method: 'POST',
+      body: payload,
+    })
+  }
+
+  const addFilesToSeriesBatch = async (payload: {
+    fileIds: number[]
+    seriesId: number
+    action?: 'add'
+  }): Promise<BatchActionResult> => {
+    const normalized: BatchSeriesPayload = {
+      fileIds: payload.fileIds,
+      seriesId: payload.seriesId,
+      action: payload.action ?? 'add',
+    }
+    return request<BatchActionResult>('/api/files/batch-series', {
+      method: 'POST',
+      body: normalized,
+    })
+  }
+
   const saveFileEdit = async (params: {
     id: number
     form: MediaFormState
@@ -109,5 +137,7 @@ export function useFileEditApi() {
     saveFileEdit,
     updateFile,
     updateFileSeries,
+    updateFilesBatchMetadata,
+    addFilesToSeriesBatch,
   }
 }
