@@ -86,7 +86,27 @@ export function useFileEditApi() {
     })
   }
 
+  const saveFileEdit = async (params: {
+    id: number
+    form: MediaFormState
+    replaceFile: File | null
+    fallbackWidth: number
+    fallbackHeight: number
+    seriesIds: number[]
+  }): Promise<FileResponse> => {
+    await updateFile(
+      params.id,
+      params.form,
+      params.replaceFile,
+      params.fallbackWidth,
+      params.fallbackHeight,
+    )
+    await updateFileSeries(params.id, [...new Set(params.seriesIds)])
+    return request<FileResponse>(`/api/files/${params.id}`)
+  }
+
   return {
+    saveFileEdit,
     updateFile,
     updateFileSeries,
   }

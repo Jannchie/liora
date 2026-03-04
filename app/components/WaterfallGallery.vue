@@ -21,9 +21,16 @@ import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
+import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { brandIconSet } from '~/constants/brand-icons'
-import { estimateDepthFromUrl } from '~/utils/depth-estimation'
+import {
+  normalizeExposureModeValue,
+  normalizeExposureProgramValue,
+  normalizeFlashValue,
+  normalizeMeteringModeValue,
+  normalizeWhiteBalanceValue,
+} from '~/utils/exposure'
 import { resolveFileTitle } from '~/utils/file'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile } from '~/utils/media-form'
 
@@ -54,7 +61,8 @@ const props = withDefaults(
 
 const { t, locale } = useI18n()
 const toast = useToast()
-const { updateFile, updateFileSeries } = useFileEditApi()
+const { saveFileEdit } = useFileEditApi()
+const { uploadDepthMap } = useDepthMapUpload()
 
 const maxDisplayWidth = 400
 const minColumns = 2
@@ -1190,15 +1198,14 @@ async function saveEditFromModal(): Promise<void> {
   const fileId = editingFile.value.id
   editing.value = true
   try {
-    await updateFile(
-      fileId,
-      editForm,
-      replaceFile.value,
-      editingFile.value.width,
-      editingFile.value.height,
-    )
-    await updateFileSeries(fileId, [...new Set(editSeriesIds.value)])
-    const updated = await $fetch<FileResponse>(`/api/files/${fileId}`)
+    const updated = await saveFileEdit({
+      id: fileId,
+      form: editForm,
+      replaceFile: replaceFile.value,
+      fallbackWidth: editingFile.value.width,
+      fallbackHeight: editingFile.value.height,
+      seriesIds: editSeriesIds.value,
+    })
     fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
     const nextHidden = new Set(hiddenFileIds.value)
     const keepInCurrentSeries = shouldKeepInCurrentSeries(updated)
@@ -1234,19 +1241,12 @@ async function generateDepthMapFromEdit(): Promise<void> {
   if (depthProcessing[file.id]) {
     return
   }
-  const imageUrl = file.imageUrl?.trim() ?? ''
-  if (!imageUrl) {
-    toast.add({ title: editToastMessages.value.depthFailed, description: editToastMessages.value.depthFailedFallback, color: 'error' })
-    return
-  }
   depthProcessing[file.id] = true
   try {
-    const { depthBlob } = await estimateDepthFromUrl(imageUrl)
-    const formData = new FormData()
-    formData.append('depth', depthBlob, `depth-${file.id}.png`)
-    await $fetch(`/api/files/${file.id}/depth`, {
-      method: 'POST',
-      body: formData,
+    await uploadDepthMap({
+      fileId: file.id,
+      imageUrl: file.imageUrl ?? '',
+      missingImageMessage: editToastMessages.value.depthFailedFallback,
     })
     const updated = await $fetch<FileResponse>(`/api/files/${file.id}`)
     fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
@@ -2101,7 +2101,7 @@ function translateEnum(value: string | undefined, dictionary: Record<string, str
 }
 
 function translateExposureProgram(value: string | undefined): string | undefined {
-  return translateEnum(value, {
+  return translateEnum(normalizeExposureProgramValue(value), {
     'not defined': t('admin.upload.options.exposureProgram.notDefined'),
     'manual': t('admin.upload.options.exposureProgram.manual'),
     'program': t('admin.upload.options.exposureProgram.program'),
@@ -2116,7 +2116,7 @@ function translateExposureProgram(value: string | undefined): string | undefined
 }
 
 function translateExposureMode(value: string | undefined): string | undefined {
-  return translateEnum(value, {
+  return translateEnum(normalizeExposureModeValue(value), {
     'auto': t('admin.upload.options.exposureMode.auto'),
     'manual': t('admin.upload.options.exposureMode.manual'),
     'auto bracket': t('admin.upload.options.exposureMode.bracket'),
@@ -2125,7 +2125,7 @@ function translateExposureMode(value: string | undefined): string | undefined {
 }
 
 function translateMeteringMode(value: string | undefined): string | undefined {
-  return translateEnum(value, {
+  return translateEnum(normalizeMeteringModeValue(value), {
     'unknown': t('admin.upload.options.metering.unknown'),
     'average': t('admin.upload.options.metering.average'),
     'center-weighted': t('admin.upload.options.metering.center'),
@@ -2143,14 +2143,14 @@ function translateMeteringMode(value: string | undefined): string | undefined {
 }
 
 function translateWhiteBalance(value: string | undefined): string | undefined {
-  return translateEnum(value, {
+  return translateEnum(normalizeWhiteBalanceValue(value), {
     auto: t('admin.upload.options.whiteBalance.auto'),
     manual: t('admin.upload.options.whiteBalance.manual'),
   })
 }
 
 function translateFlash(value: string | undefined): string | undefined {
-  return translateEnum(value, {
+  return translateEnum(normalizeFlashValue(value), {
     'did not fire': t('admin.upload.options.flash.didNotFire'),
     'auto (did not fire)': t('admin.upload.options.flash.autoDidNotFire'),
     'auto, did not fire': t('admin.upload.options.flash.autoDidNotFire'),

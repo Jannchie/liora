@@ -13,6 +13,10 @@ node_modules
 logs
 *.log
 
+# Test coverage
+coverage
+coverage/*
+
 # Misc
 .DS_Store
 .fleet

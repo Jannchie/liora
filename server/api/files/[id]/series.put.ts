@@ -1,17 +1,11 @@
 import type { FileSeriesUpdatePayload } from '~/types/series'
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm'
-import { createError, getRouterParam, readBody } from 'h3'
+import { createError, readBody } from 'h3'
 import { requireAdmin } from '../../../utils/auth'
-import { db, files, series, seriesFiles } from '../../../utils/db'
+import { db, series, seriesFiles } from '../../../utils/db'
+import { requireFileById } from '../../../utils/file-record'
+import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { ensureSeriesSchema } from '../../../utils/series-schema'
-
-function parseFileId(raw: string | undefined): number {
-  const parsed = Number.parseInt(raw ?? '', 10)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' })
-  }
-  return parsed
-}
 
 function parseSeriesIds(raw: unknown): number[] {
   if (!Array.isArray(raw)) {
@@ -41,16 +35,10 @@ export default defineEventHandler(async (event): Promise<{ seriesIds: number[] }
   await ensureSeriesSchema()
   requireAdmin(event)
 
-  const fileId = parseFileId(getRouterParam(event, 'id'))
+  const fileId = requirePositiveIntRouterParam(event, 'id', 'Invalid file id.')
   const body = await readBody<FileSeriesUpdatePayload>(event)
   const targetSeriesIds = parseSeriesIds(body?.seriesIds)
-
-  const fileRow = await db.query.files.findFirst({
-    where: eq(files.id, fileId),
-  })
-  if (!fileRow) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found.' })
-  }
+  await requireFileById(fileId)
 
   if (targetSeriesIds.length > 0) {
     const seriesRows = await db

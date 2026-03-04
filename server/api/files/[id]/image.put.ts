@@ -3,15 +3,17 @@ import type { FileMetadata, FileResponse } from '~/types/file'
 import { createHash, randomUUID } from 'node:crypto'
 import { basename } from 'node:path'
 import { eq } from 'drizzle-orm'
-import { createError, getRouterParam, readMultipartFormData } from 'h3'
+import { createError, readMultipartFormData } from 'h3'
 import sharp from 'sharp'
 import { rgbaToThumbHash } from 'thumbhash'
 import { buildMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
 import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
+import { requireFileById } from '../../../utils/file-record'
 import { extractFocusMetadataFromBuffer } from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
+import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
 
 interface MultipartEntry {
@@ -41,15 +43,6 @@ const FORMAT_MIME_MAP: Record<string, string> = {
   tif: 'image/tiff',
   gif: 'image/gif',
   svg: 'image/svg+xml',
-}
-
-function parseId(event: H3Event): number {
-  const idParam = getRouterParam(event, 'id')
-  const id = Number(idParam)
-  if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' })
-  }
-  return id
 }
 
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
@@ -198,13 +191,8 @@ async function saveFile(file: MultipartEntry, event: H3Event, contentType: strin
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
   requireAdmin(event)
-  const id = parseId(event)
-  const existing = await db.query.files.findFirst({
-    where: eq(files.id, id),
-  })
-  if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found.' })
-  }
+  const id = requirePositiveIntRouterParam(event, 'id', 'Invalid file id.')
+  const existing = await requireFileById(id)
 
   const { file, fields } = await parseMultipart(event)
   const { width, height, contentType } = await validateImage(file)

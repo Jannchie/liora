@@ -1,23 +1,16 @@
 import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { eq } from 'drizzle-orm'
-import { createError, getRouterParam, readBody } from 'h3'
+import { createError, readBody } from 'h3'
 import { mergeMetadataTextUpdates, normalizeMetadataTextUpdates } from '../../domain/files/metadata'
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
 import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
+import { requireFileById } from '../../utils/file-record'
+import { requirePositiveIntRouterParam } from '../../utils/route-params'
 import replaceImageHandler from './[id]/image.put'
 
 type UpdateBody = Partial<FilePayload>
-
-function parseId(event: H3Event): number {
-  const idParam = getRouterParam(event, 'id')
-  const id = Number(idParam)
-  if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' })
-  }
-  return id
-}
 
 function normalizeText(value: string | undefined, fallback: string): string {
   if (value === undefined) {
@@ -71,15 +64,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     return replaceImageHandler(event)
   }
   requireAdmin(event)
-  const id = parseId(event)
+  const id = requirePositiveIntRouterParam(event, 'id', 'Invalid file id.')
   const body = await readBody<UpdateBody>(event)
-
-  const existing = await db.query.files.findFirst({
-    where: eq(files.id, id),
-  })
-  if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found.' })
-  }
+  const existing = await requireFileById(id)
 
   const existingCharacters = mapCharacters(existing.characterList)
   const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, existingCharacters))

@@ -3,8 +3,8 @@ import type { ImageSizes } from '@nuxt/image'
 import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
 import { computed, reactive, ref, watch } from 'vue'
+import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
-import { estimateDepthFromUrl } from '~/utils/depth-estimation'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile, resetMediaFormState } from '~/utils/media-form'
 
 const { t, locale } = useI18n()
@@ -14,7 +14,8 @@ definePageMeta({
 
 const toast = useToast()
 const image = useImage()
-const { updateFile, updateFileSeries } = useFileEditApi()
+const { saveFileEdit } = useFileEditApi()
+const { uploadDepthMap } = useDepthMapUpload()
 
 const pageTitle = computed(() => t('admin.files.seoTitle'))
 const pageDescription = computed(() => t('admin.files.seoDescription'))
@@ -287,20 +288,6 @@ const updating = ref(false)
 const replaceFile = ref<File | null>(null)
 const editSeriesIds = ref<number[]>([])
 
-async function uploadDepthMap(file: FileResponse): Promise<void> {
-  const imageUrl = file.imageUrl?.trim() ?? ''
-  if (!imageUrl) {
-    throw new Error(toastMessages.value.depthFailedFallback)
-  }
-  const { depthBlob } = await estimateDepthFromUrl(imageUrl)
-  const formData = new FormData()
-  formData.append('depth', depthBlob, `depth-${file.id}.png`)
-  await $fetch(`/api/files/${file.id}/depth`, {
-    method: 'POST',
-    body: formData,
-  })
-}
-
 async function generateDepthMap(file: FileResponse): Promise<void> {
   if (!import.meta.client || depthProcessing[file.id]) {
     return
@@ -308,7 +295,11 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
 
   depthProcessing[file.id] = true
   try {
-    await uploadDepthMap(file)
+    await uploadDepthMap({
+      fileId: file.id,
+      imageUrl: file.imageUrl ?? '',
+      missingImageMessage: toastMessages.value.depthFailedFallback,
+    })
     toast.add({ title: toastMessages.value.depthSuccess, description: toastMessages.value.depthSuccessDescription })
     await refresh()
     if (editingFile.value?.id === file.id) {
@@ -351,7 +342,11 @@ async function generateMissingDepthMaps(): Promise<void> {
       }
       depthProcessing[file.id] = true
       try {
-        await uploadDepthMap(file)
+        await uploadDepthMap({
+          fileId: file.id,
+          imageUrl: file.imageUrl ?? '',
+          missingImageMessage: toastMessages.value.depthFailedFallback,
+        })
         batchProgress.success += 1
       }
       catch {
@@ -430,15 +425,14 @@ async function saveEdit(): Promise<void> {
   }
   updating.value = true
   try {
-    await updateFile(
-      editingFile.value.id,
-      editForm,
-      replaceFile.value,
-      editingFile.value.width,
-      editingFile.value.height,
-    )
-    await updateFileSeries(editingFile.value.id, [...new Set(editSeriesIds.value)])
-    const updated = await $fetch<FileResponse>(`/api/files/${editingFile.value.id}`)
+    const updated = await saveFileEdit({
+      id: editingFile.value.id,
+      form: editForm,
+      replaceFile: replaceFile.value,
+      fallbackWidth: editingFile.value.width,
+      fallbackHeight: editingFile.value.height,
+      seriesIds: editSeriesIds.value,
+    })
     filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
     editingFile.value = updated
     toast.add({ title: toastMessages.value.updateSuccess, description: toastMessages.value.updateSuccessDescription, color: 'primary' })

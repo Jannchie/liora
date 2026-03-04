@@ -1,6 +1,13 @@
 import type { MediaFormState } from '~/types/admin'
 import exifr from 'exifr'
 import { toLocalInputString } from '~/utils/datetime'
+import {
+  normalizeExposureModeValue,
+  normalizeExposureProgramValue,
+  normalizeFlashValue,
+  normalizeMeteringModeValue,
+  normalizeWhiteBalanceValue,
+} from '~/utils/exposure'
 import { useExposureOptions } from './useExposureOptions'
 
 interface ExifData {
@@ -198,101 +205,6 @@ export function useExifExtraction(): {
     flashOptions,
   } = useExposureOptions()
 
-  const formatExposureProgram = (value: number | string | undefined): string => {
-    if (value === undefined || value === null) {
-      return ''
-    }
-    const map: Record<number, string> = {
-      0: 'Not defined',
-      1: 'Manual',
-      2: 'Program',
-      3: 'Aperture priority',
-      4: 'Shutter priority',
-      5: 'Creative',
-      6: 'Action',
-      7: 'Portrait',
-      8: 'Landscape',
-    }
-    const numeric = typeof value === 'string' ? Number(value) : value
-    const text = Number.isFinite(numeric) ? map[numeric] ?? `Program ${numeric}` : String(value).trim()
-    return normalizeToOption(text, exposureProgramOptions.value, {
-      'normal program': 'Program',
-      'program normal': 'Program',
-    })
-  }
-
-  const formatExposureMode = (value: number | string | undefined): string => {
-    if (value === undefined || value === null) {
-      return ''
-    }
-    const map: Record<number, string> = {
-      0: 'Auto',
-      1: 'Manual',
-      2: 'Auto bracket',
-    }
-    const numeric = typeof value === 'string' ? Number(value) : value
-    const text = Number.isFinite(numeric) ? map[numeric] ?? `Mode ${numeric}` : String(value).trim()
-    return normalizeToOption(text, exposureModeOptions.value)
-  }
-
-  const formatMeteringMode = (value: number | string | undefined): string => {
-    if (value === undefined || value === null) {
-      return ''
-    }
-    const map: Record<number, string> = {
-      0: 'Unknown',
-      1: 'Average',
-      2: 'Center-weighted',
-      3: 'Spot',
-      4: 'Multi-spot',
-      5: 'Pattern',
-      6: 'Partial',
-      255: 'Other',
-    }
-    const numeric = typeof value === 'string' ? Number(value) : value
-    const text = Number.isFinite(numeric) ? map[numeric] ?? `Mode ${numeric}` : String(value).trim()
-    return normalizeToOption(text, meteringModeOptions.value, {
-      'matrix': 'Pattern',
-      'multispot': 'Multi-spot',
-      'multi-spot': 'Multi-spot',
-      'center-weighted average': 'Center-weighted',
-    })
-  }
-
-  const formatWhiteBalance = (value: number | string | undefined): string => {
-    if (value === undefined || value === null) {
-      return ''
-    }
-    const map: Record<number, string> = {
-      0: 'Auto',
-      1: 'Manual',
-    }
-    const numeric = typeof value === 'string' ? Number(value) : value
-    const text = Number.isFinite(numeric) ? map[numeric] ?? `WB ${numeric}` : String(value).trim()
-    return normalizeToOption(text, whiteBalanceOptions.value)
-  }
-
-  const formatFlash = (value: number | string | undefined): string => {
-    if (value === undefined || value === null) {
-      return ''
-    }
-    const numeric = typeof value === 'string' ? Number(value) : value
-    if (Number.isFinite(numeric)) {
-      const fired = (numeric & 1) === 1
-      const auto = (numeric & 24) === 24
-      if (fired) {
-        return auto ? 'Auto (fired)' : 'Fired'
-      }
-      return auto ? 'Auto (did not fire)' : 'Did not fire'
-    }
-    return normalizeToOption(String(value).trim(), flashOptions.value, {
-      'did not fire': 'Did not fire',
-      'auto, did not fire': 'Auto (did not fire)',
-      'auto - did not fire': 'Auto (did not fire)',
-      'auto, fired': 'Auto (fired)',
-    })
-  }
-
   const extractExif = async (params: {
     file: File
     token: number
@@ -346,11 +258,11 @@ export function useExifExtraction(): {
       const focal = formatFocal(parsed.FocalLength)
       const iso = parsed.ISO ? String(parsed.ISO) : ''
       const exposureBias = formatExposureBias(parsed.ExposureBiasValue ?? parsed.ExposureCompensation)
-      const exposureProgram = formatExposureProgram(parsed.ExposureProgram)
-      const exposureMode = formatExposureMode(parsed.ExposureMode)
-      const meteringMode = formatMeteringMode(parsed.MeteringMode)
-      const whiteBalance = formatWhiteBalance(parsed.WhiteBalance)
-      const flash = formatFlash(parsed.Flash)
+      const exposureProgram = normalizeToOption(normalizeExposureProgramValue(parsed.ExposureProgram), exposureProgramOptions.value)
+      const exposureMode = normalizeToOption(normalizeExposureModeValue(parsed.ExposureMode), exposureModeOptions.value)
+      const meteringMode = normalizeToOption(normalizeMeteringModeValue(parsed.MeteringMode), meteringModeOptions.value)
+      const whiteBalance = normalizeToOption(normalizeWhiteBalanceValue(parsed.WhiteBalance), whiteBalanceOptions.value)
+      const flash = normalizeToOption(normalizeFlashValue(parsed.Flash), flashOptions.value)
       const colorSpace = formatColorSpace(parsed.ColorSpace)
       const resolutionX = formatResolutionValue(parsed.XResolution)
       const resolutionY = formatResolutionValue(parsed.YResolution)

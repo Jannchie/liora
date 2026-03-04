@@ -3,11 +3,13 @@ import type { FileMetadata } from '~/types/file'
 import { randomUUID } from 'node:crypto'
 import { useRuntimeConfig } from '#imports'
 import { eq } from 'drizzle-orm'
-import { createError, getRouterParam, readMultipartFormData } from 'h3'
+import { createError, readMultipartFormData } from 'h3'
 import sharp from 'sharp'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
-import { ensureMetadata, mapCharacters } from '../../../utils/file-mapper'
+import { buildMetadataFallbacks, ensureMetadata, mapCharacters } from '../../../utils/file-mapper'
+import { requireFileById } from '../../../utils/file-record'
+import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
 
 interface MultipartEntry {
@@ -29,15 +31,6 @@ interface DepthUploadResponse {
 
 const MAX_DEPTH_BYTES = 20 * 1024 * 1024
 const DEPTH_SCALE_FACTOR = 0.25
-
-function parseId(event: H3Event): number {
-  const idParam = getRouterParam(event, 'id')
-  const id = Number(idParam)
-  if (!Number.isInteger(id) || id <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Invalid file id.' })
-  }
-  return id
-}
 
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   const form = await readMultipartFormData(event)
@@ -115,13 +108,8 @@ function buildDepthKey(id: number): string {
 export default defineEventHandler(async (event): Promise<DepthUploadResponse> => {
   requireAdmin(event)
 
-  const id = parseId(event)
-  const existing = await db.query.files.findFirst({
-    where: eq(files.id, id),
-  })
-  if (!existing) {
-    throw createError({ statusCode: 404, statusMessage: 'File not found.' })
-  }
+  const id = requirePositiveIntRouterParam(event, 'id', 'Invalid file id.')
+  const existing = await requireFileById(id)
 
   const { file } = await parseMultipart(event)
   const { buffer, width, height } = await processDepthImage(file, existing.width, existing.height)
@@ -134,48 +122,7 @@ export default defineEventHandler(async (event): Promise<DepthUploadResponse> =>
   })
 
   const characters = mapCharacters(existing.characterList)
-  const existingMetadata = ensureMetadata(existing.metadata, {
-    fanworkTitle: existing.fanworkTitle,
-    characters,
-    location: existing.location,
-    locationName: existing.locationName,
-    latitude: existing.latitude ?? null,
-    longitude: existing.longitude ?? null,
-    cameraModel: existing.cameraModel,
-    lensModel: '',
-    aperture: existing.aperture,
-    focalLength: existing.focalLength,
-    iso: existing.iso,
-    shutterSpeed: existing.shutterSpeed,
-    exposureBias: '',
-    exposureProgram: '',
-    exposureMode: '',
-    meteringMode: '',
-    whiteBalance: '',
-    flash: '',
-    colorSpace: '',
-    resolutionX: '',
-    resolutionY: '',
-    resolutionUnit: '',
-    software: '',
-    captureTime: existing.captureTime,
-    notes: '',
-    fileSize: 0,
-    thumbhash: undefined,
-    perceptualHash: undefined,
-    sha256: undefined,
-    histogram: null,
-    processingStatus: 'completed',
-    uploadId: '',
-    livePhotoVideoUrl: '',
-    livePhotoStillTime: undefined,
-    livePhotoShareImageUrl: undefined,
-    livePhotoShareVideoUrl: undefined,
-    livePhotoShareContentId: undefined,
-    depthMapUrl: undefined,
-    depthMapWidth: undefined,
-    depthMapHeight: undefined,
-  })
+  const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, characters))
 
   const mergedMetadata: FileMetadata = {
     ...existingMetadata,
