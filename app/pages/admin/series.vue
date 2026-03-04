@@ -9,6 +9,10 @@ definePageMeta({
 })
 
 const toast = useToast()
+async function refreshSeriesApiCaches(): Promise<void> {
+  await clearNuxtData()
+  await refreshNuxtData()
+}
 
 const pageTitle = computed(() => t('admin.series.seoTitle'))
 const pageDescription = computed(() => t('admin.series.seoDescription'))
@@ -186,6 +190,7 @@ async function createSeries(): Promise<void> {
     if (next) {
       await selectSeries(next)
     }
+    await refreshSeriesApiCaches()
     toast.add({ title: t('admin.series.toast.createSuccess'), color: 'success' })
   }
   catch (error) {
@@ -216,6 +221,7 @@ async function saveSeries(): Promise<void> {
     })
     await refreshSeries()
     selectedSeriesSlug.value = updated.slug
+    await refreshSeriesApiCaches()
     toast.add({ title: t('admin.series.toast.updateSuccess'), color: 'success' })
   }
   catch (error) {
@@ -242,6 +248,7 @@ async function deleteSeries(): Promise<void> {
     selectedSeriesSlug.value = ''
     selectedFileIds.value = []
     await refreshSeries()
+    await refreshSeriesApiCaches()
     toast.add({ title: t('admin.series.toast.deleteSuccess'), color: 'success' })
   }
   catch (error) {
@@ -271,6 +278,7 @@ async function addFile(fileId: number): Promise<void> {
       editForm.coverFileId = fileId
     }
     await refreshSeries()
+    await refreshSeriesApiCaches()
   }
   catch (error) {
     const message = error instanceof Error ? error.message : t('admin.series.toast.addFileFailedFallback')
@@ -292,6 +300,7 @@ async function removeFile(fileId: number): Promise<void> {
       editForm.coverFileId = null
     }
     await refreshSeries()
+    await refreshSeriesApiCaches()
   }
   catch (error) {
     const message = error instanceof Error ? error.message : t('admin.series.toast.removeFileFailedFallback')
@@ -334,6 +343,7 @@ async function saveOrder(): Promise<void> {
       },
     })
     await refreshSeries()
+    await refreshSeriesApiCaches()
     toast.add({ title: t('admin.series.toast.reorderSuccess'), color: 'success' })
   }
   catch (error) {

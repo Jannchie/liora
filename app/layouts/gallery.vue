@@ -142,7 +142,7 @@ const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 const seriesList = computed(() => seriesData.value ?? [])
 const hasRealSeries = computed(() => seriesList.value.some(item => !item.isVirtual))
-const showSeriesLanding = computed(() => route.path === '/' && hasRealSeries.value)
+const showSeriesLanding = computed(() => route.path === '/' && (pendingSeries.value || hasRealSeries.value))
 const seriesErrorMessage = computed(() => seriesError.value?.message ?? null)
 
 const routePhotoId = computed<number | null>(() => {

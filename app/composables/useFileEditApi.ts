@@ -6,7 +6,7 @@ import type {
   FileResponse,
 } from '~/types/file'
 import type { FileSeriesUpdatePayload } from '~/types/series'
-import { useRequestFetch } from '#imports'
+import { clearNuxtData, refreshNuxtData, useRequestFetch } from '#imports'
 
 function normalizeDimensions(form: MediaFormState, fallbackWidth: number, fallbackHeight: number): { width: number, height: number } {
   const width = Math.max(form.width, fallbackWidth, 0)
@@ -50,6 +50,11 @@ function buildMultipartBody(form: MediaFormState, file: File, width: number, hei
   return body
 }
 
+async function refreshSeriesCache(): Promise<void> {
+  await clearNuxtData()
+  await refreshNuxtData()
+}
+
 export function useFileEditApi() {
   const request = useRequestFetch()
 
@@ -89,6 +94,7 @@ export function useFileEditApi() {
       method: 'PUT',
       body: payload,
     })
+    await refreshSeriesCache()
   }
 
   const updateFilesBatchMetadata = async (payload: BatchMetadataPayload): Promise<BatchActionResult> => {
@@ -108,10 +114,12 @@ export function useFileEditApi() {
       seriesId: payload.seriesId,
       action: payload.action ?? 'add',
     }
-    return request<BatchActionResult>('/api/files/batch-series', {
+    const result = await request<BatchActionResult>('/api/files/batch-series', {
       method: 'POST',
       body: normalized,
     })
+    await refreshSeriesCache()
+    return result
   }
 
   const saveFileEdit = async (params: {
