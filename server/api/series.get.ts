@@ -28,8 +28,13 @@ interface CoverCandidateRow {
   metadata: string
 }
 
+interface PreviewCandidateRow extends CoverCandidateRow {
+  seriesId: number
+}
+
 const UNCATEGORIZED_SERIES_ID = 0
 const UNCATEGORIZED_SERIES_SLUG = '__uncategorized__'
+const SERIES_PREVIEW_LIMIT = 8
 
 function toIsoString(value: string): string {
   const parsed = new Date(value)
@@ -53,6 +58,40 @@ function mapSeriesCovers(rows: CoverCandidateRow[]): Map<number, FileSummary> {
     coverMap.set(row.id, toWaterfallSummary(row))
   }
   return coverMap
+}
+
+function mapSeriesPreviews(rows: PreviewCandidateRow[], limit: number): Map<number, FileSummary[]> {
+  const previewMap = new Map<number, FileSummary[]>()
+  for (const row of rows) {
+    const current = previewMap.get(row.seriesId) ?? []
+    if (current.length >= limit) {
+      continue
+    }
+    current.push(toWaterfallSummary(row))
+    previewMap.set(row.seriesId, current)
+  }
+  return previewMap
+}
+
+function mergeCoverAndPreviews(cover: FileSummary | null, previews: FileSummary[], limit: number): FileSummary[] {
+  const merged: FileSummary[] = []
+  const seen = new Set<number>()
+  const append = (entry: FileSummary | null | undefined): void => {
+    if (!entry || seen.has(entry.id)) {
+      return
+    }
+    seen.add(entry.id)
+    merged.push(entry)
+  }
+
+  append(cover)
+  for (const preview of previews) {
+    append(preview)
+    if (merged.length >= limit) {
+      break
+    }
+  }
+  return merged
 }
 
 async function loadFallbackCovers(seriesIds: number[]): Promise<Map<number, FileSummary>> {
@@ -135,17 +174,48 @@ export default defineEventHandler(async (): Promise<SeriesSummary[]> => {
     .filter(row => !row.coverFileId || !coverByFileId.has(row.coverFileId))
     .map(row => row.id)
   const fallbackCovers = await loadFallbackCovers(needsFallbackIds)
+  const seriesIds = seriesRows.map(row => row.id)
+
+  const previewRows = seriesIds.length > 0
+    ? await db
+        .select({
+          seriesId: seriesFiles.seriesId,
+          id: files.id,
+          imageUrl: files.imageUrl,
+          width: files.width,
+          height: files.height,
+          metadata: files.metadata,
+        })
+        .from(seriesFiles)
+        .innerJoin(files, eq(files.id, seriesFiles.fileId))
+        .where(inArray(seriesFiles.seriesId, seriesIds))
+        .orderBy(
+          asc(seriesFiles.seriesId),
+          asc(seriesFiles.sortOrder),
+          desc(files.captureTime),
+          desc(files.createdAt),
+          desc(files.id),
+        )
+    : []
+  const previewBySeriesId = mapSeriesPreviews(previewRows, SERIES_PREVIEW_LIMIT)
 
   const mappedSeries = seriesRows.map((row: SeriesBaseRow) => {
     const directCover = row.coverFileId ? coverByFileId.get(row.coverFileId) ?? null : null
     const fallbackCover = fallbackCovers.get(row.id) ?? null
+    const resolvedCover = directCover ?? fallbackCover
+    const previews = mergeCoverAndPreviews(
+      resolvedCover,
+      previewBySeriesId.get(row.id) ?? [],
+      SERIES_PREVIEW_LIMIT,
+    )
     return {
       id: row.id,
       slug: row.slug,
       title: row.title,
       description: row.description,
       coverFileId: row.coverFileId,
-      cover: directCover ?? fallbackCover,
+      cover: resolvedCover,
+      previews,
       fileCount: counts.get(row.id) ?? 0,
       isVirtual: false,
       createdAt: toIsoString(row.createdAt),
@@ -153,7 +223,7 @@ export default defineEventHandler(async (): Promise<SeriesSummary[]> => {
     }
   })
 
-  const [uncategorizedCountRows, uncategorizedCoverRows] = await Promise.all([
+  const [uncategorizedCountRows, uncategorizedPreviewRows] = await Promise.all([
     db
       .select({ count: sql<number>`count(*)` })
       .from(files)
@@ -183,7 +253,7 @@ export default defineEventHandler(async (): Promise<SeriesSummary[]> => {
         ),
       )
       .orderBy(desc(files.captureTime), desc(files.createdAt), desc(files.id))
-      .limit(1),
+      .limit(SERIES_PREVIEW_LIMIT),
   ])
 
   const uncategorizedCount = uncategorizedCountRows[0]?.count ?? 0
@@ -192,7 +262,8 @@ export default defineEventHandler(async (): Promise<SeriesSummary[]> => {
   }
 
   const nowIso = new Date().toISOString()
-  const uncategorizedCover = uncategorizedCoverRows[0] ? toWaterfallSummary(uncategorizedCoverRows[0]) : null
+  const uncategorizedPreviews = uncategorizedPreviewRows.map(row => toWaterfallSummary(row))
+  const uncategorizedCover = uncategorizedPreviews[0] ?? null
   return [
     ...mappedSeries,
     {
@@ -202,6 +273,7 @@ export default defineEventHandler(async (): Promise<SeriesSummary[]> => {
       description: '',
       coverFileId: null,
       cover: uncategorizedCover,
+      previews: uncategorizedPreviews,
       fileCount: uncategorizedCount,
       isVirtual: true,
       createdAt: nowIso,

@@ -7,6 +7,7 @@ export interface SeriesSummary {
   description: string
   coverFileId: number | null
   cover: FileSummary | null
+  previews?: FileSummary[]
   fileCount: number
   isVirtual?: boolean
   createdAt: string

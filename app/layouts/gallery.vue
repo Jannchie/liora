@@ -142,7 +142,13 @@ const runtimeConfig = useRuntimeConfig()
 const route = useRoute()
 const seriesList = computed(() => seriesData.value ?? [])
 const hasRealSeries = computed(() => seriesList.value.some(item => !item.isVirtual))
-const showSeriesLanding = computed(() => route.path === '/' && (pendingSeries.value || hasRealSeries.value))
+const isSeriesRoute = computed(() => route.path === '/series')
+const showSeriesLanding = computed(() => {
+  if (isSeriesRoute.value) {
+    return true
+  }
+  return route.path === '/' && (pendingSeries.value || hasRealSeries.value)
+})
 const seriesErrorMessage = computed(() => seriesError.value?.message ?? null)
 
 const routePhotoId = computed<number | null>(() => {
@@ -399,11 +405,11 @@ defineOgImageComponent('LioraCard', {
       :show-header-info="showHeaderInfo"
       :is-authenticated="isAuthenticated"
     />
-    <div class="max-w-500 m-auto">
-      <template v-if="showSeriesLanding">
-        <section class="space-y-4 py-4">
+    <template v-if="showSeriesLanding">
+      <section class="max-w-500 m-auto w-full px-3 py-4 md:px-4 md:py-6">
+        <section class="space-y-4">
           <header class="space-y-1">
-            <h2 class="text-xl font-semibold text-highlighted">
+            <h2 class="text-2xl font-semibold text-highlighted">
               {{ t('series.list.title') }}
             </h2>
             <p class="text-sm text-muted">
@@ -417,38 +423,39 @@ defineOgImageComponent('LioraCard', {
             @retry="refreshSeries"
           />
         </section>
-      </template>
-      <template v-else>
-        <UAlert
-          v-if="fetchError"
-          color="error"
-          variant="soft"
-          :title="alertTitle"
-          :description="alertDescription"
-        >
-          <template #icon>
-            <Icon name="tabler:alert-circle" class="h-5 w-5" />
-          </template>
-        </UAlert>
+      </section>
+    </template>
 
-        <WaterfallGallery
-          :files="files"
-          :is-loading="isLoading"
-          :site-settings="siteSettings ?? undefined"
-          :scroll-element="scrollElementRef"
-          :empty-text="emptyText"
-          :is-authenticated="isAuthenticated"
-        />
-        <div
-          v-show="showLoadMoreSentinel"
-          ref="loadMoreSentinel"
-          class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
-          aria-live="polite"
-        >
-          <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
-          <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
-        </div>
-      </template>
+    <div v-else class="max-w-500 m-auto">
+      <UAlert
+        v-if="fetchError"
+        color="error"
+        variant="soft"
+        :title="alertTitle"
+        :description="alertDescription"
+      >
+        <template #icon>
+          <Icon name="tabler:alert-circle" class="h-5 w-5" />
+        </template>
+      </UAlert>
+
+      <WaterfallGallery
+        :files="files"
+        :is-loading="isLoading"
+        :site-settings="siteSettings ?? undefined"
+        :scroll-element="scrollElementRef"
+        :empty-text="emptyText"
+        :is-authenticated="isAuthenticated"
+      />
+      <div
+        v-show="showLoadMoreSentinel"
+        ref="loadMoreSentinel"
+        class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
+        aria-live="polite"
+      >
+        <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
+        <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
+      </div>
     </div>
     <div class="hidden">
       <slot />

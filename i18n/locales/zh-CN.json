@@ -857,7 +857,10 @@
       "loadFailed": "系列加载失败。",
       "empty": "暂无系列。",
       "noCover": "无封面",
-      "count": "{count} 张"
+      "count": "{count} 张",
+      "updatedAt": "更新于 {date}",
+      "totalSeries": "{count} 个系列",
+      "totalPhotos": "系列内共 {count} 张"
     },
     "detail": {
       "seoTitle": "系列 | Liora",

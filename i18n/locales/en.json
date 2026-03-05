@@ -857,7 +857,10 @@
       "loadFailed": "Failed to load series.",
       "empty": "No series yet.",
       "noCover": "No cover",
-      "count": "{count} photos"
+      "count": "{count} photos",
+      "updatedAt": "Updated {date}",
+      "totalSeries": "{count} series",
+      "totalPhotos": "{count} photos in all series"
     },
     "detail": {
       "seoTitle": "Series | Liora",

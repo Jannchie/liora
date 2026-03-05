@@ -857,7 +857,10 @@
       "loadFailed": "シリーズの読み込みに失敗しました。",
       "empty": "シリーズはまだありません。",
       "noCover": "カバーなし",
-      "count": "{count} 枚"
+      "count": "{count} 枚",
+      "updatedAt": "{date} 更新",
+      "totalSeries": "{count} シリーズ",
+      "totalPhotos": "シリーズ内合計 {count} 枚"
     },
     "detail": {
       "seoTitle": "シリーズ | Liora",

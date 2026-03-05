@@ -1,5 +1,9 @@
 <script setup lang="ts">
 definePageMeta({
-  redirect: '/',
+  layout: 'gallery',
 })
 </script>
+
+<template>
+  <div class="hidden" />
+</template>
