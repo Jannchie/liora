@@ -162,6 +162,7 @@ const headerSocialLinks = computed<SocialLink[]>(() => {
 })
 const isLoading = computed(() => pending.value || isLoadingMore.value)
 const showLoadMoreSentinel = computed(() => files.value.length > 0)
+const showSeriesHeaderSkeleton = computed(() => pending.value && !seriesDetail.value)
 const displaySeriesTitle = computed(() => {
   const current = seriesDetail.value
   if (!current) {
@@ -385,18 +386,28 @@ onBeforeUnmount(() => {
       :show-header-info="showHeaderInfo"
       :is-authenticated="isAuthenticated"
     />
-    <div class="max-w-500 m-auto space-y-6 py-8">
+    <div class="max-w-500 m-auto space-y-6 px-3 py-8 md:px-4">
       <header class="flex flex-wrap items-center justify-between gap-3">
         <div class="space-y-1">
-          <h1 class="text-2xl font-semibold text-highlighted">
-            {{ displaySeriesTitle }}
-          </h1>
-          <p class="text-sm text-muted">
-            {{ displaySeriesDescription }}
-          </p>
-          <p class="text-xs text-muted">
-            {{ t('series.list.count', { count: seriesDetail?.fileCount ?? files.length }) }}
-          </p>
+          <template v-if="showSeriesHeaderSkeleton">
+            <div class="space-y-2 py-1" aria-hidden="true">
+              <USkeleton class="h-8 w-48" />
+              <USkeleton class="h-4 w-80 max-w-[80vw]" />
+              <USkeleton class="h-3 w-20" />
+            </div>
+            <span class="sr-only">{{ t('common.loading') }}</span>
+          </template>
+          <template v-else>
+            <h1 class="text-2xl font-semibold text-highlighted">
+              {{ displaySeriesTitle }}
+            </h1>
+            <p class="text-sm text-muted">
+              {{ displaySeriesDescription }}
+            </p>
+            <p class="text-xs text-muted">
+              {{ t('series.list.count', { count: seriesDetail?.fileCount ?? files.length }) }}
+            </p>
+          </template>
         </div>
         <div class="flex items-center gap-2">
           <UButton to="/" variant="soft" color="neutral" icon="tabler:home">
