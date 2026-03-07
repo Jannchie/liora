@@ -1,3 +1,13 @@
+## v0.28.0
+
+[v0.27.0...v0.28.0](https://github.com/Jannchie/liora/compare/v0.27.0...v0.28.0)
+
+### :sparkles: Features
+
+- **series**: add header skeleton and padding for series page - By [Jannchie](mailto:jannchie@gmail.com) in [950acfe](https://github.com/Jannchie/liora/commit/950acfe)
+- **series**: add series preview waterfall and landing updates - By [Jannchie](mailto:jannchie@gmail.com) in [796b036](https://github.com/Jannchie/liora/commit/796b036)
+- **series-cache**: refresh nuxt data after series changes - By [Jannchie](mailto:jannchie@gmail.com) in [6372ee7](https://github.com/Jannchie/liora/commit/6372ee7)
+
 ## v0.27.0
 
 [v0.26.0...v0.27.0](https://github.com/Jannchie/liora/compare/v0.26.0...v0.27.0)
