@@ -24,7 +24,8 @@
       "remove": "Remove",
       "switchLanguage": "Switch language",
       "add": "Add",
-      "retry": "Retry"
+      "retry": "Retry",
+      "backToTop": "Back to top"
     },
     "kinds": {
       "photography": "Photography",

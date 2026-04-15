@@ -24,7 +24,8 @@
       "remove": "削除",
       "switchLanguage": "言語を切り替える",
       "add": "追加",
-      "retry": "再試行"
+      "retry": "再試行",
+      "backToTop": "トップに戻る"
     },
     "kinds": {
       "photography": "写真",

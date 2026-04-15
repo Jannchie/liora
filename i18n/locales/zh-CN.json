@@ -24,7 +24,8 @@
       "remove": "移除",
       "switchLanguage": "切换语言",
       "add": "添加",
-      "retry": "重试"
+      "retry": "重试",
+      "backToTop": "回到顶部"
     },
     "kinds": {
       "photography": "摄影",

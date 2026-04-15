@@ -450,15 +450,30 @@ defineOgImageComponent('LioraCard', {
       <div
         v-show="showLoadMoreSentinel"
         ref="loadMoreSentinel"
-        class="flex min-h-12 items-center justify-center py-6 text-xs text-muted"
+        class="flex min-h-12 items-center justify-center gap-2 py-6 text-xs text-muted"
         aria-live="polite"
       >
-        <span v-if="isLoadingMore">{{ t('common.loading') }}</span>
-        <span v-else-if="loadMoreError">{{ t('common.toast.loadFailed') }}</span>
+        <template v-if="isLoadingMore">
+          <Icon name="tabler:loader-2" class="h-4 w-4 animate-spin" />
+          <span>{{ t('common.loading') }}</span>
+        </template>
+        <template v-else-if="loadMoreError">
+          <span>{{ t('common.toast.loadFailed') }}</span>
+          <UButton
+            size="xs"
+            variant="soft"
+            color="neutral"
+            icon="tabler:refresh"
+            @click="loadMoreError = false; loadMore()"
+          >
+            {{ t('common.actions.retry') }}
+          </UButton>
+        </template>
       </div>
     </div>
     <div class="hidden">
       <slot />
     </div>
+    <BackToTop />
   </div>
 </template>

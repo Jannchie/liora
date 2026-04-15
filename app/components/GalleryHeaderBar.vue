@@ -57,7 +57,7 @@ const { t } = useI18n()
         >
           {{ t('admin.nav.label') }}
         </UButton>
-        <LanguageSwitcher class="hidden md:block" />
+        <LanguageSwitcher />
       </div>
     </div>
   </header>
@@ -76,6 +76,6 @@ const { t } = useI18n()
     >
       {{ t('admin.nav.label') }}
     </UButton>
-    <LanguageSwitcher class="hidden md:block" />
+    <LanguageSwitcher />
   </div>
 </template>
