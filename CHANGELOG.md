@@ -1,3 +1,20 @@
+## v0.29.1
+
+[v0.29.0...v0.29.1](https://github.com/Jannchie/liora/compare/v0.29.0...v0.29.1)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: refresh load-more observer when leaving series landing - By [Jannchie](mailto:jannchie@gmail.com) in [f8598ef](https://github.com/Jannchie/liora/commit/f8598ef)
+
+### :art: Refactors
+
+- **components**: improve admin and gallery ui layout - By [Jannchie](mailto:jannchie@gmail.com) in [70db24e](https://github.com/Jannchie/liora/commit/70db24e)
+
+### :lipstick: Styles
+
+- **admin**: refine admin ui layout and spacing - By [Jannchie](mailto:jannchie@gmail.com) in [2046f93](https://github.com/Jannchie/liora/commit/2046f93)
+- **admin-site**: reorder input attributes - By [Jannchie](mailto:jannchie@gmail.com) in [e2e4b18](https://github.com/Jannchie/liora/commit/e2e4b18)
+
 ## v0.29.0
 
 [v0.28.0...v0.29.0](https://github.com/Jannchie/liora/compare/v0.28.0...v0.29.0)
