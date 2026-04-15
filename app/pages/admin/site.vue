@@ -313,31 +313,31 @@ function handleReset(): void {
         </h2>
         <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
           <UFormField label="Homepage">
-            <UInput class="w-full" v-model="form.social.homepage" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="tabler:home" />
+            <UInput v-model="form.social.homepage" class="w-full" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="tabler:home" />
           </UFormField>
           <UFormField label="GitHub">
-            <UInput class="w-full" v-model="form.social.github" :placeholder="t('admin.site.fields.github.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-github" />
+            <UInput v-model="form.social.github" class="w-full" :placeholder="t('admin.site.fields.github.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-github" />
           </UFormField>
           <UFormField label="X (Twitter)">
-            <UInput class="w-full" v-model="form.social.twitter" :placeholder="t('admin.site.fields.twitter.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-x" />
+            <UInput v-model="form.social.twitter" class="w-full" :placeholder="t('admin.site.fields.twitter.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-x" />
           </UFormField>
           <UFormField label="Instagram">
-            <UInput class="w-full" v-model="form.social.instagram" :placeholder="t('admin.site.fields.instagram.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-instagram" />
+            <UInput v-model="form.social.instagram" class="w-full" :placeholder="t('admin.site.fields.instagram.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-instagram" />
           </UFormField>
           <UFormField label="YouTube">
-            <UInput class="w-full" v-model="form.social.youtube" :placeholder="t('admin.site.fields.youtube.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-youtube" />
+            <UInput v-model="form.social.youtube" class="w-full" :placeholder="t('admin.site.fields.youtube.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-youtube" />
           </UFormField>
           <UFormField label="Bilibili">
-            <UInput class="w-full" v-model="form.social.bilibili" :placeholder="t('admin.site.fields.bilibili.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-bilibili" />
+            <UInput v-model="form.social.bilibili" class="w-full" :placeholder="t('admin.site.fields.bilibili.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-bilibili" />
           </UFormField>
           <UFormField label="TikTok">
-            <UInput class="w-full" v-model="form.social.tiktok" :placeholder="t('admin.site.fields.tiktok.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-tiktok" />
+            <UInput v-model="form.social.tiktok" class="w-full" :placeholder="t('admin.site.fields.tiktok.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-tiktok" />
           </UFormField>
           <UFormField label="LinkedIn">
-            <UInput class="w-full" v-model="form.social.linkedin" :placeholder="t('admin.site.fields.linkedin.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-linkedin" />
+            <UInput v-model="form.social.linkedin" class="w-full" :placeholder="t('admin.site.fields.linkedin.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-linkedin" />
           </UFormField>
           <UFormField label="Weibo">
-            <UInput class="w-full" v-model="form.social.weibo" :placeholder="t('admin.site.fields.weibo.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-weibo" />
+            <UInput v-model="form.social.weibo" class="w-full" :placeholder="t('admin.site.fields.weibo.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-weibo" />
           </UFormField>
         </div>
       </section>
