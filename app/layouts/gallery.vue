@@ -373,6 +373,18 @@ const { data: sessionState } = useFetch<SessionState>('/api/auth/session', {
 
 const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
 
+if (import.meta.client) {
+  watch(
+    showSeriesLanding,
+    async (isLanding) => {
+      if (!isLanding) {
+        await nextTick()
+        refreshLoadMoreObserver()
+      }
+    },
+  )
+}
+
 onMounted(() => {
   const root = document.scrollingElement ?? document.documentElement ?? document.body ?? undefined
   if (root instanceof HTMLElement) {
