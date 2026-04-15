@@ -3348,11 +3348,17 @@ function startOverlayImageLoad(
     </template>
     <div
       v-else
+      class="flex items-center justify-center text-sm text-muted"
+      :style="{ height: 'calc(100dvh - 256px)' }"
       aria-live="polite"
       aria-busy="true"
     >
-      <WaterfallSkeleton :columns="columns" :rows="4" />
-      <span class="sr-only">{{ t('home.loading') }}</span>
+      <div class="flex flex-col items-center gap-2">
+        <Icon name="tabler:loader-2" class="animate-spin" size="xl" />
+        <span class="text-sm text-muted">
+          {{ t('home.loading') }}
+        </span>
+      </div>
     </div>
   </div>
 </template>

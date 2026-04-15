@@ -490,9 +490,18 @@ watch(filesError, (value) => {
               <div
                 v-for="file in filteredCandidates"
                 :key="file.id"
-                class="flex items-center justify-between gap-2 rounded-md border border-default/30 px-2 py-1"
+                class="flex items-center gap-2 rounded-md border border-default/30 px-2 py-1.5"
               >
-                <div class="min-w-0">
+                <div class="h-10 w-14 shrink-0 overflow-hidden rounded bg-black/5">
+                  <img
+                    v-if="file.imageUrl"
+                    :src="file.imageUrl"
+                    :alt="file.title || file.originalName || `#${file.id}`"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  >
+                </div>
+                <div class="min-w-0 flex-1">
                   <p class="truncate text-sm text-highlighted">
                     {{ file.title || file.originalName || `#${file.id}` }}
                   </p>
@@ -500,11 +509,11 @@ watch(filesError, (value) => {
                     #{{ file.id }}
                   </p>
                 </div>
-                <UButton size="xs" color="primary" variant="soft" icon="tabler:plus" @click="addFile(file.id)">
+                <UButton size="xs" color="primary" variant="soft" icon="tabler:plus" class="shrink-0" @click="addFile(file.id)">
                   {{ t('common.actions.add') }}
                 </UButton>
               </div>
-              <p v-if="filteredCandidates.length === 0" class="text-xs text-muted">
+              <p v-if="filteredCandidates.length === 0" class="px-2 py-3 text-center text-xs text-muted">
                 {{ t('admin.series.files.noCandidate') }}
               </p>
             </div>
@@ -513,9 +522,19 @@ watch(filesError, (value) => {
               <div
                 v-for="(fileId, index) in selectedFileIds"
                 :key="fileId"
-                class="flex items-center justify-between gap-2 rounded-md border border-default/30 px-2 py-1"
+                class="flex items-center gap-2 rounded-md border border-default/30 px-2 py-1.5"
               >
-                <div class="min-w-0">
+                <span class="w-5 shrink-0 text-center text-xs font-semibold text-muted">{{ index + 1 }}</span>
+                <div class="h-10 w-14 shrink-0 overflow-hidden rounded bg-black/5">
+                  <img
+                    v-if="allFilesById.get(fileId)?.imageUrl"
+                    :src="allFilesById.get(fileId)?.imageUrl"
+                    :alt="allFilesById.get(fileId)?.title || `#${fileId}`"
+                    loading="lazy"
+                    class="h-full w-full object-cover"
+                  >
+                </div>
+                <div class="min-w-0 flex-1">
                   <p class="truncate text-sm text-highlighted">
                     {{ allFilesById.get(fileId)?.title || allFilesById.get(fileId)?.originalName || `#${fileId}` }}
                   </p>
@@ -523,16 +542,16 @@ watch(filesError, (value) => {
                     #{{ fileId }}
                   </p>
                 </div>
-                <div class="flex items-center gap-1">
+                <div class="flex shrink-0 items-center gap-1">
                   <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-up" :disabled="index === 0" @click="moveFile(fileId, -1)" />
                   <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-down" :disabled="index === selectedFileIds.length - 1" @click="moveFile(fileId, 1)" />
                   <UButton size="xs" variant="soft" color="error" icon="tabler:x" @click="removeFile(fileId)" />
                 </div>
               </div>
-              <p v-if="detailLoading" class="text-xs text-muted">
+              <p v-if="detailLoading" class="px-2 py-3 text-center text-xs text-muted">
                 {{ t('common.loading') }}
               </p>
-              <p v-if="!detailLoading && selectedFileIds.length === 0" class="text-xs text-muted">
+              <p v-if="!detailLoading && selectedFileIds.length === 0" class="px-2 py-3 text-center text-xs text-muted">
                 {{ t('admin.series.files.empty') }}
               </p>
             </div>

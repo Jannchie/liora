@@ -47,8 +47,8 @@ async function handleTabChange(value: string | number): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-default/25 bg-default/90 py-3 text-sm text-default backdrop-blur">
-    <div class="flex items-center gap-3">
+  <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/25 bg-default/90 py-2 text-sm text-default backdrop-blur sm:py-3">
+    <div class="flex min-w-0 flex-1 items-center">
       <UTabs
         :items="navItems"
         :model-value="activeTab"
@@ -60,21 +60,46 @@ async function handleTabChange(value: string | number): Promise<void> {
         </template>
       </UTabs>
     </div>
-    <div class="flex items-center gap-2">
-      <LanguageSwitcher />
+    <div class="flex shrink-0 items-center gap-1.5">
+      <LanguageSwitcher class="hidden sm:block" />
+      <UButton
+        to="/"
+        variant="ghost"
+        color="neutral"
+        icon="tabler:home"
+        size="sm"
+        square
+        class="sm:hidden"
+        :aria-label="t('admin.nav.viewFrontend')"
+      />
       <UButton
         to="/"
         variant="soft"
         color="primary"
         icon="tabler:home"
+        size="sm"
+        class="hidden sm:inline-flex"
       >
         {{ t('admin.nav.viewFrontend') }}
       </UButton>
+      <UButton
+        variant="ghost"
+        color="neutral"
+        :loading="loggingOut"
+        icon="tabler:logout"
+        size="sm"
+        square
+        class="sm:hidden"
+        :aria-label="t('admin.nav.logout')"
+        @click="handleLogout"
+      />
       <UButton
         variant="soft"
         color="primary"
         :loading="loggingOut"
         icon="tabler:logout"
+        size="sm"
+        class="hidden sm:inline-flex"
         @click="handleLogout"
       >
         {{ t('admin.nav.logout') }}

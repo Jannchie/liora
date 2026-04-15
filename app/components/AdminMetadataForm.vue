@@ -232,25 +232,25 @@ watch(
         <div class="flex w-full flex-col gap-4">
           <div class="space-y-3 rounded-xl border border-default/50 bg-elevated/70 p-3">
             <UFormField :label="t('admin.upload.fields.locationSearch.label')" name="locationSearch">
-              <UInput
-                v-model="geocodeQuery"
-                class="w-full"
-                :placeholder="t('admin.upload.fields.locationSearch.placeholder')"
-                @keydown.enter.prevent="searchLocation"
-              />
-              <template #description>
-                <span class="text-xs text-muted">{{ t('admin.upload.fields.locationSearch.placeholder') }}</span>
-              </template>
+              <div class="flex gap-2">
+                <UInput
+                  v-model="geocodeQuery"
+                  class="flex-1"
+                  :placeholder="t('admin.upload.fields.locationSearch.placeholder')"
+                  icon="tabler:map-search"
+                  @keydown.enter.prevent="searchLocation"
+                />
+                <UButton
+                  color="primary"
+                  :loading="geocoding"
+                  icon="tabler:search"
+                  class="shrink-0"
+                  @click="searchLocation"
+                >
+                  {{ t('admin.upload.fields.locationSearch.action') }}
+                </UButton>
+              </div>
             </UFormField>
-            <UButton
-              class="w-full justify-center md:w-auto"
-              color="primary"
-              :loading="geocoding"
-              icon="tabler:map-search"
-              @click="searchLocation"
-            >
-              {{ t('admin.upload.fields.locationSearch.action') }}
-            </UButton>
             <div v-if="geocodeResults.length > 0" class="space-y-2 rounded-md border border-default/40 bg-default/70 p-3">
               <p class="text-xs font-semibold uppercase tracking-wide text-muted">
                 {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
