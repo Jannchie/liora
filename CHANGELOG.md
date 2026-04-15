@@ -1,3 +1,11 @@
+## v0.29.0
+
+[v0.28.0...v0.29.0](https://github.com/Jannchie/liora/compare/v0.28.0...v0.29.0)
+
+### :sparkles: Features
+
+- **components**: add back-to-top and waterfall skeleton - By [Jannchie](mailto:jannchie@gmail.com) in [a272eb7](https://github.com/Jannchie/liora/commit/a272eb7)
+
 ## v0.28.0
 
 [v0.27.0...v0.28.0](https://github.com/Jannchie/liora/compare/v0.27.0...v0.28.0)
