@@ -388,19 +388,19 @@ watch(filesError, (value) => {
         {{ t('common.loading') }}
       </div>
 
-      <div v-else class="grid gap-6 xl:grid-cols-[320px,1fr]">
-        <section class="space-y-4 rounded-xl border border-default/40 bg-default/80 p-4">
+      <div v-else class="grid gap-6 xl:grid-cols-[380px,1fr]">
+        <section class="space-y-4 rounded-xl border border-default/40 p-4">
           <h2 class="text-sm font-semibold text-highlighted">
             {{ t('admin.series.create.title') }}
           </h2>
           <UFormField :label="t('admin.series.form.title')">
-            <UInput v-model="createForm.title" :placeholder="t('admin.series.form.titlePlaceholder')" />
+            <UInput v-model="createForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
           </UFormField>
           <UFormField :label="t('admin.series.form.slug')">
-            <UInput v-model="createForm.slug" :placeholder="t('admin.series.form.slugPlaceholder')" />
+            <UInput v-model="createForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
           </UFormField>
           <UFormField :label="t('admin.series.form.description')">
-            <UTextarea v-model="createForm.description" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
+            <UTextarea v-model="createForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
           </UFormField>
           <UButton color="primary" :loading="creating" icon="tabler:plus" @click="createSeries">
             {{ t('admin.series.create.action') }}
@@ -430,7 +430,7 @@ watch(filesError, (value) => {
           </div>
         </section>
 
-        <section v-if="selectedSeries" class="space-y-5 rounded-xl border border-default/40 bg-default/80 p-4">
+        <section v-if="selectedSeries" class="space-y-5 rounded-xl border border-default/40 p-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 class="text-lg font-semibold text-highlighted">
               {{ t('admin.series.edit.title') }}
@@ -445,28 +445,27 @@ watch(filesError, (value) => {
             </div>
           </div>
 
-          <div class="grid gap-3 lg:grid-cols-2">
+          <div class="grid gap-3 sm:grid-cols-2">
             <UFormField :label="t('admin.series.form.title')">
-              <UInput v-model="editForm.title" :placeholder="t('admin.series.form.titlePlaceholder')" />
+              <UInput v-model="editForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
             </UFormField>
             <UFormField :label="t('admin.series.form.slug')">
-              <UInput v-model="editForm.slug" :placeholder="t('admin.series.form.slugPlaceholder')" />
+              <UInput v-model="editForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
+            </UFormField>
+            <UFormField :label="t('admin.series.form.description')" class="sm:col-span-2">
+              <UTextarea v-model="editForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
+            </UFormField>
+            <UFormField :label="t('admin.series.form.cover')" class="sm:col-span-2">
+              <USelect
+                v-model="coverFileIdModel"
+                class="w-full"
+                :items="coverOptions"
+                value-attribute="value"
+                option-attribute="label"
+                :placeholder="t('admin.series.form.coverPlaceholder')"
+              />
             </UFormField>
           </div>
-
-          <UFormField :label="t('admin.series.form.description')">
-            <UTextarea v-model="editForm.description" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
-          </UFormField>
-
-          <UFormField :label="t('admin.series.form.cover')">
-            <USelect
-              v-model="coverFileIdModel"
-              :items="coverOptions"
-              value-attribute="value"
-              option-attribute="label"
-              :placeholder="t('admin.series.form.coverPlaceholder')"
-            />
-          </UFormField>
 
           <UDivider />
 
@@ -482,6 +481,7 @@ watch(filesError, (value) => {
 
             <UInput
               v-model="addQuery"
+              class="w-full"
               :placeholder="t('admin.series.files.searchPlaceholder')"
               icon="tabler:search"
             />

@@ -292,7 +292,7 @@ watch(
               <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
                 <div
                   v-if="file && effectivePreviewAttrs"
-                  class="w-full space-y-3 rounded-xl bg-elevated/70 p-3 lg:w-105 lg:shrink-0"
+                  class="w-full space-y-3 rounded-xl p-3 lg:w-105 lg:shrink-0"
                 >
                   <div class="flex items-center justify-between">
                     <p class="text-xs font-semibold uppercase tracking-wide text-muted">
@@ -417,7 +417,7 @@ watch(
                           </template>
                         </UAlert>
 
-                        <div class="space-y-3 rounded-xl border border-default/50 bg-elevated/70 p-3">
+                        <div class="space-y-3 rounded-xl border border-default/50 p-3">
                           <UInputMenu
                             v-model="selectedSeriesValues"
                             multiple
