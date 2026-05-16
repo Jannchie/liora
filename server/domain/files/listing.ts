@@ -76,11 +76,11 @@ function parseMetadata(value: string | null | undefined): Record<string, unknown
   }
 }
 
-function extractThumbhash(metadata: Record<string, unknown> | null): string | undefined {
+function extractArthash(metadata: Record<string, unknown> | null): string | undefined {
   if (!metadata) {
     return undefined
   }
-  return typeof metadata.thumbhash === 'string' ? metadata.thumbhash : undefined
+  return typeof metadata.arthash === 'string' ? metadata.arthash : undefined
 }
 
 function extractLivePhotoVideoUrl(metadata: Record<string, unknown> | null): string | undefined {
@@ -110,7 +110,7 @@ export function toWaterfallSummary(row: {
   imageUrl: string
   width: number
   height: number
-  thumbhash?: string
+  arthash?: string
   livePhotoVideoUrl?: string
 } {
   const metadata = parseMetadata(row.metadata)
@@ -119,7 +119,7 @@ export function toWaterfallSummary(row: {
     imageUrl: row.imageUrl ?? '',
     width: row.width,
     height: row.height,
-    thumbhash: extractThumbhash(metadata),
+    arthash: extractArthash(metadata),
     livePhotoVideoUrl: extractLivePhotoVideoUrl(metadata),
   }
 }

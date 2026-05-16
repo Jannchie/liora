@@ -2,7 +2,7 @@ import type { FileRow } from '../server/utils/db'
 import { createHash } from 'node:crypto'
 import { asc, eq } from 'drizzle-orm'
 import sharp from 'sharp'
-import { rgbaToThumbHash } from 'thumbhash'
+import { encodeArthashFromRgb, ensureArthashReady } from '../server/utils/arthash'
 import { closeDb, db, files as filesTable } from '../server/utils/db'
 
 type DbFile = Pick<FileRow, 'id' | 'imageUrl' | 'metadata' | 'title'>
@@ -37,7 +37,7 @@ async function fetchImage(url: string): Promise<Buffer | null> {
   }
 }
 
-async function buildThumbhash(buffer: Buffer): Promise<string | null> {
+async function buildArthash(buffer: Buffer): Promise<string | null> {
   try {
     const pipeline = sharp(buffer).rotate()
     const metadata = await pipeline.metadata()
@@ -46,15 +46,15 @@ async function buildThumbhash(buffer: Buffer): Promise<string | null> {
 
     const { data, info } = await pipeline
       .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
-      .ensureAlpha()
+      .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true })
 
-    const hash = rgbaToThumbHash(info.width, info.height, new Uint8Array(data))
+    const hash = await encodeArthashFromRgb(new Uint8Array(data), info.width, info.height)
     return Buffer.from(hash).toString('base64')
   }
   catch (error) {
-    console.warn('Failed to build thumbhash:', error)
+    console.warn('Failed to build arthash:', error)
     return null
   }
 }
@@ -94,13 +94,13 @@ async function computeHashes(buffer: Buffer): Promise<ImageHashes | null> {
   }
 }
 
-async function updateFileThumbhash(file: DbFile): Promise<boolean> {
+async function updateFileArthash(file: DbFile): Promise<boolean> {
   const metadata = parseMetadata(file.metadata)
-  const hasThumbhash = typeof metadata.thumbhash === 'string' && metadata.thumbhash.trim().length > 0
+  const hasArthash = typeof metadata.arthash === 'string' && metadata.arthash.trim().length > 0
   const hasPerceptualHash = typeof metadata.perceptualHash === 'string' && metadata.perceptualHash.trim().length > 0
   const hasSha256 = typeof metadata.sha256 === 'string' && metadata.sha256.trim().length > 0
 
-  if (hasThumbhash && hasPerceptualHash && hasSha256) {
+  if (hasArthash && hasPerceptualHash && hasSha256) {
     return false
   }
 
@@ -115,12 +115,12 @@ async function updateFileThumbhash(file: DbFile): Promise<boolean> {
     return false
   }
 
-  const thumbhash = hasThumbhash ? (metadata.thumbhash as string) : await buildThumbhash(imageBuffer)
+  const arthash = hasArthash ? (metadata.arthash as string) : await buildArthash(imageBuffer)
   const hashes = !hasPerceptualHash || !hasSha256 ? await computeHashes(imageBuffer) : null
 
   let changed = false
-  if (!hasThumbhash && thumbhash) {
-    metadata.thumbhash = thumbhash
+  if (!hasArthash && arthash) {
+    metadata.arthash = arthash
     changed = true
   }
   if (!hasPerceptualHash && hashes?.perceptualHash) {
@@ -146,19 +146,20 @@ async function updateFileThumbhash(file: DbFile): Promise<boolean> {
 }
 
 async function main(): Promise<void> {
+  await ensureArthashReady()
   const files = await db.query.files.findMany({
     orderBy: [asc(filesTable.id)],
   })
   let updatedCount = 0
 
   for (const file of files) {
-    const changed = await updateFileThumbhash(file)
+    const changed = await updateFileArthash(file)
     if (changed) {
       updatedCount += 1
     }
   }
 
-  console.log(`Backfill complete. Added thumbhash for ${updatedCount} of ${files.length} records.`)
+  console.log(`Backfill complete. Added arthash for ${updatedCount} of ${files.length} records.`)
 }
 
 try {

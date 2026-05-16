@@ -161,7 +161,7 @@ export function buildMetadata(fields: Record<string, string>, characters: string
     latitude: fields.latitude ? Number(fields.latitude) : null,
     longitude: fields.longitude ? Number(fields.longitude) : null,
     fileSize: 0,
-    thumbhash: undefined,
+    arthash: undefined,
     perceptualHash: undefined,
     sha256: undefined,
     livePhotoStillTime,

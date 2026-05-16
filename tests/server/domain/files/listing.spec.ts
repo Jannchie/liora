@@ -69,11 +69,11 @@ describe('domain/files/listing', () => {
       width: 100,
       height: 50,
       metadata: JSON.stringify({
-        thumbhash: 'abc',
+        arthash: 'abc',
         livePhotoVideoUrl: 'https://example.com/a.mp4',
       }),
     })
-    expect(summary.thumbhash).toBe('abc')
+    expect(summary.arthash).toBe('abc')
     expect(summary.livePhotoVideoUrl).toBe('https://example.com/a.mp4')
   })
 
@@ -90,7 +90,7 @@ describe('domain/files/listing', () => {
       imageUrl: '',
       width: 200,
       height: 100,
-      thumbhash: undefined,
+      arthash: undefined,
       livePhotoVideoUrl: undefined,
     })
   })
@@ -103,7 +103,7 @@ describe('domain/files/listing', () => {
       height: 180,
       metadata: '',
     })
-    expect(summary.thumbhash).toBeUndefined()
+    expect(summary.arthash).toBeUndefined()
     expect(summary.livePhotoVideoUrl).toBeUndefined()
 
     const nonStringVideo = toWaterfallSummary({
@@ -112,11 +112,11 @@ describe('domain/files/listing', () => {
       width: 320,
       height: 180,
       metadata: JSON.stringify({
-        thumbhash: 123,
+        arthash: 123,
         livePhotoVideoUrl: 456,
       }),
     })
-    expect(nonStringVideo.thumbhash).toBeUndefined()
+    expect(nonStringVideo.arthash).toBeUndefined()
     expect(nonStringVideo.livePhotoVideoUrl).toBeUndefined()
   })
 })

@@ -5,7 +5,7 @@ import { basename } from 'node:path'
 import { eq } from 'drizzle-orm'
 import { createError, readMultipartFormData } from 'h3'
 import sharp from 'sharp'
-import { rgbaToThumbHash } from 'thumbhash'
+import { encodeArthashFromRgb } from '../../../utils/arthash'
 import { buildMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
@@ -115,15 +115,15 @@ function normalizeExt(filename: string | undefined): string {
   return ext.toLowerCase()
 }
 
-async function generateThumbhash(buffer: Buffer): Promise<string | null> {
+async function generateArthash(buffer: Buffer): Promise<string | null> {
   try {
     const { data, info } = await sharp(buffer)
-      .ensureAlpha()
+      .removeAlpha()
       .resize(100, 100, { fit: 'inside' })
       .raw()
       .toBuffer({ resolveWithObject: true })
 
-    const hash = rgbaToThumbHash(info.width, info.height, data)
+    const hash = await encodeArthashFromRgb(new Uint8Array(data), info.width, info.height)
     return Buffer.from(hash).toString('base64')
   }
   catch {
@@ -170,7 +170,7 @@ async function computeHashes(data: Buffer): Promise<ImageHashes> {
   }
 }
 
-async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, thumbhash?: string }> {
+async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, arthash?: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = file.filename ? basename(file.filename).replace(/\.[^/.]+$/, '') : 'image'
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -184,9 +184,9 @@ async function saveFile(file: MultipartEntry, event: H3Event, contentType: strin
     config: storageConfig,
   })
 
-  const thumbhash = await generateThumbhash(file.data) ?? undefined
+  const arthash = await generateArthash(file.data) ?? undefined
 
-  return { imageUrl, thumbhash }
+  return { imageUrl, arthash }
 }
 
 export default defineEventHandler(async (event): Promise<FileResponse> => {
@@ -242,9 +242,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     metadata.histogram = histogram
   }
 
-  const { imageUrl, thumbhash } = await saveFile(file, event, contentType)
-  if (thumbhash) {
-    metadata.thumbhash = thumbhash
+  const { imageUrl, arthash } = await saveFile(file, event, contentType)
+  if (arthash) {
+    metadata.arthash = arthash
   }
 
   const originalName = file.filename ? basename(file.filename) : existing.originalName
@@ -255,7 +255,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     latitude: Number.isFinite(metadata.latitude ?? null) ? metadata.latitude : existingMetadata.latitude,
     longitude: Number.isFinite(metadata.longitude ?? null) ? metadata.longitude : existingMetadata.longitude,
     fileSize: metadata.fileSize,
-    thumbhash: metadata.thumbhash ?? existingMetadata.thumbhash,
+    arthash: metadata.arthash ?? existingMetadata.arthash,
     perceptualHash: metadata.perceptualHash ?? existingMetadata.perceptualHash,
     sha256: metadata.sha256 ?? existingMetadata.sha256,
     histogram: metadata.histogram ?? existingMetadata.histogram ?? null,

@@ -3,8 +3,8 @@ import type { MediaFormState } from '~/types/admin'
 import type { FileResponse } from '~/types/file'
 import type { ImageAttrs, ResolvedFile } from '~/types/gallery'
 import type { SeriesSummary } from '~/types/series'
-import { thumbHashToDataURL } from 'thumbhash'
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
 
 const props = defineProps<{
   file: FileResponse | ResolvedFile | null
@@ -32,21 +32,6 @@ const replaceFile = defineModel<File | null>('replaceFile', { default: null })
 const { t } = useI18n()
 const toast = useToast()
 
-function decodeThumbhash(value: string): Uint8Array | null {
-  try {
-    if (typeof atob === 'function') {
-      return Uint8Array.from(atob(value), char => char.codePointAt(0) || 0)
-    }
-    if (typeof Buffer !== 'undefined') {
-      return Uint8Array.from(Buffer.from(value, 'base64'))
-    }
-  }
-  catch {
-    return null
-  }
-  return null
-}
-
 const previewAttrs = computed<ImageAttrs | null>(() => {
   if (!props.file) {
     return null
@@ -62,17 +47,15 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
   const width = props.file.width || undefined
   const height = props.file.height || undefined
   if (!src) {
-    const thumbhash = props.file.metadata.thumbhash
-    if (thumbhash) {
-      const bytes = decodeThumbhash(thumbhash)
-      if (bytes) {
-        return {
-          src: thumbHashToDataURL(bytes),
-          width,
-          height,
-          srcset: '',
-          sizes: undefined,
-        }
+    void arthashReady.value
+    const placeholderSrc = decodeArthashToDataUrl(props.file.metadata.arthash)
+    if (placeholderSrc) {
+      return {
+        src: placeholderSrc,
+        width,
+        height,
+        srcset: '',
+        sizes: undefined,
       }
     }
     return null
@@ -84,6 +67,10 @@ const previewAttrs = computed<ImageAttrs | null>(() => {
     srcset: '',
     sizes: undefined,
   }
+})
+
+onMounted(() => {
+  void ensureArthashReady()
 })
 
 const classifySource = computed(() => props.classifySource ?? { file: null, imageUrl: null })

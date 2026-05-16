@@ -2,7 +2,7 @@ import type { MultipartEntry } from './upload'
 import { createHash } from 'node:crypto'
 import { createError } from 'h3'
 import sharp from 'sharp'
-import { rgbaToThumbHash } from 'thumbhash'
+import { encodeArthashFromRgb } from '../../utils/arthash'
 
 const FORMAT_MIME_MAP: Record<string, string> = {
   jpeg: 'image/jpeg',
@@ -72,7 +72,7 @@ export async function computePerceptualHash(data: Buffer): Promise<string | null
   }
 }
 
-export async function generateThumbhash(data: Buffer): Promise<string | null> {
+export async function generateArthash(data: Buffer): Promise<string | null> {
   try {
     const pipeline = sharp(data).rotate()
     const metadata = await pipeline.metadata()
@@ -80,14 +80,14 @@ export async function generateThumbhash(data: Buffer): Promise<string | null> {
     const targetHeight = Math.min(100, metadata.height ?? 100)
     const { data: raw, info } = await pipeline
       .resize(targetWidth, targetHeight, { fit: 'inside', withoutEnlargement: true })
-      .ensureAlpha()
+      .removeAlpha()
       .raw()
       .toBuffer({ resolveWithObject: true })
-    const hash = rgbaToThumbHash(info.width, info.height, new Uint8Array(raw))
+    const hash = await encodeArthashFromRgb(new Uint8Array(raw), info.width, info.height)
     return Buffer.from(hash).toString('base64')
   }
   catch (error) {
-    console.warn('Thumbhash generation failed:', error)
+    console.warn('Arthash generation failed:', error)
     return null
   }
 }

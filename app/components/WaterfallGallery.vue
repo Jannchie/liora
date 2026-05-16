@@ -18,7 +18,6 @@ import type {
 } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
-import { thumbHashToApproximateAspectRatio, thumbHashToDataURL } from 'thumbhash'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
 import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
@@ -31,6 +30,7 @@ import {
   normalizeMeteringModeValue,
   normalizeWhiteBalanceValue,
 } from '~/utils/exposure'
+import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
 import { resolveFileTitle } from '~/utils/file'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile } from '~/utils/media-form'
 
@@ -173,11 +173,6 @@ const isAdmin = computed(() => props.isAuthenticated ?? false)
 const filesWithOverrides = computed<FileResponse[]>(() => props.files.map(file => fileOverrides.value[file.id] ?? file))
 const showLoadingState = computed(() => !isHydrated.value || (props.isLoading && props.files.length === 0))
 
-interface ThumbhashInfo {
-  dataUrl: string
-  aspectRatio: number
-}
-
 type OverlayDownloadStatus = 'idle' | 'loading' | 'done' | 'error'
 
 interface OverlayDownloadState {
@@ -284,43 +279,11 @@ const characterSeparator = computed(() => t('gallery.metadata.characterSeparator
 const resolvedEmptyText = computed(() => props.emptyText ?? t('gallery.empty'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 
-function toByteArrayFromBase64(value: string): Uint8Array {
-  if (typeof atob === 'function') {
-    const binary = atob(value)
-    const bytes = new Uint8Array(binary.length)
-    for (let index = 0; index < binary.length; index += 1) {
-      bytes[index] = binary.codePointAt(index) || 0
-    }
-    return bytes
+function fileAspectRatio(file: { width: number, height: number }): number | undefined {
+  if (file.width > 0 && file.height > 0) {
+    return file.width / file.height
   }
-  if (typeof Buffer !== 'undefined') {
-    return new Uint8Array(Buffer.from(value, 'base64'))
-  }
-  throw new Error('No base64 decoder available.')
-}
-
-function decodeThumbhash(value: string | undefined): ThumbhashInfo | undefined {
-  if (!value) {
-    return undefined
-  }
-  try {
-    const bytes = toByteArrayFromBase64(value)
-    const aspectRatio = thumbHashToApproximateAspectRatio(bytes)
-    if (!Number.isFinite(aspectRatio) || aspectRatio <= 0) {
-      return {
-        dataUrl: thumbHashToDataURL(bytes),
-        aspectRatio: 1,
-      }
-    }
-    return {
-      dataUrl: thumbHashToDataURL(bytes),
-      aspectRatio,
-    }
-  }
-  catch (error) {
-    console.warn('Failed to decode thumbhash', error)
-    return undefined
-  }
+  return undefined
 }
 
 function toTimestamp(value: string | undefined): number | null {
@@ -721,21 +684,23 @@ const columnWidth = computed(() => {
 
 function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile {
   const displayTitle = resolveFileTitle(file, untitledLabel.value)
-  const decoded = decodeThumbhash(file.metadata.thumbhash)
-  const displaySize = computeDisplaySize(file, decoded?.aspectRatio, displayWidth)
+  void arthashReady.value
+  const placeholderDataUrl = decodeArthashToDataUrl(file.metadata.arthash) ?? undefined
+  const aspectRatio = fileAspectRatio(file)
+  const displaySize = computeDisplaySize(file, aspectRatio, displayWidth)
   const imageUrl = (file.imageUrl ?? '').trim()
   const baseImageUrl = imageUrl
   const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
   const previewSize = computeDisplaySize(
     file,
-    decoded?.aspectRatio,
+    aspectRatio,
     displayWidth,
   )
   const previewAttrs = resolveImageAttrs(baseImageUrl, previewSize, 'inside')
   const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
   const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
     baseImageUrl,
-    decoded?.aspectRatio,
+    aspectRatio,
   )
   return {
     ...file,
@@ -744,8 +709,8 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
     coverUrl: previewUrl,
     previewUrl,
     previewAttrs,
-    placeholder: decoded?.dataUrl,
-    placeholderAspectRatio: decoded?.aspectRatio,
+    placeholder: placeholderDataUrl,
+    placeholderAspectRatio: aspectRatio,
     overlayPlaceholderUrl,
     displaySize,
     imageAttrs,
@@ -875,6 +840,7 @@ function updateColumns(): void {
 }
 
 onMounted(async () => {
+  void ensureArthashReady()
   await nextTick()
   updateColumns()
   isHydrated.value = true

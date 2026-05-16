@@ -59,6 +59,9 @@ importers:
       ai:
         specifier: ^6.0.100
         version: 6.0.100(zod@4.1.13)
+      arthash:
+        specifier: ^0.1.2
+        version: 0.1.2
       chart.js:
         specifier: ^4.5.1
         version: 4.5.1
@@ -98,9 +101,6 @@ importers:
       three:
         specifier: ^0.183.1
         version: 0.183.1
-      thumbhash:
-        specifier: ^0.1.1
-        version: 0.1.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -5019,6 +5019,9 @@ packages:
     resolution: {integrity: sha512-BNoCY6SXXPQ7gF2opIP4GBE+Xw7U+pHMYKuzjgCN3GwiaIR09UUeKfheyIry77QtrCBlC0KK0q5/TER/tYh3PQ==}
     engines: {node: '>= 0.4'}
 
+  arthash@0.1.2:
+    resolution: {integrity: sha512-y3oUP57oasxSIw+awXXVFm5Tp3WkSztQZCdVY/ZSbwIsulh0vkkkDifOp8JfNQoCjK1VEN+2fyDX0m4FUnZFTw==}
+
   assertion-error@2.0.1:
     resolution: {integrity: sha512-Izi8RQcffqCeNVgFigKli1ssklIbpHnCYc6AknXGYoB6grJqyeby7jv12JUQgmTAnIDnbck1uxksT4dzN3PWBA==}
     engines: {node: '>=12'}
@@ -8839,9 +8842,6 @@ packages:
 
   three@0.183.1:
     resolution: {integrity: sha512-Psv6bbd3d/M/01MT2zZ+VmD0Vj2dbWTNhfe4CuSg7w5TuW96M3NOyCVuh9SZQ05CpGmD7NEcJhZw4GVjhCYxfQ==}
-
-  thumbhash@0.1.1:
-    resolution: {integrity: sha512-kH5pKeIIBPQXAOni2AiY/Cu/NKdkFREdpH+TLdM0g6WA7RriCv0kPLgP731ady67MhTAqrVG/4mnEeibVuCJcg==}
 
   tiny-inflate@1.0.3:
     resolution: {integrity: sha512-pkY1fj1cKHb2seWDy0B16HeWyczlJA9/WW3u3c4z/NiWDsO3DOU5D7nhTLE9CF0yXv/QZFY7sEJmj24dK+Rrqw==}
@@ -15352,6 +15352,8 @@ snapshots:
       get-intrinsic: 1.3.0
       is-array-buffer: 3.0.5
 
+  arthash@0.1.2: {}
+
   assertion-error@2.0.1: {}
 
   ast-kit@2.2.0:
@@ -20073,8 +20075,6 @@ snapshots:
       - react-native-b4a
 
   three@0.183.1: {}
-
-  thumbhash@0.1.1: {}
 
   tiny-inflate@1.0.3: {}
 

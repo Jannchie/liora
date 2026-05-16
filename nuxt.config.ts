@@ -236,6 +236,9 @@ export default defineNuxtConfig({
     worker: {
       format: 'es',
     },
+    optimizeDeps: {
+      exclude: ['arthash'],
+    },
   },
   sourcemap: {
     client: true,

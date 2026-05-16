@@ -9,7 +9,7 @@ import { extractFocusMetadataFromBuffer } from '../../utils/focus-metadata'
 import { computeHistogram } from '../../utils/histogram'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, uploadBufferToS3 } from '../../utils/s3'
 import { setUploadStatus } from '../../utils/upload-status'
-import { computePerceptualHash, computeSha256, generateThumbhash, validateImage } from './image'
+import { computePerceptualHash, computeSha256, generateArthash, validateImage } from './image'
 import { buildMetadata, normalizeText, parseCharacters, stripLensFromCamera, validateLengths } from './metadata'
 import { assertMaxFileSize, buildImageKey, buildVideoKey } from './upload'
 
@@ -72,11 +72,11 @@ async function runMetadataPostProcessing(
     const [
       perceptualHash,
       histogram,
-      thumbhash,
+      arthash,
     ] = await Promise.all([
       computePerceptualHash(buffer),
       computeHistogram(buffer),
-      generateThumbhash(buffer),
+      generateArthash(buffer),
     ])
     if (perceptualHash) {
       nextMetadata.perceptualHash = perceptualHash
@@ -84,8 +84,8 @@ async function runMetadataPostProcessing(
     if (histogram) {
       nextMetadata.histogram = histogram
     }
-    if (thumbhash) {
-      nextMetadata.thumbhash = thumbhash
+    if (arthash) {
+      nextMetadata.arthash = arthash
     }
   }
   catch (error) {

@@ -52,7 +52,7 @@ export interface FileMetadata {
   lightroomRecipe?: string
   notes: string
   fileSize: number
-  thumbhash?: string
+  arthash?: string
   perceptualHash?: string
   sha256?: string
   histogram?: HistogramData | null
@@ -214,7 +214,7 @@ export interface FileSummary {
   imageUrl: string
   width: number
   height: number
-  thumbhash?: string
+  arthash?: string
   livePhotoVideoUrl?: string
 }
 

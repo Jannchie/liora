@@ -47,9 +47,9 @@ function createEmptyMetadata(): FileMetadata {
 function toFileResponseSummary(file: FileSummary): FileResponse {
   const imageUrl = file.imageUrl.trim()
   const metadata = createEmptyMetadata()
-  const thumbhash = file.thumbhash?.trim()
-  if (thumbhash) {
-    metadata.thumbhash = thumbhash
+  const arthash = file.arthash?.trim()
+  if (arthash) {
+    metadata.arthash = arthash
   }
   const livePhotoVideoUrl = file.livePhotoVideoUrl?.trim()
   if (livePhotoVideoUrl) {
