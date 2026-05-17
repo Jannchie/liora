@@ -12,7 +12,8 @@ jobs:
       contents: read
       packages: write
     env:
-      IMAGE_NAME: ${{ vars.DOCKERHUB_IMAGE || 'jannchie/liora' }}
+      DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'jannchie/liora' }}
+      GHCR_IMAGE: ghcr.io/${{ github.repository }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,11 +27,20 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Docker metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
           tags: |
             type=ref,event=tag
             type=raw,value=latest
