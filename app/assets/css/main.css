@@ -1,12 +1,273 @@
 @import "tailwindcss";
-@import "@nuxt/ui";
 @import "tailwindcss-safe-area";
+
+/*
+ * Design tokens — palette aligned with @roku-ui / codetime.dev.
+ *
+ * Why:
+ * - Cool slate surfaces (Linear / Vercel / Primer) read more neutral against
+ *   photographs than warm neutrals; burgundy primary keeps the brand identity.
+ * - `color-mix(in srgb, var(--color-primary) 12%, transparent)` for soft
+ *   variants means a single primary value drives every soft surface, and the
+ *   dark-mode override of primary automatically propagates.
+ * - Layer naming `bg → surface → surface-1/2/3` matches the codetime mental
+ *   model: page bg sits one notch below the brightest card surface; the rest
+ *   are progressively deeper for hover / pressed / nested fills. We keep the
+ *   legacy liora utility names (`bg-default / muted / elevated / accented`)
+ *   as aliases so no template needs to change.
+ *
+ * Component contract (one radius family per role; don't mix):
+ *   form control (Button / Input / Select / Textarea / Tab pill)  → rounded-md
+ *   card / alert / toast / popover                                → rounded-lg / xl
+ *   modal / drop-zone                                             → rounded-2xl
+ *   skeleton / inline chip                                        → rounded-sm
+ */
+
+@theme {
+  /* ---------- type ---------- */
+  --font-sans: var(--font-display-latin);
+  --font-serif: var(--font-title-latin);
+  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+
+  /* ---------- radius ----------
+     Aligned with codetime: default md = 8px, xs/sm small chips, xl+ for
+     bigger panels and modals. */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-2xl: 18px;
+  --radius-3xl: 22px;
+  --radius-full: 9999px;
+
+  /* ---------- motion ----------
+     ease = ease-out-quint; matches codetime's snappy-but-soft easing. */
+  --transition-fast: 120ms cubic-bezier(.2, .8, .2, 1);
+  --transition-base: 180ms cubic-bezier(.2, .8, .2, 1);
+  --transition-slow: 260ms cubic-bezier(.2, .8, .2, 1);
+  --ease-out-quint: cubic-bezier(.2, .8, .2, 1);
+
+  /* ---------- shadow (light defaults; dark overrides below) ----------
+     Cool-tinted slate (rgb 15 23 42) instead of warm burgundy — surfaces
+     read as quiet drops, not blooms. */
+  --shadow-xs:      0 1px 1px rgb(15 23 42 / 0.04);
+  --shadow-sm:      0 1px 2px rgb(15 23 42 / 0.04);
+  --shadow-md:      0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px rgb(15 23 42 / 0.06);
+  --shadow-lg:      0 12px 32px rgb(15 23 42 / 0.10), 0 4px 8px rgb(15 23 42 / 0.05);
+
+  /* legacy aliases — keep until usages migrate */
+  --shadow-card: var(--shadow-sm);
+  --shadow-overlay: var(--shadow-lg);
+
+  /* ---------- semantic palette (light defaults; dark overrides below) ---------- */
+
+  /* burgundy primary — kept; soft variants computed via color-mix so a
+     single primary value drives every tint. */
+  --color-primary: oklch(38% 0.13 18);
+  --color-primary-hover: oklch(32% 0.14 18);
+  --color-primary-active: oklch(28% 0.13 18);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  --color-primary-border: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --color-on-primary: #ffffff;
+
+  /* cool slate surfaces — bg is muted, cards (surface / default) lift to
+     near-white. Lifting subsequent layers makes nested fills/hover states
+     register without glare. */
+  --color-bg:       #f1f2f5;
+  --color-default:  #fbfbfd;
+  --color-muted:    #ebecf0;
+  --color-elevated: #e1e3e8;
+  --color-accented: #d2d5dc;
+
+  --color-border:        #d4d8e0;
+  --color-border-muted:  #e2e4ea;
+  --color-border-strong: #b4bac6;
+
+  /* foreground — softened from pure black; 4-step ramp + 2 legacy aliases
+     (toned/dimmed sit between fg/muted and muted/subtle respectively). */
+  --color-fg:             #1a1d24;
+  --color-fg-highlighted: #0d1019;
+  --color-fg-toned:       #2f3441;
+  --color-fg-muted:       #525a6b;
+  --color-fg-dimmed:      #6e7689;
+  --color-fg-subtle:      #8c93a3;
+
+  /* status */
+  --color-error:        #b91c1c;
+  --color-error-soft:   color-mix(in srgb, var(--color-error) 12%, transparent);
+  --color-warning:      #b45309;
+  --color-warning-soft: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  --color-success:      #047857;
+  --color-success-soft: color-mix(in srgb, var(--color-success) 12%, transparent);
+  --color-info:         #0284c7;
+  --color-info-soft:    color-mix(in srgb, var(--color-info) 12%, transparent);
+
+  /* focus ring — primary-tinted halo, recomputed per scheme via color-mix
+     so the dark-mode primary lift propagates automatically. */
+  --ring-focus:       0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
+  --ring-focus-error: 0 0 0 3px color-mix(in srgb, var(--color-error) 35%, transparent);
+
+  /* ---------- z scale ---------- */
+  --z-base: 1;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+}
+
+/*
+ * Dark palette.
+ *
+ * Why brighten burgundy: at L 38% it disappears against the 0a0a0b ground.
+ * Lift to L 62% + slight chroma bump so the brand reads at equal "weight"
+ * in both schemes.
+ */
+.dark {
+  --color-primary: oklch(62% 0.14 20);
+  --color-primary-hover: oklch(68% 0.15 20);
+  --color-primary-active: oklch(56% 0.14 20);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --color-primary-softer: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-primary-border: color-mix(in srgb, var(--color-primary) 36%, transparent);
+  --color-on-primary: #0b0d12;
+
+  /* near-black + 4 layered fills, exactly the codetime ramp */
+  --color-bg:       #0a0a0b;
+  --color-default:  #111113;
+  --color-muted:    #16171a;
+  --color-elevated: #1d1e22;
+  --color-accented: #2a2b30;
+
+  --color-border:        #27272a;
+  --color-border-muted:  #1f1f22;
+  --color-border-strong: #3f3f46;
+
+  --color-fg:             #f4f4f5;
+  --color-fg-highlighted: #ffffff;
+  --color-fg-toned:       #d4d4d8;
+  --color-fg-muted:       #a1a1aa;
+  --color-fg-dimmed:      #71717a;
+  --color-fg-subtle:      #5b5b62;
+
+  --color-error:        #ef4444;
+  --color-error-soft:   color-mix(in srgb, var(--color-error) 18%, transparent);
+  --color-warning:      #f59e0b;
+  --color-warning-soft: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  --color-success:      #10b981;
+  --color-success-soft: color-mix(in srgb, var(--color-success) 16%, transparent);
+  --color-info:         #38bdf8;
+  --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
+
+  --shadow-xs:      0 1px 1px rgb(0 0 0 / 0.30);
+  --shadow-sm:      0 1px 2px rgb(0 0 0 / 0.40);
+  --shadow-md:      0 1px 2px rgb(0 0 0 / 0.40), 0 4px 12px rgb(0 0 0 / 0.45);
+  --shadow-lg:      0 12px 32px rgb(0 0 0 / 0.55), 0 4px 8px rgb(0 0 0 / 0.35);
+
+  --ring-focus:       0 0 0 3px color-mix(in srgb, var(--color-primary) 45%, transparent);
+  --ring-focus-error: 0 0 0 3px color-mix(in srgb, var(--color-error) 45%, transparent);
+}
+
+/*
+ * Theme-switch transition suppression.
+ *
+ * Why: hover/focus `transition-colors` would otherwise replay during a
+ * scheme swap, cross-fading the entire page through ugly intermediate
+ * colours. ThemeToggle attaches this class for one frame around the swap.
+ */
+html.disable-transitions,
+html.disable-transitions *,
+html.disable-transitions *::before,
+html.disable-transitions *::after {
+  transition: none !important;
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+}
+
+/*
+ * Semantic utility shims — recreate Nuxt-UI-style class names that the
+ * existing templates use, mapping each to a token above.
+ */
+@layer utilities {
+  .bg-bg            { background-color: var(--color-bg); }
+  .bg-default       { background-color: var(--color-default); }
+  .bg-muted         { background-color: var(--color-muted); }
+  .bg-elevated      { background-color: var(--color-elevated); }
+  .bg-accented      { background-color: var(--color-accented); }
+  .bg-primary       { background-color: var(--color-primary); }
+  .bg-primary-soft  { background-color: var(--color-primary-soft); }
+  .bg-primary-softer{ background-color: var(--color-primary-softer); }
+  .bg-error         { background-color: var(--color-error); }
+  .bg-error-soft    { background-color: var(--color-error-soft); }
+  .bg-warning       { background-color: var(--color-warning); }
+  .bg-warning-soft  { background-color: var(--color-warning-soft); }
+  .bg-success       { background-color: var(--color-success); }
+  .bg-success-soft  { background-color: var(--color-success-soft); }
+
+  .text-default     { color: var(--color-fg); }
+  .text-foreground  { color: var(--color-fg); }
+  .text-toned       { color: var(--color-fg-toned); }
+  .text-highlighted { color: var(--color-fg-highlighted); }
+  .text-muted       { color: var(--color-fg-muted); }
+  .text-dimmed      { color: var(--color-fg-dimmed); }
+  .text-subtle      { color: var(--color-fg-subtle); }
+  .text-primary     { color: var(--color-primary); }
+  .text-error       { color: var(--color-error); }
+  .text-warning     { color: var(--color-warning); }
+  .text-success     { color: var(--color-success); }
+  .text-info        { color: var(--color-info); }
+  .text-on-primary  { color: var(--color-on-primary); }
+
+  .border-default       { border-color: var(--color-border); }
+  .border-muted         { border-color: var(--color-border-muted); }
+  .border-strong        { border-color: var(--color-border-strong); }
+  .border-primary       { border-color: var(--color-primary); }
+  .border-primary-soft  { border-color: var(--color-primary-border); }
+  .border-error         { border-color: var(--color-error); }
+
+  .ring-default { --tw-ring-color: var(--color-border); }
+  .ring-primary { --tw-ring-color: var(--color-primary); }
+
+  /* focus-ring helpers — apply on focus/focus-within state of controls */
+  .focus-ring         { box-shadow: var(--ring-focus); }
+  .focus-ring-error   { box-shadow: var(--ring-focus-error); }
+}
+
+/*
+ * Baseline body + colour-scheme.
+ *
+ * `useColorMode` (see ThemeToggle.vue) is the single source of truth: it
+ * applies `.dark` to <html> when the user picks "Dark", and resolves "Auto"
+ * to either `.light` or `.dark` based on `prefers-color-scheme`. So we only
+ * need to react to the class — no extra media query.
+ */
+html, body {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  touch-action: manipulation;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/*
+ * Always reserve gutter for the vertical scrollbar on classic-scrollbar
+ * platforms (Windows / Linux). Avoids the layout jolt when content height
+ * crosses the viewport (modal open, route change, lazy-loaded images, etc.)
+ * and the scrollbar appears/disappears. Mobile/macOS overlay scrollbars are
+ * unaffected because they never occupy gutter space.
+ */
+html {
+  scrollbar-gutter: stable both-edges;
+}
+
+html.light { color-scheme: light; }
+html.dark  { color-scheme: dark; }
 
 @layer base {
   :root {
-    --font-display-latin: system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display-zh: "PingFang SC", "Microsoft YaHei", "Heiti SC", sans-serif;
-    --font-display-ja: "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+    --font-display-latin: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-display-zh: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+    --font-display-ja: "HarmonyOS Sans JP", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
     --font-title-latin: "Georgia", "Times New Roman", Times, serif;
     --font-title-zh: "Songti SC", "STSong", "SimSun", serif;
     --font-title-ja: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
@@ -46,20 +307,8 @@
     letter-spacing: 0;
   }
 
-  html,
-  body {
-    touch-action: manipulation;
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    color: var(--color-fg);
   }
 }
-
-/* @layer theme {
-  .dark {
-    --ui-bg: #000;
-    --ui-bg-muted: #050505;
-    --ui-bg-elevated: #0a0a0a;
-    --ui-bg-accented: #111111;
-    --ui-border: #1a1a1a;
-    --ui-border-muted: #111111;
-    --ui-border-accented: #1f1f1f;
-  }
-} */

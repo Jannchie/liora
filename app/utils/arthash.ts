@@ -1,8 +1,9 @@
-import { init, Shape, toSvg } from 'arthash'
+import { codec, init, toSvgSync } from 'arthash'
 import wasmUrl from 'arthash/wasm/pkg/arthash_wasm_bg.wasm?url'
 import { ref } from 'vue'
 
-const ARTHASH_OPTIONS = { shape: Shape.RECT, nShapes: 64, baseSize: 256 } as const
+const ARTHASH_CODEC = codec.rect({ n: 64 })
+const SVG_OPTIONS = { baseSize: 256 } as const
 
 export const arthashReady = ref(false)
 let initPromise: Promise<void> | null = null
@@ -41,7 +42,7 @@ export function decodeArthashToDataUrl(value: string | undefined): string | null
   }
   try {
     const bytes = base64ToBytes(value)
-    const svg = toSvg(bytes, { ...ARTHASH_OPTIONS, blur: 12 })
+    const svg = toSvgSync(bytes, ARTHASH_CODEC, SVG_OPTIONS)
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
   }
   catch (error) {

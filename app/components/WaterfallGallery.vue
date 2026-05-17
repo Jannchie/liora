@@ -3220,7 +3220,7 @@ function startOverlayImageLoad(
                 entryTransitionStyle(entry.id),
                 entry.placeholder
                   ? {
-                    backgroundImage: `url(${entry.placeholder})`,
+                    backgroundImage: `url('${entry.placeholder}')`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',

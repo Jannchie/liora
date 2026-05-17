@@ -259,36 +259,35 @@ watch(
     }"
   >
     <template #content>
-      <div class="flex h-full flex-col bg-default/85 backdrop-blur">
-        <div class="sticky top-0 z-10 flex items-start justify-between gap-3 bg-default/90 px-5 py-4 backdrop-blur">
-          <div class="space-y-1">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+      <div class="flex h-full flex-col bg-[var(--color-bg)]">
+        <header class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-[var(--color-border-muted)] bg-[var(--color-bg)]/95 px-6 py-4 backdrop-blur">
+          <div class="min-w-0 space-y-1">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
               {{ t('common.actions.edit') }}
             </p>
-            <h3 class="text-lg font-semibold text-highlighted">
+            <h3 class="truncate text-lg font-semibold text-highlighted">
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="soft" color="neutral" icon="tabler:x" @click="handleClose">
-            {{ t('common.actions.close') }}
-          </UButton>
-        </div>
+          <UButton variant="ghost" color="neutral" icon="tabler:x" :aria-label="t('common.actions.close')" @click="handleClose" />
+        </header>
         <div class="relative flex-1 overflow-y-auto">
-          <UContainer class="px-5 py-4">
-            <UForm :state="form" class="space-y-5 pb-16" @submit.prevent="handleSubmit">
-              <div class="flex flex-col gap-5 lg:flex-row lg:items-start">
-                <div
+          <UContainer class="px-6 py-6">
+            <UForm :state="form" class="space-y-8 pb-24" @submit.prevent="handleSubmit">
+              <div class="flex flex-col gap-8 lg:flex-row lg:items-start">
+                <!-- PREVIEW PANE -->
+                <aside
                   v-if="file && effectivePreviewAttrs"
-                  class="w-full space-y-3 rounded-xl p-3 lg:w-105 lg:shrink-0"
+                  class="w-full space-y-4 lg:w-[26rem] lg:shrink-0"
                 >
-                  <div class="flex items-center justify-between">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                  <div class="flex items-center justify-between gap-2">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
                       {{ t('admin.files.table.headers.preview') }}
                     </p>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1">
                       <UButton
                         color="primary"
-                        variant="soft"
+                        variant="ghost"
                         size="sm"
                         icon="tabler:camera-rotate"
                         @click="replaceInput?.click()"
@@ -298,7 +297,7 @@ watch(
                       <UButton
                         v-if="enableDepthAction"
                         color="primary"
-                        variant="soft"
+                        variant="ghost"
                         size="sm"
                         icon="tabler:photo"
                         :loading="depthProcessing"
@@ -318,7 +317,7 @@ watch(
                       />
                     </div>
                   </div>
-                  <div class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60">
+                  <div class="flex items-center justify-center bg-[var(--color-muted)]">
                     <img
                       :key="replaceFile?.name || file.id"
                       :src="effectivePreviewAttrs.src || file.imageUrl"
@@ -332,10 +331,10 @@ watch(
                     >
                   </div>
                   <div v-if="depthMapUrl" class="space-y-2">
-                    <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
                       {{ t('admin.files.depthMap.label') }}
                     </p>
-                    <div class="flex items-center justify-center overflow-hidden rounded-lg bg-default/60">
+                    <div class="flex items-center justify-center bg-[var(--color-muted)]">
                       <img
                         :src="depthMapUrl"
                         :alt="t('admin.files.depthMap.label')"
@@ -345,23 +344,21 @@ watch(
                         class="h-auto max-h-64 w-auto max-w-full object-contain"
                       >
                     </div>
-                    <div v-if="depthMapWidth && depthMapHeight" class="text-xs text-muted">
-                      <span class="rounded-full bg-default/70 px-2 py-0.5">
-                        {{ depthMapWidth }} × {{ depthMapHeight }}
-                      </span>
-                    </div>
+                    <p v-if="depthMapWidth && depthMapHeight" class="font-mono text-[11px] text-muted">
+                      {{ depthMapWidth }} × {{ depthMapHeight }}
+                    </p>
                   </div>
-                  <div class="flex flex-wrap items-center gap-2 text-xs text-muted">
-                    <span class="font-semibold text-highlighted">
+                  <dl class="flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-[11px]">
+                    <dd class="truncate text-highlighted">
                       {{ replaceFileName || file.originalName || file.title || t('common.labels.untitled') }}
-                    </span>
-                    <span v-if="replaceFile" class="rounded-full bg-default/70 px-2 py-0.5">
+                    </dd>
+                    <dd v-if="replaceFile" class="text-muted">
                       {{ (replaceFile.size / 1024 / 1024).toFixed(2) }} MB
-                    </span>
-                    <span v-if="form.width && form.height" class="rounded-full bg-default/70 px-2 py-0.5">
+                    </dd>
+                    <dd v-if="form.width && form.height" class="text-muted">
                       {{ form.width }} × {{ form.height }}
-                    </span>
-                  </div>
+                    </dd>
+                  </dl>
                   <input
                     ref="replaceInput"
                     type="file"
@@ -369,77 +366,65 @@ watch(
                     class="hidden"
                     @change="handleReplaceChange"
                   >
-                </div>
+                </aside>
 
-                <div class="flex-1 space-y-4">
-                  <section class="space-y-4">
-                    <div class="space-y-4">
-                      <div class="flex items-start gap-2 rounded-lg bg-elevated/60 px-3 py-2">
-                        <Icon name="tabler:stack-3" class="h-4 w-4 text-primary" />
-                        <div>
-                          <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-                            Series
-                          </p>
-                        </div>
-                      </div>
-
-                      <div class="flex w-full flex-col gap-4">
-                        <UAlert
-                          v-if="seriesManageErrorMessage"
-                          color="error"
-                          variant="soft"
-                          :title="t('series.list.loadFailed')"
-                          :description="seriesManageErrorMessage"
-                        >
-                          <template #actions>
-                            <UButton
-                              size="sm"
-                              color="error"
-                              variant="soft"
-                              icon="tabler:refresh"
-                              @click="handleRefreshSeriesOptions"
-                            >
-                              {{ t('common.actions.retry') }}
-                            </UButton>
-                          </template>
-                        </UAlert>
-
-                        <div class="space-y-3 rounded-xl border border-default/50 p-3">
-                          <UInputMenu
-                            v-model="selectedSeriesValues"
-                            multiple
-                            value-key="value"
-                            label-key="label"
-                            :items="mergedSeriesOptionItems"
-                            :loading="seriesOptionsPending"
-                            :filter-fields="['label', 'slug']"
-                            :portal="false"
-                            :placeholder="t('series.assign.searchPlaceholder')"
-                            icon="tabler:search"
-                            class="w-full"
+                <!-- METADATA PANE -->
+                <div class="min-w-0 flex-1 space-y-6">
+                  <USection label="Series" icon="tabler:stack-3" divider="none">
+                    <div class="space-y-3">
+                      <UAlert
+                        v-if="seriesManageErrorMessage"
+                        color="error"
+                        variant="soft"
+                        :title="t('series.list.loadFailed')"
+                        :description="seriesManageErrorMessage"
+                      >
+                        <template #actions>
+                          <UButton
+                            size="sm"
+                            color="error"
+                            variant="ghost"
+                            icon="tabler:refresh"
+                            @click="handleRefreshSeriesOptions"
                           >
-                            <template #item-label="{ item }">
-                              <div class="min-w-0">
-                                <p class="truncate text-sm text-highlighted">
-                                  {{ item.label }}
-                                </p>
-                                <p class="truncate text-xs text-muted">
-                                  /{{ item.slug }} · {{ t('series.list.count', { count: item.fileCount }) }}
-                                </p>
-                              </div>
-                            </template>
-                          </UInputMenu>
+                            {{ t('common.actions.retry') }}
+                          </UButton>
+                        </template>
+                      </UAlert>
 
-                          <div
-                            v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
-                            class="rounded-lg border border-default/40 bg-default/70 p-4 text-sm text-muted"
-                          >
-                            {{ t('series.assign.noSeries') }}
+                      <UInputMenu
+                        v-model="selectedSeriesValues"
+                        multiple
+                        value-key="value"
+                        label-key="label"
+                        :items="mergedSeriesOptionItems"
+                        :loading="seriesOptionsPending"
+                        :filter-fields="['label', 'slug']"
+                        :portal="false"
+                        :placeholder="t('series.assign.searchPlaceholder')"
+                        icon="tabler:search"
+                        class="w-full"
+                      >
+                        <template #item-label="{ item }">
+                          <div class="min-w-0">
+                            <p class="truncate text-sm text-highlighted">
+                              {{ item.label }}
+                            </p>
+                            <p class="truncate font-mono text-[11px] text-muted">
+                              /{{ item.slug }} · {{ t('series.list.count', { count: item.fileCount }) }}
+                            </p>
                           </div>
-                        </div>
-                      </div>
+                        </template>
+                      </UInputMenu>
+
+                      <p
+                        v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
+                        class="border-t border-[var(--color-border-muted)] pt-3 text-xs text-muted"
+                      >
+                        {{ t('series.assign.noSeries') }}
+                      </p>
                     </div>
-                  </section>
+                  </USection>
 
                   <AdminMetadataForm
                     v-model:form="form"
@@ -448,22 +433,22 @@ watch(
                   />
                 </div>
               </div>
-
-              <div class="sticky bottom-0 flex justify-end gap-2 bg-default/90 px-1 py-3 backdrop-blur">
-                <UButton variant="soft" color="neutral" icon="tabler:arrow-left" @click="handleClose">
-                  {{ t('common.actions.cancel') }}
-                </UButton>
-                <UButton
-                  color="primary"
-                  type="submit"
-                  :loading="loading"
-                  icon="tabler:device-floppy"
-                >
-                  {{ t('common.actions.save') }}
-                </UButton>
-              </div>
             </UForm>
           </UContainer>
+          <footer class="sticky bottom-0 flex justify-end gap-2 border-t border-[var(--color-border-muted)] bg-[var(--color-bg)]/95 px-6 py-3 backdrop-blur">
+            <UButton variant="ghost" color="neutral" @click="handleClose">
+              {{ t('common.actions.cancel') }}
+            </UButton>
+            <UButton
+              color="primary"
+              type="button"
+              :loading="loading"
+              icon="tabler:device-floppy"
+              @click="handleSubmit"
+            >
+              {{ t('common.actions.save') }}
+            </UButton>
+          </footer>
         </div>
       </div>
     </template>

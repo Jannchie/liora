@@ -47,12 +47,14 @@ async function handleTabChange(value: string | number): Promise<void> {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-default/25 bg-default/90 py-2 text-sm text-default backdrop-blur sm:py-3">
-    <div class="flex min-w-0 flex-1 items-center">
+  <div class="flex flex-wrap items-end justify-between gap-2 text-sm text-default">
+    <div class="flex min-w-0 flex-1 items-end">
       <UTabs
         :items="navItems"
         :model-value="activeTab"
         :content="false"
+        variant="underline"
+        class="w-full"
         @update:model-value="handleTabChange"
       >
         <template #leading="{ item }">
@@ -61,6 +63,7 @@ async function handleTabChange(value: string | number): Promise<void> {
       </UTabs>
     </div>
     <div class="flex shrink-0 items-center gap-1.5">
+      <UThemeToggle />
       <LanguageSwitcher class="hidden sm:block" />
       <UButton
         to="/"

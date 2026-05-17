@@ -1,3 +1,5 @@
+import tailwindcss from '@tailwindcss/vite'
+
 function resolveDomains(): string[] {
   const domains = new Set<string>()
   const add = (value: string | undefined): void => {
@@ -94,6 +96,25 @@ export default defineNuxtConfig({
           media: '(prefers-color-scheme: dark)',
         },
       ],
+      /*
+       * Pre-hydration colour-mode setter.
+       *
+       * Why this is inline and synchronous (not a plugin):
+       *   useColorMode only runs after Vue has hydrated. That leaves a window
+       *   where the page renders in default (light) mode and then flashes to
+       *   dark on JS execution. The script below runs before any CSS resolves,
+       *   reads the same localStorage key our composable uses, and adds the
+       *   class to <html> immediately — so the first paint is already correct.
+       *
+       * Storage key/values mirror `useColorMode({ storageKey, modes })` in
+       * `components/U/ThemeToggle.vue`. Keep them in sync.
+       */
+      script: [
+        {
+          innerHTML: `(function(){try{var k='liora-color-mode';var v=localStorage.getItem(k);if(v){v=v.replace(/^['"]|['"]$/g,'');}var prefersDark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;var mode=v||'auto';var resolved=mode==='dark'||(mode!=='light'&&prefersDark)?'dark':'light';document.documentElement.classList.add(resolved);}catch(e){}})();`,
+          tagPosition: 'head' as const,
+        },
+      ],
     },
   },
   runtimeConfig: {
@@ -133,7 +154,6 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxt/icon',
     '@nuxtjs/seo',
-    '@nuxt/ui',
     '@nuxt/test-utils',
     '@nuxtjs/i18n',
     '@vite-pwa/nuxt',
@@ -233,6 +253,7 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    plugins: [tailwindcss()],
     worker: {
       format: 'es',
     },

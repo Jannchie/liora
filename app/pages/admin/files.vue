@@ -791,20 +791,19 @@ watch(fetchError, (value) => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-8 py-10">
+    <UContainer class="space-y-10 py-10">
       <AdminNav />
 
-      <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 class="flex items-center gap-2 text-3xl font-semibold">
-            <Icon name="tabler:list" class="h-6 w-6 text-primary" />
-            <span>{{ t('admin.files.title') }}</span>
-          </h1>
-        </div>
-        <div class="flex items-center gap-2">
+      <UPageHeader
+        :eyebrow="t('admin.nav.label')"
+        icon="tabler:shield-check"
+        :title="t('admin.files.title')"
+      >
+        <template #actions>
           <UButton
             color="primary"
-            variant="soft"
+            variant="ghost"
+            size="sm"
             :disabled="!hasFiles || reclassifying"
             :loading="reclassifying"
             icon="tabler:wand"
@@ -814,7 +813,8 @@ watch(fetchError, (value) => {
           </UButton>
           <UButton
             color="primary"
-            variant="soft"
+            variant="ghost"
+            size="sm"
             :disabled="missingDepthCount === 0 || bulkDepthProcessing"
             :loading="bulkDepthProcessing"
             icon="tabler:stack-2"
@@ -824,62 +824,50 @@ watch(fetchError, (value) => {
           </UButton>
           <UButton
             color="primary"
-            variant="solid"
+            size="sm"
             :loading="isLoading"
             icon="tabler:refresh"
             @click="handleRefresh"
           >
             {{ t('admin.files.actions.refresh') }}
           </UButton>
-        </div>
-      </header>
+        </template>
+      </UPageHeader>
 
       <section
         v-if="showBatchProgress"
-        class="space-y-2 rounded-xl border border-default/50 bg-default/80 p-4"
+        class="space-y-2"
       >
-        <div class="flex items-center justify-between gap-2 text-sm">
-          <div class="flex items-center gap-2">
-            <Icon name="tabler:stack-2" class="h-4 w-4 text-primary" />
-            <span class="font-semibold text-highlighted">{{ t('admin.files.batch.title') }}</span>
-          </div>
-          <span class="text-xs text-muted">{{ batchProgressPercent.toFixed(1) }}%</span>
+        <div class="flex items-center justify-between gap-2 text-xs uppercase tracking-[0.12em] text-muted">
+          <span class="flex items-center gap-1.5">
+            <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
+            <span>{{ t('admin.files.batch.title') }}</span>
+          </span>
+          <span>{{ batchProgressPercent.toFixed(1) }}%</span>
         </div>
-        <div class="h-2 w-full overflow-hidden rounded-full bg-default/50">
+        <div class="h-px w-full overflow-hidden bg-[var(--color-border-muted)]">
           <div
-            class="h-full bg-primary transition-all"
+            class="h-full bg-[var(--color-primary)] transition-all"
             :style="{ width: `${batchProgressPercent}%` }"
           />
         </div>
         <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-          <span class="flex items-center gap-1">
-            <Icon name="tabler:clock" class="h-4 w-4" />
-            <span>{{ batchProgressLabel }}</span>
-          </span>
-          <span class="flex items-center gap-1">
-            <Icon name="tabler:list-check" class="h-4 w-4" />
-            <span>{{ batchProgressSummary }}</span>
-          </span>
+          <span>{{ batchProgressLabel }}</span>
+          <span>{{ batchProgressSummary }}</span>
         </div>
       </section>
 
-      <section class="space-y-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="flex items-center gap-2 text-xl font-semibold">
-              <Icon name="tabler:table" class="h-5 w-5 text-primary" />
-              <span>{{ t('admin.files.section.title') }}</span>
-            </h2>
-          </div>
-          <div class="flex items-center gap-2 text-sm text-muted">
-            <Icon name="tabler:hash" class="h-4 w-4" />
-            <span>{{ recordCountText }}</span>
-          </div>
-        </div>
-        <div class="rounded-xl bg-default/80 p-4">
+      <USection
+        :label="t('admin.files.section.title')"
+        icon="tabler:table"
+      >
+        <template #actions>
+          <span class="text-xs text-muted">{{ recordCountText }}</span>
+        </template>
+        <div class="space-y-3">
           <div
             v-if="selectedCount > 0"
-            class="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-3 py-2"
+            class="flex flex-wrap items-center gap-2 border-l-2 border-[var(--color-primary)] bg-[var(--color-primary-soft)]/40 px-3 py-2"
           >
             <span class="text-sm font-medium text-highlighted">
               {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
@@ -976,7 +964,7 @@ watch(fetchError, (value) => {
               </div>
             </template>
             <template #preview-cell="{ row }">
-              <div class="h-14 w-24 overflow-hidden rounded-md bg-black/5">
+              <div class="h-14 w-24 overflow-hidden rounded-lg bg-black/5">
                 <img
                   :key="row.original.id"
                   :alt="row.original.title || untitledLabel"
@@ -1030,14 +1018,14 @@ watch(fetchError, (value) => {
               </div>
             </template>
           </UTable>
-          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-col gap-3 border-t border-[var(--color-border-muted)] pt-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="text-sm text-muted">
               {{ paginationText }}
             </div>
             <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
           </div>
         </div>
-      </section>
+      </USection>
     </UContainer>
 
     <AdminEditModal
@@ -1057,143 +1045,134 @@ watch(fetchError, (value) => {
     />
     <UModal
       v-model:open="deleteModalOpen"
+      size="sm"
       :title="t('admin.files.delete.heading')"
       :description="t('admin.files.delete.description')"
     >
-      <template #content>
-        <div class="w-full max-w-xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
-          <div class="flex items-start justify-between">
-            <div class="space-y-1">
-              <p class="text-sm text-error">
-                {{ t('admin.files.delete.title') }}
-              </p>
-              <h3 class="text-lg font-semibold">
-                {{ t('admin.files.delete.heading') }}
-              </h3>
-              <p class="text-xs text-muted">
-                {{ t('admin.files.delete.description') }}
-              </p>
-            </div>
-            <UButton variant="soft" color="neutral" icon="tabler:x" @click="deleteModalOpen = false">
-              {{ t('common.actions.close') }}
-            </UButton>
+      <div class="space-y-4">
+        <dl class="space-y-1.5 text-sm">
+          <div class="flex gap-2">
+            <dt class="w-24 shrink-0 text-muted">
+              {{ t('admin.files.delete.titleLabel') }}
+            </dt>
+            <dd class="font-medium">
+              {{ deleteTarget?.title || untitledLabel }}
+            </dd>
           </div>
-          <div class="space-y-3">
-            <p class="text-sm">
-              {{ t('admin.files.delete.titleLabel') }}<span class="font-medium">{{ deleteTarget?.title || untitledLabel }}</span>
-            </p>
-            <p class="text-sm text-toned">
-              {{ t('admin.files.delete.createdAtLabel') }}{{ deleteTarget ? formatDateTime(deleteTarget.createdAt) : '' }}
-            </p>
+          <div class="flex gap-2">
+            <dt class="w-24 shrink-0 text-muted">
+              {{ t('admin.files.delete.createdAtLabel') }}
+            </dt>
+            <dd class="text-toned">
+              {{ deleteTarget ? formatDateTime(deleteTarget.createdAt) : '' }}
+            </dd>
           </div>
-          <div class="flex justify-end gap-2">
-            <UButton variant="soft" color="neutral" icon="tabler:arrow-left" @click="deleteModalOpen = false">
-              {{ t('common.actions.cancel') }}
-            </UButton>
-            <UButton
-              color="error"
-              :loading="deletingId !== null"
-              icon="tabler:trash"
-              @click="confirmDelete"
-            >
-              {{ t('admin.files.delete.confirm') }}
-            </UButton>
-          </div>
+        </dl>
+        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+          <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
+            {{ t('common.actions.cancel') }}
+          </UButton>
+          <UButton
+            color="error"
+            :loading="deletingId !== null"
+            icon="tabler:trash"
+            @click="confirmDelete"
+          >
+            {{ t('admin.files.delete.confirm') }}
+          </UButton>
         </div>
-      </template>
+      </div>
     </UModal>
 
     <UModal
       v-model:open="bulkMetadataModalOpen"
+      size="xl"
+      scrollable
       :title="t('admin.files.bulk.editMetadata')"
       :description="t('admin.files.bulk.selected', { count: selectedCount })"
     >
-      <template #content>
-        <div class="w-full max-w-5xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
-          <div class="space-y-2">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-              {{ t('admin.files.bulk.fields') }}
-            </p>
-            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-              <label
-                v-for="field in batchEditableFields"
-                :key="field.key"
-                class="flex items-center gap-2 rounded-md border border-default/50 px-2 py-1 text-sm"
+      <UForm :state="bulkMetadataForm" class="space-y-6" @submit.prevent="saveBulkMetadata">
+        <div class="space-y-3">
+          <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+            {{ t('admin.files.bulk.fields') }}
+          </p>
+          <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <label
+              v-for="field in batchEditableFields"
+              :key="field.key"
+              class="flex items-center gap-2 border-l border-[var(--color-border-muted)] pl-2 text-sm transition-colors hover:border-[var(--color-primary)]"
+            >
+              <input
+                type="checkbox"
+                class="h-4 w-4 cursor-pointer accent-[var(--color-primary)]"
+                :checked="selectedBatchFields.includes(field.key)"
+                @change="(event) => {
+                  const checked = (event.target as HTMLInputElement).checked
+                  if (checked) {
+                    selectedBatchFields = [...new Set([...selectedBatchFields, field.key])]
+                  }
+                  else {
+                    selectedBatchFields = selectedBatchFields.filter(item => item !== field.key)
+                  }
+                }"
               >
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
-                  :checked="selectedBatchFields.includes(field.key)"
-                  @change="(event) => {
-                    const checked = (event.target as HTMLInputElement).checked
-                    if (checked) {
-                      selectedBatchFields = [...new Set([...selectedBatchFields, field.key])]
-                    }
-                    else {
-                      selectedBatchFields = selectedBatchFields.filter(item => item !== field.key)
-                    }
-                  }"
-                >
-                <span>{{ field.label }}</span>
-              </label>
-            </div>
+              <span>{{ field.label }}</span>
+            </label>
           </div>
-
-          <UForm :state="bulkMetadataForm" @submit.prevent="saveBulkMetadata">
-            <AdminMetadataForm
-              v-model:form="bulkMetadataForm"
-              v-model:capture-time-local="bulkMetadataCaptureTimeLocal"
-              :classify-source="{ imageUrl: '' }"
-            />
-            <div class="mt-4 flex justify-end gap-2">
-              <UButton variant="soft" color="neutral" icon="tabler:x" @click="bulkMetadataModalOpen = false">
-                {{ t('common.actions.cancel') }}
-              </UButton>
-              <UButton
-                color="primary"
-                type="submit"
-                icon="tabler:device-floppy"
-                :loading="bulkMetadataSaving"
-              >
-                {{ t('common.actions.save') }}
-              </UButton>
-            </div>
-          </UForm>
         </div>
-      </template>
+
+        <AdminMetadataForm
+          v-model:form="bulkMetadataForm"
+          v-model:capture-time-local="bulkMetadataCaptureTimeLocal"
+          :classify-source="{ imageUrl: '' }"
+        />
+        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+          <UButton variant="ghost" color="neutral" @click="bulkMetadataModalOpen = false">
+            {{ t('common.actions.cancel') }}
+          </UButton>
+          <UButton
+            color="primary"
+            type="submit"
+            icon="tabler:device-floppy"
+            :loading="bulkMetadataSaving"
+          >
+            {{ t('common.actions.save') }}
+          </UButton>
+        </div>
+      </UForm>
     </UModal>
 
     <UModal
       v-model:open="bulkSeriesModalOpen"
+      size="md"
       :title="t('admin.files.bulk.addToSeries')"
       :description="t('admin.files.bulk.selected', { count: selectedCount })"
     >
-      <template #content>
-        <div class="w-full max-w-xl space-y-4 rounded-xl bg-default/90 p-4 backdrop-blur">
-          <UFormField :label="t('admin.files.bulk.seriesTarget')">
-            <USelect
-              v-model="selectedSeriesIdForBatchModel"
-              :items="seriesSelectItems"
-              value-attribute="value"
-              option-attribute="label"
-              :placeholder="t('admin.files.bulk.seriesPlaceholder')"
-            />
-          </UFormField>
-          <div class="flex justify-end gap-2">
-            <UButton variant="soft" color="neutral" icon="tabler:x" @click="bulkSeriesModalOpen = false">
-              {{ t('common.actions.cancel') }}
-            </UButton>
-            <UButton
-              color="primary"
-              icon="tabler:photo-up"
-              :loading="bulkSeriesSaving"
-              @click="saveBulkSeries"
-            >
-              {{ t('admin.files.bulk.confirmAddSeries') }}
-            </UButton>
-          </div>
+      <div class="space-y-4">
+        <UFormField :label="t('admin.files.bulk.seriesTarget')">
+          <USelect
+            v-model="selectedSeriesIdForBatchModel"
+            class="w-full"
+            :items="seriesSelectItems"
+            value-attribute="value"
+            option-attribute="label"
+            :placeholder="t('admin.files.bulk.seriesPlaceholder')"
+          />
+        </UFormField>
+        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+          <UButton variant="ghost" color="neutral" @click="bulkSeriesModalOpen = false">
+            {{ t('common.actions.cancel') }}
+          </UButton>
+          <UButton
+            color="primary"
+            icon="tabler:photo-up"
+            :loading="bulkSeriesSaving"
+            @click="saveBulkSeries"
+          >
+            {{ t('admin.files.bulk.confirmAddSeries') }}
+          </UButton>
         </div>
-      </template>
+      </div>
     </UModal>
   </div>
 </template>

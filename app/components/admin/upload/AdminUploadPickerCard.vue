@@ -29,61 +29,52 @@ const videoValueModel = computed<File | null>({
 </script>
 
 <template>
-  <div class="grid gap-6">
-    <UCard>
-      <template #header>
-        <div class="space-y-1">
-          <h2 class="flex items-center gap-2 text-xl font-semibold">
-            <Icon name="tabler:upload" class="h-5 w-5 text-primary" />
-            <span>{{ t('admin.upload.sections.upload.label') }}</span>
-          </h2>
-        </div>
-      </template>
-      <div class="space-y-4">
-        <div class="flex flex-wrap items-center gap-2">
-          <UButton
-            size="sm"
-            type="button"
-            :variant="uploadMode === 'image' ? 'solid' : 'soft'"
-            :color="uploadMode === 'image' ? 'primary' : 'neutral'"
-            :aria-pressed="uploadMode === 'image'"
-            @click="emit('selectMode', 'image')"
-          >
-            {{ t('admin.upload.sections.upload.mode.image') }}
-          </UButton>
-          <UButton
-            size="sm"
-            type="button"
-            :variant="uploadMode === 'live' ? 'solid' : 'soft'"
-            :color="uploadMode === 'live' ? 'primary' : 'neutral'"
-            :aria-pressed="uploadMode === 'live'"
-            @click="emit('selectMode', 'live')"
-          >
-            {{ t('admin.upload.sections.upload.mode.live') }}
-          </UButton>
-        </div>
-        <p v-if="uploadMode === 'live'" class="text-xs text-muted">
-          {{ t('admin.upload.sections.upload.liveHint') }}
-        </p>
-        <UFileUpload
-          v-if="uploadMode === 'image'"
-          :ref="setFileUploadRef"
-          v-model="uploadValueModel"
-          accept="image/*"
-          :label="t('admin.upload.sections.upload.dropHint')"
-          :description="t('admin.upload.sections.upload.supported')"
-          class="w-full"
-        />
-        <UFileUpload
-          v-else
-          :ref="setVideoUploadRef"
-          v-model="videoValueModel"
-          accept="video/*"
-          :label="t('admin.upload.sections.upload.liveDropHint')"
-          :description="t('admin.upload.sections.upload.liveSupported')"
-          class="w-full"
-        />
+  <USection
+    :label="t('admin.upload.sections.upload.label')"
+    icon="tabler:upload"
+  >
+    <div class="space-y-5">
+      <div class="inline-flex items-center divide-x divide-[var(--color-border-muted)] border border-[var(--color-border-muted)]">
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm transition-colors"
+          :class="uploadMode === 'image' ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]' : 'hover:bg-[var(--color-muted)]'"
+          :aria-pressed="uploadMode === 'image'"
+          @click="emit('selectMode', 'image')"
+        >
+          {{ t('admin.upload.sections.upload.mode.image') }}
+        </button>
+        <button
+          type="button"
+          class="px-3 py-1.5 text-sm transition-colors"
+          :class="uploadMode === 'live' ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]' : 'hover:bg-[var(--color-muted)]'"
+          :aria-pressed="uploadMode === 'live'"
+          @click="emit('selectMode', 'live')"
+        >
+          {{ t('admin.upload.sections.upload.mode.live') }}
+        </button>
       </div>
-    </UCard>
-  </div>
+      <p v-if="uploadMode === 'live'" class="text-xs text-muted">
+        {{ t('admin.upload.sections.upload.liveHint') }}
+      </p>
+      <UFileUpload
+        v-if="uploadMode === 'image'"
+        :ref="setFileUploadRef"
+        v-model="uploadValueModel"
+        accept="image/*"
+        :label="t('admin.upload.sections.upload.dropHint')"
+        :description="t('admin.upload.sections.upload.supported')"
+        class="w-full"
+      />
+      <UFileUpload
+        v-else
+        :ref="setVideoUploadRef"
+        v-model="videoValueModel"
+        accept="video/*"
+        :label="t('admin.upload.sections.upload.liveDropHint')"
+        :description="t('admin.upload.sections.upload.liveSupported')"
+        class="w-full"
+      />
+    </div>
+  </USection>
 </template>

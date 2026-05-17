@@ -618,17 +618,15 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-8 py-10">
+    <UContainer class="space-y-10 py-10">
       <AdminNav />
 
-      <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 class="flex items-center gap-2 text-3xl font-semibold">
-            <Icon name="tabler:database" class="h-6 w-6 text-primary" />
-            <span>{{ t('admin.upload.title') }}</span>
-          </h1>
-        </div>
-        <div class="flex items-center gap-2">
+      <UPageHeader
+        :eyebrow="t('admin.nav.label')"
+        icon="tabler:shield-check"
+        :title="t('admin.upload.title')"
+      >
+        <template #actions>
           <UButton
             size="sm"
             color="primary"
@@ -641,14 +639,14 @@ onBeforeUnmount(() => {
             v-if="batchItems.length > 0"
             size="sm"
             color="neutral"
-            variant="soft"
+            variant="ghost"
             icon="tabler:trash"
             @click="clearBatchQueue"
           >
             {{ t('admin.upload.batch.clearQueue') }}
           </UButton>
-        </div>
-      </header>
+        </template>
+      </UPageHeader>
 
       <input
         ref="batchInputRef"
@@ -658,78 +656,80 @@ onBeforeUnmount(() => {
         class="hidden"
         @change="handleBatchFilesPicked"
       >
-      <UCard v-if="batchItems.length > 0">
-        <template #header>
-          <h2 class="text-lg font-semibold">
-            {{ t('admin.upload.batch.title') }}
-          </h2>
+      <USection
+        v-if="batchItems.length > 0"
+        :label="t('admin.upload.batch.title')"
+        icon="tabler:photo-plus"
+      >
+        <template #actions>
+          <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(true)">
+            {{ t('admin.upload.batch.selectAll') }}
+          </UButton>
+          <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(false)">
+            {{ t('admin.upload.batch.selectNone') }}
+          </UButton>
+          <UButton
+            size="xs"
+            color="primary"
+            icon="tabler:upload"
+            :loading="batchSubmitting"
+            @click="submitBatchUpload"
+          >
+            {{ t('admin.upload.batch.startUpload') }}
+          </UButton>
         </template>
-        <div class="space-y-3">
-          <div class="flex flex-wrap items-center gap-3 text-xs text-muted">
-            <span>{{ t('admin.upload.batch.stats.total', { count: batchItems.length }) }}</span>
-            <span>{{ t('admin.upload.batch.stats.selected', { count: batchSelectedCount }) }}</span>
-            <span>{{ t('admin.upload.batch.stats.pending', { count: batchPendingCount }) }}</span>
-            <span>{{ t('admin.upload.batch.stats.uploading', { count: batchUploadingCount }) }}</span>
-            <span>{{ t('admin.upload.batch.stats.success', { count: batchSuccessCount }) }}</span>
-            <span>{{ t('admin.upload.batch.stats.failed', { count: batchFailedCount }) }}</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <UButton size="xs" color="neutral" variant="soft" @click="setAllBatchSelected(true)">
-              {{ t('admin.upload.batch.selectAll') }}
-            </UButton>
-            <UButton size="xs" color="neutral" variant="soft" @click="setAllBatchSelected(false)">
-              {{ t('admin.upload.batch.selectNone') }}
-            </UButton>
-            <UButton
-              size="xs"
-              color="primary"
-              icon="tabler:upload"
-              :loading="batchSubmitting"
-              @click="submitBatchUpload"
-            >
-              {{ t('admin.upload.batch.startUpload') }}
-            </UButton>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="space-y-4">
+          <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
+            <div class="flex items-center gap-1"><dt class="text-muted">Total</dt><dd class="font-mono">{{ batchItems.length }}</dd></div>
+            <div class="flex items-center gap-1"><dt class="text-muted">Selected</dt><dd class="font-mono">{{ batchSelectedCount }}</dd></div>
+            <div class="flex items-center gap-1"><dt class="text-muted">Pending</dt><dd class="font-mono">{{ batchPendingCount }}</dd></div>
+            <div class="flex items-center gap-1"><dt class="text-muted">Uploading</dt><dd class="font-mono">{{ batchUploadingCount }}</dd></div>
+            <div class="flex items-center gap-1"><dt class="text-muted">Success</dt><dd class="font-mono text-success">{{ batchSuccessCount }}</dd></div>
+            <div class="flex items-center gap-1"><dt class="text-muted">Failed</dt><dd class="font-mono text-error">{{ batchFailedCount }}</dd></div>
+          </dl>
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <div
               v-for="item in batchItems"
               :key="item.id"
-              class="space-y-2 rounded-lg border border-default/50 bg-default/60 p-2"
+              class="space-y-2"
             >
-              <div class="flex items-center justify-between gap-2">
-                <label class="flex items-center gap-2 text-sm font-medium">
-                  <input
-                    v-model="item.selected"
-                    type="checkbox"
-                    class="h-4 w-4 rounded border-default text-primary"
-                  >
-                  <span class="truncate">{{ item.file.name }}</span>
-                </label>
+              <div class="relative">
+                <img
+                  :src="item.previewUrl"
+                  :alt="item.file.name"
+                  class="aspect-[4/3] w-full object-cover"
+                >
                 <UButton
                   size="xs"
                   color="neutral"
                   variant="ghost"
                   icon="tabler:x"
+                  class="absolute right-1 top-1 bg-[var(--color-default)]/80 backdrop-blur"
                   @click="removeBatchItem(item.id)"
                 />
               </div>
-              <img
-                :src="item.previewUrl"
-                :alt="item.file.name"
-                class="h-36 w-full rounded-md object-cover"
-              >
-              <div class="flex items-center justify-between text-xs text-muted">
-                <span>{{ item.form.width }} × {{ item.form.height }}</span>
-                <span>{{ formatFileSize(item.file.size) }}</span>
+              <div class="space-y-1">
+                <label class="flex items-center gap-2 text-sm">
+                  <input
+                    v-model="item.selected"
+                    type="checkbox"
+                    class="h-4 w-4 accent-[var(--color-primary)]"
+                  >
+                  <span class="truncate font-medium">{{ item.file.name }}</span>
+                </label>
+                <div class="flex items-center justify-between font-mono text-[11px] text-muted">
+                  <span>{{ item.form.width }} × {{ item.form.height }}</span>
+                  <span>{{ formatFileSize(item.file.size) }}</span>
+                </div>
+                <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
+                  {{ t(`admin.upload.batch.status.${item.status}`) }}
+                  <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
+                </p>
               </div>
-              <p class="text-xs" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
-                {{ t(`admin.upload.batch.status.${item.status}`) }}
-                <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
-              </p>
             </div>
           </div>
         </div>
-      </UCard>
+      </USection>
 
       <AdminUploadPickerCard
         v-show="!hasSelection"

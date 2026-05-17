@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FileResponse } from '~/types/file'
 import type { SeriesDetail, SeriesSummary } from '~/types/series'
+import { useVirtualList } from '@vueuse/core'
 import { computed, reactive, ref, watch } from 'vue'
 
 const { t } = useI18n()
@@ -48,6 +49,7 @@ const saving = ref(false)
 const deleting = ref(false)
 const syncingOrder = ref(false)
 const addQuery = ref('')
+const createModalOpen = ref(false)
 
 const selectedFileIds = ref<number[]>([])
 
@@ -87,16 +89,45 @@ const filteredCandidates = computed(() => {
   const query = addQuery.value.trim().toLowerCase()
   const available = allFiles.value.filter(file => !selectedFileIdSet.value.has(file.id))
   if (!query) {
-    return available.slice(0, 24)
+    return available
   }
-  return available
-    .filter((file) => {
-      const title = file.title?.toLowerCase() ?? ''
-      const originalName = file.originalName?.toLowerCase() ?? ''
-      return title.includes(query) || originalName.includes(query) || String(file.id).includes(query)
-    })
-    .slice(0, 24)
+  return available.filter((file) => {
+    const title = file.title?.toLowerCase() ?? ''
+    const originalName = file.originalName?.toLowerCase() ?? ''
+    return title.includes(query) || originalName.includes(query) || String(file.id).includes(query)
+  })
 })
+
+const inSeriesFiles = computed<Array<{ id: number, file: FileResponse | undefined }>>(() =>
+  selectedFileIds.value.map(id => ({ id, file: allFilesById.value.get(id) })),
+)
+
+// Fixed row height keeps useVirtualList math trivial and prevents layout jitter
+// when content varies. h-14 = 56px; matches img h-10 + py-2 (16px).
+const ROW_HEIGHT = 56
+
+const { list: virtualCandidates, containerProps: candidatesContainerProps, wrapperProps: candidatesWrapperProps } = useVirtualList(filteredCandidates, {
+  itemHeight: ROW_HEIGHT,
+  overscan: 6,
+})
+
+const { list: virtualInSeries, containerProps: inSeriesContainerProps, wrapperProps: inSeriesWrapperProps } = useVirtualList(inSeriesFiles, {
+  itemHeight: ROW_HEIGHT,
+  overscan: 6,
+})
+
+// Low-res thumbnails — rendered ~56px wide on screen, so 112px source covers
+// 2× DPR. webp + fit:cover keeps payload small on the busy list view.
+const image = useImage()
+function resolveThumbnailSrc(url: string | undefined | null): string {
+  const source = (url ?? '').trim()
+  if (!source) {
+    return ''
+  }
+  return image.getImage(source, {
+    modifiers: { width: 112, height: 80, format: 'webp', fit: 'cover' },
+  }).url
+}
 
 function formatCountLabel(value: number): string {
   return t('admin.series.count', { count: value })
@@ -186,6 +217,7 @@ async function createSeries(): Promise<void> {
     })
     await refreshSeries()
     resetCreateForm()
+    createModalOpen.value = false
     const next = seriesList.value.find(item => item.id === created.id)
     if (next) {
       await selectSeries(next)
@@ -372,192 +404,302 @@ watch(filesError, (value) => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-8 py-10">
+    <UContainer class="space-y-10 py-10">
       <AdminNav />
 
-      <header class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="flex items-center gap-2 text-3xl font-semibold">
-            <Icon name="tabler:stack-3" class="h-6 w-6 text-primary" />
-            <span>{{ t('admin.series.title') }}</span>
-          </h1>
-        </div>
-      </header>
+      <UPageHeader
+        :eyebrow="t('admin.nav.label')"
+        icon="tabler:shield-check"
+        :title="t('admin.series.title')"
+        :description="t('admin.series.seoDescription')"
+      >
+        <template #actions>
+          <UButton color="primary" size="sm" icon="tabler:plus" @click="createModalOpen = true">
+            {{ t('admin.series.create.action') }}
+          </UButton>
+        </template>
+      </UPageHeader>
 
       <div v-if="isLoading" class="py-10 text-center text-sm text-muted">
         {{ t('common.loading') }}
       </div>
 
-      <div v-else class="grid gap-6 xl:grid-cols-[380px,1fr]">
-        <section class="space-y-4 rounded-xl border border-default/40 p-4">
-          <h2 class="text-sm font-semibold text-highlighted">
-            {{ t('admin.series.create.title') }}
-          </h2>
-          <UFormField :label="t('admin.series.form.title')">
-            <UInput v-model="createForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
-          </UFormField>
-          <UFormField :label="t('admin.series.form.slug')">
-            <UInput v-model="createForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
-          </UFormField>
-          <UFormField :label="t('admin.series.form.description')">
-            <UTextarea v-model="createForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
-          </UFormField>
-          <UButton color="primary" :loading="creating" icon="tabler:plus" @click="createSeries">
-            {{ t('admin.series.create.action') }}
-          </UButton>
-
-          <UDivider />
-
-          <h2 class="text-sm font-semibold text-highlighted">
-            {{ t('admin.series.listTitle') }}
-          </h2>
-          <div class="max-h-120 space-y-2 overflow-auto pr-1">
+      <div v-else class="grid gap-x-10 gap-y-10 lg:grid-cols-[260px,1fr]">
+        <!-- LEFT · MASTER LIST -->
+        <aside class="lg:border-r lg:border-[var(--color-border-muted)] lg:pr-8">
+          <div class="flex items-baseline justify-between pb-3">
+            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {{ t('admin.series.listTitle') }}
+            </p>
+            <span class="font-mono text-[11px] text-muted">{{ seriesList.length }}</span>
+          </div>
+          <div class="-mx-3 max-h-[calc(100vh-260px)] overflow-auto">
             <button
               v-for="item in seriesList"
               :key="item.id"
               type="button"
-              class="w-full rounded-lg border px-3 py-2 text-left transition"
-              :class="item.id === selectedSeriesId ? 'border-primary bg-primary/10' : 'border-default/40 hover:border-primary/40'"
+              class="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--color-muted)]"
+              :class="item.id === selectedSeriesId
+                ? 'border-l-2 border-l-[var(--color-primary)] bg-[var(--color-primary-soft)]/40'
+                : 'border-l-2 border-l-transparent'"
               @click="selectSeries(item)"
             >
-              <p class="text-sm font-medium text-highlighted">
-                {{ item.title }}
-              </p>
-              <p class="text-xs text-muted">
-                {{ formatCountLabel(item.fileCount) }}
-              </p>
+              <div class="h-9 w-12 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+                <img
+                  v-if="item.cover?.imageUrl"
+                  :src="item.cover.imageUrl"
+                  :alt="item.title"
+                  loading="lazy"
+                  class="h-full w-full object-cover"
+                >
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-medium text-highlighted">
+                  {{ item.title }}
+                </p>
+                <p class="truncate font-mono text-[11px] text-muted">
+                  /{{ item.slug }} · {{ item.fileCount }}
+                </p>
+              </div>
             </button>
+            <p v-if="seriesList.length === 0" class="px-3 py-6 text-center text-xs text-muted">
+              —
+            </p>
           </div>
-        </section>
+        </aside>
 
-        <section v-if="selectedSeries" class="space-y-5 rounded-xl border border-default/40 p-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="text-lg font-semibold text-highlighted">
-              {{ t('admin.series.edit.title') }}
-            </h2>
-            <div class="flex items-center gap-2">
-              <UButton color="primary" :loading="saving" icon="tabler:device-floppy" @click="saveSeries">
-                {{ t('common.actions.save') }}
-              </UButton>
-              <UButton color="error" variant="soft" :loading="deleting" icon="tabler:trash" @click="deleteSeries">
-                {{ t('common.actions.delete') }}
-              </UButton>
-            </div>
-          </div>
-
-          <div class="grid gap-3 sm:grid-cols-2">
-            <UFormField :label="t('admin.series.form.title')">
-              <UInput v-model="editForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
-            </UFormField>
-            <UFormField :label="t('admin.series.form.slug')">
-              <UInput v-model="editForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
-            </UFormField>
-            <UFormField :label="t('admin.series.form.description')" class="sm:col-span-2">
-              <UTextarea v-model="editForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
-            </UFormField>
-            <UFormField :label="t('admin.series.form.cover')" class="sm:col-span-2">
-              <USelect
-                v-model="coverFileIdModel"
-                class="w-full"
-                :items="coverOptions"
-                value-attribute="value"
-                option-attribute="label"
-                :placeholder="t('admin.series.form.coverPlaceholder')"
-              />
-            </UFormField>
-          </div>
-
-          <UDivider />
-
-          <div class="space-y-3">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <h3 class="text-sm font-semibold text-highlighted">
-                {{ t('admin.series.files.title') }}
-              </h3>
-              <UButton color="primary" variant="soft" :loading="syncingOrder" icon="tabler:sort-ascending" @click="saveOrder">
-                {{ t('admin.series.files.saveOrder') }}
-              </UButton>
-            </div>
-
-            <UInput
-              v-model="addQuery"
-              class="w-full"
-              :placeholder="t('admin.series.files.searchPlaceholder')"
-              icon="tabler:search"
-            />
-
-            <div class="grid gap-2 rounded-lg border border-default/40 p-2">
-              <div
-                v-for="file in filteredCandidates"
-                :key="file.id"
-                class="flex items-center gap-2 rounded-md border border-default/30 px-2 py-1.5"
+        <!-- RIGHT · DETAIL -->
+        <section v-if="selectedSeries" class="space-y-10">
+          <!-- HERO -->
+          <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
+            <div class="aspect-[4/3] w-full max-w-[260px] shrink-0 overflow-hidden bg-[var(--color-muted)]">
+              <img
+                v-if="selectedSeries.cover?.imageUrl"
+                :src="selectedSeries.cover.imageUrl"
+                :alt="selectedSeries.title"
+                loading="lazy"
+                class="h-full w-full object-cover"
               >
-                <div class="h-10 w-14 shrink-0 overflow-hidden rounded bg-black/5">
-                  <img
-                    v-if="file.imageUrl"
-                    :src="file.imageUrl"
-                    :alt="file.title || file.originalName || `#${file.id}`"
-                    loading="lazy"
-                    class="h-full w-full object-cover"
-                  >
-                </div>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm text-highlighted">
-                    {{ file.title || file.originalName || `#${file.id}` }}
-                  </p>
-                  <p class="text-xs text-muted">
-                    #{{ file.id }}
-                  </p>
-                </div>
-                <UButton size="xs" color="primary" variant="soft" icon="tabler:plus" class="shrink-0" @click="addFile(file.id)">
-                  {{ t('common.actions.add') }}
+              <div v-else class="flex h-full w-full items-center justify-center text-muted">
+                <Icon name="tabler:photo-off" class="h-8 w-8" />
+              </div>
+            </div>
+            <div class="flex min-w-0 flex-1 flex-col gap-3">
+              <div class="space-y-1">
+                <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                  {{ t('admin.series.edit.title') }}
+                </p>
+                <h2 class="break-words text-3xl font-semibold leading-tight text-highlighted">
+                  {{ selectedSeries.title }}
+                </h2>
+                <p class="font-mono text-xs text-muted">
+                  /{{ selectedSeriesSlug || selectedSeries.slug }} · {{ formatCountLabel(selectedSeries.fileCount) }}
+                </p>
+              </div>
+              <p v-if="selectedSeries.description" class="max-w-2xl text-sm text-toned">
+                {{ selectedSeries.description }}
+              </p>
+              <div class="mt-auto flex items-center gap-2 pt-2">
+                <UButton color="primary" size="sm" :loading="saving" icon="tabler:device-floppy" @click="saveSeries">
+                  {{ t('common.actions.save') }}
+                </UButton>
+                <UButton color="error" variant="ghost" size="sm" :loading="deleting" icon="tabler:trash" @click="deleteSeries">
+                  {{ t('common.actions.delete') }}
                 </UButton>
               </div>
-              <p v-if="filteredCandidates.length === 0" class="px-2 py-3 text-center text-xs text-muted">
-                {{ t('admin.series.files.noCandidate') }}
-              </p>
             </div>
+          </header>
 
-            <div class="space-y-2 rounded-lg border border-default/40 p-2">
-              <div
-                v-for="(fileId, index) in selectedFileIds"
-                :key="fileId"
-                class="flex items-center gap-2 rounded-md border border-default/30 px-2 py-1.5"
-              >
-                <span class="w-5 shrink-0 text-center text-xs font-semibold text-muted">{{ index + 1 }}</span>
-                <div class="h-10 w-14 shrink-0 overflow-hidden rounded bg-black/5">
-                  <img
-                    v-if="allFilesById.get(fileId)?.imageUrl"
-                    :src="allFilesById.get(fileId)?.imageUrl"
-                    :alt="allFilesById.get(fileId)?.title || `#${fileId}`"
-                    loading="lazy"
-                    class="h-full w-full object-cover"
+          <!-- METADATA -->
+          <USection
+            label="Metadata"
+            icon="tabler:edit"
+          >
+            <div class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+              <UFormField :label="t('admin.series.form.title')">
+                <UInput v-model="editForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
+              </UFormField>
+              <UFormField :label="t('admin.series.form.slug')">
+                <UInput v-model="editForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
+              </UFormField>
+              <UFormField :label="t('admin.series.form.description')" class="sm:col-span-2">
+                <UTextarea v-model="editForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
+              </UFormField>
+              <UFormField :label="t('admin.series.form.cover')" class="sm:col-span-2">
+                <USelect
+                  v-model="coverFileIdModel"
+                  class="w-full"
+                  :items="coverOptions"
+                  value-attribute="value"
+                  option-attribute="label"
+                  :placeholder="t('admin.series.form.coverPlaceholder')"
+                />
+              </UFormField>
+            </div>
+          </USection>
+
+          <!-- FILES · two-pane manager -->
+          <USection
+            label="Files"
+            icon="tabler:photo-edit"
+          >
+            <template #actions>
+              <UButton color="primary" variant="ghost" size="sm" :loading="syncingOrder" icon="tabler:sort-ascending" @click="saveOrder">
+                {{ t('admin.series.files.saveOrder') }}
+              </UButton>
+            </template>
+
+            <div class="space-y-4">
+              <UInput
+                v-model="addQuery"
+                class="w-full"
+                :placeholder="t('admin.series.files.searchPlaceholder')"
+                icon="tabler:search"
+              />
+
+              <div class="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+                <!-- CANDIDATES -->
+                <div class="space-y-2">
+                  <div class="flex items-baseline justify-between pb-1">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                      Candidates
+                    </p>
+                    <span class="font-mono text-[11px] text-muted">{{ filteredCandidates.length }}</span>
+                  </div>
+                  <p v-if="filteredCandidates.length === 0" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                    {{ t('admin.series.files.noCandidate') }}
+                  </p>
+                  <div
+                    v-else
+                    v-bind="candidatesContainerProps"
+                    class="h-[28rem] border-t border-[var(--color-border-muted)]"
                   >
+                    <div v-bind="candidatesWrapperProps">
+                      <div
+                        v-for="entry in virtualCandidates"
+                        :key="entry.data.id"
+                        class="group flex h-14 items-center gap-3 border-b border-[var(--color-border-muted)]"
+                      >
+                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+                          <img
+                            v-if="entry.data.imageUrl"
+                            :src="resolveThumbnailSrc(entry.data.imageUrl)"
+                            :alt="entry.data.title || entry.data.originalName || `#${entry.data.id}`"
+                            width="112"
+                            height="80"
+                            loading="lazy"
+                            decoding="async"
+                            class="h-full w-full object-cover"
+                          >
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm text-highlighted">
+                            {{ entry.data.title || entry.data.originalName || `#${entry.data.id}` }}
+                          </p>
+                          <p class="font-mono text-[11px] text-muted">
+                            #{{ entry.data.id }}
+                          </p>
+                        </div>
+                        <UButton size="xs" variant="ghost" color="primary" icon="tabler:plus" class="shrink-0" :aria-label="t('common.actions.add')" @click="addFile(entry.data.id)" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div class="min-w-0 flex-1">
-                  <p class="truncate text-sm text-highlighted">
-                    {{ allFilesById.get(fileId)?.title || allFilesById.get(fileId)?.originalName || `#${fileId}` }}
+
+                <!-- IN SERIES (ORDERED) -->
+                <div class="space-y-2">
+                  <div class="flex items-baseline justify-between pb-1">
+                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                      In series
+                    </p>
+                    <span class="font-mono text-[11px] text-muted">{{ selectedFileIds.length }}</span>
+                  </div>
+                  <p v-if="detailLoading" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                    {{ t('common.loading') }}
                   </p>
-                  <p class="text-xs text-muted">
-                    #{{ fileId }}
+                  <p v-else-if="selectedFileIds.length === 0" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                    {{ t('admin.series.files.empty') }}
                   </p>
-                </div>
-                <div class="flex shrink-0 items-center gap-1">
-                  <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-up" :disabled="index === 0" @click="moveFile(fileId, -1)" />
-                  <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-down" :disabled="index === selectedFileIds.length - 1" @click="moveFile(fileId, 1)" />
-                  <UButton size="xs" variant="soft" color="error" icon="tabler:x" @click="removeFile(fileId)" />
+                  <div
+                    v-else
+                    v-bind="inSeriesContainerProps"
+                    class="h-[28rem] border-t border-[var(--color-border-muted)]"
+                  >
+                    <div v-bind="inSeriesWrapperProps">
+                      <div
+                        v-for="entry in virtualInSeries"
+                        :key="entry.data.id"
+                        class="flex h-14 items-center gap-3 border-b border-[var(--color-border-muted)]"
+                      >
+                        <span class="w-6 shrink-0 text-center font-mono text-[11px] text-muted">{{ entry.index + 1 }}</span>
+                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+                          <img
+                            v-if="entry.data.file?.imageUrl"
+                            :src="resolveThumbnailSrc(entry.data.file.imageUrl)"
+                            :alt="entry.data.file.title || `#${entry.data.id}`"
+                            width="112"
+                            height="80"
+                            loading="lazy"
+                            decoding="async"
+                            class="h-full w-full object-cover"
+                          >
+                        </div>
+                        <div class="min-w-0 flex-1">
+                          <p class="truncate text-sm text-highlighted">
+                            {{ entry.data.file?.title || entry.data.file?.originalName || `#${entry.data.id}` }}
+                          </p>
+                          <p class="font-mono text-[11px] text-muted">
+                            #{{ entry.data.id }}
+                          </p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-0.5">
+                          <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-up" :disabled="entry.index === 0" @click="moveFile(entry.data.id, -1)" />
+                          <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-down" :disabled="entry.index === selectedFileIds.length - 1" @click="moveFile(entry.data.id, 1)" />
+                          <UButton size="xs" variant="ghost" color="error" icon="tabler:x" @click="removeFile(entry.data.id)" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <p v-if="detailLoading" class="px-2 py-3 text-center text-xs text-muted">
-                {{ t('common.loading') }}
-              </p>
-              <p v-if="!detailLoading && selectedFileIds.length === 0" class="px-2 py-3 text-center text-xs text-muted">
-                {{ t('admin.series.files.empty') }}
-              </p>
             </div>
+          </USection>
+        </section>
+
+        <section v-else class="flex items-center justify-center py-20 text-sm text-muted">
+          <div class="space-y-2 text-center">
+            <Icon name="tabler:stack-3" class="mx-auto h-8 w-8 text-muted" />
+            <p>—</p>
           </div>
         </section>
       </div>
     </UContainer>
+
+    <!-- CREATE SERIES MODAL -->
+    <UModal
+      v-model:open="createModalOpen"
+      size="md"
+      :title="t('admin.series.create.title')"
+    >
+      <div class="space-y-4">
+        <UFormField :label="t('admin.series.form.title')">
+          <UInput v-model="createForm.title" class="w-full" :placeholder="t('admin.series.form.titlePlaceholder')" />
+        </UFormField>
+        <UFormField :label="t('admin.series.form.slug')">
+          <UInput v-model="createForm.slug" class="w-full" :placeholder="t('admin.series.form.slugPlaceholder')" />
+        </UFormField>
+        <UFormField :label="t('admin.series.form.description')">
+          <UTextarea v-model="createForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
+        </UFormField>
+        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+          <UButton variant="ghost" color="neutral" @click="createModalOpen = false">
+            {{ t('common.actions.cancel') }}
+          </UButton>
+          <UButton color="primary" :loading="creating" icon="tabler:plus" @click="createSeries">
+            {{ t('admin.series.create.action') }}
+          </UButton>
+        </div>
+      </div>
+    </UModal>
   </div>
 </template>

@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
-import { encode as encodeArthash, init as initArthash, Shape } from 'arthash'
+import { codec, encodeSync, init as initArthash } from 'arthash'
 
-export const ARTHASH_OPTIONS = { shape: Shape.RECT, nShapes: 64 } as const
+export const ARTHASH_CODEC = codec.rect({ n: 64 })
 
 const require = createRequire(import.meta.url)
 
@@ -21,5 +21,5 @@ export function ensureArthashReady(): Promise<void> {
 
 export async function encodeArthashFromRgb(rgb: Uint8Array, width: number, height: number): Promise<Uint8Array> {
   await ensureArthashReady()
-  return encodeArthash(rgb, width, height, ARTHASH_OPTIONS)
+  return encodeSync(rgb, width, height, ARTHASH_CODEC)
 }

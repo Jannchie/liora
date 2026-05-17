@@ -147,7 +147,10 @@ const showSeriesLanding = computed(() => {
   if (isSeriesRoute.value) {
     return true
   }
-  return route.path === '/' && (pendingSeries.value || hasRealSeries.value)
+  // Only after data resolves — depending on pendingSeries would diverge between
+  // SSR (false, because the fetch is server: false) and the first client paint
+  // (true once setup kicks off the fetch), triggering a hydration mismatch.
+  return route.path === '/' && hasRealSeries.value
 })
 const seriesErrorMessage = computed(() => seriesError.value?.message ?? null)
 
@@ -418,23 +421,25 @@ defineOgImageComponent('LioraCard', {
       :is-authenticated="isAuthenticated"
     />
     <template v-if="showSeriesLanding">
-      <section class="max-w-500 m-auto w-full px-3 py-4 md:px-4 md:py-6">
-        <section class="space-y-4">
-          <header class="space-y-1">
-            <h2 class="text-2xl font-semibold text-highlighted">
-              {{ t('series.list.title') }}
-            </h2>
-            <p class="text-sm text-muted">
-              {{ t('series.list.description') }}
-            </p>
-          </header>
-          <SeriesGrid
-            :series-list="seriesList"
-            :pending="pendingSeries"
-            :error-message="seriesErrorMessage"
-            @retry="refreshSeries"
-          />
-        </section>
+      <section class="mx-auto w-full max-w-6xl px-3 py-6 md:px-4 md:py-10">
+        <header class="mb-8 space-y-3 md:mb-12">
+          <p class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+            <Icon name="tabler:books" class="h-3.5 w-3.5" />
+            <span>{{ t('series.list.totalSeries', { count: seriesList.length }) }}</span>
+          </p>
+          <h2 class="text-3xl font-semibold leading-[1.05] tracking-tight text-highlighted md:text-4xl">
+            {{ t('series.list.title') }}
+          </h2>
+          <p class="max-w-xl text-sm leading-relaxed text-muted">
+            {{ t('series.list.description') }}
+          </p>
+        </header>
+        <SeriesGrid
+          :series-list="seriesList"
+          :pending="pendingSeries"
+          :error-message="seriesErrorMessage"
+          @retry="refreshSeries"
+        />
       </section>
     </template>
 

@@ -61,6 +61,7 @@ const model = computed({
   <USelect
     v-model="model"
     :items="options"
+    size="sm"
     :aria-label="t('common.actions.switchLanguage')"
   />
 </template>

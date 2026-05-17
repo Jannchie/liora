@@ -28,15 +28,10 @@ const captureTimeLocalModel = computed<string>({
 </script>
 
 <template>
-  <UCard class="border border-default/50 bg-default/70">
-    <template #header>
-      <div class="space-y-1">
-        <h2 class="flex items-center gap-2 text-xl font-semibold">
-          <Icon name="tabler:database-edit" class="h-5 w-5 text-primary" />
-          <span>{{ t('admin.upload.sections.edit.title') }}</span>
-        </h2>
-      </div>
-    </template>
+  <USection
+    :label="t('admin.upload.sections.edit.title')"
+    icon="tabler:database-edit"
+  >
     <div class="space-y-6">
       <AdminMetadataForm
         v-model:form="formModel"
@@ -44,13 +39,11 @@ const captureTimeLocalModel = computed<string>({
         :classify-source="{ file: props.selectedFile }"
       />
 
-      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+      <div class="flex flex-col gap-2 border-t border-[var(--color-border-muted)] pt-4 sm:flex-row sm:justify-end">
         <UButton
-          variant="soft"
+          variant="ghost"
           color="neutral"
           type="button"
-          class="w-full sm:w-auto"
-          icon="tabler:x"
           @click="emit('clearSelection')"
         >
           {{ t('common.actions.cancel') }}
@@ -60,12 +53,11 @@ const captureTimeLocalModel = computed<string>({
           type="submit"
           :loading="props.submitting"
           :disabled="!props.selectedFile"
-          class="w-full sm:w-auto"
           icon="tabler:device-floppy"
         >
           {{ t('admin.upload.actions.save') }}
         </UButton>
       </div>
     </div>
-  </UCard>
+  </USection>
 </template>

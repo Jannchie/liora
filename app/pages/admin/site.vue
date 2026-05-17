@@ -175,21 +175,22 @@ function handleReset(): void {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-6 py-10">
+    <UContainer class="space-y-10 py-10">
       <AdminNav />
 
-      <header class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 class="flex items-center gap-2 text-2xl font-semibold text-highlighted">
-          <Icon name="tabler:pencil" class="h-5 w-5 text-primary" />
-          <span>{{ t('admin.site.title') }}</span>
-        </h1>
-        <div class="flex items-center gap-3">
-          <span class="hidden text-xs text-muted sm:inline-flex sm:items-center sm:gap-1.5">
+      <UPageHeader
+        :eyebrow="t('admin.nav.label')"
+        icon="tabler:shield-check"
+        :title="t('admin.site.title')"
+        :description="t('admin.site.seoDescription')"
+      >
+        <template #actions>
+          <span class="hidden self-center text-xs text-muted sm:inline-flex sm:items-center sm:gap-1.5">
             <Icon name="tabler:clock" class="h-3.5 w-3.5" />
             {{ lastUpdated }}
           </span>
           <UButton
-            variant="soft"
+            variant="ghost"
             color="neutral"
             size="sm"
             :disabled="saving || loadingSettings"
@@ -208,8 +209,8 @@ function handleReset(): void {
           >
             {{ t('common.actions.save') }}
           </UButton>
-        </div>
-      </header>
+        </template>
+      </UPageHeader>
 
       <UAlert
         v-if="settingsError"
@@ -217,17 +218,12 @@ function handleReset(): void {
         variant="soft"
         :title="toastMessages.loadFailed"
         :description="settingsError?.message"
-      >
-        <template #icon>
-          <Icon name="tabler:alert-circle" class="h-5 w-5" />
-        </template>
-      </UAlert>
+      />
 
-      <section class="space-y-4 rounded-xl border border-default/50 p-4">
-        <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
-          <Icon name="tabler:settings" class="h-4 w-4 text-primary" />
-          {{ t('admin.site.sections.basic.title') }}
-        </h2>
+      <USection
+        :label="t('admin.site.sections.basic.title')"
+        icon="tabler:settings"
+      >
         <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <UFormField :label="t('admin.site.fields.name.label')" :description="t('admin.site.fields.name.help')">
             <UInput
@@ -288,13 +284,12 @@ function handleReset(): void {
             </div>
           </UFormField>
         </div>
-      </section>
+      </USection>
 
-      <section class="space-y-4 rounded-xl border border-default/50 p-4">
-        <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
-          <Icon name="tabler:code" class="h-4 w-4 text-primary" />
-          {{ t('admin.site.fields.customCss.label') }}
-        </h2>
+      <USection
+        :label="t('admin.site.fields.customCss.label')"
+        icon="tabler:code"
+      >
         <UFormField :description="t('admin.site.fields.customCss.help')">
           <UTextarea
             v-model="form.customCss"
@@ -304,14 +299,13 @@ function handleReset(): void {
             class="w-full font-mono text-xs"
           />
         </UFormField>
-      </section>
+      </USection>
 
-      <section class="space-y-4 rounded-xl border border-default/50 p-4">
-        <h2 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted">
-          <Icon name="tabler:share" class="h-4 w-4 text-primary" />
-          {{ t('admin.site.sections.social.title') }}
-        </h2>
-        <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+      <USection
+        :label="t('admin.site.sections.social.title')"
+        icon="tabler:share"
+      >
+        <div class="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
           <UFormField label="Homepage">
             <UInput v-model="form.social.homepage" class="w-full" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="tabler:home" />
           </UFormField>
@@ -340,7 +334,7 @@ function handleReset(): void {
             <UInput v-model="form.social.weibo" class="w-full" :placeholder="t('admin.site.fields.weibo.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-weibo" />
           </UFormField>
         </div>
-      </section>
+      </USection>
     </UContainer>
   </div>
 </template>

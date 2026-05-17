@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { FileSummary } from '~/types/file'
 import type { SeriesSummary } from '~/types/series'
-import { computed } from 'vue'
-import SeriesPreviewWaterfall from '~/components/SeriesPreviewWaterfall.vue'
+import { computed, onMounted } from 'vue'
+import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
 
 const props = withDefaults(
   defineProps<{
@@ -23,6 +23,8 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
+const SKELETON_COUNT = 6
+
 const hasSeries = computed(() => props.seriesList.length > 0)
 const resolvedEmptyText = computed(() => {
   if (props.emptyText && props.emptyText.trim().length > 0) {
@@ -37,24 +39,6 @@ function formatDate(value: string): string {
     return ''
   }
   return parsed.toLocaleDateString()
-}
-
-function resolvePreviewFiles(item: SeriesSummary): FileSummary[] {
-  const resolved: FileSummary[] = []
-  const seen = new Set<number>()
-  const append = (entry: FileSummary | null | undefined): void => {
-    if (!entry || seen.has(entry.id)) {
-      return
-    }
-    seen.add(entry.id)
-    resolved.push(entry)
-  }
-
-  for (const entry of item.previews ?? []) {
-    append(entry)
-  }
-  append(item.cover)
-  return resolved
 }
 
 function isUncategorized(item: SeriesSummary): boolean {
@@ -75,29 +59,40 @@ function resolveDescription(item: SeriesSummary): string {
   return item.description
 }
 
-const previewMap = computed(() => {
-  const map = new Map<number, FileSummary[]>()
+function resolveCover(item: SeriesSummary): FileSummary | null {
+  if (item.cover) {
+    return item.cover
+  }
+  return (item.previews ?? [])[0] ?? null
+}
+
+function resolveCoverSrc(file: FileSummary): string {
+  return (file.imageUrl ?? '').trim()
+}
+
+const placeholderMap = computed<Map<number, string>>(() => {
+  void arthashReady.value
+  const map = new Map<number, string>()
   for (const item of props.seriesList) {
-    map.set(item.id, resolvePreviewFiles(item))
+    const cover = resolveCover(item)
+    if (!cover || map.has(cover.id)) {
+      continue
+    }
+    const dataUrl = decodeArthashToDataUrl(cover.arthash)
+    if (dataUrl) {
+      map.set(cover.id, dataUrl)
+    }
   }
   return map
 })
 
-function resolveMobilePreviews(item: SeriesSummary): FileSummary[] {
-  return (previewMap.value.get(item.id) ?? []).slice(0, 6)
+function placeholderFor(file: FileSummary): string | undefined {
+  return placeholderMap.value.get(file.id)
 }
 
-function resolveDesktopPreviews(item: SeriesSummary): FileSummary[] {
-  return (previewMap.value.get(item.id) ?? []).slice(0, 12)
-}
-
-function resolveUpdatedLabel(item: SeriesSummary): string {
-  const formatted = formatDate(item.updatedAt)
-  if (!formatted) {
-    return ''
-  }
-  return t('series.list.updatedAt', { date: formatted })
-}
+onMounted(() => {
+  void ensureArthashReady()
+})
 </script>
 
 <template>
@@ -117,59 +112,78 @@ function resolveUpdatedLabel(item: SeriesSummary): string {
 
   <div
     v-else-if="pending"
-    class="flex min-h-60 items-center justify-center text-sm text-muted"
+    class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+    aria-hidden="true"
   >
-    {{ t('common.loading') }}
+    <div v-for="i in SKELETON_COUNT" :key="i" class="space-y-3">
+      <USkeleton class="aspect-[3/2] w-full rounded-lg" />
+      <USkeleton class="h-4 w-2/3" />
+      <USkeleton class="h-3 w-full" />
+      <USkeleton class="h-3 w-1/3" />
+    </div>
   </div>
 
   <div
     v-else-if="!hasSeries"
-    class="rounded-lg border border-default/40 bg-default/70 p-6 text-center text-sm text-muted"
+    class="border-y border-[var(--color-border-muted)] py-20 text-center text-sm text-muted"
   >
     {{ resolvedEmptyText }}
   </div>
 
-  <div v-else class="grid gap-6 xl:grid-cols-2">
-    <NuxtLink
-      v-for="item in seriesList"
-      :key="item.id"
-      :to="`/series/${item.slug}`"
-      class="group grid overflow-hidden rounded-lg border border-default/40 bg-default/70 transition-colors duration-200 hover:border-primary/40 hover:bg-default/90 xl:h-full xl:aspect-2/1 xl:grid-cols-[34%_66%]"
-    >
-      <div class="flex h-full flex-col gap-3 p-4 md:p-5">
-        <div class="space-y-3">
-          <h2 class="line-clamp-2 text-lg font-semibold text-highlighted transition-colors group-hover:text-primary">
+  <ul v-else class="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
+    <li v-for="item in seriesList" :key="item.id">
+      <NuxtLink
+        :to="`/series/${item.slug}`"
+        class="group block focus-visible:outline-none"
+      >
+        <div
+          class="relative aspect-[3/2] overflow-hidden rounded-lg bg-muted ring-1 ring-inset ring-[var(--color-border-muted)]/40 transition-shadow duration-300 group-hover:ring-[var(--color-border-muted)] group-focus-visible:ring-[var(--color-border-muted)]"
+        >
+          <img
+            v-if="resolveCover(item) && placeholderFor(resolveCover(item)!)"
+            :src="placeholderFor(resolveCover(item)!)"
+            alt=""
+            aria-hidden="true"
+            class="absolute inset-0 h-full w-full object-cover"
+          >
+          <img
+            v-if="resolveCover(item)"
+            :src="resolveCoverSrc(resolveCover(item)!)"
+            :alt="resolveTitle(item)"
+            class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            loading="lazy"
+            decoding="async"
+          >
+          <div v-else class="absolute inset-0 flex items-center justify-center text-xs text-muted">
+            {{ t('series.list.noCover') }}
+          </div>
+
+          <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+
+          <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-sm bg-[var(--color-bg)]/85 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-highlighted backdrop-blur-sm">
+            <Icon name="tabler:photo" class="h-3 w-3" />
+            {{ item.fileCount }}
+          </span>
+        </div>
+
+        <div class="mt-3 space-y-1.5 px-0.5">
+          <h3
+            class="truncate text-[15px] font-medium leading-snug tracking-tight"
+            :class="isUncategorized(item) ? 'text-muted' : 'text-highlighted'"
+          >
             {{ resolveTitle(item) }}
-          </h2>
-          <p class="line-clamp-3 text-sm leading-relaxed text-muted xl:line-clamp-8">
+          </h3>
+          <p
+            v-if="resolveDescription(item)"
+            class="line-clamp-2 min-h-[2.4em] text-[12.5px] leading-relaxed text-muted"
+          >
             {{ resolveDescription(item) }}
           </p>
-        </div>
-        <div class="mt-auto space-y-1 text-xs text-muted">
-          <p>{{ t('series.list.count', { count: item.fileCount }) }}</p>
-          <p v-if="resolveUpdatedLabel(item).length > 0">
-            {{ resolveUpdatedLabel(item) }}
+          <p v-if="formatDate(item.updatedAt)" class="pt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted/80">
+            {{ formatDate(item.updatedAt) }}
           </p>
         </div>
-      </div>
-
-      <div class="p-1 xl:hidden">
-        <SeriesPreviewWaterfall
-          :previews="resolveMobilePreviews(item)"
-          :title="resolveTitle(item)"
-          :columns="3"
-          :fallback-text="t('series.list.noCover')"
-        />
-      </div>
-
-      <div class="hidden h-full overflow-hidden p-1 xl:block">
-        <SeriesPreviewWaterfall
-          :previews="resolveDesktopPreviews(item)"
-          :title="resolveTitle(item)"
-          :columns="2"
-          :fallback-text="t('series.list.noCover')"
-        />
-      </div>
-    </NuxtLink>
-  </div>
+      </NuxtLink>
+    </li>
+  </ul>
 </template>

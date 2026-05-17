@@ -14,27 +14,21 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="space-y-3 rounded-2xl border border-default/50 bg-default/60 p-4 shadow-sm">
+  <div class="space-y-3 border-y border-[var(--color-border-muted)] py-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div class="flex items-center gap-3">
-        <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/10">
-          <Icon name="tabler:database-edit" class="h-5 w-5" />
-        </div>
-        <div class="space-y-0.5">
-          <p class="text-xs font-semibold uppercase tracking-wide text-muted">
-            {{ t('admin.upload.sections.edit.title') }}
-          </p>
-          <p class="text-base font-semibold text-highlighted">
-            {{ props.displayFileName }}
-          </p>
-        </div>
+      <div class="min-w-0 space-y-1">
+        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          {{ t('admin.upload.sections.edit.title') }}
+        </p>
+        <p class="truncate font-mono text-sm text-highlighted">
+          {{ props.displayFileName }}
+        </p>
       </div>
       <div class="hidden shrink-0 items-center gap-2 sm:flex">
         <UButton
-          variant="soft"
+          variant="ghost"
           color="neutral"
           type="button"
-          icon="tabler:x"
           @click="emit('clearSelection')"
         >
           {{ t('common.actions.cancel') }}
@@ -50,22 +44,21 @@ const { t } = useI18n()
         </UButton>
       </div>
     </div>
-    <div v-if="props.previewChips.length > 0" class="flex flex-wrap gap-2">
+    <div v-if="props.previewChips.length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted">
       <span
         v-for="chip in props.previewChips"
         :key="`${chip.icon}-${chip.text}`"
-        class="inline-flex items-center gap-2 rounded-full bg-elevated/80 px-3 py-1 text-xs font-medium text-highlighted ring-1 ring-default/50"
+        class="inline-flex items-center gap-1.5"
       >
-        <Icon :name="chip.icon" class="h-4 w-4 text-primary" />
+        <Icon :name="chip.icon" class="h-3.5 w-3.5" />
         <span>{{ chip.text }}</span>
       </span>
     </div>
     <div class="flex flex-col gap-2 sm:hidden">
       <UButton
-        variant="soft"
+        variant="ghost"
         color="neutral"
         type="button"
-        icon="tabler:x"
         @click="emit('clearSelection')"
       >
         {{ t('common.actions.cancel') }}
