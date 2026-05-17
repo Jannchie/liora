@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { FileSummary } from '~/types/file'
 import type { SeriesSummary } from '~/types/series'
-import { computed, onMounted } from 'vue'
-import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
+import { computed, onMounted, reactive } from 'vue'
+import { ensureArthashReady } from '~/utils/arthash'
 
 const props = withDefaults(
   defineProps<{
@@ -70,24 +70,23 @@ function resolveCoverSrc(file: FileSummary): string {
   return (file.imageUrl ?? '').trim()
 }
 
-const placeholderMap = computed<Map<number, string>>(() => {
-  void arthashReady.value
-  const map = new Map<number, string>()
-  for (const item of props.seriesList) {
-    const cover = resolveCover(item)
-    if (!cover || map.has(cover.id)) {
-      continue
-    }
-    const dataUrl = decodeArthashToDataUrl(cover.arthash)
-    if (dataUrl) {
-      map.set(cover.id, dataUrl)
-    }
-  }
-  return map
-})
+const loadedCovers = reactive(new Set<number>())
 
-function placeholderFor(file: FileSummary): string | undefined {
-  return placeholderMap.value.get(file.id)
+function markCoverLoaded(id: number): void {
+  loadedCovers.add(id)
+}
+
+function isCoverLoaded(id: number): boolean {
+  return loadedCovers.has(id)
+}
+
+function onCoverImageRef(id: number, element: Element | null): void {
+  if (!(element instanceof HTMLImageElement)) {
+    return
+  }
+  if (element.complete && element.naturalWidth > 0) {
+    markCoverLoaded(id)
+  }
 }
 
 onMounted(() => {
@@ -139,21 +138,21 @@ onMounted(() => {
         <div
           class="relative aspect-[3/2] overflow-hidden rounded-lg bg-muted ring-1 ring-inset ring-[var(--color-border-muted)]/40 transition-shadow duration-300 group-hover:ring-[var(--color-border-muted)] group-focus-visible:ring-[var(--color-border-muted)]"
         >
-          <img
-            v-if="resolveCover(item) && placeholderFor(resolveCover(item)!)"
-            :src="placeholderFor(resolveCover(item)!)"
-            alt=""
-            aria-hidden="true"
-            class="absolute inset-0 h-full w-full object-cover"
-          >
-          <img
-            v-if="resolveCover(item)"
-            :src="resolveCoverSrc(resolveCover(item)!)"
-            :alt="resolveTitle(item)"
-            class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-            loading="lazy"
-            decoding="async"
-          >
+          <template v-if="resolveCover(item)">
+            <img
+              :ref="el => onCoverImageRef(resolveCover(item)!.id, el as Element | null)"
+              :src="resolveCoverSrc(resolveCover(item)!)"
+              :alt="resolveTitle(item)"
+              class="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              loading="lazy"
+              decoding="async"
+              @load="markCoverLoaded(resolveCover(item)!.id)"
+            >
+            <ArthashPlaceholder
+              :arthash="resolveCover(item)!.arthash"
+              :loaded="isCoverLoaded(resolveCover(item)!.id)"
+            />
+          </template>
           <div v-else class="absolute inset-0 flex items-center justify-center text-xs text-muted">
             {{ t('series.list.noCover') }}
           </div>

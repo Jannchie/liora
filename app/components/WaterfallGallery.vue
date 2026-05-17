@@ -84,6 +84,34 @@ const galleryRef = ref<HTMLElement | null>(null)
 const columns = ref<number>(getInitialColumns())
 const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
 const isHydrated = ref<boolean>(false)
+
+/*
+ * Track which gallery entries' full images have finished decoding so the
+ * template can fade them in over the arthash placeholder. Using a reactive
+ * Set keyed by entry id (instead of a per-entry ref) lets vue-wf recycle
+ * tile DOM without losing load state.
+ */
+const loadedEntryIds = reactive(new Set<number>())
+
+function markEntryLoaded(id: number): void {
+  loadedEntryIds.add(id)
+}
+
+function isEntryLoaded(id: number): boolean {
+  return loadedEntryIds.has(id)
+}
+
+// vue-wf may mount an <img> whose `src` is already in the browser cache, in
+// which case the load event has already fired before our @load handler is
+// attached. Inspect the element on ref-callback and mark it loaded if so.
+function onEntryImageRef(id: number, element: Element | null): void {
+  if (!(element instanceof HTMLImageElement)) {
+    return
+  }
+  if (element.complete && element.naturalWidth > 0) {
+    markEntryLoaded(id)
+  }
+}
 const activeFile = ref<ResolvedFile | null>(null)
 const histogram = ref<HistogramData | null>(null)
 const overlayImageSrc = ref<string | null>(null)
@@ -3207,30 +3235,42 @@ function startOverlayImageLoad(
           <button
             v-else
             type="button"
-            class="group relative block h-full w-full focus:outline-none"
+            class="group relative block h-full w-full overflow-hidden bg-default focus:outline-none"
+            :style="entry.placeholder && !isEntryLoaded(entry.id)
+              ? {
+                backgroundImage: `url('${entry.placeholder}')`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }
+              : undefined"
             :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
             @click="handleEntryClick($event, entry)"
             @mouseenter="handleLivePreviewEnter(entry)"
             @mouseleave="handleLivePreviewLeave(entry)"
           >
+            <!--
+              Three-layer reveal: a static background-image placeholder (SSR
+              / pre-wasm fallback), an inline arthash SVG whose 64 rects fade
+              out one-by-one once the full image decodes, and the image
+              itself. Cached images that bypass the load event are caught in
+              onEntryImageRef.
+            -->
             <img
               :key="entry.id"
+              :ref="el => onEntryImageRef(entry.id, el as Element | null)"
               :alt="entry.displayTitle"
-              :style="[
-                entryTransitionStyle(entry.id),
-                entry.placeholder
-                  ? {
-                    backgroundImage: `url('${entry.placeholder}')`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                  }
-                  : undefined,
-              ]"
+              :style="entryTransitionStyle(entry.id)"
               loading="lazy"
-              class="h-full w-full object-contain bg-default transition duration-200 group-hover:opacity-90"
+              decoding="async"
+              class="h-full w-full object-contain transition-opacity group-hover:opacity-90"
               v-bind="entry.imageAttrs"
+              @load="markEntryLoaded(entry.id)"
             >
+            <ArthashPlaceholder
+              :arthash="entry.metadata.arthash"
+              :loaded="isEntryLoaded(entry.id)"
+            />
             <video
               v-if="entry.metadata.livePhotoVideoUrl"
               :ref="element => setLivePreviewRef(entry.id, element)"

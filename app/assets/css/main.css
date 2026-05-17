@@ -257,7 +257,7 @@ html, body {
  * unaffected because they never occupy gutter space.
  */
 html {
-  scrollbar-gutter: stable both-edges;
+  scrollbar-gutter: stable;
 }
 
 html.light { color-scheme: light; }
