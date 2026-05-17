@@ -150,6 +150,7 @@ export default defineNuxtConfig({
   },
   modules: [
     '@nuxt/eslint',
+    '@nuxt/fonts',
     '@nuxt/hints',
     '@nuxt/image',
     '@nuxt/icon',
@@ -204,15 +205,14 @@ export default defineNuxtConfig({
   },
   ogImage: {
     defaults: {
-      component: 'LioraCard',
       width: 1200,
       height: 630,
     },
-    fonts: [
-      { name: 'Noto Serif SC', weight: 400, path: '/fonts/NotoSerifSC-Regular.ttf' },
-      { name: 'Noto Serif SC', weight: 700, path: '/fonts/NotoSerifSC-Bold.ttf' },
-      { name: 'Noto Serif JP', weight: 400, path: '/fonts/NotoSerifJP-Regular.ttf' },
-      { name: 'Noto Serif JP', weight: 700, path: '/fonts/NotoSerifJP-Bold.ttf' },
+  },
+  fonts: {
+    families: [
+      { name: 'Noto Serif SC', provider: 'local', global: true },
+      { name: 'Noto Serif JP', provider: 'local', global: true },
     ],
   },
   image: {

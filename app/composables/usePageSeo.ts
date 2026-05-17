@@ -1,5 +1,5 @@
 import type { MaybeRefOrGetter } from 'vue'
-import { defineOgImageComponent, useSeoMeta } from '#imports'
+import { defineOgImage, useSeoMeta } from '#imports'
 import { computed, toValue, watchEffect } from 'vue'
 
 interface PageSeoImageOptions {
@@ -60,7 +60,7 @@ export function usePageSeo(options: PageSeoOptions): void {
   })
 
   watchEffect(() => {
-    defineOgImageComponent('LioraCard', {
+    defineOgImage('LioraCard', {
       title: ogTitle.value,
       description: ogDescription.value,
       itemCount: itemCount.value,

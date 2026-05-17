@@ -23,10 +23,14 @@
  */
 
 @theme {
-  /* ---------- type ---------- */
-  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
-                  'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
-                  'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
+  /* ---------- type ----------
+     `@theme` here is the "primitive" layer: only fonts that can be
+     resolved by @nuxt/fonts and shipped to satori belong here. The full
+     system-font fallback chain (PingFang/Hiragino/Menlo/…) lives in
+     `--stack-mono` below — outside any `--font-*` name so nuxt-og-image's
+     CSS scanner skips it. The `.font-mono` / `.font-sans` utility
+     overrides re-attach the full stack for browser rendering. */
+  --font-mono:    'JetBrains Mono', 'Noto Sans SC', 'Noto Sans JP', monospace;
   --font-sans:    var(--font-mono);
   --font-display: var(--font-display-latin);
   --font-prose:   var(--font-display-latin);
@@ -162,6 +166,20 @@
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
 }
 
+/*
+ * Presentation-layer font stack. Names are intentionally NOT prefixed with
+ * `--font-` so nuxt-og-image's `/--font-[\w-]+/` CSS scanner skips them —
+ * the system-only fonts here (PingFang/Hiragino/Menlo/…) have no web
+ * provider and cannot be shipped to satori. Browsers still pick them up
+ * via the cascade defined by `html, body` and the `.font-mono` /
+ * `.font-sans` utility overrides further down.
+ */
+:root {
+  --stack-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
+                'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
+                'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
+}
+
 html.disable-transitions,
 html.disable-transitions *,
 html.disable-transitions *::before,
@@ -222,7 +240,7 @@ html.disable-transitions *::after {
   /* Telemetry label: mono, uppercase, tracked. Use on small chrome labels
      like "01 EVENTS" / "OVERVIEW" / "RANGE". */
   .label-mono {
-    font-family: var(--font-mono);
+    font-family: var(--stack-mono);
     text-transform: uppercase;
     letter-spacing: 0.12em;
     font-size: 11px;
@@ -230,7 +248,7 @@ html.disable-transitions *::after {
     color: var(--color-fg-muted);
   }
   .label-mono-sm {
-    font-family: var(--font-mono);
+    font-family: var(--stack-mono);
     text-transform: uppercase;
     letter-spacing: 0.16em;
     font-size: 10px;
@@ -238,9 +256,18 @@ html.disable-transitions *::after {
     color: var(--color-fg-dimmed);
   }
   .num-mono {
-    font-family: var(--font-mono);
+    font-family: var(--stack-mono);
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
+  }
+
+  /* Tailwind v4 generates `.font-mono` / `.font-sans` from the @theme
+     `--font-mono` / `--font-sans` tokens — those only carry web-resolvable
+     fonts. Override here so utility classes pick up the full presentation
+     stack including system fonts. */
+  .font-mono,
+  .font-sans {
+    font-family: var(--stack-mono);
   }
 
   /* Diagonal hatch — textural detail used on section edges and wireframe
@@ -310,7 +337,7 @@ html.disable-transitions *::after {
 html, body {
   background-color: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--font-mono);
+  font-family: var(--stack-mono);
   font-feature-settings: 'tnum' 1, 'ss01' 1;
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
