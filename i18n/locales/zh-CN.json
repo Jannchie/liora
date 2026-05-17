@@ -292,8 +292,9 @@
       "sections": {
         "upload": {
           "label": "上传照片",
-          "dropHint": "拖拽照片到此或点击选择文件",
-          "supported": "支持 JPG/PNG 等常见格式",
+          "dropHint": "拖拽照片或视频到此或点击选择文件",
+          "supported": "支持 JPG/PNG 等图片，MP4/MOV 等视频",
+          "autoRouteHint": "选中视频时会自动按实况照片处理并抽帧作为封面",
           "mode": {
             "image": "照片",
             "live": "实况照片"

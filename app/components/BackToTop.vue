@@ -41,7 +41,7 @@ const { t } = useI18n()
       color="neutral"
       variant="solid"
       square
-      class="fixed bottom-6 right-6 z-40 shadow-lg"
+      class="fixed bottom-6 right-6 z-40"
       :aria-label="t('common.actions.backToTop')"
       @click="scrollToTop"
     />

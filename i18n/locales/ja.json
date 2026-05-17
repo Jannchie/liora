@@ -292,8 +292,9 @@
       "sections": {
         "upload": {
           "label": "写真をアップロード",
-          "dropHint": "ここに写真をドラッグするかクリックして選択",
-          "supported": "JPG/PNG など一般的な形式に対応",
+          "dropHint": "ここに写真や動画をドラッグするかクリックして選択",
+          "supported": "JPG/PNG などの画像、MP4/MOV などの動画に対応",
+          "autoRouteHint": "動画を選択すると自動的に Live Photo として処理され、カバーフレームが抽出されます",
           "mode": {
             "image": "写真",
             "live": "Live Photo"

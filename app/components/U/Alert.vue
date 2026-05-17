@@ -56,7 +56,7 @@ const variantClass = computed(() => {
 
 <template>
   <div
-    class="flex w-full items-start gap-3 rounded-lg px-4 py-3"
+    class="flex w-full items-start gap-3 px-4 py-3"
     :class="variantClass"
     role="alert"
   >

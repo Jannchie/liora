@@ -292,8 +292,9 @@
       "sections": {
         "upload": {
           "label": "Upload photo",
-          "dropHint": "Drag a photo here or click to pick a file",
-          "supported": "Common formats such as JPG/PNG are supported",
+          "dropHint": "Drag a photo or video here or click to pick a file",
+          "supported": "Images (JPG/PNG…) or videos (MP4/MOV…)",
+          "autoRouteHint": "Videos are auto-routed to the Live Photo flow with a cover frame extracted client-side",
           "mode": {
             "image": "Photo",
             "live": "Live photo"

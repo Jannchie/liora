@@ -39,6 +39,12 @@ function close(): void {
 
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape' && open.value) {
+    // Capture-phase + stopImmediatePropagation: when a Modal is open we
+    // own the ESC. Without this, sibling document-level keydown listeners
+    // (e.g. the gallery overlay's ESC-to-close) would also fire and close
+    // their owner together with the modal.
+    event.stopImmediatePropagation()
+    event.preventDefault()
     close()
   }
 }
@@ -54,18 +60,21 @@ watch(open, (next) => {
 
 onMounted(() => {
   if (!import.meta.client) return
-  document.addEventListener('keydown', onKeydown)
+  document.addEventListener('keydown', onKeydown, { capture: true })
 })
 
 onBeforeUnmount(() => {
   if (!import.meta.client) return
-  document.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('keydown', onKeydown, { capture: true })
   setBodyScroll(false)
 })
 
 const wrapperClass = computed(() => {
+  // Fullscreen: no flex — the slot/content fills the fixed inset-0 box
+  // directly. Using flex here would shrink-fit a #content slot to its
+  // intrinsic width and leave the viewport showing through the sides.
   if (props.fullscreen) {
-    return 'fixed inset-0 z-[71] flex'
+    return 'fixed inset-0 z-[71]'
   }
   return 'fixed inset-0 z-[71] flex items-center justify-center p-4'
 })
@@ -83,7 +92,7 @@ const contentClass = computed(() => {
   if (props.fullscreen) {
     return `${base} h-full w-full overflow-hidden`
   }
-  return `${base} w-full ${sizeWidth[props.size]} rounded-2xl ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
+  return `${base} w-full ${sizeWidth[props.size]} ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
 })
 </script>
 

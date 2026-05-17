@@ -791,7 +791,7 @@ watch(fetchError, (value) => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-10 py-10">
+    <UContainer rails class="space-y-10 py-10">
       <AdminNav />
 
       <UPageHeader

@@ -2,79 +2,83 @@
 @import "tailwindcss-safe-area";
 
 /*
- * Design tokens — palette aligned with @roku-ui / codetime.dev.
+ * Design tokens — wireframe / blueprint language, original palette.
  *
- * Why:
- * - Cool slate surfaces (Linear / Vercel / Primer) read more neutral against
- *   photographs than warm neutrals; burgundy primary keeps the brand identity.
- * - `color-mix(in srgb, var(--color-primary) 12%, transparent)` for soft
- *   variants means a single primary value drives every soft surface, and the
- *   dark-mode override of primary automatically propagates.
- * - Layer naming `bg → surface → surface-1/2/3` matches the codetime mental
- *   model: page bg sits one notch below the brightest card surface; the rest
- *   are progressively deeper for hover / pressed / nested fills. We keep the
- *   legacy liora utility names (`bg-default / muted / elevated / accented`)
- *   as aliases so no template needs to change.
+ * Why: the system is built around two reading modes:
+ *   1. CONTENT (photos)  — full-bleed, no chrome interference.
+ *   2. CHROME (admin, panels, headers, metadata) — telemetry-board style:
+ *      mono-spaced, sharp-edged, low-saturation, numbered sections.
  *
- * Component contract (one radius family per role; don't mix):
- *   form control (Button / Input / Select / Textarea / Tab pill)  → rounded-md
- *   card / alert / toast / popover                                → rounded-lg / xl
- *   modal / drop-zone                                             → rounded-2xl
- *   skeleton / inline chip                                        → rounded-sm
+ * Layout language is borrowed from the wireframe / telemetry reference;
+ * the color palette (burgundy primary on cool slate) is unchanged.
+ *
+ * Radius family: collapsed to zero/hairline. Wireframes don't have rounded
+ * corners — Card / Button / Input / Modal sit at radius 0–2px so the eye
+ * reads them as a continuous grid rather than discrete pills.
+ *
+ * Typography: mono is the default UI font. Sans/serif is reserved for prose
+ * (long captions, descriptions, hero copy on the public gallery). The
+ * `.font-prose` / `.home-display-font` helpers let surfaces opt out where
+ * warmth matters.
  */
 
 @theme {
   /* ---------- type ---------- */
-  --font-sans: var(--font-display-latin);
-  --font-serif: var(--font-title-latin);
-  --font-mono: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
+                  'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
+                  'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
+  --font-sans:    var(--font-mono);
+  --font-display: var(--font-display-latin);
+  --font-prose:   var(--font-display-latin);
+  --font-serif:   var(--font-title-latin);
 
   /* ---------- radius ----------
-     Aligned with codetime: default md = 8px, xs/sm small chips, xl+ for
-     bigger panels and modals. */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-  --radius-2xl: 18px;
-  --radius-3xl: 22px;
+     Form controls (button / input / select / tab pill / small chip) keep
+     their rounding — radius-sm/md/lg drive those. Containers (card /
+     section / modal / panel) are flat in the wireframe language; they
+     opt out via explicit `rounded-none` or the `.surface-wire` helper. */
+  --radius-xs:   4px;
+  --radius-sm:   6px;
+  --radius-md:   8px;
+  --radius-lg:   10px;
+  --radius-xl:   12px;
+  --radius-2xl:  14px;
+  --radius-3xl:  16px;
   --radius-full: 9999px;
 
-  /* ---------- motion ----------
-     ease = ease-out-quint; matches codetime's snappy-but-soft easing. */
-  --transition-fast: 120ms cubic-bezier(.2, .8, .2, 1);
-  --transition-base: 180ms cubic-bezier(.2, .8, .2, 1);
-  --transition-slow: 260ms cubic-bezier(.2, .8, .2, 1);
-  --ease-out-quint: cubic-bezier(.2, .8, .2, 1);
+  /* ---------- motion ---------- */
+  --transition-fast: 100ms cubic-bezier(.2, .8, .2, 1);
+  --transition-base: 150ms cubic-bezier(.2, .8, .2, 1);
+  --transition-slow: 220ms cubic-bezier(.2, .8, .2, 1);
+  --ease-out-quint:  cubic-bezier(.2, .8, .2, 1);
 
-  /* ---------- shadow (light defaults; dark overrides below) ----------
-     Cool-tinted slate (rgb 15 23 42) instead of warm burgundy — surfaces
-     read as quiet drops, not blooms. */
-  --shadow-xs:      0 1px 1px rgb(15 23 42 / 0.04);
-  --shadow-sm:      0 1px 2px rgb(15 23 42 / 0.04);
-  --shadow-md:      0 1px 2px rgb(15 23 42 / 0.04), 0 4px 12px rgb(15 23 42 / 0.06);
-  --shadow-lg:      0 12px 32px rgb(15 23 42 / 0.10), 0 4px 8px rgb(15 23 42 / 0.05);
+  /* ---------- shadow ----------
+     Wireframes are flat: every elevation is a hairline border or a fill
+     step instead of a drop shadow. All shadow tokens collapse to `none`;
+     the few floating surfaces (modal, toast, dropdown) rely on the
+     overlay + 1px ring + bg-step to read as lifted. */
+  --shadow-xs:  none;
+  --shadow-sm:  none;
+  --shadow-md:  none;
+  --shadow-lg:  none;
+  --shadow-card:    none;
+  --shadow-overlay: none;
 
-  /* legacy aliases — keep until usages migrate */
-  --shadow-card: var(--shadow-sm);
-  --shadow-overlay: var(--shadow-lg);
+  /* ---------- semantic palette — LIGHT defaults ---------- */
 
-  /* ---------- semantic palette (light defaults; dark overrides below) ---------- */
-
-  /* burgundy primary — kept; soft variants computed via color-mix so a
-     single primary value drives every tint. */
-  --color-primary: oklch(38% 0.13 18);
-  --color-primary-hover: oklch(32% 0.14 18);
-  --color-primary-active: oklch(28% 0.13 18);
-  --color-primary-soft: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  /* burgundy primary — drives every accent / focus / selection.
+     Light mode targets L≈48% so the brand reads as a vivid burgundy
+     (rather than near-black wine) while keeping AA contrast on white
+     text. Hover / active step down two L-notches for press feedback. */
+  --color-primary:        oklch(48% 0.16 18);
+  --color-primary-hover:  oklch(42% 0.17 18);
+  --color-primary-active: oklch(36% 0.16 18);
+  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 12%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
   --color-primary-border: color-mix(in srgb, var(--color-primary) 30%, transparent);
-  --color-on-primary: #ffffff;
+  --color-on-primary:     #ffffff;
 
-  /* cool slate surfaces — bg is muted, cards (surface / default) lift to
-     near-white. Lifting subsequent layers makes nested fills/hover states
-     register without glare. */
+  /* cool slate surfaces */
   --color-bg:       #f1f2f5;
   --color-default:  #fbfbfd;
   --color-muted:    #ebecf0;
@@ -85,8 +89,6 @@
   --color-border-muted:  #e2e4ea;
   --color-border-strong: #b4bac6;
 
-  /* foreground — softened from pure black; 4-step ramp + 2 legacy aliases
-     (toned/dimmed sit between fg/muted and muted/subtle respectively). */
   --color-fg:             #1a1d24;
   --color-fg-highlighted: #0d1019;
   --color-fg-toned:       #2f3441;
@@ -104,10 +106,8 @@
   --color-info:         #0284c7;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 12%, transparent);
 
-  /* focus ring — primary-tinted halo, recomputed per scheme via color-mix
-     so the dark-mode primary lift propagates automatically. */
-  --ring-focus:       0 0 0 3px color-mix(in srgb, var(--color-primary) 35%, transparent);
-  --ring-focus-error: 0 0 0 3px color-mix(in srgb, var(--color-error) 35%, transparent);
+  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 40%, transparent);
 
   /* ---------- z scale ---------- */
   --z-base: 1;
@@ -117,22 +117,18 @@
 }
 
 /*
- * Dark palette.
- *
- * Why brighten burgundy: at L 38% it disappears against the 0a0a0b ground.
- * Lift to L 62% + slight chroma bump so the brand reads at equal "weight"
- * in both schemes.
+ * Dark palette. Burgundy lifted to L 62% so brand reads at equal weight
+ * against #0a0a0b ground.
  */
 .dark {
-  --color-primary: oklch(62% 0.14 20);
-  --color-primary-hover: oklch(68% 0.15 20);
+  --color-primary:        oklch(62% 0.14 20);
+  --color-primary-hover:  oklch(68% 0.15 20);
   --color-primary-active: oklch(56% 0.14 20);
-  --color-primary-soft: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 18%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --color-primary-border: color-mix(in srgb, var(--color-primary) 36%, transparent);
-  --color-on-primary: #0b0d12;
+  --color-on-primary:     #0b0d12;
 
-  /* near-black + 4 layered fills, exactly the codetime ramp */
   --color-bg:       #0a0a0b;
   --color-default:  #111113;
   --color-muted:    #16171a;
@@ -159,22 +155,13 @@
   --color-info:         #38bdf8;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
 
-  --shadow-xs:      0 1px 1px rgb(0 0 0 / 0.30);
-  --shadow-sm:      0 1px 2px rgb(0 0 0 / 0.40);
-  --shadow-md:      0 1px 2px rgb(0 0 0 / 0.40), 0 4px 12px rgb(0 0 0 / 0.45);
-  --shadow-lg:      0 12px 32px rgb(0 0 0 / 0.55), 0 4px 8px rgb(0 0 0 / 0.35);
+  --shadow-md: none;
+  --shadow-lg: none;
 
-  --ring-focus:       0 0 0 3px color-mix(in srgb, var(--color-primary) 45%, transparent);
-  --ring-focus-error: 0 0 0 3px color-mix(in srgb, var(--color-error) 45%, transparent);
+  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
 }
 
-/*
- * Theme-switch transition suppression.
- *
- * Why: hover/focus `transition-colors` would otherwise replay during a
- * scheme swap, cross-fading the entire page through ugly intermediate
- * colours. ThemeToggle attaches this class for one frame around the swap.
- */
 html.disable-transitions,
 html.disable-transitions *,
 html.disable-transitions *::before,
@@ -185,8 +172,7 @@ html.disable-transitions *::after {
 }
 
 /*
- * Semantic utility shims — recreate Nuxt-UI-style class names that the
- * existing templates use, mapping each to a token above.
+ * Utility shims — semantic helpers used across templates.
  */
 @layer utilities {
   .bg-bg            { background-color: var(--color-bg); }
@@ -228,36 +214,170 @@ html.disable-transitions *::after {
   .ring-default { --tw-ring-color: var(--color-border); }
   .ring-primary { --tw-ring-color: var(--color-primary); }
 
-  /* focus-ring helpers — apply on focus/focus-within state of controls */
   .focus-ring         { box-shadow: var(--ring-focus); }
   .focus-ring-error   { box-shadow: var(--ring-focus-error); }
+
+  /* ---------- wireframe primitives ---------- */
+
+  /* Telemetry label: mono, uppercase, tracked. Use on small chrome labels
+     like "01 EVENTS" / "OVERVIEW" / "RANGE". */
+  .label-mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    line-height: 1;
+    color: var(--color-fg-muted);
+  }
+  .label-mono-sm {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-size: 10px;
+    line-height: 1;
+    color: var(--color-fg-dimmed);
+  }
+  .num-mono {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1;
+  }
+
+  /* Diagonal hatch — textural detail used on section edges and wireframe
+     placeholders. */
+  .bg-hatch {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--color-border-muted) 0,
+      var(--color-border-muted) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  }
+  .bg-hatch-strong {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--color-border) 0,
+      var(--color-border) 1px,
+      transparent 1px,
+      transparent 5px
+    );
+  }
+  .bg-hatch-primary {
+    background-image: repeating-linear-gradient(
+      135deg,
+      var(--color-primary-border) 0,
+      var(--color-primary-border) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  }
+
+  /* Wireframe surface — hairline border, sharp corners, flat fill. The
+     workhorse fill used by Card / Modal / Section in the wireframe palette. */
+  .surface-wire {
+    background-color: var(--color-default);
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+  .surface-wire-muted {
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border-muted);
+    border-radius: 0;
+  }
+
+  /* Section rule — thin hairline divider between numbered blocks.
+     Drawn via a ::before so the line can bleed out to the container rails:
+     UContainer publishes `--page-px` (its current horizontal padding) and
+     the rule extends left/right by that amount. Outside a container the
+     variable defaults to 0, so the line sits inside the section's own box
+     (the legacy behaviour). */
+  .rule-wire {
+    position: relative;
+  }
+  .rule-wire::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    height: 1px;
+    background: var(--color-border);
+    left:  calc(-1 * var(--page-px, 0px));
+    right: calc(-1 * var(--page-px, 0px));
+    pointer-events: none;
+  }
 }
 
-/*
- * Baseline body + colour-scheme.
- *
- * `useColorMode` (see ThemeToggle.vue) is the single source of truth: it
- * applies `.dark` to <html> when the user picks "Dark", and resolves "Auto"
- * to either `.light` or `.dark` based on `prefers-color-scheme`. So we only
- * need to react to the class — no extra media query.
- */
 html, body {
   background-color: var(--color-bg);
   color: var(--color-fg);
+  font-family: var(--font-mono);
+  font-feature-settings: 'tnum' 1, 'ss01' 1;
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
- * Always reserve gutter for the vertical scrollbar on classic-scrollbar
- * platforms (Windows / Linux). Avoids the layout jolt when content height
- * crosses the viewport (modal open, route change, lazy-loaded images, etc.)
- * and the scrollbar appears/disappears. Mobile/macOS overlay scrollbars are
- * unaffected because they never occupy gutter space.
- */
+/* Reserve gutter for the scrollbar — avoids layout jolt on modal open. */
 html {
   scrollbar-gutter: stable;
+}
+
+/*
+ * Wireframe scrollbar.
+ *
+ * Why custom: the browser default (rounded grey thumb on a wider track)
+ * fights the sharp-edged blueprint chrome and looks misplaced against the
+ * near-black ground. We want a hairline track + dimmed square thumb that
+ * lifts a notch on hover/active. macOS overlay scrollbars are unaffected
+ * — they ignore these styles by design.
+ *
+ * Firefox uses the `scrollbar-*` properties; WebKit/Blink uses the
+ * pseudo-elements. Both routes target the same tokens so the look stays
+ * consistent across browsers. Mobile / touch overlay scrollbars opt out
+ * via the media query at the end.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+  border-left: 1px solid var(--color-border-muted);
+}
+*::-webkit-scrollbar-track:horizontal {
+  border-left: 0;
+  border-top: 1px solid var(--color-border-muted);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 0;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accented);
+  border-color: var(--color-border-strong);
+}
+*::-webkit-scrollbar-thumb:active {
+  background: var(--color-border-strong);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices: defer to the OS overlay scrollbar. */
+  * {
+    scrollbar-width: auto;
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 html.light { color-scheme: light; }
@@ -265,29 +385,36 @@ html.dark  { color-scheme: dark; }
 
 @layer base {
   :root {
-    --font-display-latin: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-display-zh: "HarmonyOS Sans SC", "PingFang SC", "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
-    --font-display-ja: "HarmonyOS Sans JP", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP", sans-serif;
-    --font-title-latin: "Georgia", "Times New Roman", Times, serif;
-    --font-title-zh: "Songti SC", "STSong", "SimSun", serif;
-    --font-title-ja: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
+    --font-display-latin: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-display-zh: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
+    --font-display-ja: 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
+    --font-title-latin: 'Georgia', 'Times New Roman', Times, serif;
+    --font-title-zh: 'Songti SC', 'STSong', 'SimSun', serif;
+    --font-title-ja: 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif;
   }
 
+  /* Prose / display opt-in for body copy where mono is hostile (long
+     captions, photo descriptions, hero copy on the gallery). */
+  .font-prose,
   .home-display-font {
     font-family: var(--font-display-latin);
-    letter-spacing: -0.01em;
+    letter-spacing: -0.005em;
   }
 
+  :lang(zh-CN) .font-prose,
+  :lang(zh) .font-prose,
   :lang(zh-CN) .home-display-font,
   :lang(zh) .home-display-font {
     font-family: var(--font-display-zh);
-    letter-spacing: -0.005em;
+    letter-spacing: 0;
   }
 
+  :lang(ja) .font-prose,
+  :lang(ja-JP) .font-prose,
   :lang(ja) .home-display-font,
   :lang(ja-JP) .home-display-font {
     font-family: var(--font-display-ja);
-    letter-spacing: -0.005em;
+    letter-spacing: 0;
   }
 
   .home-title-font {

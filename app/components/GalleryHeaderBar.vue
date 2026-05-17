@@ -21,7 +21,7 @@ const { t } = useI18n()
 <template>
   <header
     v-if="showHeaderInfo"
-    class="sticky inset-x-0 top-0 z-30 w-full border-b border-default/20 bg-default"
+    class="sticky inset-x-0 top-0 z-30 w-full border-b border-[var(--color-border)] bg-default"
   >
     <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-2 text-center md:max-w-500 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-3 md:text-left">
       <div class="flex w-full flex-col items-center gap-1 md:flex-1 md:flex-row md:items-center md:gap-3">
@@ -70,8 +70,9 @@ const { t } = useI18n()
   </header>
   <div
     v-else
-    class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3"
+    class="border-b border-[var(--color-border)] bg-default"
   >
+    <div class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3">
     <UButton
       v-if="isAuthenticated"
       to="/admin"
@@ -85,5 +86,6 @@ const { t } = useI18n()
     </UButton>
     <UThemeToggle />
     <LanguageSwitcher />
+    </div>
   </div>
 </template>

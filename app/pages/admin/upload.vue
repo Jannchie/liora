@@ -86,7 +86,6 @@ const hasSelection = computed<boolean>(() => Boolean(selectedFile.value || selec
 const isLiveMode = computed<boolean>(() => uploadMode.value === 'live')
 const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
-const videoUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
 const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
 const captureTimeLocal = ref<string>('')
 const captureTimeDisplay = computed(() => {
@@ -167,10 +166,6 @@ function setFileUploadRef(instance: unknown): void {
   fileUploadRef.value = (instance as { inputRef?: HTMLInputElement | { value?: unknown } }) ?? null
 }
 
-function setVideoUploadRef(instance: unknown): void {
-  videoUploadRef.value = (instance as { inputRef?: HTMLInputElement | { value?: unknown } }) ?? null
-}
-
 function clearSelectedFile(): void {
   clearFormForNewFile()
   setUploadValue(null)
@@ -189,6 +184,36 @@ function setUploadMode(mode: UploadMode): void {
     clearSelectedFile()
   }
   uploadMode.value = mode
+}
+
+/**
+ * Single entry point for the unified picker. Inspects MIME and routes:
+ *   image/* → still-photo path (sets uploadValue, mode=image)
+ *   video/* → live-photo path (sets videoValue, mode=live)
+ *
+ * Anything else is rejected with a toast. Used by the dropzone, the
+ * "change file" affordance on the preview, and the paste handler.
+ */
+function ingestPickedFile(file: File | null): void {
+  if (!file) {
+    clearSelectedFile()
+    return
+  }
+  if (file.type.startsWith('video/')) {
+    if (uploadMode.value !== 'live') {
+      setUploadMode('live')
+    }
+    videoValue.value = file
+    return
+  }
+  if (file.type.startsWith('image/')) {
+    if (uploadMode.value !== 'image') {
+      setUploadMode('image')
+    }
+    setUploadValue(file)
+    return
+  }
+  toast.add({ title: toastMessages.value.selectImage, color: 'error' })
 }
 
 function clearFormForNewFile(): void {
@@ -218,9 +243,11 @@ function clearVideoSelection(): void {
   }
 }
 
-function getFileInputElement(target: 'image' | 'video'): HTMLInputElement | null {
-  const refTarget = target === 'image' ? fileUploadRef.value : videoUploadRef.value
-  const exposed = refTarget?.inputRef
+function getFileInputElement(_target?: 'image' | 'video'): HTMLInputElement | null {
+  // Single picker now backs both modes; `target` is kept on the signature
+  // purely so callers don't have to be touched, but both branches resolve
+  // to the same physical <input> exposed by the unified dropzone.
+  const exposed = fileUploadRef.value?.inputRef
   if (!exposed) {
     return null
   }
@@ -310,8 +337,7 @@ watch(videoValue, (file, previous) => {
 })
 
 function openFileDialog(): void {
-  const target = isLiveMode.value ? 'video' : 'image'
-  getFileInputElement(target)?.click()
+  getFileInputElement()?.click()
 }
 
 function extractClipboardImage(event: ClipboardEvent): File | null {
@@ -335,8 +361,7 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     return
   }
   event.preventDefault()
-  setUploadMode('image')
-  setUploadValue(file)
+  ingestPickedFile(file)
 }
 
 onMounted(() => {
@@ -618,7 +643,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="min-h-screen">
-    <UContainer class="space-y-10 py-10">
+    <UContainer rails class="space-y-10 py-10">
       <AdminNav />
 
       <UPageHeader
@@ -733,12 +758,8 @@ onBeforeUnmount(() => {
 
       <AdminUploadPickerCard
         v-show="!hasSelection"
-        v-model:upload-value="uploadValue"
-        v-model:video-value="videoValue"
-        :upload-mode="uploadMode"
         :set-file-upload-ref="setFileUploadRef"
-        :set-video-upload-ref="setVideoUploadRef"
-        @select-mode="setUploadMode"
+        @pick="ingestPickedFile"
       />
 
       <UForm
