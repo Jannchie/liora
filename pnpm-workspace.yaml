@@ -3,9 +3,17 @@ shellEmulator: true
 trustPolicy: no-downgrade
 overrides:
   '@vercel/nft': ^0.27.4
+  punycode: npm:punycode@^2.3.1
+  rollup: 4.60.4
+  vite: 7.3.3
 
-onlyBuiltDependencies:
-  - '@sentry/cli'
-  - protobufjs
-  - sharp
-  - vue-demi
+allowBuilds:
+  '@parcel/watcher': false
+  '@sentry/cli': true
+  esbuild: false
+  ffmpeg-static: true
+  onnxruntime-node: false
+  protobufjs: true
+  sharp: true
+  unrs-resolver: false
+  vue-demi: true
