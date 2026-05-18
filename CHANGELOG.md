@@ -1,3 +1,32 @@
+## v0.30.0
+
+[v0.29.1...v0.30.0](https://github.com/Jannchie/liora/compare/v0.29.1...v0.30.0)
+
+### :sparkles: Features
+
+- **arthash**: add arthash placeholder component - By [Jannchie](mailto:jannchie@gmail.com) in [756d305](https://github.com/Jannchie/liora/commit/756d305)
+- **arthash**: integrate arthash for image handling - By [Jannchie](mailto:jannchie@gmail.com) in [410e633](https://github.com/Jannchie/liora/commit/410e633)
+
+### :art: Refactors
+
+- **ui**: update component styling and restructure codebase - By [Jannchie](mailto:jannchie@gmail.com) in [b79b92c](https://github.com/Jannchie/liora/commit/b79b92c)
+- **upload**: unify file upload handling for images and videos - By [Jannchie](mailto:jannchie@gmail.com) in [b090d60](https://github.com/Jannchie/liora/commit/b090d60)
+
+### :lipstick: Styles
+
+- clean up formatting and syntax in components - By [Jannchie](mailto:jannchie@gmail.com) in [86f8136](https://github.com/Jannchie/liora/commit/86f8136)
+
+### :construction_worker: CI
+
+- **docker**: update docker release workflow for ghcr - By [Jannchie](mailto:jannchie@gmail.com) in [2b4424b](https://github.com/Jannchie/liora/commit/2b4424b)
+- **workflow**: update node version to 22 - By [Jannchie](mailto:jannchie@gmail.com) in [1c93a66](https://github.com/Jannchie/liora/commit/1c93a66)
+
+### :wrench: Chores
+
+- **deps**: update dependencies and cleanup lock files - By [Jannchie](mailto:jannchie@gmail.com) in [d7dc533](https://github.com/Jannchie/liora/commit/d7dc533)
+- **deps**: update package manager to pnpm@11.1.2 - By [Jannchie](mailto:jannchie@gmail.com) in [0e076f2](https://github.com/Jannchie/liora/commit/0e076f2)
+- **deps**: update dependencies and stylesheet improvements - By [Jannchie](mailto:jannchie@gmail.com) in [81eebfc](https://github.com/Jannchie/liora/commit/81eebfc)
+
 ## v0.29.1
 
 [v0.29.0...v0.29.1](https://github.com/Jannchie/liora/compare/v0.29.0...v0.29.1)
