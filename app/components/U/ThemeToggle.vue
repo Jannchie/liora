@@ -27,7 +27,7 @@ const STORAGE_KEY = 'liora-color-mode'
 
 function readStoredMode(): Mode {
   try {
-    const raw = globalThis.localStorage?.getItem(STORAGE_KEY)?.replace(/^['"]|['"]$/g, '')
+    const raw = globalThis.localStorage?.getItem(STORAGE_KEY)?.replaceAll(/^['"]|['"]$/g, '')
     if (raw === 'light' || raw === 'dark' || raw === 'auto') {
       return raw
     }
@@ -57,17 +57,25 @@ onMounted(() => {
 const prefersDark = usePreferredDark()
 
 const resolved = computed<'light' | 'dark'>(() => {
-  if (userMode.value === 'dark') return 'dark'
-  if (userMode.value === 'light') return 'light'
+  if (userMode.value === 'dark') {
+    return 'dark'
+  }
+  if (userMode.value === 'light') {
+    return 'light'
+  }
   return prefersDark.value ? 'dark' : 'light'
 })
 
 watchEffect(() => {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   // Don't touch <html> classes before mount — the pre-hydration inline script
   // has already applied the correct class, and userMode is still the SSR
   // default ('auto') here, which would override the user's real preference.
-  if (!hasMounted.value) return
+  if (!hasMounted.value) {
+    return
+  }
   const html = document.documentElement
   // Suppress transitions for one frame so colour-scheme swaps instantly
   // instead of cross-fading through every `transition-colors` element.
@@ -90,17 +98,23 @@ const cycle: Record<Mode, Mode> = {
 
 const icon = computed(() => {
   switch (userMode.value) {
-    case 'light': return 'tabler:sun'
-    case 'dark': return 'tabler:moon'
-    default: return 'tabler:device-laptop'
+    case 'light': { return 'tabler:sun'
+    }
+    case 'dark': { return 'tabler:moon'
+    }
+    default: { return 'tabler:device-laptop'
+    }
   }
 })
 
 const label = computed(() => {
   switch (userMode.value) {
-    case 'light': return 'Light'
-    case 'dark': return 'Dark'
-    default: return 'Auto'
+    case 'light': { return 'Light'
+    }
+    case 'dark': { return 'Dark'
+    }
+    default: { return 'Auto'
+    }
   }
 })
 

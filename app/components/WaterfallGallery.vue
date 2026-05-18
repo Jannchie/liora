@@ -23,6 +23,7 @@ import { Waterfall } from 'vue-wf'
 import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { brandIconSet } from '~/constants/brand-icons'
+import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
 import {
   normalizeExposureModeValue,
   normalizeExposureProgramValue,
@@ -30,7 +31,6 @@ import {
   normalizeMeteringModeValue,
   normalizeWhiteBalanceValue,
 } from '~/utils/exposure'
-import { arthashReady, decodeArthashToDataUrl, ensureArthashReady } from '~/utils/arthash'
 import { resolveFileTitle } from '~/utils/file'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile } from '~/utils/media-form'
 
@@ -847,7 +847,7 @@ function normalizeHistogram(raw: HistogramData | null | undefined): HistogramDat
   const red = buildChannel(raw.red)
   const green = buildChannel(raw.green)
   const blue = buildChannel(raw.blue)
-  const luminance = buildChannel(raw.luminance) ?? Array.from({ length: 256 }, () => 0)
+  const luminance = buildChannel(raw.luminance) ?? Array.from<number>({ length: 256 }).fill(0)
 
   if (!red || !green || !blue) {
     return null

@@ -68,7 +68,7 @@ function permutation(n: number): number[] {
   const order = Array.from({ length: n }, (_, i) => i)
   for (let i = n - 1; i > 0; i -= 1) {
     // Deterministic mulberry-ish step keyed only on i.
-    const j = (i * 2654435761) % (i + 1)
+    const j = (i * 2_654_435_761) % (i + 1)
     const tmp = order[i]!
     order[i] = order[j]!
     order[j] = tmp
@@ -97,7 +97,7 @@ export function decodeArthashToAnimatedSvg(
       /<path\b/,
       `<path style="transition:opacity ${fadeDuration}ms ease-out;transition-delay:0ms"`,
     )
-    svg = svg.replace(/<rect\b/g, () => {
+    svg = svg.replaceAll(/<rect\b/g, () => {
       const delay = stagger + order[rectIdx]! * stagger
       rectIdx += 1
       return `<rect style="transition:opacity ${fadeDuration}ms ease-out;transition-delay:${delay}ms"`

@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
   divider: 'rule',
 })
 
-const padded = (n?: number | string) => {
+function padded(n?: number | string) {
   if (n === undefined || n === null || n === '') {
     return ''
   }

@@ -1,6 +1,6 @@
 import type { ComputedRef } from 'vue'
-import { useI18n } from '#imports'
 import { computed } from 'vue'
+import { useI18n } from '#imports'
 
 interface SelectOption {
   label: string

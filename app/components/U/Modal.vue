@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 
-const isClient = import.meta.client
-
 const props = withDefaults(defineProps<{
   open?: boolean
   title?: string
@@ -26,13 +24,17 @@ const emit = defineEmits<{
   'close': []
 }>()
 
+const isClient = import.meta.client
+
 const open = computed({
   get: () => props.open ?? false,
-  set: (value) => emit('update:open', value),
+  set: value => emit('update:open', value),
 })
 
 function close(): void {
-  if (!props.closable) return
+  if (!props.closable) {
+    return
+  }
   open.value = false
   emit('close')
 }
@@ -50,7 +52,9 @@ function onKeydown(event: KeyboardEvent): void {
 }
 
 function setBodyScroll(locked: boolean): void {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   document.body.style.overflow = locked ? 'hidden' : ''
 }
 
@@ -59,12 +63,16 @@ watch(open, (next) => {
 }, { immediate: true })
 
 onMounted(() => {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   document.addEventListener('keydown', onKeydown, { capture: true })
 })
 
 onBeforeUnmount(() => {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   document.removeEventListener('keydown', onKeydown, { capture: true })
   setBodyScroll(false)
 })
@@ -80,10 +88,10 @@ const wrapperClass = computed(() => {
 })
 
 const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
-  sm: 'max-w-md',
-  md: 'max-w-xl',
-  lg: 'max-w-3xl',
-  xl: 'max-w-5xl',
+  'sm': 'max-w-md',
+  'md': 'max-w-xl',
+  'lg': 'max-w-3xl',
+  'xl': 'max-w-5xl',
   '2xl': 'max-w-6xl',
 }
 
@@ -142,7 +150,7 @@ const contentClass = computed(() => {
                   v-if="closable"
                   type="button"
                   class="rounded-md p-1 text-muted outline-none transition hover:bg-muted hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
-                  :aria-label="'Close'"
+                  aria-label="Close"
                   @click="close"
                 >
                   <Icon name="tabler:x" class="h-4 w-4" />

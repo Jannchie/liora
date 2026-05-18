@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, unknown>">
+<script setup lang="ts" generic="T extends object">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
 const props = withDefaults(defineProps<{
@@ -32,12 +32,14 @@ const rootEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
 
 function readField<R = unknown>(item: T, field: string): R | undefined {
-  return (item?.[field] as R | undefined)
+  return ((item as Record<string, unknown>)?.[field] as R | undefined)
 }
 
 const selectedValues = computed<unknown[]>(() => {
   const raw = props.modelValue
-  if (props.multiple) return Array.isArray(raw) ? raw : []
+  if (props.multiple) {
+    return Array.isArray(raw) ? raw : []
+  }
   return raw === undefined || raw === null ? [] : [raw]
 })
 
@@ -49,7 +51,9 @@ const selectedItems = computed<T[]>(() => {
 
 const filteredItems = computed<T[]>(() => {
   const q = query.value.trim().toLowerCase()
-  if (!q) return props.items
+  if (!q) {
+    return props.items
+  }
   return props.items.filter((item) => {
     return props.filterFields.some((field) => {
       const value = readField(item, field)
@@ -63,8 +67,12 @@ function toggleItem(item: T): void {
   if (props.multiple) {
     const current = Array.isArray(props.modelValue) ? [...props.modelValue] : []
     const idx = current.indexOf(value)
-    if (idx === -1) current.push(value)
-    else current.splice(idx, 1)
+    if (idx === -1) {
+      current.push(value)
+    }
+    else {
+      current.splice(idx, 1)
+    }
     emit('update:modelValue', current)
   }
   else {
@@ -88,20 +96,26 @@ function removeItem(item: T): void {
 }
 
 function openMenu(): void {
-  if (props.disabled) return
+  if (props.disabled) {
+    return
+  }
   open.value = true
   void nextTick(() => inputEl.value?.focus())
 }
 
 function onClickOutside(event: MouseEvent): void {
-  if (!rootEl.value) return
+  if (!rootEl.value) {
+    return
+  }
   if (!rootEl.value.contains(event.target as Node)) {
     open.value = false
   }
 }
 
 watch(open, (isOpen) => {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   if (isOpen) {
     document.addEventListener('mousedown', onClickOutside)
   }
@@ -112,7 +126,9 @@ watch(open, (isOpen) => {
 })
 
 onBeforeUnmount(() => {
-  if (!import.meta.client) return
+  if (!import.meta.client) {
+    return
+  }
   document.removeEventListener('mousedown', onClickOutside)
 })
 </script>

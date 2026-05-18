@@ -29,15 +29,21 @@ const visiblePages = computed<Array<number | '…'>>(() => {
   const left = Math.max(2, current - window)
   const right = Math.min(total - 1, current + window)
   const items: Array<number | '…'> = [1]
-  if (left > 2) items.push('…')
+  if (left > 2) {
+    items.push('…')
+  }
   for (let i = left; i <= right; i += 1) items.push(i)
-  if (right < total - 1) items.push('…')
+  if (right < total - 1) {
+    items.push('…')
+  }
   items.push(total)
   return items
 })
 
 function go(target: number): void {
-  if (target < 1 || target > pageCount.value || target === props.page) return
+  if (target < 1 || target > pageCount.value || target === props.page) {
+    return
+  }
   emit('update:page', target)
 }
 
@@ -51,7 +57,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
       class="text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
       :class="btnBase"
       :disabled="page <= 1"
-      :aria-label="'Previous page'"
+      aria-label="Previous page"
       @click="go(page - 1)"
     >
       <Icon name="tabler:chevron-left" class="h-4 w-4" />
@@ -78,7 +84,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
       class="text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
       :class="btnBase"
       :disabled="page >= pageCount"
-      :aria-label="'Next page'"
+      aria-label="Next page"
       @click="go(page + 1)"
     >
       <Icon name="tabler:chevron-right" class="h-4 w-4" />

@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, unknown>">
+<script setup lang="ts" generic="T extends object">
 import { provide, ref } from 'vue'
 
 type ValidationResult = string | true | undefined | null

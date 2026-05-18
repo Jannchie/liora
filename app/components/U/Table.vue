@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="Row extends Record<string, unknown>">
+<script setup lang="ts" generic="Row extends object">
 import { computed } from 'vue'
 
 interface Column<R> {
@@ -26,19 +26,13 @@ const props = withDefaults(defineProps<{
   data: () => [],
 })
 
-interface CellContext {
-  row: { original: Row, index: number }
-  column: Column<Row>
-  getValue: () => unknown
-}
-
-interface HeaderContext {
-  column: Column<Row>
-}
-
 function resolveValue(row: Row, column: Column<Row>): unknown {
-  if (column.accessorFn) return column.accessorFn(row)
-  if (column.accessorKey) return row[column.accessorKey]
+  if (column.accessorFn) {
+    return column.accessorFn(row)
+  }
+  if (column.accessorKey) {
+    return (row as Record<string, unknown>)[column.accessorKey]
+  }
   return undefined
 }
 

@@ -33,23 +33,45 @@ const iconName = computed(() => props.icon ?? defaultIcon[props.color])
 const variantClass = computed(() => {
   const { variant, color } = props
   if (variant === 'solid') {
-    if (color === 'error') return 'bg-[var(--color-error)] text-white'
-    if (color === 'warning') return 'bg-[var(--color-warning)] text-[var(--color-fg-highlighted)]'
-    if (color === 'success') return 'bg-[var(--color-success)] text-white'
-    if (color === 'info') return 'bg-[var(--color-info)] text-white'
+    if (color === 'error') {
+      return 'bg-[var(--color-error)] text-white'
+    }
+    if (color === 'warning') {
+      return 'bg-[var(--color-warning)] text-[var(--color-fg-highlighted)]'
+    }
+    if (color === 'success') {
+      return 'bg-[var(--color-success)] text-white'
+    }
+    if (color === 'info') {
+      return 'bg-[var(--color-info)] text-white'
+    }
     return 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
   }
   if (variant === 'outline') {
-    if (color === 'error') return 'border border-[var(--color-error)] text-[var(--color-error)]'
-    if (color === 'warning') return 'border border-[var(--color-warning)] text-[var(--color-warning)]'
-    if (color === 'success') return 'border border-[var(--color-success)] text-[var(--color-success)]'
+    if (color === 'error') {
+      return 'border border-[var(--color-error)] text-[var(--color-error)]'
+    }
+    if (color === 'warning') {
+      return 'border border-[var(--color-warning)] text-[var(--color-warning)]'
+    }
+    if (color === 'success') {
+      return 'border border-[var(--color-success)] text-[var(--color-success)]'
+    }
     return 'border border-[var(--color-primary)] text-[var(--color-primary)]'
   }
   // soft / subtle
-  if (color === 'error') return 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
-  if (color === 'warning') return 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
-  if (color === 'success') return 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
-  if (color === 'info') return 'bg-[var(--color-info-soft)] text-[var(--color-info)]'
+  if (color === 'error') {
+    return 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
+  }
+  if (color === 'warning') {
+    return 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
+  }
+  if (color === 'success') {
+    return 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
+  }
+  if (color === 'info') {
+    return 'bg-[var(--color-info-soft)] text-[var(--color-info)]'
+  }
   return 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
 })
 </script>
@@ -79,7 +101,7 @@ const variantClass = computed(() => {
       v-if="closable"
       type="button"
       class="shrink-0 rounded p-0.5 opacity-70 transition hover:opacity-100"
-      :aria-label="'Dismiss'"
+      aria-label="Dismiss"
       @click="emit('close')"
     >
       <Icon name="tabler:x" class="h-4 w-4" />

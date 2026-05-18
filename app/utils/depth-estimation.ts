@@ -1,4 +1,4 @@
-import type { DepthEstimationPipeline, DepthEstimationPipelineOutput, DeviceType } from '@huggingface/transformers'
+import type { DepthEstimationOutput, DepthEstimationPipeline, DeviceType } from '@huggingface/transformers'
 
 export interface DepthEstimateOptions {
   scaleFactor?: number
@@ -138,7 +138,7 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   return pipelinePromise
 }
 
-async function resolveDepthOutput(output: DepthEstimationPipelineOutput | DepthEstimationPipelineOutput[]): Promise<DepthEstimationPipelineOutput> {
+async function resolveDepthOutput(output: DepthEstimationOutput | DepthEstimationOutput[]): Promise<DepthEstimationOutput> {
   if (Array.isArray(output)) {
     const [first] = output
     if (!first) {

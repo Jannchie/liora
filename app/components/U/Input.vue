@@ -34,9 +34,12 @@ const attrs = useAttrs()
 
 const sizeClass = computed(() => {
   switch (props.size) {
-    case 'sm': return 'h-8 text-sm'
-    case 'lg': return 'h-11 text-base'
-    default: return 'h-9 text-sm'
+    case 'sm': { return 'h-8 text-sm'
+    }
+    case 'lg': { return 'h-11 text-base'
+    }
+    default: { return 'h-9 text-sm'
+    }
   }
 })
 

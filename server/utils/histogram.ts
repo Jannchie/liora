@@ -18,10 +18,10 @@ export async function computeHistogram(data: Buffer): Promise<HistogramData | nu
     }
 
     const histogram: HistogramData = {
-      red: Array.from({ length: 256 }, () => 0),
-      green: Array.from({ length: 256 }, () => 0),
-      blue: Array.from({ length: 256 }, () => 0),
-      luminance: Array.from({ length: 256 }, () => 0),
+      red: Array.from<number>({ length: 256 }).fill(0),
+      green: Array.from<number>({ length: 256 }).fill(0),
+      blue: Array.from<number>({ length: 256 }).fill(0),
+      luminance: Array.from<number>({ length: 256 }).fill(0),
     }
 
     const incrementChannel = (channel: number[], value: number): void => {

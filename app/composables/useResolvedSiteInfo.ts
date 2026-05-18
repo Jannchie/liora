@@ -1,8 +1,8 @@
 import type { ComputedRef, MaybeRef } from 'vue'
 import type { SocialLink } from '~/types/gallery'
 import type { SiteSettings } from '~/types/site'
-import { useI18n, useRuntimeConfig, useSiteConfig } from '#imports'
 import { computed, unref } from 'vue'
+import { useI18n, useRuntimeConfig, useSiteConfig } from '#imports'
 
 interface ResolvedSiteInfo {
   siteName: ComputedRef<string>

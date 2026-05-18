@@ -541,12 +541,8 @@ function mergeMetadata(existing: ParsedMetadata, exif: ExifResult): MergeResult 
     merged.captureTime = captureTime
   }
 
-  if (merged.latitude === undefined || merged.latitude === null) {
-    merged.latitude = exif.latitude ?? null
-  }
-  if (merged.longitude === undefined || merged.longitude === null) {
-    merged.longitude = exif.longitude ?? null
-  }
+  merged.latitude ??= exif.latitude ?? null
+  merged.longitude ??= exif.longitude ?? null
   const locationText = formatLocation(exif.latitude, exif.longitude)
   if (!merged.location && locationText) {
     merged.location = locationText

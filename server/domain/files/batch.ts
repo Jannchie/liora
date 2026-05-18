@@ -44,7 +44,7 @@ const BATCH_METADATA_FIELDS = [
 const BATCH_FIELD_SET = new Set<string>(BATCH_METADATA_FIELDS)
 
 function hasOwn(target: object, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(target, key)
+  return Object.hasOwn(target, key)
 }
 
 function parsePositiveInt(value: unknown): number | null {

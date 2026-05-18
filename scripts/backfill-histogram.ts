@@ -81,6 +81,6 @@ async function main(): Promise<void> {
 await main().catch(async (error) => {
   console.error(error)
   await closeDb()
-  // eslint-disable-next-line unicorn/no-process-exit
+
   process.exit(1)
 })

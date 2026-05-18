@@ -32,10 +32,12 @@ function normalizeColor(color: string | undefined): ToastColor {
     case 'success':
     case 'info':
     case 'neutral':
-    case 'primary':
+    case 'primary': {
       return color
-    default:
+    }
+    default: {
       return 'primary'
+    }
   }
 }
 
@@ -50,7 +52,7 @@ function add(input: ToastInput): ToastEntry {
   }
   store.items = [...store.items, entry]
   if (entry.duration > 0 && import.meta.client) {
-    const timer = setTimeout(() => remove(entry.id), entry.duration)
+    const timer = setTimeout(remove, entry.duration, entry.id)
     timers.set(entry.id, timer)
   }
   return entry

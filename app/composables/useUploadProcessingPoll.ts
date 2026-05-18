@@ -16,8 +16,16 @@ type RequestFetch = <T>(request: string, options?: {
   [key: string]: unknown
 }) => Promise<T>
 
+interface ToastOptions {
+  title: string
+  description?: string
+  color?: string
+  duration?: number
+  id?: string | number
+}
+
 interface ToastApi {
-  add: (options: Record<string, unknown>) => unknown
+  add: (options: ToastOptions) => unknown
 }
 
 export function useUploadProcessingPoll(toast: ToastApi): {

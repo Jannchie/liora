@@ -705,12 +705,48 @@ onBeforeUnmount(() => {
         </template>
         <div class="space-y-4">
           <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
-            <div class="flex items-center gap-1"><dt class="text-muted">Total</dt><dd class="font-mono">{{ batchItems.length }}</dd></div>
-            <div class="flex items-center gap-1"><dt class="text-muted">Selected</dt><dd class="font-mono">{{ batchSelectedCount }}</dd></div>
-            <div class="flex items-center gap-1"><dt class="text-muted">Pending</dt><dd class="font-mono">{{ batchPendingCount }}</dd></div>
-            <div class="flex items-center gap-1"><dt class="text-muted">Uploading</dt><dd class="font-mono">{{ batchUploadingCount }}</dd></div>
-            <div class="flex items-center gap-1"><dt class="text-muted">Success</dt><dd class="font-mono text-success">{{ batchSuccessCount }}</dd></div>
-            <div class="flex items-center gap-1"><dt class="text-muted">Failed</dt><dd class="font-mono text-error">{{ batchFailedCount }}</dd></div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Total
+              </dt><dd class="font-mono">
+                {{ batchItems.length }}
+              </dd>
+            </div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Selected
+              </dt><dd class="font-mono">
+                {{ batchSelectedCount }}
+              </dd>
+            </div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Pending
+              </dt><dd class="font-mono">
+                {{ batchPendingCount }}
+              </dd>
+            </div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Uploading
+              </dt><dd class="font-mono">
+                {{ batchUploadingCount }}
+              </dd>
+            </div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Success
+              </dt><dd class="font-mono text-success">
+                {{ batchSuccessCount }}
+              </dd>
+            </div>
+            <div class="flex items-center gap-1">
+              <dt class="text-muted">
+                Failed
+              </dt><dd class="font-mono text-error">
+                {{ batchFailedCount }}
+              </dd>
+            </div>
           </dl>
           <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <div

@@ -3,9 +3,7 @@ import { computed, nextTick, onBeforeUnmount, ref, useAttrs, watch } from 'vue'
 
 type Primitive = string | number | boolean | null | undefined
 
-interface OptionObject {
-  [key: string]: unknown
-}
+type OptionObject = object
 type Item = Primitive | OptionObject
 
 defineOptions({ inheritAttrs: false })
@@ -41,7 +39,7 @@ interface NormalizedOption {
 
 function readField(item: Item, field: string): unknown {
   if (item && typeof item === 'object') {
-    return (item as OptionObject)[field]
+    return (item as Record<string, unknown>)[field]
   }
   return undefined
 }
@@ -68,12 +66,15 @@ const displayLabel = computed(() => selectedOption.value?.label ?? '')
 
 const sizeClass = computed(() => {
   switch (props.size) {
-    case 'sm':
+    case 'sm': {
       return 'h-8 text-sm px-2.5'
-    case 'lg':
+    }
+    case 'lg': {
       return 'h-11 text-base px-3.5'
-    default:
+    }
+    default: {
       return 'h-9 text-sm px-3'
+    }
   }
 })
 
@@ -103,24 +104,21 @@ function updatePosition(): void {
   const desiredHeight = Math.min(desiredMaxHeight, Math.max(120, normalized.value.length * 36 + 8))
   const placeBelow = spaceBelow >= desiredHeight || spaceBelow >= spaceAbove
 
-  if (placeBelow) {
-    popoverStyle.value = {
-      position: 'fixed',
-      left: `${rect.left}px`,
-      top: `${rect.bottom + margin}px`,
-      width: `${rect.width}px`,
-      maxHeight: `${Math.max(120, spaceBelow)}px`,
-    }
-  }
-  else {
-    popoverStyle.value = {
-      position: 'fixed',
-      left: `${rect.left}px`,
-      bottom: `${viewportHeight - rect.top + margin}px`,
-      width: `${rect.width}px`,
-      maxHeight: `${Math.max(120, spaceAbove)}px`,
-    }
-  }
+  popoverStyle.value = placeBelow
+    ? {
+        position: 'fixed',
+        left: `${rect.left}px`,
+        top: `${rect.bottom + margin}px`,
+        width: `${rect.width}px`,
+        maxHeight: `${Math.max(120, spaceBelow)}px`,
+      }
+    : {
+        position: 'fixed',
+        left: `${rect.left}px`,
+        bottom: `${viewportHeight - rect.top + margin}px`,
+        width: `${rect.width}px`,
+        maxHeight: `${Math.max(120, spaceAbove)}px`,
+      }
 }
 
 function scrollActiveIntoView(): void {
@@ -140,7 +138,7 @@ async function open(): Promise<void> {
   await nextTick()
   updatePosition()
   const idx = normalized.value.findIndex(option => option.value === props.modelValue)
-  activeIndex.value = idx >= 0 ? idx : 0
+  activeIndex.value = Math.max(idx, 0)
   await nextTick()
   scrollActiveIntoView()
 }
@@ -173,40 +171,47 @@ function onTriggerKeydown(event: KeyboardEvent): void {
   }
   const length = normalized.value.length
   switch (event.key) {
-    case 'ArrowDown':
+    case 'ArrowDown': {
       event.preventDefault()
       activeIndex.value = length > 0 ? (activeIndex.value + 1) % length : -1
       scrollActiveIntoView()
       break
-    case 'ArrowUp':
+    }
+    case 'ArrowUp': {
       event.preventDefault()
       activeIndex.value = length > 0 ? (activeIndex.value - 1 + length) % length : -1
       scrollActiveIntoView()
       break
-    case 'Home':
+    }
+    case 'Home': {
       event.preventDefault()
       activeIndex.value = length > 0 ? 0 : -1
       scrollActiveIntoView()
       break
-    case 'End':
+    }
+    case 'End': {
       event.preventDefault()
       activeIndex.value = length > 0 ? length - 1 : -1
       scrollActiveIntoView()
       break
+    }
     case 'Enter':
-    case ' ':
+    case ' ': {
       event.preventDefault()
       if (activeIndex.value >= 0) {
         selectIndex(activeIndex.value)
       }
       break
-    case 'Escape':
+    }
+    case 'Escape': {
       event.preventDefault()
       close()
       break
-    case 'Tab':
+    }
+    case 'Tab': {
       close()
       break
+    }
   }
 }
 
@@ -268,7 +273,7 @@ onBeforeUnmount(() => {
       ref="triggerRef"
       type="button"
       :disabled="disabled"
-      :aria-haspopup="'listbox'"
+      aria-haspopup="listbox"
       :aria-expanded="isOpen"
       v-bind="{ ...attrs, class: undefined }"
       class="flex w-full items-center justify-between gap-2 bg-transparent text-left outline-none"

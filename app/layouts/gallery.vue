@@ -4,8 +4,8 @@ import type { FileMetadata, FileResponse, FileSummary } from '~/types/file'
 import type { SiteInfoPlacement, SocialLink } from '~/types/gallery'
 import type { SeriesSummary } from '~/types/series'
 import type { SiteSettings } from '~/types/site'
-import { defineOgImage } from '#imports'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { defineOgImage } from '#imports'
 import { useSiteSettingsState } from '~/composables/useSiteSettings'
 
 const { t } = useI18n()

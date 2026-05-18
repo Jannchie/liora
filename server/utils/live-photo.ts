@@ -68,7 +68,7 @@ export async function downloadToFile(url: string, targetPath: string): Promise<v
     })
     return
   }
-  const readable = Readable.fromWeb(response.body as WebReadableStream<Uint8Array>)
+  const readable = Readable.fromWeb(response.body as unknown as WebReadableStream<Uint8Array>)
   await pipeline(readable, createWriteStream(targetPath))
 }
 

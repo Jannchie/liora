@@ -1,6 +1,6 @@
 import type { GeocodeResult, MediaFormState } from '~/types/admin'
-import { useI18n, useToast } from '#imports'
 import { computed, ref } from 'vue'
+import { useI18n, useToast } from '#imports'
 
 export function useLocationSearch(form: MediaFormState) {
   const { t } = useI18n()

@@ -116,7 +116,7 @@ function getCssColor(name: string, fallback: string): string {
 }
 
 function smoothHistogramChannel(values: number[], kernel: number[]): number[] {
-  const result = Array.from({ length: values.length }, () => 0)
+  const result = Array.from<number>({ length: values.length }).fill(0)
   const radius = Math.floor(kernel.length / 2)
   const defaultWeight = kernel.reduce((sum, weight) => sum + weight, 0)
   for (let index = 0; index < values.length; index += 1) {

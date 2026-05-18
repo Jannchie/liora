@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useToast, useToastStore, type ToastColor } from '~/composables/useToast'
+import type { ToastColor } from '~/composables/useToast'
+import { useToast, useToastStore } from '~/composables/useToast'
 
 const toastStore = useToastStore()
 const toast = useToast()
@@ -72,7 +73,7 @@ const iconColorClass: Record<ToastColor, string> = {
           <button
             type="button"
             class="shrink-0 rounded-md p-0.5 text-muted outline-none transition hover:bg-muted hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
-            :aria-label="'Dismiss'"
+            aria-label="Dismiss"
             @click="toast.remove(item.id)"
           >
             <Icon name="tabler:x" class="h-3.5 w-3.5" />

@@ -51,11 +51,11 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
               ? 'text-primary shadow-[inset_0_-2px_0_0_var(--color-primary)]'
               : 'text-muted hover:text-foreground')
             : [
-                'rounded-md',
-                active === item.value
-                  ? 'bg-primary-soft text-primary'
-                  : 'text-muted hover:bg-muted',
-              ],
+              'rounded-md',
+              active === item.value
+                ? 'bg-primary-soft text-primary'
+                : 'text-muted hover:bg-muted',
+            ],
         ]"
         @click="setActive(item.value)"
       >

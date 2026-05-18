@@ -1,11 +1,11 @@
 import type { H3Event } from 'h3'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { useRuntimeConfig } from '#imports'
 import { createOpenAI } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { createError } from 'h3'
 import sharp from 'sharp'
+import { useRuntimeConfig } from '#imports'
 
 export interface GenreClassificationResult {
   primary: string

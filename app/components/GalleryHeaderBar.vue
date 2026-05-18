@@ -73,19 +73,19 @@ const { t } = useI18n()
     class="border-b border-[var(--color-border)] bg-default"
   >
     <div class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3">
-    <UButton
-      v-if="isAuthenticated"
-      to="/admin"
-      color="primary"
-      variant="soft"
-      size="sm"
-      class="shrink-0"
-      icon="tabler:shield-check"
-    >
-      {{ t('admin.nav.label') }}
-    </UButton>
-    <UThemeToggle />
-    <LanguageSwitcher />
+      <UButton
+        v-if="isAuthenticated"
+        to="/admin"
+        color="primary"
+        variant="soft"
+        size="sm"
+        class="shrink-0"
+        icon="tabler:shield-check"
+      >
+        {{ t('admin.nav.label') }}
+      </UButton>
+      <UThemeToggle />
+      <LanguageSwitcher />
     </div>
   </div>
 </template>

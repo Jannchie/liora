@@ -20,7 +20,9 @@ const isDragging = ref(false)
 const inputRef = ref<HTMLInputElement | null>(null)
 
 function pick(): void {
-  if (props.disabled) return
+  if (props.disabled) {
+    return
+  }
   inputRef.value?.click()
 }
 
@@ -40,13 +42,17 @@ function onChange(event: Event): void {
 function onDrop(event: DragEvent): void {
   event.preventDefault()
   isDragging.value = false
-  if (props.disabled) return
+  if (props.disabled) {
+    return
+  }
   handleFiles(event.dataTransfer?.files ?? null)
 }
 
 function onDragOver(event: DragEvent): void {
   event.preventDefault()
-  if (props.disabled) return
+  if (props.disabled) {
+    return
+  }
   isDragging.value = true
 }
 
@@ -56,7 +62,9 @@ function onDragLeave(): void {
 
 function clear(): void {
   emit('update:modelValue', null)
-  if (inputRef.value) inputRef.value.value = ''
+  if (inputRef.value) {
+    inputRef.value.value = ''
+  }
 }
 
 defineExpose({ inputRef, clear })
