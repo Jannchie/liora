@@ -581,7 +581,6 @@ function handleFocusToggle(): void {
           />
           <DepthMapViewer
             v-show="!livePhotoPlaying || !hasLivePhoto"
-            :key="file.id"
             :image-url="displayImageUrl"
             :depth-url="depthMapUrl"
             :placeholder-url="placeholderUrl"

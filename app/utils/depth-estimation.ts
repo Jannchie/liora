@@ -213,22 +213,6 @@ export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstim
     throw new Error('Image URL is required.')
   }
   const scaleFactor = parseScaleFactor(options.scaleFactor)
-  const preferredDevice = resolvePreferredDevice()
-  if (preferredDevice) {
-    try {
-      return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
-    }
-    catch (error) {
-      const fallbackWorker = getDepthWorker()
-      if (fallbackWorker) {
-        return await estimateDepthInWorker(trimmedUrl, scaleFactor)
-      }
-      if (error instanceof Error) {
-        throw error
-      }
-      throw new Error('Depth estimation failed.')
-    }
-  }
   const depthWorker = getDepthWorker()
   if (depthWorker) {
     try {

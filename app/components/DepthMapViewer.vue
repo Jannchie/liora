@@ -75,7 +75,7 @@ const props = withDefaults(defineProps<{
   blurEasePower: -2,
   directionalDelay: 0.1,
   depthDelay: 0.4,
-  depthEasePower: 2,
+  depthEasePower: 1.2,
   directionMode: 'bottom-up',
   invertDepth: false,
   autoPlay: true,
@@ -303,6 +303,11 @@ float easeSignedPow(float value, float power) {
   return 1.0 - pow(1.0 - t, p);
 }
 
+float smoothMin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
   /* ---------------- blur ---------------- */
   /*
     radiusPixels: blur radius in pixels.
@@ -351,18 +356,18 @@ float easeSignedPow(float value, float power) {
       vec2 baseOffset = OFFSETS[i];
       float r = length(baseOffset);
       float sampleAngle = atan(baseOffset.y, baseOffset.x);
-      float aperture = 0.9 + 0.1 * cos(6.0 * sampleAngle);
+      float aperture = 0.97 + 0.03 * cos(6.0 * sampleAngle);
       vec2 rotated = vec2(
         baseOffset.x * ca - baseOffset.y * sa,
         baseOffset.x * sa + baseOffset.y * ca
       );
-      float jitter = mix(0.9, 1.1, hash12(uv * uResolution + float(i) * 19.17));
+      float jitter = mix(0.92, 1.08, hash12(uv * uResolution + float(i) * 19.17));
       vec2 offset = rotated * jitter * aperture * radiusPixels * texel;
       vec4 sampleColor = texture2D(uImage, uv + offset);
       float lum = dot(sampleColor.rgb, vec3(0.2126, 0.7152, 0.0722));
-      float edge = smoothstep(0.2, 1.0, r);
-      float highlight = smoothstep(0.6, 1.0, lum);
-      float weight = mix(0.9, 1.15, edge) * (1.0 + highlight * 1.2);
+      float highlight = smoothstep(0.78, 1.0, lum);
+      float falloff = exp(-1.8 * r * r);
+      float weight = falloff * (1.0 + highlight * 0.45);
       color += sampleColor * weight;
       total += weight;
     }
@@ -396,8 +401,7 @@ void main() {
       clamp((uDepthProgress - depthCurve * uDepthDelay) / depthDenom, 0.0, 1.0);
   }
 
-  float localProgress = min(directionProgress, depthProgress);
-  localProgress = smoothstep(0.0, 1.0, localProgress);
+  float localProgress = smoothMin(directionProgress, depthProgress, 0.18);
 
   /* ---------- blur radius ---------- */
   float maxDim = max(uResolution.x, uResolution.y);
