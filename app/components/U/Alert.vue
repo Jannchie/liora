@@ -34,45 +34,45 @@ const variantClass = computed(() => {
   const { variant, color } = props
   if (variant === 'solid') {
     if (color === 'error') {
-      return 'bg-[var(--color-error)] text-white'
+      return 'bg-error text-white'
     }
     if (color === 'warning') {
-      return 'bg-[var(--color-warning)] text-[var(--color-fg-highlighted)]'
+      return 'bg-warning text-fg-highlighted'
     }
     if (color === 'success') {
-      return 'bg-[var(--color-success)] text-white'
+      return 'bg-success text-white'
     }
     if (color === 'info') {
-      return 'bg-[var(--color-info)] text-white'
+      return 'bg-info text-white'
     }
-    return 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+    return 'bg-primary text-on-primary'
   }
   if (variant === 'outline') {
     if (color === 'error') {
-      return 'border border-[var(--color-error)] text-[var(--color-error)]'
+      return 'border border-error text-error'
     }
     if (color === 'warning') {
-      return 'border border-[var(--color-warning)] text-[var(--color-warning)]'
+      return 'border border-warning text-warning'
     }
     if (color === 'success') {
-      return 'border border-[var(--color-success)] text-[var(--color-success)]'
+      return 'border border-success text-success'
     }
-    return 'border border-[var(--color-primary)] text-[var(--color-primary)]'
+    return 'border border-primary text-primary'
   }
   // soft / subtle
   if (color === 'error') {
-    return 'bg-[var(--color-error-soft)] text-[var(--color-error)]'
+    return 'bg-error-soft text-error'
   }
   if (color === 'warning') {
-    return 'bg-[var(--color-warning-soft)] text-[var(--color-warning)]'
+    return 'bg-warning-soft text-warning'
   }
   if (color === 'success') {
-    return 'bg-[var(--color-success-soft)] text-[var(--color-success)]'
+    return 'bg-success-soft text-success'
   }
   if (color === 'info') {
-    return 'bg-[var(--color-info-soft)] text-[var(--color-info)]'
+    return 'bg-info-soft text-info'
   }
-  return 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
+  return 'bg-primary-soft text-primary'
 })
 </script>
 

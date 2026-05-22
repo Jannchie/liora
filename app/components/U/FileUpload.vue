@@ -75,8 +75,8 @@ defineExpose({ inputRef, clear })
     class="relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
     :class="[
       isDragging
-        ? 'border-[var(--color-primary)] bg-[var(--color-primary-soft)]'
-        : 'border-[var(--color-border-strong)] bg-muted hover:border-[var(--color-primary)]/60 hover:bg-elevated',
+        ? 'border-primary bg-primary-soft'
+        : 'border-border-strong bg-muted hover:border-primary/60 hover:bg-elevated',
       disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
     ]"
     role="button"

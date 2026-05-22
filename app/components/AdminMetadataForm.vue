@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import { useExposureOptions } from '~/composables/useExposureOptions'
 import { useLocationSearch } from '~/composables/useLocationSearch'
 import { toIsoWithOffset } from '~/utils/datetime'
 
 const props = withDefaults(defineProps<{
+  form: MediaFormState
   classifySource?: {
     file?: File | null
     imageUrl?: string | null
@@ -17,7 +18,7 @@ const props = withDefaults(defineProps<{
   }),
 })
 
-const form = defineModel<MediaFormState>('form', { required: true })
+const form = toRef(props, 'form')
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
 
 const { t } = useI18n()
@@ -151,7 +152,7 @@ watch(
 <template>
   <section class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:gap-6">
     <section class="space-y-3">
-      <div class="flex items-center gap-2 border-t border-[var(--color-border-muted)] pt-4">
+      <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:shape" class="h-3.5 w-3.5 text-muted" />
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           {{ t('admin.upload.formSections.basic.label') }}
@@ -206,7 +207,7 @@ watch(
     </section>
 
     <section class="space-y-3">
-      <div class="flex items-center gap-2 border-t border-[var(--color-border-muted)] pt-4">
+      <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:map-pin" class="h-3.5 w-3.5 text-muted" />
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           {{ t('admin.upload.formSections.location.label') }}
@@ -237,12 +238,12 @@ watch(
           <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
             {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
           </p>
-          <div class="divide-y divide-[var(--color-border-muted)] border-y border-[var(--color-border-muted)]">
+          <div class="divide-y divide-border-muted border-y border-border-muted">
             <button
               v-for="result in geocodeResults"
               :key="result.id"
               type="button"
-              class="flex w-full items-center justify-between gap-3 py-2 text-left transition hover:bg-[var(--color-muted)]"
+              class="flex w-full items-center justify-between gap-3 py-2 text-left transition hover:bg-muted"
               @click="applyGeocodeResult(result)"
             >
               <div class="min-w-0 space-y-0.5">
@@ -292,13 +293,13 @@ watch(
     </section>
 
     <section class="space-y-3">
-      <div class="flex items-center gap-2 border-t border-[var(--color-border-muted)] pt-4">
+      <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:camera" class="h-3.5 w-3.5 text-muted" />
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           {{ t('admin.upload.formSections.camera.label') }}
         </p>
       </div>
-      <div class="grid grid-cols-1 divide-x divide-[var(--color-border-muted)] border border-[var(--color-border-muted)] sm:grid-cols-3">
+      <div class="grid grid-cols-1 divide-x divide-border-muted border border-border-muted sm:grid-cols-3">
         <div
           v-for="highlight in exposureHighlights"
           :key="highlight.label"
@@ -401,7 +402,7 @@ watch(
     </section>
 
     <section class="space-y-3">
-      <div class="flex items-center gap-2 border-t border-[var(--color-border-muted)] pt-4">
+      <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:palette" class="h-3.5 w-3.5 text-muted" />
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           {{ t('admin.upload.formSections.color.label') }}

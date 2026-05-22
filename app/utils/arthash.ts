@@ -3,7 +3,10 @@ import wasmUrl from 'arthash/wasm/pkg/arthash_wasm_bg.wasm?url'
 import { ref } from 'vue'
 
 const ARTHASH_CODEC = codec.rect({ n: 64 })
-const SVG_OPTIONS = { baseSize: 256 } as const
+const SVG_OPTIONS = {
+  baseSize: 256,
+  style: { cornerRadius: 4 },
+} as const
 
 export const arthashReady = ref(false)
 let initPromise: Promise<void> | null = null

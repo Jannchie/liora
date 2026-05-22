@@ -51,7 +51,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
   <div class="relative w-full" :class="ui?.wrapper">
     <table class="w-full border-collapse" :class="ui?.table">
       <thead :class="ui?.thead">
-        <tr class="border-b border-[var(--color-border)]" :class="ui?.tr">
+        <tr class="border-b border-border" :class="ui?.tr">
           <th
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
@@ -82,7 +82,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
           v-for="(row, rowIndex) in data"
           v-else
           :key="rowIndex"
-          class="border-b border-[var(--color-border-muted)] transition-colors hover:bg-[var(--color-muted)]/40"
+          class="border-b border-border-muted transition-colors hover:bg-muted/40"
           :class="ui?.tr"
         >
           <td

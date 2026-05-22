@@ -845,9 +845,9 @@ watch(fetchError, (value) => {
           </span>
           <span>{{ batchProgressPercent.toFixed(1) }}%</span>
         </div>
-        <div class="h-px w-full overflow-hidden bg-[var(--color-border-muted)]">
+        <div class="h-px w-full overflow-hidden bg-border-muted">
           <div
-            class="h-full bg-[var(--color-primary)] transition-all"
+            class="h-full bg-primary transition-all"
             :style="{ width: `${batchProgressPercent}%` }"
           />
         </div>
@@ -867,7 +867,7 @@ watch(fetchError, (value) => {
         <div class="space-y-3">
           <div
             v-if="selectedCount > 0"
-            class="flex flex-wrap items-center gap-2 border-l-2 border-[var(--color-primary)] bg-[var(--color-primary-soft)]/40 px-3 py-2"
+            class="flex flex-wrap items-center gap-2 border-l-2 border-primary bg-primary-soft/40 px-3 py-2"
           >
             <span class="text-sm font-medium text-highlighted">
               {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
@@ -1018,7 +1018,7 @@ watch(fetchError, (value) => {
               </div>
             </template>
           </UTable>
-          <div class="flex flex-col gap-3 border-t border-[var(--color-border-muted)] pt-3 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex flex-col gap-3 border-t border-border-muted pt-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="text-sm text-muted">
               {{ paginationText }}
             </div>
@@ -1068,7 +1068,7 @@ watch(fetchError, (value) => {
             </dd>
           </div>
         </dl>
-        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
           <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>
@@ -1100,11 +1100,11 @@ watch(fetchError, (value) => {
             <label
               v-for="field in batchEditableFields"
               :key="field.key"
-              class="flex items-center gap-2 border-l border-[var(--color-border-muted)] pl-2 text-sm transition-colors hover:border-[var(--color-primary)]"
+              class="flex items-center gap-2 border-l border-border-muted pl-2 text-sm transition-colors hover:border-primary"
             >
               <input
                 type="checkbox"
-                class="h-4 w-4 cursor-pointer accent-[var(--color-primary)]"
+                class="h-4 w-4 cursor-pointer accent-primary"
                 :checked="selectedBatchFields.includes(field.key)"
                 @change="(event) => {
                   const checked = (event.target as HTMLInputElement).checked
@@ -1122,11 +1122,11 @@ watch(fetchError, (value) => {
         </div>
 
         <AdminMetadataForm
-          v-model:form="bulkMetadataForm"
+          :form="bulkMetadataForm"
           v-model:capture-time-local="bulkMetadataCaptureTimeLocal"
           :classify-source="{ imageUrl: '' }"
         />
-        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
           <UButton variant="ghost" color="neutral" @click="bulkMetadataModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>
@@ -1159,7 +1159,7 @@ watch(fetchError, (value) => {
             :placeholder="t('admin.files.bulk.seriesPlaceholder')"
           />
         </UFormField>
-        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
           <UButton variant="ghost" color="neutral" @click="bulkSeriesModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>

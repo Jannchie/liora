@@ -35,7 +35,7 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
   <div>
     <div
       class="flex items-center gap-1 overflow-x-auto overflow-y-hidden"
-      :class="variant === 'underline' ? 'border-b border-[var(--color-border-muted)]' : ''"
+      :class="variant === 'underline' ? 'border-b border-border-muted' : ''"
       role="tablist"
     >
       <button

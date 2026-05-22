@@ -19,13 +19,13 @@ defineProps<{
     class="surface-wire"
     :class="[ui?.root, $attrs.class]"
   >
-    <header v-if="$slots.header" class="border-b border-[var(--color-border-muted)] px-4 py-3" :class="ui?.header">
+    <header v-if="$slots.header" class="border-b border-border-muted px-4 py-3" :class="ui?.header">
       <slot name="header" />
     </header>
     <div class="px-4 py-4" :class="ui?.body">
       <slot />
     </div>
-    <footer v-if="$slots.footer" class="border-t border-[var(--color-border-muted)] px-4 py-3" :class="ui?.footer">
+    <footer v-if="$slots.footer" class="border-t border-border-muted px-4 py-3" :class="ui?.footer">
       <slot name="footer" />
     </footer>
   </div>

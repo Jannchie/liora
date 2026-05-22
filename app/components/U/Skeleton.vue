@@ -4,7 +4,7 @@ defineOptions({ inheritAttrs: false })
 
 <template>
   <div
-    class="animate-pulse rounded-md bg-[var(--color-elevated)]"
+    class="animate-pulse rounded-md bg-elevated"
     :class="$attrs.class"
     aria-busy="true"
   />

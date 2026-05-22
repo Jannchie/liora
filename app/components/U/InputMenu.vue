@@ -138,8 +138,8 @@ onBeforeUnmount(() => {
     <button
       type="button"
       :disabled="disabled"
-      class="flex w-full min-h-9 cursor-text items-center gap-2 rounded-md border border-transparent bg-[var(--color-muted)] px-3 py-1.5 text-left text-sm transition-colors hover:bg-[var(--color-elevated)] focus-within:border-[var(--color-primary)] focus-within:bg-[var(--color-default)] focus-within:shadow-[var(--ring-focus)]"
-      :class="open ? 'border-[var(--color-primary)] bg-[var(--color-default)] shadow-[var(--ring-focus)]' : ''"
+      class="flex w-full min-h-9 cursor-text items-center gap-2 rounded-md border border-transparent bg-muted px-3 py-1.5 text-left text-sm transition-colors hover:bg-elevated focus-within:border-primary focus-within:bg-default focus-within:shadow-[var(--ring-focus)]"
+      :class="open ? 'border-primary bg-default shadow-[var(--ring-focus)]' : ''"
       @click="openMenu"
     >
       <Icon v-if="icon" :name="icon" class="h-4 w-4 shrink-0 text-muted" />
@@ -163,7 +163,7 @@ onBeforeUnmount(() => {
         <template v-else-if="selectedItems.length > 0">
           <span class="truncate text-foreground">{{ readField(selectedItems[0]!, labelKey) }}</span>
         </template>
-        <span v-if="selectedItems.length === 0 && !open" class="text-[var(--color-fg-dimmed)]">{{ placeholder }}</span>
+        <span v-if="selectedItems.length === 0 && !open" class="text-fg-dimmed">{{ placeholder }}</span>
       </div>
       <Icon
         v-if="loading"
@@ -188,15 +188,15 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-default shadow-[var(--shadow-md)] ring-1 ring-[var(--color-border)]"
+        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-default shadow-[var(--shadow-md)] ring-1 ring-border"
       >
-        <div class="border-b border-[var(--color-border-muted)] p-2">
+        <div class="border-b border-border-muted p-2">
           <input
             ref="inputEl"
             v-model="query"
             type="text"
             :placeholder="placeholder"
-            class="w-full rounded bg-transparent px-2 py-1 text-sm outline-none placeholder:text-[var(--color-fg-dimmed)]"
+            class="w-full rounded bg-transparent px-2 py-1 text-sm outline-none placeholder:text-fg-dimmed"
             @keydown.escape="open = false"
           >
         </div>

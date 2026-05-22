@@ -17,7 +17,7 @@ defineProps<{
   <div
     v-if="orientation === 'vertical'"
     class="inline-block h-full self-stretch"
-    :class="variant === 'hatch' ? 'w-2 bg-hatch' : 'w-px bg-[var(--color-border)]'"
+    :class="variant === 'hatch' ? 'w-2 bg-hatch' : 'w-px bg-border'"
     role="separator"
     aria-orientation="vertical"
   />
@@ -28,13 +28,13 @@ defineProps<{
   >
     <span
       class="flex-1"
-      :class="variant === 'hatch' ? 'h-2 bg-hatch' : 'h-px bg-[var(--color-border)]'"
+      :class="variant === 'hatch' ? 'h-2 bg-hatch' : 'h-px bg-border'"
     />
     <span v-if="label" class="label-mono shrink-0 text-dimmed">{{ label }}</span>
     <span
       v-if="label"
       class="flex-1"
-      :class="variant === 'hatch' ? 'h-2 bg-hatch' : 'h-px bg-[var(--color-border)]'"
+      :class="variant === 'hatch' ? 'h-2 bg-hatch' : 'h-px bg-border'"
     />
   </div>
 </template>

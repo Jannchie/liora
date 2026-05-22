@@ -765,7 +765,7 @@ onBeforeUnmount(() => {
                   color="neutral"
                   variant="ghost"
                   icon="tabler:x"
-                  class="absolute right-1 top-1 bg-[var(--color-default)]/80 backdrop-blur"
+                  class="absolute right-1 top-1 bg-default/80 backdrop-blur"
                   @click="removeBatchItem(item.id)"
                 />
               </div>
@@ -774,7 +774,7 @@ onBeforeUnmount(() => {
                   <input
                     v-model="item.selected"
                     type="checkbox"
-                    class="h-4 w-4 accent-[var(--color-primary)]"
+                    class="h-4 w-4 accent-primary"
                   >
                   <span class="truncate font-medium">{{ item.file.name }}</span>
                 </label>

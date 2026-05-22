@@ -70,69 +70,69 @@ const variantClass = computed(() => {
   const { variant, color } = props
   if (variant === 'solid') {
     if (color === 'primary') {
-      return 'bg-[var(--color-primary)] text-[var(--color-on-primary)] hover:bg-[var(--color-primary-hover)] active:bg-[var(--color-primary-active)]'
+      return 'bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active'
     }
     if (color === 'error') {
-      return 'bg-[var(--color-error)] text-white hover:opacity-90 active:opacity-100'
+      return 'bg-error text-white hover:opacity-90 active:opacity-100'
     }
     if (color === 'warning') {
-      return 'bg-[var(--color-warning)] text-[var(--color-fg-highlighted)] hover:opacity-90'
+      return 'bg-warning text-fg-highlighted hover:opacity-90'
     }
     if (color === 'success') {
-      return 'bg-[var(--color-success)] text-white hover:opacity-90'
+      return 'bg-success text-white hover:opacity-90'
     }
     if (color === 'info') {
-      return 'bg-[var(--color-info)] text-white hover:opacity-90'
+      return 'bg-info text-white hover:opacity-90'
     }
-    return 'bg-[var(--color-fg)] text-[var(--color-bg)] hover:opacity-90'
+    return 'bg-fg text-bg hover:opacity-90'
   }
   if (variant === 'soft') {
     if (color === 'primary') {
-      return 'bg-[var(--color-primary-soft)] text-[var(--color-primary)] hover:bg-[var(--color-primary-softer)]'
+      return 'bg-primary-soft text-primary hover:bg-primary-softer'
     }
     if (color === 'error') {
-      return 'bg-[var(--color-error-soft)] text-[var(--color-error)] hover:opacity-80'
+      return 'bg-error-soft text-error hover:opacity-80'
     }
     if (color === 'warning') {
-      return 'bg-[var(--color-warning-soft)] text-[var(--color-warning)] hover:opacity-80'
+      return 'bg-warning-soft text-warning hover:opacity-80'
     }
     if (color === 'success') {
-      return 'bg-[var(--color-success-soft)] text-[var(--color-success)] hover:opacity-80'
+      return 'bg-success-soft text-success hover:opacity-80'
     }
     if (color === 'info') {
-      return 'bg-[var(--color-info-soft)] text-[var(--color-info)] hover:opacity-80'
+      return 'bg-info-soft text-info hover:opacity-80'
     }
-    return 'bg-[var(--color-elevated)] text-[var(--color-fg)] hover:bg-[var(--color-accented)]'
+    return 'bg-elevated text-fg hover:bg-accented'
   }
   if (variant === 'ghost') {
     if (color === 'primary') {
-      return 'bg-transparent text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)]'
+      return 'bg-transparent text-primary hover:bg-primary-soft'
     }
     if (color === 'error') {
-      return 'bg-transparent text-[var(--color-error)] hover:bg-[var(--color-error-soft)]'
+      return 'bg-transparent text-error hover:bg-error-soft'
     }
     if (color === 'warning') {
-      return 'bg-transparent text-[var(--color-warning)] hover:bg-[var(--color-warning-soft)]'
+      return 'bg-transparent text-warning hover:bg-warning-soft'
     }
     if (color === 'success') {
-      return 'bg-transparent text-[var(--color-success)] hover:bg-[var(--color-success-soft)]'
+      return 'bg-transparent text-success hover:bg-success-soft'
     }
-    return 'bg-transparent text-[var(--color-fg)] hover:bg-[var(--color-muted)]'
+    return 'bg-transparent text-fg hover:bg-muted'
   }
   if (variant === 'outline') {
     if (color === 'primary') {
-      return 'border border-[var(--color-primary)] text-[var(--color-primary)] bg-transparent hover:bg-[var(--color-primary-soft)]'
+      return 'border border-primary text-primary bg-transparent hover:bg-primary-soft'
     }
     if (color === 'error') {
-      return 'border border-[var(--color-error)] text-[var(--color-error)] bg-transparent hover:bg-[var(--color-error-soft)]'
+      return 'border border-error text-error bg-transparent hover:bg-error-soft'
     }
-    return 'border border-[var(--color-border-strong)] text-[var(--color-fg)] bg-transparent hover:bg-[var(--color-muted)]'
+    return 'border border-border-strong text-fg bg-transparent hover:bg-muted'
   }
   if (variant === 'subtle') {
-    return 'bg-[var(--color-primary-softer)] text-[var(--color-primary)] border border-[var(--color-primary-border)] hover:bg-[var(--color-primary-soft)]'
+    return 'bg-primary-softer text-primary border border-primary-border hover:bg-primary-soft'
   }
   // link
-  return 'bg-transparent text-[var(--color-primary)] hover:underline px-0 h-auto'
+  return 'bg-transparent text-primary hover:underline px-0 h-auto'
 })
 
 const baseClass = computed(() => [

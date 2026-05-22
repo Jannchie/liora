@@ -25,9 +25,9 @@ const attrs = useAttrs()
 
 const variantClass = computed(() => {
   if (props.variant === 'outline') {
-    return 'bg-[var(--color-default)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)] focus-within:border-[var(--color-primary)] focus-within:shadow-[var(--ring-focus)]'
+    return 'bg-default border border-border hover:border-border-strong focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
   }
-  return 'bg-[var(--color-muted)] border border-transparent hover:bg-[var(--color-elevated)] focus-within:bg-[var(--color-default)] focus-within:border-[var(--color-primary)] focus-within:shadow-[var(--ring-focus)]'
+  return 'bg-muted border border-transparent hover:bg-elevated focus-within:bg-default focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
 })
 
 function onInput(event: Event): void {
@@ -40,7 +40,7 @@ function onInput(event: Event): void {
     class="rounded-md transition-colors duration-150"
     :class="[
       variantClass,
-      invalid ? 'border-[var(--color-error)] focus-within:border-[var(--color-error)] focus-within:shadow-[var(--ring-focus-error)]' : '',
+      invalid ? 'border-error focus-within:border-error focus-within:shadow-[var(--ring-focus-error)]' : '',
       disabled ? 'opacity-60' : '',
       attrs.class,
     ]"
@@ -54,7 +54,7 @@ function onInput(event: Event): void {
       :readonly="readonly"
       :aria-invalid="invalid || undefined"
       v-bind="{ ...attrs, class: undefined }"
-      class="block w-full resize-y bg-transparent px-3 py-2 text-sm outline-none placeholder:text-[var(--color-fg-dimmed)]"
+      class="block w-full resize-y bg-transparent px-3 py-2 text-sm outline-none placeholder:text-fg-dimmed"
       @input="onInput"
     />
   </div>

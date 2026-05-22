@@ -14,7 +14,7 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div class="space-y-3 border-y border-[var(--color-border-muted)] py-4">
+  <div class="space-y-3 border-y border-border-muted py-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0 space-y-1">
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">

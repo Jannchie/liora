@@ -96,7 +96,7 @@ const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
 }
 
 const contentClass = computed(() => {
-  const base = 'relative bg-default text-foreground shadow-[var(--shadow-lg)] ring-1 ring-[var(--color-border)]'
+  const base = 'relative bg-default text-foreground shadow-[var(--shadow-lg)] ring-1 ring-border'
   if (props.fullscreen) {
     return `${base} h-full w-full overflow-hidden`
   }
@@ -137,7 +137,7 @@ const contentClass = computed(() => {
               :class="[contentClass, ui?.content]"
               @click.stop
             >
-              <header v-if="title || description" class="flex items-start justify-between gap-3 border-b border-[var(--color-border-muted)] px-5 py-4">
+              <header v-if="title || description" class="flex items-start justify-between gap-3 border-b border-border-muted px-5 py-4">
                 <div class="space-y-1">
                   <h3 v-if="title" class="text-base font-semibold text-highlighted">
                     {{ title }}

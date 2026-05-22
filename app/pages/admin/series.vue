@@ -426,7 +426,7 @@ watch(filesError, (value) => {
 
       <div v-else class="grid gap-x-10 gap-y-10 lg:grid-cols-[260px,1fr]">
         <!-- LEFT · MASTER LIST -->
-        <aside class="lg:border-r lg:border-[var(--color-border-muted)] lg:pr-8">
+        <aside class="lg:border-r lg:border-border-muted lg:pr-8">
           <div class="flex items-baseline justify-between pb-3">
             <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
               {{ t('admin.series.listTitle') }}
@@ -438,13 +438,13 @@ watch(filesError, (value) => {
               v-for="item in seriesList"
               :key="item.id"
               type="button"
-              class="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--color-muted)]"
+              class="group flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-muted"
               :class="item.id === selectedSeriesId
-                ? 'border-l-2 border-l-[var(--color-primary)] bg-[var(--color-primary-soft)]/40'
+                ? 'border-l-2 border-l-primary bg-primary-soft/40'
                 : 'border-l-2 border-l-transparent'"
               @click="selectSeries(item)"
             >
-              <div class="h-9 w-12 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+              <div class="h-9 w-12 shrink-0 overflow-hidden bg-muted">
                 <img
                   v-if="item.cover?.imageUrl"
                   :src="item.cover.imageUrl"
@@ -472,7 +472,7 @@ watch(filesError, (value) => {
         <section v-if="selectedSeries" class="space-y-10">
           <!-- HERO -->
           <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
-            <div class="aspect-[4/3] w-full max-w-[260px] shrink-0 overflow-hidden bg-[var(--color-muted)]">
+            <div class="aspect-[4/3] w-full max-w-[260px] shrink-0 overflow-hidden bg-muted">
               <img
                 v-if="selectedSeries.cover?.imageUrl"
                 :src="selectedSeries.cover.imageUrl"
@@ -566,21 +566,21 @@ watch(filesError, (value) => {
                     </p>
                     <span class="font-mono text-[11px] text-muted">{{ filteredCandidates.length }}</span>
                   </div>
-                  <p v-if="filteredCandidates.length === 0" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                  <p v-if="filteredCandidates.length === 0" class="border-t border-border-muted py-6 text-center text-xs text-muted">
                     {{ t('admin.series.files.noCandidate') }}
                   </p>
                   <div
                     v-else
                     v-bind="candidatesContainerProps"
-                    class="h-[28rem] border-t border-[var(--color-border-muted)]"
+                    class="h-[28rem] border-t border-border-muted"
                   >
                     <div v-bind="candidatesWrapperProps">
                       <div
                         v-for="entry in virtualCandidates"
                         :key="entry.data.id"
-                        class="group flex h-14 items-center gap-3 border-b border-[var(--color-border-muted)]"
+                        class="group flex h-14 items-center gap-3 border-b border-border-muted"
                       >
-                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-muted">
                           <img
                             v-if="entry.data.imageUrl"
                             :src="resolveThumbnailSrc(entry.data.imageUrl)"
@@ -614,25 +614,25 @@ watch(filesError, (value) => {
                     </p>
                     <span class="font-mono text-[11px] text-muted">{{ selectedFileIds.length }}</span>
                   </div>
-                  <p v-if="detailLoading" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                  <p v-if="detailLoading" class="border-t border-border-muted py-6 text-center text-xs text-muted">
                     {{ t('common.loading') }}
                   </p>
-                  <p v-else-if="selectedFileIds.length === 0" class="border-t border-[var(--color-border-muted)] py-6 text-center text-xs text-muted">
+                  <p v-else-if="selectedFileIds.length === 0" class="border-t border-border-muted py-6 text-center text-xs text-muted">
                     {{ t('admin.series.files.empty') }}
                   </p>
                   <div
                     v-else
                     v-bind="inSeriesContainerProps"
-                    class="h-[28rem] border-t border-[var(--color-border-muted)]"
+                    class="h-[28rem] border-t border-border-muted"
                   >
                     <div v-bind="inSeriesWrapperProps">
                       <div
                         v-for="entry in virtualInSeries"
                         :key="entry.data.id"
-                        class="flex h-14 items-center gap-3 border-b border-[var(--color-border-muted)]"
+                        class="flex h-14 items-center gap-3 border-b border-border-muted"
                       >
                         <span class="w-6 shrink-0 text-center font-mono text-[11px] text-muted">{{ entry.index + 1 }}</span>
-                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-[var(--color-muted)]">
+                        <div class="h-10 w-14 shrink-0 overflow-hidden bg-muted">
                           <img
                             v-if="entry.data.file?.imageUrl"
                             :src="resolveThumbnailSrc(entry.data.file.imageUrl)"
@@ -691,7 +691,7 @@ watch(filesError, (value) => {
         <UFormField :label="t('admin.series.form.description')">
           <UTextarea v-model="createForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
         </UFormField>
-        <div class="flex justify-end gap-2 border-t border-[var(--color-border-muted)] pt-3">
+        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
           <UButton variant="ghost" color="neutral" @click="createModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>

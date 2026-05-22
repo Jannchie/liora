@@ -124,7 +124,7 @@ onMounted(() => {
 
   <div
     v-else-if="!hasSeries"
-    class="border-y border-[var(--color-border-muted)] py-20 text-center text-sm text-muted"
+    class="border-y border-border-muted py-20 text-center text-sm text-muted"
   >
     {{ resolvedEmptyText }}
   </div>
@@ -136,7 +136,7 @@ onMounted(() => {
         class="group block focus-visible:outline-none"
       >
         <div
-          class="relative aspect-[3/2] overflow-hidden rounded-lg bg-muted ring-1 ring-inset ring-[var(--color-border-muted)]/40 transition-shadow duration-300 group-hover:ring-[var(--color-border-muted)] group-focus-visible:ring-[var(--color-border-muted)]"
+          class="relative aspect-[3/2] overflow-hidden rounded-lg bg-muted ring-1 ring-inset ring-border-muted/40 transition-shadow duration-300 group-hover:ring-border-muted group-focus-visible:ring-border-muted"
         >
           <template v-if="resolveCover(item)">
             <img
@@ -159,7 +159,7 @@ onMounted(() => {
 
           <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-          <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-sm bg-[var(--color-bg)]/85 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-highlighted backdrop-blur-sm">
+          <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-sm bg-bg/85 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-highlighted backdrop-blur-sm">
             <Icon name="tabler:photo" class="h-3 w-3" />
             {{ item.fileCount }}
           </span>

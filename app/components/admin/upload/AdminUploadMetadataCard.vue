@@ -34,12 +34,12 @@ const captureTimeLocalModel = computed<string>({
   >
     <div class="space-y-6">
       <AdminMetadataForm
-        v-model:form="formModel"
+        :form="formModel"
         v-model:capture-time-local="captureTimeLocalModel"
         :classify-source="{ file: props.selectedFile }"
       />
 
-      <div class="flex flex-col gap-2 border-t border-[var(--color-border-muted)] pt-4 sm:flex-row sm:justify-end">
+      <div class="flex flex-col gap-2 border-t border-border-muted pt-4 sm:flex-row sm:justify-end">
         <UButton
           variant="ghost"
           color="neutral"

@@ -69,7 +69,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
         :class="[
           btnBase,
           item === page
-            ? 'bg-[var(--color-primary)] text-[var(--color-on-primary)]'
+            ? 'bg-primary text-on-primary'
             : 'text-foreground hover:bg-muted',
         ]"
         :aria-current="item === page ? 'page' : undefined"

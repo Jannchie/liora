@@ -6,12 +6,12 @@ const toastStore = useToastStore()
 const toast = useToast()
 
 const colorClass: Record<ToastColor, string> = {
-  primary: 'border-l-4 border-l-[var(--color-primary)]',
-  error: 'border-l-4 border-l-[var(--color-error)]',
-  warning: 'border-l-4 border-l-[var(--color-warning)]',
-  success: 'border-l-4 border-l-[var(--color-success)]',
-  info: 'border-l-4 border-l-[var(--color-info)]',
-  neutral: 'border-l-4 border-l-[var(--color-border-strong)]',
+  primary: 'border-l-4 border-l-primary',
+  error: 'border-l-4 border-l-error',
+  warning: 'border-l-4 border-l-warning',
+  success: 'border-l-4 border-l-success',
+  info: 'border-l-4 border-l-info',
+  neutral: 'border-l-4 border-l-border-strong',
 }
 
 const iconFor: Record<ToastColor, string> = {
@@ -57,7 +57,7 @@ const iconColorClass: Record<ToastColor, string> = {
         <div
           v-for="item in toastStore.items"
           :key="item.id"
-          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-[var(--shadow-lg)] ring-1 ring-[var(--color-border)]"
+          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-[var(--shadow-lg)] ring-1 ring-border"
           :class="colorClass[item.color]"
           role="status"
         >

@@ -419,7 +419,7 @@ watch(
 
                       <p
                         v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
-                        class="border-t border-[var(--color-border-muted)] pt-3 text-xs text-muted"
+                        class="border-t border-border-muted pt-3 text-xs text-muted"
                       >
                         {{ t('series.assign.noSeries') }}
                       </p>
@@ -427,7 +427,7 @@ watch(
                   </USection>
 
                   <AdminMetadataForm
-                    v-model:form="form"
+                    :form="form"
                     v-model:capture-time-local="captureTimeLocal"
                     :classify-source="classifySource"
                   />
@@ -435,7 +435,7 @@ watch(
               </div>
             </UForm>
           </UContainer>
-          <footer class="sticky bottom-0 flex justify-end gap-2 border-t border-[var(--color-border-muted)] bg-[var(--color-bg)]/95 px-6 py-3 backdrop-blur">
+          <footer class="sticky bottom-0 flex justify-end gap-2 border-t border-border-muted bg-bg/95 px-6 py-3 backdrop-blur">
             <UButton variant="ghost" color="neutral" @click="handleClose">
               {{ t('common.actions.cancel') }}
             </UButton>

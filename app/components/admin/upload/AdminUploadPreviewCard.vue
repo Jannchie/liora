@@ -56,7 +56,7 @@ const { t } = useI18n()
     </template>
     <div class="space-y-4">
       <div
-        class="flex w-full cursor-pointer items-center justify-center bg-[var(--color-muted)] outline-none ring-primary/40 focus-visible:ring-2"
+        class="flex w-full cursor-pointer items-center justify-center bg-muted outline-none ring-primary/40 focus-visible:ring-2"
         :style="{ aspectRatio: props.aspectRatioStyle, maxHeight: `${props.previewMaxHeight}px` }"
         role="button"
         tabindex="0"
@@ -102,7 +102,7 @@ const { t } = useI18n()
         </template>
       </dl>
 
-      <div v-if="props.hasSelectedVideo" class="space-y-3 border-t border-[var(--color-border-muted)] pt-4">
+      <div v-if="props.hasSelectedVideo" class="space-y-3 border-t border-border-muted pt-4">
         <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
           {{ t('admin.upload.sections.livePhoto.title') }}
         </p>
@@ -110,7 +110,7 @@ const { t } = useI18n()
           :ref="props.setVideoElementRef"
           :src="props.videoPreviewUrl"
           :poster="props.previewUrl || undefined"
-          class="max-h-64 w-full bg-[var(--color-muted)] object-contain"
+          class="max-h-64 w-full bg-muted object-contain"
           muted
           playsinline
           preload="metadata"
@@ -125,7 +125,7 @@ const { t } = useI18n()
             :max="props.liveFrameDuration"
             step="0.1"
             :value="props.liveFrameTime"
-            class="h-1 w-full cursor-pointer accent-[var(--color-primary)]"
+            class="h-1 w-full cursor-pointer accent-primary"
             :disabled="props.liveFrameDuration <= 0"
             @input="event => emit('frameInput', event)"
           >
@@ -147,14 +147,14 @@ const { t } = useI18n()
         </div>
       </div>
 
-      <div v-if="props.isUploading" class="space-y-2 border-t border-[var(--color-border-muted)] pt-4">
+      <div v-if="props.isUploading" class="space-y-2 border-t border-border-muted pt-4">
         <div class="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.12em] text-muted">
           <span>{{ t('admin.upload.sections.progress.title') }}</span>
           <span class="font-mono normal-case">{{ props.uploadProgressPercent.toFixed(1) }}%</span>
         </div>
-        <div class="h-px w-full overflow-hidden bg-[var(--color-border-muted)]">
+        <div class="h-px w-full overflow-hidden bg-border-muted">
           <div
-            class="h-full bg-[var(--color-primary)] transition-all"
+            class="h-full bg-primary transition-all"
             :style="{ width: `${props.uploadProgressPercent}%` }"
           />
         </div>

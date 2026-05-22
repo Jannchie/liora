@@ -80,9 +80,9 @@ const sizeClass = computed(() => {
 
 const variantClass = computed(() => {
   if (props.variant === 'outline') {
-    return 'bg-[var(--color-default)] border border-[var(--color-border)] hover:border-[var(--color-border-strong)]'
+    return 'bg-default border border-border hover:border-border-strong'
   }
-  return 'bg-[var(--color-muted)] border border-transparent hover:bg-[var(--color-elevated)]'
+  return 'bg-muted border border-transparent hover:bg-elevated'
 })
 
 const isOpen = ref(false)
@@ -263,9 +263,9 @@ onBeforeUnmount(() => {
     class="relative inline-flex items-stretch rounded-md transition-colors duration-150"
     :class="[
       variantClass,
-      invalid ? 'border-[var(--color-error)] shadow-[var(--ring-focus-error)]' : '',
+      invalid ? 'border-error shadow-[var(--ring-focus-error)]' : '',
       disabled ? 'pointer-events-none opacity-60' : '',
-      isOpen ? 'border-[var(--color-primary)] shadow-[var(--ring-focus)]' : '',
+      isOpen ? 'border-primary shadow-[var(--ring-focus)]' : '',
       (attrs.class as string | undefined),
     ]"
   >
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
       @keydown="onTriggerKeydown"
     >
       <span v-if="displayLabel" class="truncate text-foreground">{{ displayLabel }}</span>
-      <span v-else class="truncate text-[var(--color-fg-dimmed)]">{{ placeholder }}</span>
+      <span v-else class="truncate text-fg-dimmed">{{ placeholder }}</span>
       <Icon
         name="tabler:chevron-down"
         class="h-4 w-4 shrink-0 text-muted"
@@ -294,7 +294,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="popoverRef"
         role="listbox"
-        class="z-[9999] flex flex-col overflow-y-auto rounded-lg border border-[var(--color-border)] bg-default py-1 shadow-[var(--shadow-md)]"
+        class="z-[9999] flex flex-col overflow-y-auto rounded-lg border border-border bg-default py-1 shadow-[var(--shadow-md)]"
         :style="popoverStyle"
         @mousedown.prevent
       >
@@ -307,7 +307,7 @@ onBeforeUnmount(() => {
           :aria-selected="option.value === modelValue"
           class="flex items-center justify-between gap-2 px-3 py-1.5 text-left text-sm outline-none"
           :class="[
-            idx === activeIndex ? 'bg-[var(--color-muted)]' : '',
+            idx === activeIndex ? 'bg-muted' : '',
             option.value === modelValue ? 'text-primary' : 'text-foreground',
           ]"
           @mouseenter="activeIndex = idx"

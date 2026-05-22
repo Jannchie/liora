@@ -59,7 +59,7 @@ async function handleLogout(): Promise<void> {
 
 <template>
   <header
-    class="-mx-4 -mt-10 border-b border-[var(--color-border)] sm:-mx-6 lg:-mx-8"
+    class="-mx-4 -mt-10 border-b border-border sm:-mx-6 lg:-mx-8"
   >
     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
       <!-- left: brand eyebrow + multi-button nav -->

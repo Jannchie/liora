@@ -15,7 +15,7 @@ withDefaults(defineProps<{
 <template>
   <div
     class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 [--page-px:1rem] sm:[--page-px:1.5rem] lg:[--page-px:2rem]"
-    :class="[rails ? 'border-x border-[var(--color-border)] min-h-screen' : '', $attrs.class]"
+    :class="[rails ? 'border-x border-border min-h-screen' : '', $attrs.class]"
   >
     <slot />
   </div>
