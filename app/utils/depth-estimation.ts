@@ -169,12 +169,25 @@ async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<
   return { image, width: image.width, height: image.height }
 }
 
+async function encodeDepthBlob(depth: RawImageInstance): Promise<Blob> {
+  try {
+    const webp = await depth.toBlob('image/webp', 0.92) as Blob | null
+    if (webp && webp.size > 0 && webp.type === 'image/webp') {
+      return webp
+    }
+  }
+  catch {
+    // Fallback to PNG below.
+  }
+  return await depth.toBlob('image/png') as Blob
+}
+
 async function estimateDepthInMainThread(imageUrl: string, scaleFactor: number): Promise<DepthEstimateResult> {
   const depthEstimator = await getDepthPipeline()
   const { image } = await loadImageFromUrl(imageUrl, scaleFactor)
   const output = await depthEstimator(image)
   const resolved = await resolveDepthOutput(output)
-  const depthBlob = await resolved.depth.toBlob('image/png') as Blob
+  const depthBlob = await encodeDepthBlob(resolved.depth as RawImageInstance)
   return {
     depthBlob,
     width: resolved.depth.width,

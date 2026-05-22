@@ -7,6 +7,7 @@ import type {
   Texture,
   Vector2,
   WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three'
 import type { Ref } from 'vue'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -229,6 +230,12 @@ let revealAnimationFrame: number | null = null
 let revealDelayTimer: ReturnType<typeof setTimeout> | null = null
 let resizeObserver: ResizeObserver | null = null
 let loadToken = 0
+let blurRT: WebGLRenderTarget | null = null
+let composeScene: Scene | null = null
+let composeMesh: Mesh | null = null
+let composeMaterial: ShaderMaterial | null = null
+
+const BLUR_RT_SCALE = 0.5
 
 const vertexShader = `
   varying vec2 vUv;
@@ -420,6 +427,25 @@ void main() {
 }
 `
 
+const composeVertexShader = `
+  varying vec2 vUv;
+  void main() {
+    vUv = uv;
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`
+
+const composeFragmentShader = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uTexture;
+
+void main() {
+  gl_FragColor = texture2D(uTexture, vUv);
+  #include <colorspace_fragment>
+}
+`
+
 function updateMeshScale(): void {
   const host = wrapperRef.value ?? canvasHost.value
   if (!mesh || !host) {
@@ -444,6 +470,13 @@ function updateMeshScale(): void {
 
 function renderScene(): void {
   if (!renderer || !scene || !camera) {
+    return
+  }
+  if (blurRT && composeScene) {
+    renderer.setRenderTarget(blurRT)
+    renderer.render(scene, camera)
+    renderer.setRenderTarget(null)
+    renderer.render(composeScene, camera)
     return
   }
   renderer.render(scene, camera)
@@ -747,6 +780,35 @@ function initThree(): void {
 
   mesh = new threeModule.Mesh(geometry, material)
   scene.add(mesh)
+
+  const pixelRatio = renderer.getPixelRatio()
+  const rtWidth = Math.max(1, Math.floor(width * pixelRatio * BLUR_RT_SCALE))
+  const rtHeight = Math.max(1, Math.floor(height * pixelRatio * BLUR_RT_SCALE))
+  blurRT = new threeModule.WebGLRenderTarget(rtWidth, rtHeight, {
+    minFilter: threeModule.LinearFilter,
+    magFilter: threeModule.LinearFilter,
+    format: threeModule.RGBAFormat,
+    type: threeModule.UnsignedByteType,
+    depthBuffer: false,
+    stencilBuffer: false,
+  })
+  blurRT.texture.colorSpace = threeModule.SRGBColorSpace
+  blurRT.texture.generateMipmaps = false
+
+  composeScene = new threeModule.Scene()
+  const composeGeometry = new threeModule.PlaneGeometry(2, 2)
+  composeMaterial = new threeModule.ShaderMaterial({
+    uniforms: {
+      uTexture: { value: blurRT.texture },
+    },
+    vertexShader: composeVertexShader,
+    fragmentShader: composeFragmentShader,
+    transparent: true,
+  })
+  composeMesh = new threeModule.Mesh(composeGeometry, composeMaterial)
+  composeMesh.frustumCulled = false
+  composeScene.add(composeMesh)
+
   updateMeshScale()
   renderScene()
 
@@ -761,6 +823,13 @@ function initThree(): void {
     const { width: nextWidth, height: nextHeight } = resizeHost.getBoundingClientRect()
     containerWidth.value = nextWidth
     renderer.setSize(nextWidth, nextHeight, false)
+    if (blurRT) {
+      const nextPixelRatio = renderer.getPixelRatio()
+      blurRT.setSize(
+        Math.max(1, Math.floor(nextWidth * nextPixelRatio * BLUR_RT_SCALE)),
+        Math.max(1, Math.floor(nextHeight * nextPixelRatio * BLUR_RT_SCALE)),
+      )
+    }
     updateMeshScale()
     updateUniforms()
     renderScene()
@@ -808,6 +877,13 @@ onBeforeUnmount(() => {
   activeDepthTexture?.dispose()
   material?.dispose()
   mesh?.geometry.dispose()
+  composeMaterial?.dispose()
+  composeMesh?.geometry.dispose()
+  blurRT?.dispose()
+  blurRT = null
+  composeMesh = null
+  composeMaterial = null
+  composeScene = null
 })
 
 watch([imageUrl, depthUrl], () => {

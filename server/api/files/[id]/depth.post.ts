@@ -31,6 +31,10 @@ interface DepthUploadResponse {
 
 const MAX_DEPTH_BYTES = 20 * 1024 * 1024
 const DEPTH_SCALE_FACTOR = 0.25
+const DEPTH_WEBP_QUALITY = 80
+const DEPTH_STORAGE_CONTENT_TYPE = 'image/webp'
+const DEPTH_STORAGE_EXTENSION = 'webp'
+const ALLOWED_DEPTH_FORMATS = new Set(['png', 'webp'])
 
 async function parseMultipart(event: H3Event): Promise<ParsedForm> {
   const form = await readMultipartFormData(event)
@@ -76,21 +80,24 @@ async function processDepthImage(
     if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
       throw createError({ statusCode: 400, statusMessage: 'Invalid depth image dimensions.' })
     }
-    if (metadata.format && metadata.format !== 'png') {
-      throw createError({ statusCode: 415, statusMessage: 'Depth image must be a PNG file.' })
+    if (metadata.format && !ALLOWED_DEPTH_FORMATS.has(metadata.format)) {
+      throw createError({ statusCode: 415, statusMessage: 'Depth image must be PNG or WebP.' })
     }
     const baseWidth = Number.isFinite(originalWidth) && originalWidth > 0 ? originalWidth : width
     const baseHeight = Number.isFinite(originalHeight) && originalHeight > 0 ? originalHeight : height
     const targetWidth = Math.max(1, Math.round(baseWidth * DEPTH_SCALE_FACTOR))
     const targetHeight = Math.max(1, Math.round(baseHeight * DEPTH_SCALE_FACTOR))
-    if (width > targetWidth || height > targetHeight) {
-      const buffer = await sharp(file.data)
-        .resize({ width: targetWidth, height: targetHeight, fit: 'fill' })
-        .png()
-        .toBuffer()
-      return { buffer, width: targetWidth, height: targetHeight }
+    const needsResize = width > targetWidth || height > targetHeight
+    const pipeline = sharp(file.data)
+    const finalPipeline = needsResize
+      ? pipeline.resize({ width: targetWidth, height: targetHeight, fit: 'fill' })
+      : pipeline
+    const buffer = await finalPipeline.webp({ quality: DEPTH_WEBP_QUALITY, effort: 4 }).toBuffer()
+    return {
+      buffer,
+      width: needsResize ? targetWidth : width,
+      height: needsResize ? targetHeight : height,
     }
-    return { buffer: file.data, width, height }
   }
   catch (error) {
     throw error instanceof Error
@@ -102,7 +109,7 @@ async function processDepthImage(
 function buildDepthKey(id: number): string {
   const timestamp = Date.now().toString(36)
   const suffix = randomUUID()
-  return `depth/${id}/depth-${timestamp}-${suffix}.png`
+  return `depth/${id}/depth-${timestamp}-${suffix}.${DEPTH_STORAGE_EXTENSION}`
 }
 
 export default defineEventHandler(async (event): Promise<DepthUploadResponse> => {
@@ -117,7 +124,7 @@ export default defineEventHandler(async (event): Promise<DepthUploadResponse> =>
   const depthMapUrl = await uploadBufferToS3({
     key: buildDepthKey(id),
     data: buffer,
-    contentType: 'image/png',
+    contentType: DEPTH_STORAGE_CONTENT_TYPE,
     config: storageConfig,
   })
 

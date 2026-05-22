@@ -10,8 +10,9 @@ async function uploadDepthMap(params: {
     throw new Error(params.missingImageMessage)
   }
   const { depthBlob } = await estimateDepthFromUrl(normalizedImageUrl)
+  const extension = depthBlob.type === 'image/webp' ? 'webp' : 'png'
   const formData = new FormData()
-  formData.append('depth', depthBlob, `depth-${params.fileId}.png`)
+  formData.append('depth', depthBlob, `depth-${params.fileId}.${extension}`)
   await $fetch(`/api/files/${params.fileId}/depth`, {
     method: 'POST',
     body: formData,
