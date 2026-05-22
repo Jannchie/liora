@@ -253,14 +253,14 @@ watch(
     :title="t('admin.files.editModal.fallbackTitle')"
     :description="file?.title || t('common.labels.untitled')"
     :ui="{
-      overlay: 'z-[70]',
-      wrapper: 'z-[71]',
-      content: 'fixed inset-0 z-[72] w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
+      overlay: 'z-70',
+      wrapper: 'z-71',
+      content: 'fixed inset-0 z-72 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
     }"
   >
     <template #content>
-      <div class="flex h-full flex-col bg-[var(--color-bg)]">
-        <header class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-[var(--color-border-muted)] bg-[var(--color-bg)]/95 px-6 py-4 backdrop-blur">
+      <div class="flex h-full flex-col bg-bg">
+        <header class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-border-muted bg-bg/95 px-6 py-4 backdrop-blur">
           <div class="min-w-0 space-y-1">
             <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
               {{ t('common.actions.edit') }}
@@ -278,7 +278,7 @@ watch(
                 <!-- PREVIEW PANE -->
                 <aside
                   v-if="file && effectivePreviewAttrs"
-                  class="w-full space-y-4 lg:w-[26rem] lg:shrink-0"
+                  class="w-full space-y-4 lg:w-104 lg:shrink-0"
                 >
                   <div class="flex items-center justify-between gap-2">
                     <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
@@ -317,7 +317,7 @@ watch(
                       />
                     </div>
                   </div>
-                  <div class="flex items-center justify-center bg-[var(--color-muted)]">
+                  <div class="flex items-center justify-center bg-muted">
                     <img
                       :key="replaceFile?.name || file.id"
                       :src="effectivePreviewAttrs.src || file.imageUrl"
@@ -334,7 +334,7 @@ watch(
                     <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
                       {{ t('admin.files.depthMap.label') }}
                     </p>
-                    <div class="flex items-center justify-center bg-[var(--color-muted)]">
+                    <div class="flex items-center justify-center bg-muted">
                       <img
                         :src="depthMapUrl"
                         :alt="t('admin.files.depthMap.label')"
