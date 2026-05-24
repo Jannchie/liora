@@ -26,7 +26,7 @@ function resolveAdminConfig(event: H3Event): AdminConfig {
   const sessionSecret = runtimeConfig.admin?.sessionSecret?.toString() ?? ''
 
   if (!username || !password) {
-    throw createError({ statusCode: 500, statusMessage: 'Admin credentials are not configured.' })
+    throw createError({ statusCode: 503, statusMessage: 'Admin credentials are not configured.' })
   }
 
   return {

@@ -1,5 +1,6 @@
 import type { HistogramData } from '~/types/file'
 import sharp from 'sharp'
+import { logger } from './logger'
 
 /**
  * Compute normalized RGB and luminance histograms for an image buffer.
@@ -60,7 +61,7 @@ export async function computeHistogram(data: Buffer): Promise<HistogramData | nu
     return histogram
   }
   catch (error) {
-    console.warn('Histogram generation failed:', error)
+    logger.warn('histogram generation failed', { error })
     return null
   }
 }

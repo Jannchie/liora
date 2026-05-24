@@ -20,6 +20,7 @@ const MODEL_NAME = 'gpt-5-nano'
 const promptPath = join(process.cwd(), 'prompts', 'PhotographyGenreClassification.md')
 const MAX_DOWNLOAD_BYTES = 40 * 1024 * 1024
 const FETCH_TIMEOUT_MS = 10_000
+const MODEL_TIMEOUT_MS = Number(process.env.AI_CLASSIFY_TIMEOUT_MS ?? '60000')
 
 let cachedPrompt: string | null = null
 
@@ -35,7 +36,7 @@ function resolveApiKey(event: H3Event): string {
   const runtimeConfig = useRuntimeConfig(event) as { ai?: { openaiApiKey?: string } }
   const apiKey = runtimeConfig.ai?.openaiApiKey?.toString().trim() ?? ''
   if (!apiKey) {
-    throw createError({ statusCode: 500, statusMessage: 'OpenAI API key is not configured.' })
+    throw createError({ statusCode: 503, statusMessage: 'OpenAI API key is not configured.' })
   }
   return apiKey
 }
@@ -107,20 +108,29 @@ export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer)
   const apiKey = resolveApiKey(event)
   const client = createOpenAI({ apiKey })
   const preparedImage = await prepareImageBuffer(data)
-  const result = await generateText({
-    model: client(MODEL_NAME),
-    messages: [
-      { role: 'system', content: prompt },
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: 'Classify this photo and return JSON only.' },
-          { type: 'image', image: preparedImage },
-        ],
-      },
-    ],
-  })
-  return parseClassification(result.text)
+  try {
+    const result = await generateText({
+      model: client(MODEL_NAME),
+      abortSignal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
+      messages: [
+        { role: 'system', content: prompt },
+        {
+          role: 'user',
+          content: [
+            { type: 'text', text: 'Classify this photo and return JSON only.' },
+            { type: 'image', image: preparedImage },
+          ],
+        },
+      ],
+    })
+    return parseClassification(result.text)
+  }
+  catch (error) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      throw createError({ statusCode: 504, statusMessage: 'Image classification timed out.' })
+    }
+    throw error
+  }
 }
 
 function assertHttpUrl(rawUrl: string): URL {

@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { createError } from 'h3'
 import sharp from 'sharp'
 import { encodeArthashFromRgb } from '../../utils/arthash'
+import { logger } from '../../utils/logger'
 
 const FORMAT_MIME_MAP: Record<string, string> = {
   jpeg: 'image/jpeg',
@@ -36,7 +37,7 @@ export async function validateImage(file: MultipartEntry): Promise<{ width: numb
     return { width, height, contentType: resolveContentType(metadata.format, file.type) }
   }
   catch (error) {
-    console.warn('Image validation failed:', error)
+    logger.warn('image validation failed', { error })
     throw createError({ statusCode: 400, statusMessage: 'Invalid image file.' })
   }
 }
@@ -67,7 +68,7 @@ export async function computePerceptualHash(data: Buffer): Promise<string | null
     return hex.padStart(16, '0')
   }
   catch (error) {
-    console.warn('Perceptual hash generation failed:', error)
+    logger.warn('perceptual hash generation failed', { error })
     return null
   }
 }
@@ -87,7 +88,7 @@ export async function generateArthash(data: Buffer): Promise<string | null> {
     return Buffer.from(hash).toString('base64')
   }
   catch (error) {
-    console.warn('Arthash generation failed:', error)
+    logger.warn('arthash generation failed', { error })
     return null
   }
 }

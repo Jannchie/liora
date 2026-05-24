@@ -13,6 +13,7 @@ import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, 
 import { requireFileById } from '../../../utils/file-record'
 import { extractFocusMetadataFromBuffer } from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
+import { logger } from '../../../utils/logger'
 import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
 
@@ -102,7 +103,7 @@ async function validateImage(file: MultipartEntry): Promise<{ width: number, hei
     return { width, height, contentType }
   }
   catch (error) {
-    console.warn('Image validation failed:', error)
+    logger.warn('image validation failed', { error })
     throw createError({ statusCode: 400, statusMessage: 'Invalid image file.' })
   }
 }
@@ -158,7 +159,7 @@ async function computePerceptualHash(data: Buffer): Promise<string | null> {
     return hex.padStart(16, '0')
   }
   catch (error) {
-    console.warn('Perceptual hash generation failed:', error)
+    logger.warn('perceptual hash generation failed', { error })
     return null
   }
 }

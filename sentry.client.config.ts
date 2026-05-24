@@ -1,21 +1,31 @@
 import * as Sentry from '@sentry/nuxt'
 
-Sentry.init({
-  // If set up, you can use your runtime config here
-  // dsn: useRuntimeConfig().public.sentry.dsn,
-  dsn: 'https://96ac1d27651c6066d90993296dbb0f7a@o4509038403911680.ingest.us.sentry.io/4510470986596352',
+const runtimeConfig = useRuntimeConfig()
+const sentryConfig = (runtimeConfig.public.sentry ?? {}) as {
+  dsn?: string
+  tracesSampleRate?: number
+  sendDefaultPii?: boolean
+  environment?: string
+}
+const dsn = sentryConfig.dsn ?? ''
 
-  // We recommend adjusting this value in production, or using tracesSampler
-  // for finer control
-  tracesSampleRate: 0,
+// Only initialise Sentry when a DSN is provided. This keeps self-hosted forks
+// from silently shipping errors to the upstream project's Sentry instance.
+if (dsn) {
+  Sentry.init({
+    dsn,
 
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
+    // Performance tracing. Disabled by default; opt in via runtime config.
+    tracesSampleRate: sentryConfig.tracesSampleRate ?? 0,
 
-  // Enable sending of user PII (Personally Identifiable Information)
-  // https://docs.sentry.io/platforms/javascript/guides/nuxt/configuration/options/#sendDefaultPii
-  sendDefaultPii: true,
+    // Enable logs to be sent to Sentry
+    enableLogs: true,
 
-  // Setting this option to true will print useful information to the console while you're setting up Sentry.
-  debug: false,
-})
+    // Personally Identifiable Information is opt-in for privacy reasons.
+    sendDefaultPii: sentryConfig.sendDefaultPii ?? false,
+
+    environment: sentryConfig.environment,
+
+    debug: false,
+  })
+}

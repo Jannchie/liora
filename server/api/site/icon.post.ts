@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { extname } from 'node:path'
 import sharp from 'sharp'
 import { requireAdmin } from '../../utils/auth'
+import { logger } from '../../utils/logger'
 import { requireS3Config, uploadBufferToS3 } from '../../utils/s3'
 import { updateSiteIcon } from '../../utils/site-settings'
 
@@ -137,7 +138,7 @@ async function normalizeIconBuffer(entry: MultipartEntry): Promise<{ buffer: Buf
     return { buffer: normalizedBuffer, extension: '.png', contentType: OUTPUT_CONTENT_TYPE }
   }
   catch (error) {
-    console.warn('Icon normalization failed:', error)
+    logger.warn('icon normalization failed', { error })
     throw createError({ statusCode: 400, statusMessage: '图标处理失败，请确认文件为有效的图片。' })
   }
 }

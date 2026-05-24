@@ -134,6 +134,12 @@ export default defineNuxtConfig({
       publicBaseUrl: process.env.S3_PUBLIC_BASE_URL ?? '',
     },
     public: {
+      sentry: {
+        dsn: process.env.SENTRY_DSN ?? '',
+        tracesSampleRate: Number(process.env.SENTRY_TRACES_SAMPLE_RATE ?? '0'),
+        sendDefaultPii: process.env.SENTRY_SEND_PII === 'true',
+        environment: process.env.SENTRY_ENVIRONMENT ?? process.env.NODE_ENV ?? 'production',
+      },
       social: {
         homepage: process.env.SOCIAL_HOMEPAGE ?? '',
         github: process.env.SOCIAL_GITHUB ?? '',

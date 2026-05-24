@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { classifyPhotoGenre, deriveGenreLabel } from '../../utils/ai-classifier'
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
+import { logger } from '../../utils/logger'
 
 interface ReclassifySummary {
   total: number
@@ -27,8 +28,7 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
 
   for (const file of targets) {
     processed += 1
-    // eslint-disable-next-line no-console
-    console.info(`[reclassify] processing #${file.id} (${processed}/${targets.length})`)
+    logger.info('reclassify processing', { fileId: file.id, processed, total: targets.length })
     try {
       const result: GenreClassificationResult | null = await classifyPhotoGenre(event, file.imageUrl)
       const genre = deriveGenreLabel(result)
@@ -37,13 +37,12 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
         continue
       }
       await db.update(files).set({ genre }).where(eq(files.id, file.id))
-      // eslint-disable-next-line no-console
-      console.info(`[reclassify] updated #${file.id} -> ${genre}`)
+      logger.info('reclassify updated', { fileId: file.id, genre })
       updated += 1
     }
     catch (error) {
       failed += 1
-      console.warn(`[reclassify] failed for #${file.id}:`, error)
+      logger.warn('reclassify failed', { fileId: file.id, error })
     }
   }
 

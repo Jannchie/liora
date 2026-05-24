@@ -64,26 +64,29 @@ export default defineEventHandler(async (event): Promise<{ added: number }> => {
 
   const maxSort = maxSortRow[0]?.maxSort
   const baseSort = typeof maxSort === 'number' && Number.isInteger(maxSort) ? maxSort : 0
-  await db.insert(seriesFiles).values(
-    missingIds.map((fileId, index) => ({
-      seriesId,
-      fileId,
-      sortOrder: baseSort + index + 1,
-    })),
-  )
 
-  await (seriesRow.coverFileId
-    ? db
-        .update(series)
-        .set({ updatedAt: sql`CURRENT_TIMESTAMP` })
-        .where(eq(series.id, seriesId))
-    : db
-        .update(series)
-        .set({
-          coverFileId: missingIds[0] ?? null,
-          updatedAt: sql`CURRENT_TIMESTAMP`,
-        })
-        .where(eq(series.id, seriesId)))
+  await db.transaction(async (tx) => {
+    await tx.insert(seriesFiles).values(
+      missingIds.map((fileId, index) => ({
+        seriesId,
+        fileId,
+        sortOrder: baseSort + index + 1,
+      })),
+    )
+
+    await (seriesRow.coverFileId
+      ? tx
+          .update(series)
+          .set({ updatedAt: sql`CURRENT_TIMESTAMP` })
+          .where(eq(series.id, seriesId))
+      : tx
+          .update(series)
+          .set({
+            coverFileId: missingIds[0] ?? null,
+            updatedAt: sql`CURRENT_TIMESTAMP`,
+          })
+          .where(eq(series.id, seriesId)))
+  })
 
   return { added: missingIds.length }
 })

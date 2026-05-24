@@ -2,6 +2,12 @@ import type { H3Event } from 'h3'
 import type { FilePayload, FileResponse } from '~/types/file'
 import { eq } from 'drizzle-orm'
 import { createError, readBody } from 'h3'
+import {
+  normalizeOptionalCharacters,
+  normalizeOptionalText,
+  parseOptionalNullableNumber,
+  parseOptionalPositiveNumber,
+} from '../../domain/files/field-parsers'
 import { mergeMetadataTextUpdates, normalizeMetadataTextUpdates } from '../../domain/files/metadata'
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
@@ -11,48 +17,6 @@ import { requirePositiveIntRouterParam } from '../../utils/route-params'
 import replaceImageHandler from './[id]/image.put'
 
 type UpdateBody = Partial<FilePayload>
-
-function normalizeText(value: string | undefined, fallback: string): string {
-  if (value === undefined) {
-    return fallback
-  }
-  return value.trim()
-}
-
-function parsePositiveNumber(value: number | string | undefined, fallback: number, field: string): number {
-  if (value === undefined) {
-    return fallback
-  }
-  const parsed = typeof value === 'string' ? Number(value) : value
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw createError({ statusCode: 400, statusMessage: `${field} must be a positive number.` })
-  }
-  return parsed
-}
-
-function parseNullableNumber(value: number | string | null | undefined, fallback: number | null, field: string): number | null {
-  if (value === undefined) {
-    return fallback
-  }
-  if (value === null) {
-    return null
-  }
-  const parsed = typeof value === 'string' ? Number(value) : value
-  if (!Number.isFinite(parsed)) {
-    throw createError({ statusCode: 400, statusMessage: `${field} must be a valid number.` })
-  }
-  return parsed
-}
-
-function normalizeCharacters(value: string | string[] | undefined, fallback: string[]): string[] {
-  if (value === undefined) {
-    return fallback
-  }
-  const list = Array.isArray(value) ? value : value.split(/[,，\n]/)
-  return list
-    .map(item => item.trim())
-    .filter(item => item.length > 0)
-}
 
 function isMultipartRequest(event: H3Event): boolean {
   const contentType = event.node.req.headers['content-type'] ?? ''
@@ -71,18 +35,18 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const existingCharacters = mapCharacters(existing.characterList)
   const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, existingCharacters))
 
-  const title = normalizeText(body.title, existing.title)
-  const description = normalizeText(body.description, existing.description)
-  const width = parsePositiveNumber(body.width, existing.width, 'Width')
-  const height = parsePositiveNumber(body.height, existing.height, 'Height')
-  const characters = normalizeCharacters(body.characters, existingMetadata.characters)
-  const genre = normalizeText(body.genre, existing.genre ?? '')
+  const title = normalizeOptionalText(body.title, existing.title)
+  const description = normalizeOptionalText(body.description, existing.description)
+  const width = parseOptionalPositiveNumber(body.width, existing.width, 'Width')
+  const height = parseOptionalPositiveNumber(body.height, existing.height, 'Height')
+  const characters = normalizeOptionalCharacters(body.characters, existingMetadata.characters)
+  const genre = normalizeOptionalText(body.genre, existing.genre ?? '')
 
   const metadataBase = {
     ...existingMetadata,
     characters,
-    latitude: parseNullableNumber(body.latitude, existingMetadata.latitude, 'Latitude'),
-    longitude: parseNullableNumber(body.longitude, existingMetadata.longitude, 'Longitude'),
+    latitude: parseOptionalNullableNumber(body.latitude, existingMetadata.latitude, 'Latitude'),
+    longitude: parseOptionalNullableNumber(body.longitude, existingMetadata.longitude, 'Longitude'),
   }
   const metadataTextUpdates = normalizeMetadataTextUpdates(body)
   const mergedMetadata = mergeMetadataTextUpdates(metadataBase, metadataTextUpdates)

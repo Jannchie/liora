@@ -3,6 +3,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join } from 'node:path'
 import { exiftool } from 'exiftool-vendored'
+import { logger } from './logger'
 
 type FocusMetadata = Pick<
   FileMetadata,
@@ -55,7 +56,7 @@ function shouldBackoffFocusMetadata(error: unknown): boolean {
 
 function disableFocusMetadataExtraction(error: unknown): void {
   focusMetadataDisabledUntil = Date.now() + FOCUS_METADATA_BACKOFF_MS
-  console.warn('Focus metadata extraction temporarily disabled for 5 minutes.', error)
+  logger.warn('focus metadata extraction temporarily disabled', { backoffMs: FOCUS_METADATA_BACKOFF_MS, error })
 }
 
 function readFocusTagsWithTimeout(sourcePath: string, timeoutMs: number): Promise<Record<string, unknown>> {
@@ -562,7 +563,7 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
     if (shouldBackoffFocusMetadata(error)) {
       disableFocusMetadataExtraction(error)
     }
-    console.warn('Focus metadata extraction failed:', error)
+    logger.warn('focus metadata extraction failed', { error })
     return {}
   }
   finally {

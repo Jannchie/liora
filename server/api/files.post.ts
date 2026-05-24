@@ -30,7 +30,7 @@ export default defineEventHandler(async (event): Promise<{ accepted: true, uploa
       fields,
       storageConfig,
       uploadId,
-    }))
+    }), { uploadId })
   }
   else {
     const body = await readBody<DirectUploadBody>(event)
@@ -44,7 +44,7 @@ export default defineEventHandler(async (event): Promise<{ accepted: true, uploa
       fields: parsed.fields,
       storageConfig,
       uploadId,
-    }))
+    }), { uploadId })
   }
 
   event.node.res.statusCode = 202

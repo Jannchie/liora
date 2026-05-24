@@ -26,22 +26,24 @@ export default defineEventHandler(async (event): Promise<{ success: true }> => {
     throw createError({ statusCode: 404, statusMessage: 'Series not found.' })
   }
 
-  const deleted = await db
-    .delete(seriesFiles)
-    .where(and(eq(seriesFiles.seriesId, seriesId), eq(seriesFiles.fileId, fileId)))
-    .returning({ fileId: seriesFiles.fileId })
+  await db.transaction(async (tx) => {
+    const deleted = await tx
+      .delete(seriesFiles)
+      .where(and(eq(seriesFiles.seriesId, seriesId), eq(seriesFiles.fileId, fileId)))
+      .returning({ fileId: seriesFiles.fileId })
 
-  if (deleted.length === 0) {
-    throw createError({ statusCode: 404, statusMessage: 'Series file relation not found.' })
-  }
+    if (deleted.length === 0) {
+      throw createError({ statusCode: 404, statusMessage: 'Series file relation not found.' })
+    }
 
-  await db
-    .update(series)
-    .set({
-      coverFileId: seriesRow.coverFileId === fileId ? null : seriesRow.coverFileId,
-      updatedAt: sql`CURRENT_TIMESTAMP`,
-    })
-    .where(eq(series.id, seriesId))
+    await tx
+      .update(series)
+      .set({
+        coverFileId: seriesRow.coverFileId === fileId ? null : seriesRow.coverFileId,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .where(eq(series.id, seriesId))
+  })
 
   return { success: true }
 })

@@ -31,3 +31,6 @@ jobs:
 
       - name: Type check
         run: pnpm exec nuxi typecheck
+
+      - name: Test
+        run: pnpm test

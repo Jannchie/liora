@@ -4,6 +4,11 @@ import { eq, inArray } from 'drizzle-orm'
 import { readBody } from 'h3'
 import { parseBatchMetadataPayload, pickMaskedChanges } from '../../domain/files/batch'
 import {
+  requireNullableNumber,
+  requirePositiveNumber,
+  requireTrimmedString,
+} from '../../domain/files/field-parsers'
+import {
   mergeMetadataTextUpdates,
   METADATA_TEXT_FIELDS,
 
@@ -14,32 +19,6 @@ import {
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
 import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters } from '../../utils/file-mapper'
-
-function parseStringValue(value: unknown, field: string): string {
-  if (typeof value !== 'string') {
-    throw new TypeError(`${field} must be a string.`)
-  }
-  return value.trim()
-}
-
-function parsePositiveValue(value: unknown, field: string): number {
-  const parsed = typeof value === 'number' ? value : Number(value)
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new TypeError(`${field} must be a positive number.`)
-  }
-  return parsed
-}
-
-function parseNullableValue(value: unknown, field: string): number | null {
-  if (value === null) {
-    return null
-  }
-  const parsed = typeof value === 'number' ? value : Number(value)
-  if (!Number.isFinite(parsed)) {
-    throw new TypeError(`${field} must be a valid number.`)
-  }
-  return parsed
-}
 
 function hasField(maskSet: Set<BatchMetadataField>, field: BatchMetadataField): boolean {
   return maskSet.has(field)
@@ -55,7 +34,7 @@ function buildMetadataTextUpdates(
     if (!maskKeySet.has(field)) {
       continue
     }
-    source[field] = parseStringValue(changes[field as BatchMetadataField], field)
+    source[field] = requireTrimmedString(changes[field as BatchMetadataField], field)
   }
   return normalizeMetadataTextUpdates(source)
 }
@@ -90,28 +69,28 @@ export default defineEventHandler(async (event): Promise<BatchActionResult> => {
       const currentMetadata = ensureMetadata(current.metadata, buildMetadataFallbacks(current, currentCharacters))
 
       const nextTitle = hasField(maskSet, 'title')
-        ? parseStringValue(maskedChanges.title, 'title')
+        ? requireTrimmedString(maskedChanges.title, 'title')
         : current.title
       const nextDescription = hasField(maskSet, 'description')
-        ? parseStringValue(maskedChanges.description, 'description')
+        ? requireTrimmedString(maskedChanges.description, 'description')
         : current.description
       const nextGenre = hasField(maskSet, 'genre')
-        ? parseStringValue(maskedChanges.genre, 'genre')
+        ? requireTrimmedString(maskedChanges.genre, 'genre')
         : current.genre
       const nextWidth = hasField(maskSet, 'width')
-        ? parsePositiveValue(maskedChanges.width, 'width')
+        ? requirePositiveNumber(maskedChanges.width, 'width')
         : current.width
       const nextHeight = hasField(maskSet, 'height')
-        ? parsePositiveValue(maskedChanges.height, 'height')
+        ? requirePositiveNumber(maskedChanges.height, 'height')
         : current.height
       const nextCharacters = hasField(maskSet, 'characters')
         ? parseCharacters(maskedChanges.characters)
         : currentMetadata.characters
       const nextLatitude = hasField(maskSet, 'latitude')
-        ? parseNullableValue(maskedChanges.latitude, 'latitude')
+        ? requireNullableNumber(maskedChanges.latitude, 'latitude')
         : currentMetadata.latitude
       const nextLongitude = hasField(maskSet, 'longitude')
-        ? parseNullableValue(maskedChanges.longitude, 'longitude')
+        ? requireNullableNumber(maskedChanges.longitude, 'longitude')
         : currentMetadata.longitude
 
       const metadataBase = {

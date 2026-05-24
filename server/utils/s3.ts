@@ -94,7 +94,7 @@ export function requireS3Config(rawConfig: Partial<S3Config>): S3Config {
 
   if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
     throw createError({
-      statusCode: 500,
+      statusCode: 503,
       statusMessage: 'S3-compatible storage is not configured.',
     })
   }

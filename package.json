@@ -12,6 +12,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "postinstall": "nuxt prepare",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "backfill:arthash": "tsx scripts/backfill-arthash.ts",
     "backfill:exif": "tsx scripts/backfill-exif-metadata.ts",
     "backfill:series": "tsx scripts/backfill-series.ts"

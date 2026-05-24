@@ -8,6 +8,7 @@ import {
 import { addBreadcrumb, captureException, startSpan } from '@sentry/nuxt'
 import { drizzle } from 'drizzle-orm/libsql'
 import * as schema from '../database/schema'
+import { logger } from './logger'
 import 'dotenv/config'
 
 type Database = LibSQLDatabase<typeof schema>
@@ -179,8 +180,7 @@ function resolveDatabaseUrl(): string {
 function createDrizzle(): Database {
   const url = resolveDatabaseUrl()
   if (process.env.NODE_ENV !== 'production') {
-    // eslint-disable-next-line no-console
-    console.log(`[drizzle] using database url: ${url}`)
+    logger.debug('drizzle using database url', { url })
   }
   const client = instrumentClient(
     createClient({

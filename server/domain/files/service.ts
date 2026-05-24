@@ -7,6 +7,7 @@ import { db, files } from '../../utils/db'
 import { joinCharacters } from '../../utils/file-mapper'
 import { extractFocusMetadataFromBuffer } from '../../utils/focus-metadata'
 import { computeHistogram } from '../../utils/histogram'
+import { logger } from '../../utils/logger'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, uploadBufferToS3 } from '../../utils/s3'
 import { setUploadStatus } from '../../utils/upload-status'
 import { computePerceptualHash, computeSha256, generateArthash, validateImage } from './image'
@@ -90,7 +91,7 @@ async function runMetadataPostProcessing(
   }
   catch (error) {
     status = 'failed'
-    console.error('Post-upload metadata processing failed:', error)
+    logger.error('post-upload metadata processing failed', { fileId, uploadId, error })
   }
 
   nextMetadata.processingStatus = status
@@ -104,7 +105,7 @@ async function runMetadataPostProcessing(
   }
   catch (error) {
     status = 'failed'
-    console.error('Post-upload metadata persistence failed:', error)
+    logger.error('post-upload metadata persistence failed', { fileId, uploadId, error })
   }
 
   return status
@@ -246,7 +247,7 @@ export async function processMultipartUpload(payload: MultipartUploadJobPayload)
   }
   catch (error) {
     setUploadStatus(uploadId, 'failed')
-    console.error('Async upload job failed:', error)
+    logger.error('multipart upload job failed', { uploadId, originalName: image.filename, error })
   }
 }
 
@@ -297,13 +298,24 @@ export async function processDirectUpload(payload: DirectUploadJobPayload): Prom
   }
   catch (error) {
     setUploadStatus(uploadId, 'failed')
-    console.error('Async upload job failed:', error)
+    logger.error('direct upload job failed', { uploadId, imageKey, originalName, error })
   }
 }
 
-export function startBackgroundUpload(task: () => Promise<void>): void {
+const BACKGROUND_UPLOAD_TIMEOUT_MS = Number(process.env.UPLOAD_JOB_TIMEOUT_MS ?? '120000')
+
+export function startBackgroundUpload(task: () => Promise<void>, context: { uploadId: string }): void {
   setTimeout(() => {
-    void task()
+    const timeout = new Promise<never>((_, reject) => {
+      setTimeout(
+        () => reject(new Error(`upload job exceeded ${BACKGROUND_UPLOAD_TIMEOUT_MS}ms timeout`)),
+        BACKGROUND_UPLOAD_TIMEOUT_MS,
+      ).unref()
+    })
+    Promise.race([task(), timeout]).catch((error: unknown) => {
+      setUploadStatus(context.uploadId, 'failed')
+      logger.error('background upload task failed', { uploadId: context.uploadId, error })
+    })
   }, 0)
 }
 
