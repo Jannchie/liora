@@ -930,7 +930,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="relative overflow-hidden rounded-lg bg-default/60" :style="wrapperStyle">
+  <div ref="wrapperRef" class="depth-viewer-root relative overflow-hidden rounded-lg bg-default/60" :style="wrapperStyle">
     <div
       v-if="hasPlaceholder"
       class="absolute inset-0 z-0 flex items-center justify-center"
@@ -969,3 +969,12 @@ watch(
     </div>
   </div>
 </template>
+
+<style scoped>
+.depth-viewer-root,
+.depth-viewer-root :deep(canvas),
+.depth-viewer-root :deep(img) {
+  image-rendering: smooth;
+  image-rendering: high-quality;
+}
+</style>

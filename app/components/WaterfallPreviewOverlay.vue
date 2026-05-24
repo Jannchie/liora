@@ -321,7 +321,7 @@ function endPointer(event: PointerEvent): void {
   >
     <div
       v-if="open && resolvedSrc"
-      class="fixed inset-0 z-[60] bg-black/90"
+      class="fixed inset-0 z-60 bg-black/90"
       role="dialog"
       aria-modal="true"
       :aria-label="ariaLabel"

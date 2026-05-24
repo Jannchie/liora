@@ -113,6 +113,7 @@ function onEntryImageRef(id: number, element: Element | null): void {
   }
 }
 const activeFile = ref<ResolvedFile | null>(null)
+const savedGalleryScrollTop = ref<number | null>(null)
 const histogram = ref<HistogramData | null>(null)
 const overlayImageSrc = ref<string | null>(null)
 const overlayImageLoader = ref<HTMLImageElement | null>(null)
@@ -1010,7 +1011,55 @@ function resolveInlinePreviewSrc(event: MouseEvent | null | undefined, file: Res
   return normalized.length > 0 ? normalized : null
 }
 
+function readGalleryScrollTop(): number | null {
+  const target = props.scrollElement
+  if (target instanceof HTMLElement) {
+    return target.scrollTop
+  }
+  if (target instanceof Window) {
+    return target.scrollY
+  }
+  if (target instanceof Document) {
+    const element = target.scrollingElement ?? target.documentElement
+    if (element instanceof HTMLElement) {
+      return element.scrollTop
+    }
+  }
+  if (globalThis.window !== undefined) {
+    return window.scrollY
+  }
+  return null
+}
+
+function applyGalleryScrollTop(value: number): void {
+  const target = props.scrollElement
+  if (target instanceof HTMLElement) {
+    target.scrollTop = value
+    return
+  }
+  if (target instanceof Window) {
+    target.scrollTo({ top: value, left: 0 })
+    return
+  }
+  if (target instanceof Document) {
+    const element = target.scrollingElement ?? target.documentElement
+    if (element instanceof HTMLElement) {
+      element.scrollTop = value
+      return
+    }
+  }
+  if (globalThis.window !== undefined) {
+    window.scrollTo({ top: value, left: 0 })
+  }
+}
+
 function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc: string | null = null): void {
+  if (!activeFile.value && globalThis.window !== undefined) {
+    const current = readGalleryScrollTop()
+    if (current !== null && Number.isFinite(current)) {
+      savedGalleryScrollTop.value = current
+    }
+  }
   stopLivePreview(livePreviewActiveId.value)
   nextOverlaySession()
   activeFile.value = file
@@ -1023,6 +1072,22 @@ function openOverlay(file: ResolvedFile, syncRoute: boolean = true, immediateSrc
   }
 }
 
+function restoreGalleryScrollAfterClose(): void {
+  if (globalThis.window === undefined) {
+    return
+  }
+  const target = savedGalleryScrollTop.value
+  if (target === null) {
+    return
+  }
+  savedGalleryScrollTop.value = null
+  void nextTick(() => {
+    requestAnimationFrame(() => {
+      applyGalleryScrollTop(target)
+    })
+  })
+}
+
 function closeOverlay(syncRoute: boolean = true): void {
   nextOverlaySession()
   activeFile.value = null
@@ -1031,6 +1096,7 @@ function closeOverlay(syncRoute: boolean = true): void {
   if (syncRoute) {
     void syncOverlayRoute(null, 'replace')
   }
+  restoreGalleryScrollAfterClose()
 }
 
 function handleEntryClick(event: MouseEvent, file: ResolvedFile): void {
