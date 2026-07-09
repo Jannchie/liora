@@ -964,7 +964,7 @@ watch(fetchError, (value) => {
               </div>
             </template>
             <template #preview-cell="{ row }">
-              <div class="h-14 w-24 overflow-hidden rounded-lg bg-black/5">
+              <div class="h-14 w-24 overflow-hidden rounded-none bg-black/5">
                 <img
                   :key="row.original.id"
                   :alt="row.original.title || untitledLabel"

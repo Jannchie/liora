@@ -1554,7 +1554,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="depth-viewer-root relative overflow-hidden rounded-lg bg-default/60" :style="wrapperStyle">
+  <div ref="wrapperRef" class="depth-viewer-root relative overflow-hidden rounded-none bg-default/60" :style="wrapperStyle">
     <div
       v-if="hasPlaceholder"
       class="absolute inset-0 z-0 flex items-center justify-center"

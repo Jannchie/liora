@@ -220,7 +220,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
 </script>
 
 <template>
-  <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
+  <div class="rounded-none border border-default/20 bg-elevated/80 text-sm text-default">
     <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
       <div class="flex items-center gap-2">
         <Icon name="tabler:info-circle" class="h-4 w-4" />

@@ -115,7 +115,7 @@ onMounted(() => {
     aria-hidden="true"
   >
     <div v-for="i in SKELETON_COUNT" :key="i" class="space-y-3">
-      <USkeleton class="aspect-[3/2] w-full rounded-lg" />
+      <USkeleton class="aspect-[3/2] w-full rounded-none" />
       <USkeleton class="h-4 w-2/3" />
       <USkeleton class="h-3 w-full" />
       <USkeleton class="h-3 w-1/3" />
@@ -136,7 +136,7 @@ onMounted(() => {
         class="group block focus-visible:outline-none"
       >
         <div
-          class="relative aspect-[3/2] overflow-hidden rounded-lg bg-muted ring-1 ring-inset ring-border-muted/40 transition-shadow duration-300 group-hover:ring-border-muted group-focus-visible:ring-border-muted"
+          class="relative aspect-[3/2] overflow-hidden rounded-none bg-muted ring-1 ring-inset ring-border-muted/40 transition-shadow duration-300 group-hover:ring-border-muted group-focus-visible:ring-border-muted"
         >
           <template v-if="resolveCover(item)">
             <img

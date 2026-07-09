@@ -683,7 +683,7 @@ function handleFocusToggle(): void {
                 <WaterfallHistogramPanel :histogram="histogram" />
               </template>
               <template #fallback>
-                <div class="rounded-lg border border-default/20 bg-elevated/80" aria-hidden="true">
+                <div class="rounded-none border border-default/20 bg-elevated/80" aria-hidden="true">
                   <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
                     <div class="flex items-center gap-2">
                       <div class="h-4 w-4 rounded bg-default/40" />

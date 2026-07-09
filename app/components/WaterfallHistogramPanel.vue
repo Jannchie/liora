@@ -333,7 +333,7 @@ async function renderHistogram(): Promise<void> {
 </script>
 
 <template>
-  <div class="rounded-lg border border-default/20 bg-elevated/80">
+  <div class="rounded-none border border-default/20 bg-elevated/80">
     <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
       <div class="flex items-center gap-2">
         <Icon name="tabler:chart-line" class="h-4 w-4" />
