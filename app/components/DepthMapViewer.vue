@@ -1256,19 +1256,15 @@ function updateUniforms(): void {
       break
     }
   }
-  const shared = {
-    uDirectionalDelay: props.directionalDelay,
-    uDepthDelay: useDepth ? props.depthDelay : 0,
-    uDepthCurvePower: Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1,
-    uDepthDetail: Number.isFinite(props.depthDetail) ? Math.max(0, props.depthDetail) : 1,
-    uDirectionMode: modeValue,
-    uInvertDepth: props.invertDepth ? 1 : 0,
-    uUseDepth: useDepth ? 1 : 0,
-    uBlurEasePower: Number.isFinite(props.blurEasePower) ? props.blurEasePower : 1,
-  }
-  for (const [key, value] of Object.entries(shared)) {
-    composeUniforms[key].value = value
-    displayUniforms[key].value = value
+  for (const target of [composeUniforms, displayUniforms]) {
+    target.uDirectionalDelay.value = props.directionalDelay
+    target.uDepthDelay.value = useDepth ? props.depthDelay : 0
+    target.uDepthCurvePower.value = Number.isFinite(props.depthEasePower) ? Math.max(0.01, props.depthEasePower) : 1
+    target.uDepthDetail.value = Number.isFinite(props.depthDetail) ? Math.max(0, props.depthDetail) : 1
+    target.uDirectionMode.value = modeValue
+    target.uInvertDepth.value = props.invertDepth ? 1 : 0
+    target.uUseDepth.value = useDepth ? 1 : 0
+    target.uBlurEasePower.value = Number.isFinite(props.blurEasePower) ? props.blurEasePower : 1
   }
   displayUniforms.uGrain.value = Number.isFinite(props.grain) ? Math.max(0, props.grain) : 0
   updateProjection()
