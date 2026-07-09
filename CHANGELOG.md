@@ -1,3 +1,25 @@
+## v0.31.0
+
+[v0.30.0...v0.31.0](https://github.com/Jannchie/liora/compare/v0.30.0...v0.31.0)
+
+### :sparkles: Features
+
+- **ci**: add healthcheck to docker configuration && update CI pipeline for tests - By [Jannchie](mailto:jannchie@gmail.com) in [930d889](https://github.com/Jannchie/liora/commit/930d889)
+- **depth**: add support for webp depth image format - By [Jannchie](mailto:jannchie@gmail.com) in [a24996d](https://github.com/Jannchie/liora/commit/a24996d)
+- **depth**: rewrite reveal as a float feedback loop - By [Jannchie](mailto:jannchie@gmail.com) in [6666576](https://github.com/Jannchie/liora/commit/6666576)
+- **gallery**: add scroll position restoration for gallery - By [Jannchie](mailto:jannchie@gmail.com) in [6fac5dd](https://github.com/Jannchie/liora/commit/6fac5dd)
+- **gallery**: drop the arthash placeholder in the overlay viewer - By [Jannchie](mailto:jannchie@gmail.com) in [3c5fd12](https://github.com/Jannchie/liora/commit/3c5fd12)
+- **gallery**: replace the OSM iframe map with an interactive maplibre map - By [Jannchie](mailto:jannchie@gmail.com) in [ad224d7](https://github.com/Jannchie/liora/commit/ad224d7)
+
+### :art: Refactors
+
+- **depth**: optimize depth calculation and viewer settings - By [Jannchie](mailto:jannchie@gmail.com) in [4f0df23](https://github.com/Jannchie/liora/commit/4f0df23)
+
+### :lipstick: Styles
+
+- update border color class usage - By [Jannchie](mailto:jannchie@gmail.com) in [b56b14c](https://github.com/Jannchie/liora/commit/b56b14c)
+- **admin-edit-modal**: refactor styles in admin edit modal - By [Jannchie](mailto:jannchie@gmail.com) in [77283e2](https://github.com/Jannchie/liora/commit/77283e2)
+
 ## v0.30.0
 
 [v0.29.1...v0.30.0](https://github.com/Jannchie/liora/compare/v0.29.1...v0.30.0)
