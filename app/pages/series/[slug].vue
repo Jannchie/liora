@@ -427,6 +427,7 @@ onBeforeUnmount(() => {
         :is-loading="isLoading"
         :is-authenticated="isAuthenticated"
         :site-settings="siteSettings ?? undefined"
+        info-placement="header"
         :scroll-element="scrollElementRef"
         :empty-text="t('series.detail.empty')"
         :total-count="seriesDetail?.fileCount ?? null"

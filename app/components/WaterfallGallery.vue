@@ -39,6 +39,8 @@ const props = withDefaults(
     emptyText?: string
     scrollElement?: HTMLElement | Document | Window | null
     siteSettings?: SiteSettings | null
+    /** Overrides the site-wide setting. Pages with their own header pass 'header'. */
+    infoPlacement?: SiteInfoPlacement
     isAuthenticated?: boolean
     totalCount?: number | null
     overlayRootPath?: string
@@ -49,6 +51,7 @@ const props = withDefaults(
     emptyText: undefined,
     scrollElement: undefined,
     siteSettings: undefined,
+    infoPlacement: undefined,
     isAuthenticated: false,
     totalCount: undefined,
     overlayRootPath: '/',
@@ -758,6 +761,9 @@ const resolvedFiles = computed<ResolvedFile[]>(() => {
 
 const resolvedSiteSettings = computed(() => props.siteSettings ?? null)
 const resolvedInfoPlacement = computed<SiteInfoPlacement>(() => {
+  if (props.infoPlacement) {
+    return props.infoPlacement
+  }
   const placement = resolvedSiteSettings.value?.infoPlacement?.trim()
   return placement === 'header' ? 'header' : 'waterfall'
 })
