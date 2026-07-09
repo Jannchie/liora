@@ -20,7 +20,7 @@ const imageWidth = ref<number | null>(null)
 const imageHeight = ref<number | null>(null)
 const directionDurationSeconds = ref(2)
 const depthDurationSeconds = ref(2)
-const maxBlur = ref(200)
+const maxBlur = ref(40)
 const directionalDelay = ref(0.2)
 const depthDelay = ref(0.3)
 const depthEasePower = ref(0.5)
@@ -198,8 +198,8 @@ watch(
               v-model.number="maxBlur"
               type="range"
               min="0"
-              max="1000"
-              step="0.5"
+              max="200"
+              step="1"
               class="w-full"
             >
           </label>
