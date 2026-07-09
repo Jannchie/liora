@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { usePhotoShareSeo } from '~/composables/usePhotoShareSeo'
+
 function normalizeRouteParam(param: string | string[] | null | undefined): string {
   if (Array.isArray(param)) {
     return param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? ''
@@ -21,6 +23,10 @@ definePageMeta({
     return id.length > 0 && /^\d+$/.test(id)
   },
 })
+
+// The gallery layout's generic defineOgImage runs first; this overrides it
+// with the photo card only when the route carries a resolvable /photo/:id.
+await usePhotoShareSeo()
 </script>
 
 <template>

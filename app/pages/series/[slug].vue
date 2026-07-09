@@ -222,6 +222,10 @@ useSeoMeta({
   ogDescription: () => pageDescription.value,
 })
 
+// Must come after the series useSeoMeta above — the photo overrides only
+// apply when /series/:slug/photo/:id resolves, and later head entries win.
+await usePhotoShareSeo()
+
 function replaceFile(updated: FileResponse): void {
   const index = files.value.findIndex(file => file.id === updated.id)
   if (index === -1) {
