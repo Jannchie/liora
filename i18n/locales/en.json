@@ -874,5 +874,22 @@
       "loadFailed": "Failed to load this series.",
       "empty": "No photos in this series yet."
     }
+  },
+  "error": {
+    "eyebrow": "Error",
+    "notFound": {
+      "title": "Page not found",
+      "description": "There is nothing at this path. The link may be wrong, or the page may have moved."
+    },
+    "generic": {
+      "title": "Something went wrong",
+      "description": "The server could not complete this request."
+    },
+    "pathLabel": "Path",
+    "statusLabel": "Status",
+    "actions": {
+      "home": "Go to photos",
+      "series": "Browse series"
+    }
   }
 }
