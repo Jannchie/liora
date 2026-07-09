@@ -178,7 +178,7 @@ onMounted(() => {
           >
             {{ resolveDescription(item) }}
           </p>
-          <p v-if="formatDate(item.updatedAt)" class="pt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted/80">
+          <p v-if="formatDate(item.updatedAt)" class="pt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
             {{ formatDate(item.updatedAt) }}
           </p>
         </div>

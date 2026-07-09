@@ -93,12 +93,16 @@
   --color-border-muted:  #e2e4ea;
   --color-border-strong: #b4bac6;
 
+  /* Text ramp, tuned against --color-bg. Contrast is a constraint, not a
+     style knob: `muted` and `dimmed` clear AA (4.5:1) at any size; `subtle`
+     only clears AA-large (3:1), so it is for ≥18px or non-essential text.
+     Do not fade these with an alpha suffix — /80 drops `muted` to 3.94:1. */
   --color-fg:             #1a1d24;
   --color-fg-highlighted: #0d1019;
   --color-fg-toned:       #2f3441;
   --color-fg-muted:       #525a6b;
-  --color-fg-dimmed:      #6e7689;
-  --color-fg-subtle:      #8c93a3;
+  --color-fg-dimmed:      #666d7f;
+  --color-fg-subtle:      #828a9b;
 
   /* status */
   --color-error:        #b91c1c;
@@ -147,8 +151,8 @@
   --color-fg-highlighted: #ffffff;
   --color-fg-toned:       #d4d4d8;
   --color-fg-muted:       #a1a1aa;
-  --color-fg-dimmed:      #71717a;
-  --color-fg-subtle:      #5b5b62;
+  --color-fg-dimmed:      #797983;
+  --color-fg-subtle:      #5e5e66;
 
   --color-error:        #ef4444;
   --color-error-soft:   color-mix(in srgb, var(--color-error) 18%, transparent);
