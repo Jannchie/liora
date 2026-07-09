@@ -269,8 +269,8 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
         <button
           v-if="focusEntry"
           type="button"
-          class="grid w-full gap-1 rounded-md bg-default/60 px-2 py-2 text-left ring-1 ring-default/15 transition-colors hover:bg-green-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/60"
-          :class="focusIndicatorActive ? 'bg-green-500/10 ring-green-500/40' : undefined"
+          class="grid w-full gap-1 rounded-md bg-default/60 px-2 py-2 text-left ring-1 ring-default/15 transition-colors hover:bg-focus-point/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-point/60"
+          :class="focusIndicatorActive ? 'bg-focus-point/10 ring-focus-point/40' : undefined"
           @mouseenter="handleFocusHover(true)"
           @mouseleave="handleFocusHover(false)"
           @focus="handleFocusHover(true)"

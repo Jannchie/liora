@@ -114,6 +114,14 @@
   --color-info:         #0284c7;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 12%, transparent);
 
+  /* Photographic annotation — the AF point the camera reported, drawn on top
+     of the image. Not a status: nothing succeeded. Held apart from the status
+     ramp and from the theme, because it sits on the photo rather than on a
+     surface, and must stay legible against any subject. Green follows the
+     viewfinder convention rather than the burgundy brand. */
+  --color-focus-point:      #22c55e;
+  --color-focus-point-soft: color-mix(in srgb, var(--color-focus-point) 10%, transparent);
+
   --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 40%, transparent);
 

@@ -1587,7 +1587,7 @@ watch(
     </div>
     <div v-if="focusBoxStyle" class="pointer-events-none absolute inset-0 z-40">
       <div
-        class="absolute rounded-[2px] border-2 border-green-500"
+        class="absolute rounded-[2px] border-2 border-focus-point"
         :style="focusBoxStyle"
       />
     </div>
