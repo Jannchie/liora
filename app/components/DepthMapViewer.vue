@@ -109,14 +109,14 @@ const props = withDefaults(defineProps<{
   placeholderUrl: '',
   revealDurationMs: 600,
   directionDurationSeconds: 0,
-  depthDurationSeconds: 2,
+  depthDurationSeconds: 1.8,
   transitionBlurSeconds: 0.4,
   blurEasePower: 1,
-  directionalDelay: 0.1,
+  directionalDelay: 0,
   depthDelay: 0.4,
-  depthEasePower: 1.2,
+  depthEasePower: 1,
   depthDetail: 1,
-  grain: 0.03,
+  grain: 0.05,
   directionMode: 'bottom-up',
   invertDepth: false,
   autoPlay: true,
@@ -560,7 +560,7 @@ const int COMPOSE_SAMPLES = 8;
 const float COMPOSE_RADIUS = ${COMPOSE_RADIUS.toFixed(6)};
 const float FADE_AMPLITUDE = 0.4;
 const float FADE_ENDS_AT = 0.7;
-const float MIX_MULTIPLIER = 5.0;
+const float MIX_MULTIPLIER = 4.0;
 
 void main() {
   // vUv is screen uv here: this pass fills the whole feedback buffer, including
@@ -629,10 +629,9 @@ void main() {
 
   gl_FragColor = vec4(color, 1.0);
 
-  #include <colorspace_fragment>
-
-  // Grain goes on after the transfer function: in linear space the same offset
-  // would blow out the shadows, and negative values would poison the encode.
+  // The pipeline is gamma-space end to end (no decode on load, no encode
+  // here), so the grain offset lands on encoded values, where it stays
+  // perceptually even instead of blowing out the shadows.
   // Only where the image is out of focus, so sharp areas stay clean.
   // getNoise sums three octaves, so its range overshoots [0,1] — clamp before
   // treating it as a signed offset or the grain gets ~75% hotter than uGrain.
@@ -963,7 +962,7 @@ function resizeRenderTargets(): void {
 
 /* ---------------- textures ---------------- */
 
-async function loadTexture(url: string, mode: 'image' | 'depth'): Promise<Texture> {
+async function loadTexture(url: string): Promise<Texture> {
   const threeModule = three
   if (!threeModule) {
     throw new Error('Three.js is not ready.')
@@ -976,10 +975,9 @@ async function loadTexture(url: string, mode: 'image' | 'depth'): Promise<Textur
         texture.generateMipmaps = false
         texture.minFilter = threeModule.LinearFilter
         texture.magFilter = threeModule.LinearFilter
-        if (mode === 'image') {
-          // Lets the GPU decode to linear on sample; the feedback buffer is linear.
-          texture.colorSpace = threeModule.SRGBColorSpace
-        }
+        // Deliberately no sRGB decode: the whole pipeline blends encoded values.
+        // Blurring in linear light blooms the highlights; blending in gamma
+        // space gives the muted, frosted dissolve of the bfl.ai hero.
         resolve(texture)
       },
       undefined,
@@ -1030,9 +1028,9 @@ async function loadPair(): Promise<[Texture, Texture]> {
     throw new Error('Three.js is not ready.')
   }
   const [imageTexture, depthTexture] = await Promise.all([
-    loadTexture(imageUrl.value, 'image'),
+    loadTexture(imageUrl.value),
     hasDepth.value
-      ? loadTexture(depthUrl.value, 'depth')
+      ? loadTexture(depthUrl.value)
       : Promise.resolve(createFallbackDepthTexture(threeModule)),
   ])
   return [imageTexture, depthTexture]
@@ -1287,7 +1285,7 @@ function playAnimation(): void {
 /* ---------------- setup ---------------- */
 
 /**
- * The feedback buffer must be float: each frame only mixes in ~`5 * delta` of the
+ * The feedback buffer must be float: each frame only mixes in ~`4 * delta` of the
  * target colour, an increment an 8-bit target would quantise away, and the error
  * compounds into banding.
  */
@@ -1309,8 +1307,10 @@ function createPingPong(threeModule: ThreeModule, target: WebGLRenderer, width: 
   }
   const a = new threeModule.WebGLRenderTarget(width, height, options)
   const b = new threeModule.WebGLRenderTarget(width, height, options)
-  a.texture.colorSpace = threeModule.LinearSRGBColorSpace
-  b.texture.colorSpace = threeModule.LinearSRGBColorSpace
+  // The buffer carries gamma-encoded values untouched; tag it as such so
+  // three.js never inserts a transform.
+  a.texture.colorSpace = threeModule.NoColorSpace
+  b.texture.colorSpace = threeModule.NoColorSpace
 
   const state: PingPong = {
     read: a,
@@ -1345,7 +1345,9 @@ function initThree(): void {
   containerWidth.value = host.getBoundingClientRect().width
 
   renderer = new threeModule.WebGLRenderer({ antialias: true, alpha: true })
-  renderer.outputColorSpace = threeModule.SRGBColorSpace
+  // Gamma-space passthrough: textures are sampled without decode, so the
+  // output must not encode either — the canvas shows the bytes as loaded.
+  renderer.outputColorSpace = threeModule.LinearSRGBColorSpace
   renderer.toneMapping = threeModule.NoToneMapping
   // The feedback loop runs two full-screen passes per frame; 1.5x is the ceiling
   // where that stays cheap on high-DPI displays.
