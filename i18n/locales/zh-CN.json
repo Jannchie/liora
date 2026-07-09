@@ -171,7 +171,9 @@
       "openExternal": "在 OSM 打开",
       "alt": "{location} 的地图预览",
       "coordinates": "坐标：{value}",
-      "defaultLabel": "位置"
+      "defaultLabel": "位置",
+      "zoomIn": "放大",
+      "zoomOut": "缩小"
     },
     "livePhoto": {
       "badge": "实况",

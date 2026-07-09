@@ -171,7 +171,9 @@
       "openExternal": "Open in OSM",
       "alt": "Map preview for {location}",
       "coordinates": "Coordinates: {value}",
-      "defaultLabel": "Location"
+      "defaultLabel": "Location",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
     },
     "livePhoto": {
       "badge": "Live",

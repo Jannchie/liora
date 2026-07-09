@@ -171,7 +171,9 @@
       "openExternal": "OSMで開く",
       "alt": "{location} の地図プレビュー",
       "coordinates": "座標: {value}",
-      "defaultLabel": "位置"
+      "defaultLabel": "位置",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小"
     },
     "livePhoto": {
       "badge": "Live",
