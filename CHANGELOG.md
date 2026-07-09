@@ -1,3 +1,25 @@
+## v0.32.0
+
+[v0.31.0...v0.32.0](https://github.com/Jannchie/liora/compare/v0.31.0...v0.32.0)
+
+### :sparkles: Features
+
+- **depth**: align the reveal with the bfl.ai hero effect - By [Jannchie](mailto:jannchie@gmail.com) in [4d387fa](https://github.com/Jannchie/liora/commit/4d387fa)
+- **error**: add an error page in the wireframe language - By [Jannchie](mailto:jannchie@gmail.com) in [6140436](https://github.com/Jannchie/liora/commit/6140436)
+- **seo**: render a photo-centric OG card for single-photo shares - By [Jannchie](mailto:jannchie@gmail.com) in [c78904a](https://github.com/Jannchie/liora/commit/c78904a)
+- **ui**: add a focus-point token for photographic annotation - By [Jannchie](mailto:jannchie@gmail.com) in [ba04275](https://github.com/Jannchie/liora/commit/ba04275)
+
+### :adhesive_bandage: Fixes
+
+- **depth**: assign uniforms without unchecked index access - By [Jannchie](mailto:jannchie@gmail.com) in [5b272a2](https://github.com/Jannchie/liora/commit/5b272a2)
+- **gallery**: let a page override the site-wide info placement - By [Jannchie](mailto:jannchie@gmail.com) in [0aef2d5](https://github.com/Jannchie/liora/commit/0aef2d5)
+- **pnpm**: restore trustPolicy to no-downgrade - By [Jannchie](mailto:jannchie@gmail.com) in [14ce7e9](https://github.com/Jannchie/liora/commit/14ce7e9)
+- **ui**: bring secondary text up to AA contrast - By [Jannchie](mailto:jannchie@gmail.com) in [3af00b4](https://github.com/Jannchie/liora/commit/3af00b4)
+
+### :art: Refactors
+
+- **ui**: flatten container radii to match the wireframe language - By [Jannchie](mailto:jannchie@gmail.com) in [7bf1a43](https://github.com/Jannchie/liora/commit/7bf1a43)
+
 ## v0.31.0
 
 [v0.30.0...v0.31.0](https://github.com/Jannchie/liora/compare/v0.30.0...v0.31.0)
