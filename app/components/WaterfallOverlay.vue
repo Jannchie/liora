@@ -372,15 +372,6 @@ const depthMapUrl = computed<string>(() => {
   return trimmed.length > 0 ? trimmed : ''
 })
 
-const placeholderUrl = computed<string>(() => {
-  const raw = file.placeholder
-  if (typeof raw !== 'string') {
-    return ''
-  }
-  const trimmed = raw.trim()
-  return trimmed.length > 0 ? trimmed : ''
-})
-
 const shouldAutoPlay = computed(() => overlayImageReady && !livePhotoPlaying.value)
 const overlayViewerStyle = computed<Record<string, string>>(() => {
   const style: Record<string, string> = { touchAction: viewerTouchAction }
@@ -583,11 +574,11 @@ function handleFocusToggle(): void {
             v-show="!livePhotoPlaying || !hasLivePhoto"
             :image-url="displayImageUrl"
             :depth-url="depthMapUrl"
-            :placeholder-url="placeholderUrl"
             :placeholder-aspect-ratio="file.placeholderAspectRatio"
             :image-width="file.width"
             :image-height="file.height"
             :auto-play="shouldAutoPlay"
+            :show-status-overlay="false"
             :focus-box="overlayFocusBox"
             :style="[overlayImageFitStyle, overlayImageTransformStyle]"
             class="max-h-full max-w-full select-none bg-transparent rounded-none"
