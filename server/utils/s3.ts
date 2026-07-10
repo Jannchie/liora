@@ -184,6 +184,36 @@ async function streamToBuffer(stream: unknown): Promise<Buffer> {
   throw new Error('Unsupported stream type.')
 }
 
+export async function openObjectStreamFromS3({
+  key,
+  config,
+}: {
+  key: string
+  config: S3Config
+}): Promise<{ stream: Readable, contentType?: string, contentLength?: number }> {
+  const client = getClient(config)
+  const response = await client.send(
+    new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    }),
+  )
+  if (!response.Body) {
+    throw createError({ statusCode: 404, statusMessage: 'Object not found.' })
+  }
+  const body = response.Body as unknown
+  const stream = body instanceof Readable
+    ? body
+    : typeof (body as WebReadableStream<Uint8Array>).getReader === 'function'
+      ? Readable.fromWeb(body as WebReadableStream<Uint8Array>)
+      : Readable.from(await streamToBuffer(body))
+  return {
+    stream,
+    contentType: response.ContentType ?? undefined,
+    contentLength: typeof response.ContentLength === 'number' ? response.ContentLength : undefined,
+  }
+}
+
 export async function downloadObjectFromS3({
   key,
   config,

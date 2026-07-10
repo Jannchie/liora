@@ -2,13 +2,12 @@ import type { H3Event } from 'h3'
 import type { FileRow } from './db'
 import type { LivePhotoShareAssets } from './live-photo-share'
 import { createReadStream } from 'node:fs'
-import { Readable } from 'node:stream'
 import { eq } from 'drizzle-orm'
 import { createError, sendStream, setHeader } from 'h3'
 import { useRuntimeConfig } from '#imports'
 import { db, files } from './db'
 import { createLivePhotoShareAssets } from './live-photo-share'
-import { downloadObjectFromS3, extractKeyFromPublicUrl, requireS3Config } from './s3'
+import { extractKeyFromPublicUrl, openObjectStreamFromS3, requireS3Config } from './s3'
 
 type LivePhotoAssetKind = 'image' | 'video'
 
@@ -58,9 +57,12 @@ async function streamFromS3(event: H3Event, url: string, contentType: string, fi
   if (!key) {
     throw createError({ statusCode: 500, statusMessage: 'Invalid cached live photo URL.' })
   }
-  const { buffer } = await downloadObjectFromS3({ key, config: storageConfig })
+  const { stream, contentLength } = await openObjectStreamFromS3({ key, config: storageConfig })
   setDownloadHeaders(event, contentType, filename)
-  return sendStream(event, Readable.from(buffer))
+  if (typeof contentLength === 'number') {
+    setHeader(event, 'Content-Length', contentLength)
+  }
+  return sendStream(event, stream)
 }
 
 function registerCleanup(event: H3Event, cleanup: () => Promise<void>): void {
