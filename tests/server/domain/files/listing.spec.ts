@@ -62,28 +62,27 @@ describe('domain/files/listing', () => {
     })
   })
 
-  it('maps waterfall summary from metadata payload', () => {
+  it('maps waterfall summary from extracted metadata fields', () => {
     const summary = toWaterfallSummary({
       id: 1,
       imageUrl: 'https://example.com/a.jpg',
       width: 100,
       height: 50,
-      metadata: JSON.stringify({
-        arthash: 'abc',
-        livePhotoVideoUrl: 'https://example.com/a.mp4',
-      }),
+      arthash: 'abc',
+      livePhotoVideoUrl: 'https://example.com/a.mp4',
     })
     expect(summary.arthash).toBe('abc')
     expect(summary.livePhotoVideoUrl).toBe('https://example.com/a.mp4')
   })
 
-  it('handles invalid metadata payload in waterfall summary', () => {
+  it('handles missing metadata fields in waterfall summary', () => {
     const summary = toWaterfallSummary({
       id: 2,
       imageUrl: null,
       width: 200,
       height: 100,
-      metadata: '{not-json}',
+      arthash: null,
+      livePhotoVideoUrl: null,
     })
     expect(summary).toEqual({
       id: 2,
@@ -95,28 +94,16 @@ describe('domain/files/listing', () => {
     })
   })
 
-  it('handles empty metadata and non-string live photo url', () => {
+  it('drops blank live photo url', () => {
     const summary = toWaterfallSummary({
       id: 3,
       imageUrl: 'https://example.com/c.jpg',
       width: 320,
       height: 180,
-      metadata: '',
+      arthash: null,
+      livePhotoVideoUrl: '   ',
     })
     expect(summary.arthash).toBeUndefined()
     expect(summary.livePhotoVideoUrl).toBeUndefined()
-
-    const nonStringVideo = toWaterfallSummary({
-      id: 4,
-      imageUrl: 'https://example.com/d.jpg',
-      width: 320,
-      height: 180,
-      metadata: JSON.stringify({
-        arthash: 123,
-        livePhotoVideoUrl: 456,
-      }),
-    })
-    expect(nonStringVideo.arthash).toBeUndefined()
-    expect(nonStringVideo.livePhotoVideoUrl).toBeUndefined()
   })
 })

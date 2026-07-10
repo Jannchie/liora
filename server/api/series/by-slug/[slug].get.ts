@@ -3,18 +3,11 @@ import type { FileSummary } from '~/types/file'
 import type { SeriesDetail } from '~/types/series'
 import { asc, desc, eq, notExists, sql } from 'drizzle-orm'
 import { createError, getQuery, getRouterParam } from 'h3'
-import { toWaterfallSummary } from '../../../domain/files/listing'
-import { parseSeriesPagination } from '../../../domain/series/service'
+import { toWaterfallSummary, waterfallSummarySelection } from '../../../domain/files/listing'
+import { parseSeriesPagination, toIsoString } from '../../../domain/series/service'
 import { db, files, series, seriesFiles } from '../../../utils/db'
+import { handleJsonEtag } from '../../../utils/http-cache'
 import { ensureSeriesSchema } from '../../../utils/series-schema'
-
-interface FileListRow {
-  id: number
-  imageUrl: string
-  width: number
-  height: number
-  metadata: string
-}
 
 const UNCATEGORIZED_SERIES_ID = 0
 const UNCATEGORIZED_SERIES_SLUG = '__uncategorized__'
@@ -48,14 +41,6 @@ function parseSlug(event: H3Event): string {
   throw createError({ statusCode: 400, statusMessage: 'Invalid series slug.' })
 }
 
-function toIsoString(value: string): string {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date().toISOString()
-  }
-  return parsed.toISOString()
-}
-
 function applyPagination<T>(query: T, limit: number | null, offset: number | null): T {
   if (typeof limit === 'number' && typeof offset === 'number') {
     return (query as { limit: (value: number) => { offset: (offsetValue: number) => T } })
@@ -73,28 +58,18 @@ function applyPagination<T>(query: T, limit: number | null, offset: number | nul
 
 async function resolveSeriesCover(seriesId: number, coverFileId: number | null): Promise<FileSummary | null> {
   if (coverFileId) {
-    const coverFile = await db.query.files.findFirst({
-      where: eq(files.id, coverFileId),
-    })
-    if (coverFile) {
-      return toWaterfallSummary({
-        id: coverFile.id,
-        imageUrl: coverFile.imageUrl,
-        width: coverFile.width,
-        height: coverFile.height,
-        metadata: coverFile.metadata,
-      })
+    const coverRows = await db
+      .select(waterfallSummarySelection())
+      .from(files)
+      .where(eq(files.id, coverFileId))
+      .limit(1)
+    if (coverRows[0]) {
+      return toWaterfallSummary(coverRows[0])
     }
   }
 
   const firstFile = await db
-    .select({
-      id: files.id,
-      imageUrl: files.imageUrl,
-      width: files.width,
-      height: files.height,
-      metadata: files.metadata,
-    })
+    .select(waterfallSummarySelection())
     .from(seriesFiles)
     .innerJoin(files, eq(files.id, seriesFiles.fileId))
     .where(eq(seriesFiles.seriesId, seriesId))
@@ -107,12 +82,8 @@ async function resolveSeriesCover(seriesId: number, coverFileId: number | null):
   return toWaterfallSummary(firstFile[0])
 }
 
-export default defineEventHandler(async (event): Promise<SeriesDetail> => {
+export default defineEventHandler(async (event): Promise<SeriesDetail | null> => {
   await ensureSeriesSchema()
-  setHeader(event, 'Cache-Control', 'no-store')
-  setHeader(event, 'Pragma', 'no-cache')
-  setHeader(event, 'Expires', '0')
-
   const slug = parseSlug(event)
   const query = getQuery(event)
   const { limit, offset } = parseSeriesPagination(query as Record<string, unknown>)
@@ -135,13 +106,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
           ),
         ),
       db
-        .select({
-          id: files.id,
-          imageUrl: files.imageUrl,
-          width: files.width,
-          height: files.height,
-          metadata: files.metadata,
-        })
+        .select(waterfallSummarySelection())
         .from(files)
         .where(
           notExists(
@@ -155,13 +120,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
         .limit(1),
       applyPagination(
         db
-          .select({
-            id: files.id,
-            imageUrl: files.imageUrl,
-            width: files.width,
-            height: files.height,
-            metadata: files.metadata,
-          })
+          .select(waterfallSummarySelection())
           .from(files)
           .where(
             notExists(
@@ -178,7 +137,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
     ])
 
     const nowIso = new Date().toISOString()
-    return {
+    const detail: SeriesDetail = {
       id: UNCATEGORIZED_SERIES_ID,
       slug: UNCATEGORIZED_SERIES_SLUG,
       title: 'Uncategorized',
@@ -189,8 +148,12 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
       isVirtual: true,
       createdAt: nowIso,
       updatedAt: nowIso,
-      files: filesRows.map((row: FileListRow) => toWaterfallSummary(row)),
+      files: filesRows.map(row => toWaterfallSummary(row)),
     }
+    if (handleJsonEtag(event, { ...detail, createdAt: '', updatedAt: '' })) {
+      return null
+    }
+    return detail
   }
 
   const seriesRow = await db.query.series.findFirst({
@@ -213,13 +176,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
     resolveSeriesCover(seriesRow.id, seriesRow.coverFileId),
     applyPagination(
       db
-        .select({
-          id: files.id,
-          imageUrl: files.imageUrl,
-          width: files.width,
-          height: files.height,
-          metadata: files.metadata,
-        })
+        .select(waterfallSummarySelection())
         .from(seriesFiles)
         .innerJoin(files, eq(files.id, seriesFiles.fileId))
         .where(eq(seriesFiles.seriesId, seriesRow.id))
@@ -234,8 +191,8 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
     ),
   ])
 
-  const mappedFiles = filesRows.map((row: FileListRow) => toWaterfallSummary(row))
-  return {
+  const mappedFiles = filesRows.map(row => toWaterfallSummary(row))
+  const detail: SeriesDetail = {
     id: seriesRow.id,
     slug: seriesRow.slug,
     title: seriesRow.title,
@@ -248,4 +205,8 @@ export default defineEventHandler(async (event): Promise<SeriesDetail> => {
     updatedAt: toIsoString(seriesRow.updatedAt),
     files: mappedFiles,
   }
+  if (handleJsonEtag(event, detail)) {
+    return null
+  }
+  return detail
 })

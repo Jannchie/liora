@@ -1,3 +1,7 @@
+import type { SQL } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
+import { files } from '../../database/schema'
+
 type QueryInput = unknown
 
 function resolveQueryValue(value: QueryInput): string | number | boolean | null {
@@ -64,31 +68,42 @@ function parseQueryBoolean(value: QueryInput): boolean {
   return trimmed === 'true' || trimmed === '1'
 }
 
-function parseMetadata(value: string | null | undefined): Record<string, unknown> | null {
-  if (!value) {
-    return null
-  }
-  try {
-    return JSON.parse(value) as Record<string, unknown>
-  }
-  catch {
-    return null
-  }
+function metadataField(path: string, alias: string): SQL.Aliased<string | null> {
+  // json_valid guards malformed rows the way the old JSON.parse fallback did.
+  return sql<string | null>`case when json_valid(${files.metadata}) then json_extract(${files.metadata}, ${path}) end`.as(alias)
 }
 
-function extractArthash(metadata: Record<string, unknown> | null): string | undefined {
-  if (!metadata) {
-    return undefined
-  }
-  return typeof metadata.arthash === 'string' ? metadata.arthash : undefined
+export interface WaterfallSummaryRow {
+  id: number
+  imageUrl: string | null
+  width: number
+  height: number
+  arthash: string | null
+  livePhotoVideoUrl: string | null
 }
 
-function extractLivePhotoVideoUrl(metadata: Record<string, unknown> | null): string | undefined {
-  if (!metadata) {
-    return undefined
+/**
+ * Select fragment for waterfall summaries: pulls the two summary fields out of
+ * the metadata JSON in SQL instead of shipping the whole blob (which includes
+ * multi-KB histograms) to JS. Returns a fresh object per call so aliases are
+ * not shared between query builders.
+ */
+export function waterfallSummarySelection(): {
+  id: typeof files.id
+  imageUrl: typeof files.imageUrl
+  width: typeof files.width
+  height: typeof files.height
+  arthash: SQL.Aliased<string | null>
+  livePhotoVideoUrl: SQL.Aliased<string | null>
+} {
+  return {
+    id: files.id,
+    imageUrl: files.imageUrl,
+    width: files.width,
+    height: files.height,
+    arthash: metadataField('$.arthash', 'arthash'),
+    livePhotoVideoUrl: metadataField('$.livePhotoVideoUrl', 'livePhotoVideoUrl'),
   }
-  const value = metadata.livePhotoVideoUrl
-  return typeof value === 'string' && value.trim().length > 0 ? value : undefined
 }
 
 export function parseListQuery(query: Record<string, unknown>): { limit: number | null, offset: number | null, waterfallOnly: boolean } {
@@ -99,13 +114,7 @@ export function parseListQuery(query: Record<string, unknown>): { limit: number 
   }
 }
 
-export function toWaterfallSummary(row: {
-  id: number
-  imageUrl: string | null
-  width: number
-  height: number
-  metadata: string
-}): {
+export function toWaterfallSummary(row: WaterfallSummaryRow): {
   id: number
   imageUrl: string
   width: number
@@ -113,13 +122,14 @@ export function toWaterfallSummary(row: {
   arthash?: string
   livePhotoVideoUrl?: string
 } {
-  const metadata = parseMetadata(row.metadata)
   return {
     id: row.id,
     imageUrl: row.imageUrl ?? '',
     width: row.width,
     height: row.height,
-    arthash: extractArthash(metadata),
-    livePhotoVideoUrl: extractLivePhotoVideoUrl(metadata),
+    arthash: typeof row.arthash === 'string' ? row.arthash : undefined,
+    livePhotoVideoUrl: typeof row.livePhotoVideoUrl === 'string' && row.livePhotoVideoUrl.trim().length > 0
+      ? row.livePhotoVideoUrl
+      : undefined,
   }
 }
