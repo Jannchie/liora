@@ -7,6 +7,7 @@ import {
   normalizeSeriesText,
   parseNumericId,
   slugifySeriesTitle,
+  toIsoString,
 } from '../../domain/series/service'
 import { requireAdmin } from '../../utils/auth'
 import { db, files, series, seriesFiles } from '../../utils/db'
@@ -18,14 +19,6 @@ function parseSeriesId(raw: string | undefined): number {
     throw createError({ statusCode: 400, statusMessage: 'Invalid series id.' })
   }
   return parsed
-}
-
-function toIsoString(value: string): string {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date().toISOString()
-  }
-  return parsed.toISOString()
 }
 
 function parseOptionalCoverFileId(value: unknown): number | null | undefined {

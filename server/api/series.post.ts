@@ -1,18 +1,10 @@
 import type { SeriesSummary, SeriesUpsertPayload } from '~/types/series'
 import { and, eq, ne } from 'drizzle-orm'
 import { createError, readBody } from 'h3'
-import { normalizeSeriesDescription, normalizeSeriesSlug, normalizeSeriesText, slugifySeriesTitle } from '../domain/series/service'
+import { normalizeSeriesDescription, normalizeSeriesSlug, normalizeSeriesText, slugifySeriesTitle, toIsoString } from '../domain/series/service'
 import { requireAdmin } from '../utils/auth'
 import { db, files, series } from '../utils/db'
 import { ensureSeriesSchema } from '../utils/series-schema'
-
-function toIsoString(value: string): string {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date().toISOString()
-  }
-  return parsed.toISOString()
-}
 
 function parseOptionalCoverFileId(value: unknown): number | null | undefined {
   if (value === undefined) {

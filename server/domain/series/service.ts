@@ -49,6 +49,14 @@ export function parseSeriesPagination(query: Record<string, unknown>): QueryPagi
   }
 }
 
+export function toIsoString(value: string): string {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date().toISOString()
+  }
+  return parsed.toISOString()
+}
+
 export function normalizeSeriesText(value: string | null | undefined): string {
   return value?.trim() ?? ''
 }
