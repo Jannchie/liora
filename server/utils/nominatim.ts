@@ -30,9 +30,37 @@ const NOMINATIM_REVERSE_URL = 'https://nominatim.openstreetmap.org/reverse'
 const MAX_RESULTS = 10
 const USER_AGENT = 'LioraGallery/1.0'
 const MIN_INTERVAL_MS = 1000
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000
+const CACHE_MAX_ENTRIES = 500
 
 let lastRequestAt = 0
 let pendingChain: Promise<unknown> = Promise.resolve()
+
+// Repeated lookups for the same place otherwise re-hit nominatim and queue
+// behind the 1 req/s throttle; place data is stable enough for a long TTL.
+const resultCache = new Map<string, { expiresAt: number, results: GeocodeResult[] }>()
+
+function readCache(key: string): GeocodeResult[] | null {
+  const entry = resultCache.get(key)
+  if (!entry) {
+    return null
+  }
+  if (entry.expiresAt < Date.now()) {
+    resultCache.delete(key)
+    return null
+  }
+  return entry.results
+}
+
+function writeCache(key: string, results: GeocodeResult[]): void {
+  if (resultCache.size >= CACHE_MAX_ENTRIES) {
+    const oldestKey = resultCache.keys().next().value
+    if (oldestKey !== undefined) {
+      resultCache.delete(oldestKey)
+    }
+  }
+  resultCache.set(key, { expiresAt: Date.now() + CACHE_TTL_MS, results })
+}
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -71,6 +99,12 @@ export async function geocodePlace(event: H3Event, query: string, limit = 5): Pr
   }
 
   const cappedLimit = Math.min(Math.max(limit, 1), MAX_RESULTS)
+  const cacheKey = `search:${cappedLimit}:${trimmed.toLowerCase()}`
+  const cached = readCache(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   const searchParams = new URLSearchParams({
     format: 'jsonv2',
     q: trimmed,
@@ -84,7 +118,7 @@ export async function geocodePlace(event: H3Event, query: string, limit = 5): Pr
     },
   }))
 
-  return results
+  const mapped = results
     .map((entry) => {
       const latitude = parseCoordinate(entry.lat)
       const longitude = parseCoordinate(entry.lon)
@@ -105,11 +139,19 @@ export async function geocodePlace(event: H3Event, query: string, limit = 5): Pr
       }
     })
     .filter((entry): entry is GeocodeResult => entry !== null)
+  writeCache(cacheKey, mapped)
+  return mapped
 }
 
 export async function reverseGeocodePlace(event: H3Event, latitude: number, longitude: number): Promise<GeocodeResult[]> {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     throw createError({ statusCode: 400, statusMessage: 'Latitude and longitude are required.' })
+  }
+
+  const cacheKey = `reverse:${latitude.toFixed(5)},${longitude.toFixed(5)}`
+  const cached = readCache(cacheKey)
+  if (cached) {
+    return cached
   }
 
   const searchParams = new URLSearchParams({
@@ -135,10 +177,11 @@ export async function reverseGeocodePlace(event: H3Event, latitude: number, long
   const placeName = result.display_name?.trim() ?? ''
   const name = result.name?.trim() || placeName
   if (!placeName || !name || parsedLat === null || parsedLon === null) {
+    writeCache(cacheKey, [])
     return []
   }
 
-  return [
+  const mapped = [
     {
       id: result.place_id ? String(result.place_id) : `${parsedLat},${parsedLon}`,
       name,
@@ -147,4 +190,6 @@ export async function reverseGeocodePlace(event: H3Event, latitude: number, long
       longitude: parsedLon,
     },
   ]
+  writeCache(cacheKey, mapped)
+  return mapped
 }
