@@ -4,8 +4,20 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 const visible = ref(false)
 const threshold = 600
 
-function handleScroll(): void {
+function updateVisibility(): void {
   visible.value = window.scrollY > threshold
+}
+
+let scrollRafId: number | null = null
+
+function handleScroll(): void {
+  if (scrollRafId !== null) {
+    return
+  }
+  scrollRafId = globalThis.requestAnimationFrame(() => {
+    scrollRafId = null
+    updateVisibility()
+  })
 }
 
 function scrollToTop(): void {
@@ -14,11 +26,15 @@ function scrollToTop(): void {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, { passive: true })
-  handleScroll()
+  updateVisibility()
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('scroll', handleScroll)
+  if (scrollRafId !== null) {
+    globalThis.cancelAnimationFrame(scrollRafId)
+    scrollRafId = null
+  }
 })
 
 const { t } = useI18n()

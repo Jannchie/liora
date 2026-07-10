@@ -232,19 +232,39 @@ function onDocumentPointerDown(event: PointerEvent): void {
   close()
 }
 
+let positionRafId: number | null = null
+
+function schedulePositionUpdate(): void {
+  if (positionRafId !== null) {
+    return
+  }
+  positionRafId = globalThis.requestAnimationFrame(() => {
+    positionRafId = null
+    updatePosition()
+  })
+}
+
+function cancelScheduledPositionUpdate(): void {
+  if (positionRafId !== null) {
+    globalThis.cancelAnimationFrame(positionRafId)
+    positionRafId = null
+  }
+}
+
 watch(isOpen, (next) => {
   if (!import.meta.client) {
     return
   }
   if (next) {
     document.addEventListener('pointerdown', onDocumentPointerDown, true)
-    window.addEventListener('scroll', updatePosition, true)
-    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', schedulePositionUpdate, true)
+    window.addEventListener('resize', schedulePositionUpdate)
   }
   else {
     document.removeEventListener('pointerdown', onDocumentPointerDown, true)
-    window.removeEventListener('scroll', updatePosition, true)
-    window.removeEventListener('resize', updatePosition)
+    window.removeEventListener('scroll', schedulePositionUpdate, true)
+    window.removeEventListener('resize', schedulePositionUpdate)
+    cancelScheduledPositionUpdate()
   }
 })
 
@@ -253,8 +273,9 @@ onBeforeUnmount(() => {
     return
   }
   document.removeEventListener('pointerdown', onDocumentPointerDown, true)
-  window.removeEventListener('scroll', updatePosition, true)
-  window.removeEventListener('resize', updatePosition)
+  window.removeEventListener('scroll', schedulePositionUpdate, true)
+  window.removeEventListener('resize', schedulePositionUpdate)
+  cancelScheduledPositionUpdate()
 })
 </script>
 
