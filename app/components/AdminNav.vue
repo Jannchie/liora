@@ -64,7 +64,7 @@ async function handleLogout(): Promise<void> {
     <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
       <!-- left: brand eyebrow + multi-button nav -->
       <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2" :aria-label="t('admin.nav.label')">
-        <p class="label-mono flex shrink-0 items-center gap-1.5 text-foreground">
+        <p class="label-caption flex shrink-0 items-center gap-1.5 text-foreground">
           <Icon name="tabler:shield-check" class="h-3.5 w-3.5" />
           <span>{{ t('admin.nav.label') }}</span>
         </p>

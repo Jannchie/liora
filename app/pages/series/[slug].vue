@@ -406,13 +406,13 @@ onBeforeUnmount(() => {
           <span class="sr-only">{{ t('common.loading') }}</span>
         </template>
         <template v-else>
-          <h1 class="text-2xl font-semibold text-highlighted">
+          <h1 class="font-title text-3xl font-semibold leading-[1.15] text-highlighted">
             {{ displaySeriesTitle }}
           </h1>
-          <p class="text-sm text-muted">
+          <p class="font-prose max-w-2xl pt-1 text-sm leading-relaxed text-muted">
             {{ displaySeriesDescription }}
           </p>
-          <p class="text-xs text-muted">
+          <p class="label-caption-sm num-tabular pt-1">
             {{ t('series.list.count', { count: seriesDetail?.fileCount ?? files.length }) }}
           </p>
         </template>

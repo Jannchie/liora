@@ -1,12 +1,8 @@
 <script setup lang="ts">
 /*
- * Card — wireframe container. Sharp corners, single hairline border, no
+ * Card — quiet container. Hairline border, soft rounding, a whisper of
  * shadow. Header/footer are separated by a 1px inner rule so the eye
  * reads them as zones of one frame, not stacked cards.
- *
- * Why no rounding: in the telemetry / blueprint language, containers form
- * a continuous grid. Rounded corners fight the alignment and turn each
- * panel into a discrete pill.
  */
 defineOptions({ inheritAttrs: false })
 defineProps<{
@@ -16,7 +12,7 @@ defineProps<{
 
 <template>
   <div
-    class="surface-wire"
+    class="surface-card"
     :class="[ui?.root, $attrs.class]"
   >
     <header v-if="$slots.header" class="border-b border-border-muted px-4 py-3" :class="ui?.header">

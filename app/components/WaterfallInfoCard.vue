@@ -37,15 +37,15 @@ const { t } = useI18n()
 
 <template>
   <div
-    class="flex h-full w-full flex-col justify-between rounded-sm bg-default/60 p-4 text-default ring-1 ring-default/20"
+    class="flex h-full w-full flex-col justify-between p-4 text-default"
     :style="{ height: `${displaySize.height}px` }"
   >
     <div class="space-y-3">
-      <div class="space-y-1">
-        <h2 class="home-title-font text-xl font-semibold leading-tight text-highlighted">
+      <div class="space-y-2">
+        <h2 class="font-title text-2xl font-semibold leading-tight text-highlighted">
           {{ siteName }}
         </h2>
-        <p class="text-sm leading-relaxed text-muted">
+        <p class="font-prose text-sm leading-relaxed text-muted">
           {{ siteDescription }}
         </p>
       </div>
@@ -57,8 +57,7 @@ const { t } = useI18n()
       </p>
     </div>
     <div class="space-y-3 text-sm text-muted">
-      <div class="flex items-center justify-center gap-2 text-default">
-        <Icon name="tabler:stack-2" class="h-4 w-4 text-muted" />
+      <div class="label-caption num-tabular flex items-center justify-center gap-1.5">
         <span>{{ t('gallery.totalWorks') }}</span>
         <span class="text-highlighted">
           {{ photoCount }}

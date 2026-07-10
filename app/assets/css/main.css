@@ -2,24 +2,24 @@
 @import "tailwindcss-safe-area";
 
 /*
- * Design tokens — wireframe / blueprint language, original palette.
+ * Design tokens — gallery / print-editorial language, original palette.
  *
  * Why: the system is built around two reading modes:
- *   1. CONTENT (photos)  — full-bleed, no chrome interference.
- *   2. CHROME (admin, panels, headers, metadata) — telemetry-board style:
- *      mono-spaced, sharp-edged, low-saturation, numbered sections.
+ *   1. CONTENT (photos) — full-bleed plates with square corners, like prints
+ *      in a photo book. Images never get rounded or decorated.
+ *   2. CHROME (admin, panels, headers, metadata) — quiet exhibition chrome:
+ *      sans UI type, sentence-case labels, soft rounding, low shadows.
  *
- * Layout language is borrowed from the wireframe / telemetry reference;
- * the color palette (burgundy primary on cool slate) is unchanged.
+ * The color palette (burgundy primary on cool slate) is unchanged.
  *
- * Radius family: collapsed to zero/hairline. Wireframes don't have rounded
- * corners — Card / Button / Input / Modal sit at radius 0–2px so the eye
- * reads them as a continuous grid rather than discrete pills.
+ * Typography: sans everywhere — no serifs in the UI by explicit request.
+ * Titles (`.font-title`) share the sans stacks and differentiate through
+ * weight and size. Mono is reserved for literal data strings (file names,
+ * hashes, code) via `.font-mono`.
  *
- * Typography: mono is the default UI font. Sans/serif is reserved for prose
- * (long captions, descriptions, hero copy on the public gallery). The
- * `.font-prose` / `.home-display-font` helpers let surfaces opt out where
- * warmth matters.
+ * Elevation: containers round at radius-md/lg and floating surfaces
+ * (modal, dropdown, toast) carry a soft shadow; resting cards sit on a
+ * hairline border with at most a whisper of shadow.
  */
 
 @theme {
@@ -31,16 +31,15 @@
      CSS scanner skips it. The `.font-mono` / `.font-sans` utility
      overrides re-attach the full stack for browser rendering. */
   --font-mono:    'JetBrains Mono', 'Noto Sans SC', 'Noto Sans JP', monospace;
-  --font-sans:    var(--font-mono);
+  --font-sans:    'Inter', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
   --font-display: var(--font-display-latin);
   --font-prose:   var(--font-display-latin);
   --font-serif:   var(--font-title-latin);
 
   /* ---------- radius ----------
-     Form controls (button / input / select / tab pill / small chip) keep
-     their rounding — radius-sm/md/lg drive those. Containers (card /
-     section / modal / panel) are flat in the wireframe language; they
-     opt out via explicit `rounded-none` or the `.surface-wire` helper. */
+     Controls (button / input / select / chip) use sm/md; containers
+     (card / modal / panel / dropdown) use md/lg. Photo plates opt out
+     with explicit `rounded-none` — images stay square. */
   --radius-xs:   4px;
   --radius-sm:   6px;
   --radius-md:   8px;
@@ -57,16 +56,15 @@
   --ease-out-quint:  cubic-bezier(.2, .8, .2, 1);
 
   /* ---------- shadow ----------
-     Wireframes are flat: every elevation is a hairline border or a fill
-     step instead of a drop shadow. All shadow tokens collapse to `none`;
-     the few floating surfaces (modal, toast, dropdown) rely on the
-     overlay + 1px ring + bg-step to read as lifted. */
-  --shadow-xs:  none;
-  --shadow-sm:  none;
-  --shadow-md:  none;
-  --shadow-lg:  none;
-  --shadow-card:    none;
-  --shadow-overlay: none;
+     Soft, cool-tinted and shallow: resting cards get a whisper (card/xs),
+     floating surfaces (dropdown, toast, modal) get md/lg. Nothing glows;
+     alpha stays low so surfaces read as paper, not plastic. */
+  --shadow-xs:  0 1px 2px rgb(15 18 28 / 0.05);
+  --shadow-sm:  0 1px 3px rgb(15 18 28 / 0.07), 0 1px 2px rgb(15 18 28 / 0.04);
+  --shadow-md:  0 4px 12px -2px rgb(15 18 28 / 0.10), 0 2px 4px -2px rgb(15 18 28 / 0.06);
+  --shadow-lg:  0 16px 40px -12px rgb(15 18 28 / 0.18), 0 4px 12px -4px rgb(15 18 28 / 0.08);
+  --shadow-card:    0 1px 2px rgb(15 18 28 / 0.04);
+  --shadow-overlay: 0 24px 64px -16px rgb(15 18 28 / 0.24), 0 8px 20px -8px rgb(15 18 28 / 0.10);
 
   /* ---------- semantic palette — LIGHT defaults ---------- */
 
@@ -171,8 +169,13 @@
   --color-info:         #38bdf8;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
 
-  --shadow-md: none;
-  --shadow-lg: none;
+  /* On a near-black ground shadows need more weight to register. */
+  --shadow-xs:  0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-sm:  0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md:  0 4px 12px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+  --shadow-lg:  0 16px 40px -12px rgb(0 0 0 / 0.6), 0 4px 12px -4px rgb(0 0 0 / 0.45);
+  --shadow-card:    0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-overlay: 0 24px 64px -16px rgb(0 0 0 / 0.65), 0 8px 20px -8px rgb(0 0 0 / 0.4);
 
   --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
@@ -190,6 +193,9 @@
   --stack-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
                 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
                 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
+  --stack-sans: 'Inter', system-ui, -apple-system, 'Segoe UI',
+                'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
+                'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
 }
 
 html.disable-transitions,
@@ -247,28 +253,25 @@ html.disable-transitions *::after {
   .focus-ring         { box-shadow: var(--ring-focus); }
   .focus-ring-error   { box-shadow: var(--ring-focus-error); }
 
-  /* ---------- wireframe primitives ---------- */
+  /* ---------- chrome primitives ---------- */
 
-  /* Telemetry label: mono, uppercase, tracked. Use on small chrome labels
-     like "01 EVENTS" / "OVERVIEW" / "RANGE". */
-  .label-mono {
-    font-family: var(--stack-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 11px;
-    line-height: 1;
+  /* Caption label — the museum-wall-label register. Small, quiet,
+     sentence case. Use on eyebrow rows, section labels, metadata keys. */
+  .label-caption {
+    font-size: 12px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--color-fg-muted);
   }
-  .label-mono-sm {
-    font-family: var(--stack-mono);
-    text-transform: uppercase;
-    letter-spacing: 0.16em;
-    font-size: 10px;
-    line-height: 1;
+  .label-caption-sm {
+    font-size: 11px;
+    line-height: 1.2;
+    font-weight: 500;
+    letter-spacing: 0.01em;
     color: var(--color-fg-dimmed);
   }
-  .num-mono {
-    font-family: var(--stack-mono);
+  .num-tabular {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
   }
@@ -277,64 +280,37 @@ html.disable-transitions *::after {
      `--font-mono` / `--font-sans` tokens — those only carry web-resolvable
      fonts. Override here so utility classes pick up the full presentation
      stack including system fonts. */
-  .font-mono,
-  .font-sans {
+  .font-mono {
     font-family: var(--stack-mono);
   }
-
-  /* Diagonal hatch — textural detail used on section edges and wireframe
-     placeholders. */
-  .bg-hatch {
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--color-border-muted) 0,
-      var(--color-border-muted) 1px,
-      transparent 1px,
-      transparent 6px
-    );
-  }
-  .bg-hatch-strong {
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--color-border) 0,
-      var(--color-border) 1px,
-      transparent 1px,
-      transparent 5px
-    );
-  }
-  .bg-hatch-primary {
-    background-image: repeating-linear-gradient(
-      135deg,
-      var(--color-primary-border) 0,
-      var(--color-primary-border) 1px,
-      transparent 1px,
-      transparent 6px
-    );
+  .font-sans {
+    font-family: var(--stack-sans);
   }
 
-  /* Wireframe surface — hairline border, sharp corners, flat fill. The
-     workhorse fill used by Card / Modal / Section in the wireframe palette. */
-  .surface-wire {
+  /* Card surface — hairline border, soft rounding, a whisper of shadow.
+     The workhorse fill used by Card / Modal / panels. */
+  .surface-card {
     background-color: var(--color-default);
-    border: 1px solid var(--color-border);
-    border-radius: 0;
+    border: 1px solid var(--color-border-muted);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
   }
-  .surface-wire-muted {
+  .surface-card-muted {
     background-color: var(--color-bg);
     border: 1px solid var(--color-border-muted);
-    border-radius: 0;
+    border-radius: var(--radius-lg);
   }
 
-  /* Section rule — thin hairline divider between numbered blocks.
+  /* Section rule — thin hairline divider between content blocks.
      Drawn via a ::before so the line can bleed out to the container rails:
      UContainer publishes `--page-px` (its current horizontal padding) and
      the rule extends left/right by that amount. Outside a container the
      variable defaults to 0, so the line sits inside the section's own box
      (the legacy behaviour). */
-  .rule-wire {
+  .rule-bleed {
     position: relative;
   }
-  .rule-wire::before {
+  .rule-bleed::before {
     content: '';
     position: absolute;
     top: 0;
@@ -349,8 +325,8 @@ html.disable-transitions *::after {
 html, body {
   background-color: var(--color-bg);
   color: var(--color-fg);
-  font-family: var(--stack-mono);
-  font-feature-settings: 'tnum' 1, 'ss01' 1;
+  font-family: var(--stack-sans);
+  font-feature-settings: 'tnum' 1;
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -362,13 +338,9 @@ html {
 }
 
 /*
- * Wireframe scrollbar.
- *
- * Why custom: the browser default (rounded grey thumb on a wider track)
- * fights the sharp-edged blueprint chrome and looks misplaced against the
- * near-black ground. We want a hairline track + dimmed square thumb that
- * lifts a notch on hover/active. macOS overlay scrollbars are unaffected
- * — they ignore these styles by design.
+ * Quiet scrollbar — thin rounded thumb on an invisible track, stepping up
+ * a fill notch on hover/active. macOS overlay scrollbars are unaffected —
+ * they ignore these styles by design.
  *
  * Firefox uses the `scrollbar-*` properties; WebKit/Blink uses the
  * pseudo-elements. Both routes target the same tokens so the look stays
@@ -377,7 +349,7 @@ html {
  */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border-strong) transparent;
+  scrollbar-color: var(--color-accented) transparent;
 }
 
 *::-webkit-scrollbar {
@@ -386,23 +358,18 @@ html {
 }
 *::-webkit-scrollbar-track {
   background: transparent;
-  border-left: 1px solid var(--color-border-muted);
-}
-*::-webkit-scrollbar-track:horizontal {
-  border-left: 0;
-  border-top: 1px solid var(--color-border-muted);
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--color-elevated);
-  border: 1px solid var(--color-border);
-  border-radius: 0;
+  background: var(--color-accented);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: 9999px;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accented);
-  border-color: var(--color-border-strong);
+  background-color: var(--color-border-strong);
 }
 *::-webkit-scrollbar-thumb:active {
-  background: var(--color-border-strong);
+  background-color: var(--color-fg-subtle);
 }
 *::-webkit-scrollbar-corner {
   background: transparent;
@@ -427,48 +394,50 @@ html.dark  { color-scheme: dark; }
     --font-display-latin: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
     --font-display-zh: 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC', sans-serif;
     --font-display-ja: 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
-    --font-title-latin: 'Georgia', 'Times New Roman', Times, serif;
-    --font-title-zh: 'Songti SC', 'STSong', 'SimSun', serif;
-    --font-title-ja: 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif;
+    /* Title stacks are sans by explicit request — no serifs in the UI.
+       Titles differentiate through weight and size, not family. The local
+       Noto Serif webfonts remain in nuxt.config only for the satori OG
+       card, which renders images, not page UI. */
+    --font-title-latin: var(--font-display-latin);
+    --font-title-zh: var(--font-display-zh);
+    --font-title-ja: var(--font-display-ja);
   }
 
-  /* Prose / display opt-in for body copy where mono is hostile (long
-     captions, photo descriptions, hero copy on the gallery). */
-  .font-prose,
-  .home-display-font {
+  /* Prose opt-in for long-form body copy (captions, photo descriptions,
+     hero copy). Picks the language-correct sans so zh/ja glyph variants
+     render properly in extended reading. */
+  .font-prose {
     font-family: var(--font-display-latin);
     letter-spacing: -0.005em;
   }
 
   :lang(zh-CN) .font-prose,
-  :lang(zh) .font-prose,
-  :lang(zh-CN) .home-display-font,
-  :lang(zh) .home-display-font {
+  :lang(zh) .font-prose {
     font-family: var(--font-display-zh);
     letter-spacing: 0;
   }
 
   :lang(ja) .font-prose,
-  :lang(ja-JP) .font-prose,
-  :lang(ja) .home-display-font,
-  :lang(ja-JP) .home-display-font {
+  :lang(ja-JP) .font-prose {
     font-family: var(--font-display-ja);
     letter-spacing: 0;
   }
 
-  .home-title-font {
+  /* Title voice — page titles and gallery headings. Sans, language-aware;
+     distinguished by weight and size rather than family. */
+  .font-title {
     font-family: var(--font-title-latin);
     letter-spacing: -0.01em;
   }
 
-  :lang(zh-CN) .home-title-font,
-  :lang(zh) .home-title-font {
+  :lang(zh-CN) .font-title,
+  :lang(zh) .font-title {
     font-family: var(--font-title-zh);
     letter-spacing: 0;
   }
 
-  :lang(ja) .home-title-font,
-  :lang(ja-JP) .home-title-font {
+  :lang(ja) .font-title,
+  :lang(ja-JP) .font-title {
     font-family: var(--font-title-ja);
     letter-spacing: 0;
   }

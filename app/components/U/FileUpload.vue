@@ -72,7 +72,7 @@ defineExpose({ inputRef, clear })
 
 <template>
   <div
-    class="relative flex flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed px-6 py-10 text-center outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
+    class="relative flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-6 py-10 text-center outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
     :class="[
       isDragging
         ? 'border-primary bg-primary-soft'

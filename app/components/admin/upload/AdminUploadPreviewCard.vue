@@ -82,7 +82,7 @@ const { t } = useI18n()
 
       <dl
         v-if="props.hasSelectedFile || props.hasSelectedVideo"
-        class="grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 font-mono text-[11px]"
+        class="grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 num-tabular text-[11px]"
       >
         <template v-if="props.hasSelectedFile">
           <dt class="text-muted">
@@ -103,7 +103,7 @@ const { t } = useI18n()
       </dl>
 
       <div v-if="props.hasSelectedVideo" class="space-y-3 border-t border-border-muted pt-4">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.sections.livePhoto.title') }}
         </p>
         <video
@@ -117,7 +117,7 @@ const { t } = useI18n()
           @loadedmetadata="emit('videoMetadataLoaded')"
           @error="emit('videoError')"
         />
-        <div class="flex items-center gap-2 font-mono text-[11px]">
+        <div class="flex items-center gap-2 num-tabular text-[11px]">
           <span class="tabular-nums text-highlighted">{{ props.liveFrameTimeLabel }}</span>
           <input
             type="range"
@@ -148,9 +148,9 @@ const { t } = useI18n()
       </div>
 
       <div v-if="props.isUploading" class="space-y-2 border-t border-border-muted pt-4">
-        <div class="flex items-center justify-between gap-2 text-[11px] uppercase tracking-[0.12em] text-muted">
+        <div class="flex items-center justify-between gap-2 label-caption">
           <span>{{ t('admin.upload.sections.progress.title') }}</span>
-          <span class="font-mono normal-case">{{ props.uploadProgressPercent.toFixed(1) }}%</span>
+          <span class="num-tabular">{{ props.uploadProgressPercent.toFixed(1) }}%</span>
         </div>
         <div class="h-px w-full overflow-hidden bg-border-muted">
           <div
@@ -158,7 +158,7 @@ const { t } = useI18n()
             :style="{ width: `${props.uploadProgressPercent}%` }"
           />
         </div>
-        <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-muted">
+        <div class="flex flex-wrap items-center justify-between gap-2 num-tabular text-[11px] text-muted">
           <span>
             <span class="text-highlighted">{{ props.uploadedBytesText }}</span>
             <span v-if="props.uploadTotalBytes"> / {{ props.uploadTotalText }}</span>

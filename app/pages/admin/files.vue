@@ -838,7 +838,7 @@ watch(fetchError, (value) => {
         v-if="showBatchProgress"
         class="space-y-2"
       >
-        <div class="flex items-center justify-between gap-2 text-xs uppercase tracking-[0.12em] text-muted">
+        <div class="flex items-center justify-between gap-2 label-caption">
           <span class="flex items-center gap-1.5">
             <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
             <span>{{ t('admin.files.batch.title') }}</span>
@@ -1093,7 +1093,7 @@ watch(fetchError, (value) => {
     >
       <UForm :state="bulkMetadataForm" class="space-y-6" @submit.prevent="saveBulkMetadata">
         <div class="space-y-3">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <p class="label-caption">
             {{ t('admin.files.bulk.fields') }}
           </p>
           <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

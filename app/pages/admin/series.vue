@@ -428,10 +428,10 @@ watch(filesError, (value) => {
         <!-- LEFT · MASTER LIST -->
         <aside class="lg:border-r lg:border-border-muted lg:pr-8">
           <div class="flex items-baseline justify-between pb-3">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+            <p class="label-caption">
               {{ t('admin.series.listTitle') }}
             </p>
-            <span class="font-mono text-[11px] text-muted">{{ seriesList.length }}</span>
+            <span class="num-tabular text-[11px] text-muted">{{ seriesList.length }}</span>
           </div>
           <div class="-mx-3 max-h-[calc(100vh-260px)] overflow-auto">
             <button
@@ -486,7 +486,7 @@ watch(filesError, (value) => {
             </div>
             <div class="flex min-w-0 flex-1 flex-col gap-3">
               <div class="space-y-1">
-                <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                <p class="label-caption">
                   {{ t('admin.series.edit.title') }}
                 </p>
                 <h2 class="break-words text-3xl font-semibold leading-tight text-highlighted">
@@ -561,10 +561,10 @@ watch(filesError, (value) => {
                 <!-- CANDIDATES -->
                 <div class="space-y-2">
                   <div class="flex items-baseline justify-between pb-1">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    <p class="label-caption">
                       Candidates
                     </p>
-                    <span class="font-mono text-[11px] text-muted">{{ filteredCandidates.length }}</span>
+                    <span class="num-tabular text-[11px] text-muted">{{ filteredCandidates.length }}</span>
                   </div>
                   <p v-if="filteredCandidates.length === 0" class="border-t border-border-muted py-6 text-center text-xs text-muted">
                     {{ t('admin.series.files.noCandidate') }}
@@ -609,10 +609,10 @@ watch(filesError, (value) => {
                 <!-- IN SERIES (ORDERED) -->
                 <div class="space-y-2">
                   <div class="flex items-baseline justify-between pb-1">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    <p class="label-caption">
                       In series
                     </p>
-                    <span class="font-mono text-[11px] text-muted">{{ selectedFileIds.length }}</span>
+                    <span class="num-tabular text-[11px] text-muted">{{ selectedFileIds.length }}</span>
                   </div>
                   <p v-if="detailLoading" class="border-t border-border-muted py-6 text-center text-xs text-muted">
                     {{ t('common.loading') }}
@@ -631,7 +631,7 @@ watch(filesError, (value) => {
                         :key="entry.data.id"
                         class="flex h-14 items-center gap-3 border-b border-border-muted"
                       >
-                        <span class="w-6 shrink-0 text-center font-mono text-[11px] text-muted">{{ entry.index + 1 }}</span>
+                        <span class="w-6 shrink-0 text-center num-tabular text-[11px] text-muted">{{ entry.index + 1 }}</span>
                         <div class="h-10 w-14 shrink-0 overflow-hidden bg-muted">
                           <img
                             v-if="entry.data.file?.imageUrl"

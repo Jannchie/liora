@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-none bg-default shadow-[var(--shadow-md)] ring-1 ring-border"
+        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-default shadow-[var(--shadow-md)] ring-1 ring-border"
       >
         <div class="border-b border-border-muted p-2">
           <input

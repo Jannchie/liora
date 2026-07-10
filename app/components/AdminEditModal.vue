@@ -262,7 +262,7 @@ watch(
       <div class="flex h-full flex-col bg-bg">
         <header class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-border-muted bg-bg/95 px-6 py-4 backdrop-blur">
           <div class="min-w-0 space-y-1">
-            <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+            <p class="label-caption">
               {{ t('common.actions.edit') }}
             </p>
             <h3 class="truncate text-lg font-semibold text-highlighted">
@@ -281,7 +281,7 @@ watch(
                   class="w-full space-y-4 lg:w-104 lg:shrink-0"
                 >
                   <div class="flex items-center justify-between gap-2">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    <p class="label-caption">
                       {{ t('admin.files.table.headers.preview') }}
                     </p>
                     <div class="flex items-center gap-1">
@@ -331,7 +331,7 @@ watch(
                     >
                   </div>
                   <div v-if="depthMapUrl" class="space-y-2">
-                    <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+                    <p class="label-caption">
                       {{ t('admin.files.depthMap.label') }}
                     </p>
                     <div class="flex items-center justify-center bg-muted">
@@ -344,11 +344,11 @@ watch(
                         class="h-auto max-h-64 w-auto max-w-full object-contain"
                       >
                     </div>
-                    <p v-if="depthMapWidth && depthMapHeight" class="font-mono text-[11px] text-muted">
+                    <p v-if="depthMapWidth && depthMapHeight" class="num-tabular text-[11px] text-muted">
                       {{ depthMapWidth }} × {{ depthMapHeight }}
                     </p>
                   </div>
-                  <dl class="flex flex-wrap items-baseline gap-x-4 gap-y-1 font-mono text-[11px]">
+                  <dl class="flex flex-wrap items-baseline gap-x-4 gap-y-1 num-tabular text-[11px]">
                     <dd class="truncate text-highlighted">
                       {{ replaceFileName || file.originalName || file.title || t('common.labels.untitled') }}
                     </dd>

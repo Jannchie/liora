@@ -154,7 +154,7 @@ watch(
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:shape" class="h-3.5 w-3.5 text-muted" />
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.formSections.basic.label') }}
         </p>
       </div>
@@ -209,7 +209,7 @@ watch(
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:map-pin" class="h-3.5 w-3.5 text-muted" />
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.formSections.location.label') }}
         </p>
       </div>
@@ -235,7 +235,7 @@ watch(
           </div>
         </UFormField>
         <div v-if="geocodeResults.length > 0" class="space-y-1">
-          <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+          <p class="label-caption">
             {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
           </p>
           <div class="divide-y divide-border-muted border-y border-border-muted">
@@ -295,7 +295,7 @@ watch(
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:camera" class="h-3.5 w-3.5 text-muted" />
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.formSections.camera.label') }}
         </p>
       </div>
@@ -305,7 +305,7 @@ watch(
           :key="highlight.label"
           class="p-3 text-center"
         >
-          <div class="flex items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wide text-muted">
+          <div class="flex items-center justify-center gap-1 text-xs font-medium text-muted">
             <Icon :name="highlight.icon" class="h-4 w-4 text-primary" />
             <span>{{ highlight.label }}</span>
           </div>
@@ -404,7 +404,7 @@ watch(
     <section class="space-y-3">
       <div class="flex items-center gap-2 border-t border-border-muted pt-4">
         <Icon name="tabler:palette" class="h-3.5 w-3.5 text-muted" />
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.formSections.color.label') }}
         </p>
       </div>

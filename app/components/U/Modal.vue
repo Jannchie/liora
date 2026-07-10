@@ -96,11 +96,11 @@ const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
 }
 
 const contentClass = computed(() => {
-  const base = 'relative bg-default text-foreground shadow-[var(--shadow-lg)] ring-1 ring-border'
+  const base = 'relative bg-default text-foreground shadow-[var(--shadow-overlay)] ring-1 ring-border-muted'
   if (props.fullscreen) {
     return `${base} h-full w-full overflow-hidden`
   }
-  return `${base} w-full ${sizeWidth[props.size]} ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
+  return `${base} w-full rounded-xl ${sizeWidth[props.size]} ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
 })
 </script>
 

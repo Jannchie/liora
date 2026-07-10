@@ -57,7 +57,7 @@ const iconColorClass: Record<ToastColor, string> = {
         <div
           v-for="item in toastStore.items"
           :key="item.id"
-          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-none bg-default px-3 py-2.5 shadow-[var(--shadow-lg)] ring-1 ring-border"
+          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-[var(--shadow-lg)] ring-1 ring-border"
           :class="colorClass[item.color]"
           role="status"
         >

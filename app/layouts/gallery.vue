@@ -413,7 +413,7 @@ defineOgImage('LioraCard', {
 </script>
 
 <template>
-  <div class="home-display-font min-h-screen w-full">
+  <div class="font-prose min-h-screen w-full">
     <GalleryHeaderBar
       :title="pageTitle"
       :social-links="headerSocialLinks"
@@ -423,11 +423,11 @@ defineOgImage('LioraCard', {
     <template v-if="showSeriesLanding">
       <section class="mx-auto w-full max-w-6xl px-3 py-6 md:px-4 md:py-10">
         <header class="mb-8 space-y-3 md:mb-12">
-          <p class="flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
+          <p class="label-caption flex items-center gap-1.5">
             <Icon name="tabler:books" class="h-3.5 w-3.5" />
             <span>{{ t('series.list.totalSeries', { count: seriesList.length }) }}</span>
           </p>
-          <h2 class="text-3xl font-semibold leading-[1.05] tracking-tight text-highlighted md:text-4xl">
+          <h2 class="font-title text-3xl font-semibold leading-[1.1] text-highlighted md:text-4xl">
             {{ t('series.list.title') }}
           </h2>
           <p class="max-w-xl text-sm leading-relaxed text-muted">

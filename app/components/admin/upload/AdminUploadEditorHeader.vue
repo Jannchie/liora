@@ -17,7 +17,7 @@ const { t } = useI18n()
   <div class="space-y-3 border-y border-border-muted py-4">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0 space-y-1">
-        <p class="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted">
+        <p class="label-caption">
           {{ t('admin.upload.sections.edit.title') }}
         </p>
         <p class="truncate font-mono text-sm text-highlighted">
@@ -44,7 +44,7 @@ const { t } = useI18n()
         </UButton>
       </div>
     </div>
-    <div v-if="props.previewChips.length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-muted">
+    <div v-if="props.previewChips.length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1 num-tabular text-[11px] text-muted">
       <span
         v-for="chip in props.previewChips"
         :key="`${chip.icon}-${chip.text}`"

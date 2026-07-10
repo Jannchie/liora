@@ -155,10 +155,10 @@ watch(
         </p>
       </header>
 
-      <section class="space-y-4 rounded-none bg-default/80 p-4">
+      <section class="space-y-4 rounded-lg bg-default/80 p-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <div class="space-y-1">
-            <p class="text-xs font-semibold uppercase tracking-wide text-muted">
+            <p class="text-xs font-medium text-muted">
               {{ t('demoDepth.viewer.title') }}
             </p>
             <p class="text-sm text-muted">

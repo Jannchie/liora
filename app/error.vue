@@ -42,12 +42,12 @@ function goSeries(): void {
 <template>
   <div class="min-h-screen w-full bg-bg text-default">
     <section class="mx-auto flex w-full max-w-6xl flex-col px-3 py-16 md:px-4 md:py-24">
-      <p class="label-mono">
+      <p class="label-caption">
         {{ t('error.eyebrow') }}
       </p>
 
       <!-- The status code is the one loud element; everything else stays quiet. -->
-      <p class="num-mono mt-6 text-6xl leading-none tracking-tight text-highlighted md:text-7xl">
+      <p class="font-title num-tabular mt-6 text-6xl leading-none text-highlighted md:text-7xl">
         {{ statusCode }}
       </p>
 
@@ -58,21 +58,21 @@ function goSeries(): void {
         {{ description }}
       </p>
 
-      <!-- Telemetry readout: the two facts worth knowing, in the chrome's voice. -->
+      <!-- The two facts worth knowing, set like a wall label. -->
       <dl class="mt-10 max-w-xl border-t border-border">
         <div class="flex items-baseline gap-4 border-b border-border-muted py-2.5">
-          <dt class="label-mono-sm w-16 shrink-0">
+          <dt class="label-caption-sm w-16 shrink-0">
             {{ t('error.statusLabel') }}
           </dt>
-          <dd class="num-mono text-xs text-toned">
+          <dd class="num-tabular text-xs text-toned">
             {{ statusCode }}
           </dd>
         </div>
         <div class="flex items-baseline gap-4 border-b border-border-muted py-2.5">
-          <dt class="label-mono-sm w-16 shrink-0">
+          <dt class="label-caption-sm w-16 shrink-0">
             {{ t('error.pathLabel') }}
           </dt>
-          <dd class="num-mono truncate text-xs text-toned">
+          <dd class="truncate font-mono text-xs text-toned">
             {{ path }}
           </dd>
         </div>

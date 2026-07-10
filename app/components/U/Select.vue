@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="popoverRef"
         role="listbox"
-        class="z-[9999] flex flex-col overflow-y-auto rounded-none border border-border bg-default py-1 shadow-[var(--shadow-md)]"
+        class="z-[9999] flex flex-col overflow-y-auto rounded-lg border border-border-muted bg-default py-1 shadow-[var(--shadow-md)]"
         :style="popoverStyle"
         @mousedown.prevent
       >

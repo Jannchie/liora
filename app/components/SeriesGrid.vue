@@ -156,30 +156,25 @@ onMounted(() => {
           <div v-else class="absolute inset-0 flex items-center justify-center text-xs text-muted">
             {{ t('series.list.noCover') }}
           </div>
-
-          <div class="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/40 via-black/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-          <span class="absolute left-2.5 top-2.5 inline-flex items-center gap-1 rounded-sm bg-bg/85 px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-highlighted backdrop-blur-sm">
-            <Icon name="tabler:photo" class="h-3 w-3" />
-            {{ item.fileCount }}
-          </span>
         </div>
 
-        <div class="mt-3 space-y-1.5 px-0.5">
+        <div class="mt-4 space-y-1.5 px-0.5">
           <h3
-            class="truncate text-[15px] font-medium leading-snug tracking-tight"
+            class="font-title truncate text-lg font-semibold leading-snug"
             :class="isUncategorized(item) ? 'text-muted' : 'text-highlighted'"
           >
             {{ resolveTitle(item) }}
           </h3>
           <p
             v-if="resolveDescription(item)"
-            class="line-clamp-2 min-h-[2.4em] text-[12.5px] leading-relaxed text-muted"
+            class="line-clamp-2 min-h-[2.4em] text-[13px] leading-relaxed text-muted"
           >
             {{ resolveDescription(item) }}
           </p>
-          <p v-if="formatDate(item.updatedAt)" class="pt-0.5 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-            {{ formatDate(item.updatedAt) }}
+          <p class="label-caption-sm num-tabular pt-0.5">
+            {{ t('series.list.count', { count: item.fileCount }) }}<template v-if="formatDate(item.updatedAt)">
+              · {{ formatDate(item.updatedAt) }}
+            </template>
           </p>
         </div>
       </NuxtLink>

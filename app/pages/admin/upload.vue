@@ -708,42 +708,42 @@ onBeforeUnmount(() => {
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Total
-              </dt><dd class="font-mono">
+              </dt><dd class="num-tabular">
                 {{ batchItems.length }}
               </dd>
             </div>
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Selected
-              </dt><dd class="font-mono">
+              </dt><dd class="num-tabular">
                 {{ batchSelectedCount }}
               </dd>
             </div>
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Pending
-              </dt><dd class="font-mono">
+              </dt><dd class="num-tabular">
                 {{ batchPendingCount }}
               </dd>
             </div>
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Uploading
-              </dt><dd class="font-mono">
+              </dt><dd class="num-tabular">
                 {{ batchUploadingCount }}
               </dd>
             </div>
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Success
-              </dt><dd class="font-mono text-success">
+              </dt><dd class="num-tabular text-success">
                 {{ batchSuccessCount }}
               </dd>
             </div>
             <div class="flex items-center gap-1">
               <dt class="text-muted">
                 Failed
-              </dt><dd class="font-mono text-error">
+              </dt><dd class="num-tabular text-error">
                 {{ batchFailedCount }}
               </dd>
             </div>
@@ -778,7 +778,7 @@ onBeforeUnmount(() => {
                   >
                   <span class="truncate font-medium">{{ item.file.name }}</span>
                 </label>
-                <div class="flex items-center justify-between font-mono text-[11px] text-muted">
+                <div class="flex items-center justify-between num-tabular text-[11px] text-muted">
                   <span>{{ item.form.width }} × {{ item.form.height }}</span>
                   <span>{{ formatFileSize(item.file.size) }}</span>
                 </div>

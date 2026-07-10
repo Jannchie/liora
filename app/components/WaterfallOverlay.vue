@@ -657,17 +657,17 @@ function handleFocusToggle(): void {
           >
             <div
               v-if="overlayZoomIndicatorVisible"
-              class="home-display-font pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+              class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10 backdrop-blur"
             >
               {{ overlayZoomLabel }}
             </div>
           </Transition>
         </div>
-        <div class="home-display-font flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
+        <div class="font-prose flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
           <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">
-                <h3 :id="`overlay-title-${file.id}`" class="text-lg font-semibold leading-snug text-highlighted">
+                <h3 :id="`overlay-title-${file.id}`" class="font-title text-xl font-semibold leading-snug text-highlighted">
                   {{ file.displayTitle }}
                 </h3>
               </div>
@@ -716,8 +716,8 @@ function handleFocusToggle(): void {
                 <WaterfallHistogramPanel :histogram="histogram" />
               </template>
               <template #fallback>
-                <div class="rounded-none border border-default/20 bg-elevated/80" aria-hidden="true">
-                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+                <div class="rounded-lg border border-default/20 bg-elevated/80" aria-hidden="true">
+                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs font-medium text-muted">
                     <div class="flex items-center gap-2">
                       <div class="h-4 w-4 rounded bg-default/40" />
                       <div class="h-4 w-24 rounded bg-default/40" />

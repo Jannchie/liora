@@ -220,8 +220,8 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
 </script>
 
 <template>
-  <div class="rounded-none border border-default/20 bg-elevated/80 text-sm text-default">
-    <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs uppercase tracking-wide text-muted">
+  <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
+    <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs font-medium text-muted">
       <div class="flex items-center gap-2">
         <Icon name="tabler:info-circle" class="h-4 w-4" />
         <span>{{ t('gallery.metadata.section') }}</span>
@@ -232,7 +232,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
     </div>
     <div v-if="hasMetadata" class="space-y-3 p-3">
       <div v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+        <div class="flex items-center gap-2 text-xs font-medium text-muted">
           <Icon name="tabler:adjustments" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
@@ -245,7 +245,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           >
             <Icon :name="item.icon" class="h-4 w-4 text-muted" />
             <div class="flex flex-col leading-tight">
-              <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
+              <span class="label-caption-sm">{{ item.label }}</span>
               <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
             </div>
           </div>
@@ -259,7 +259,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           >
             <Icon :name="item.icon" class="h-4 w-4 text-muted" />
             <div class="flex flex-col leading-tight">
-              <span class="text-[10px] uppercase tracking-wide text-muted">{{ item.label }}</span>
+              <span class="label-caption-sm">{{ item.label }}</span>
               <span class="text-base font-semibold text-highlighted">{{ item.value }}</span>
             </div>
           </div>
@@ -277,7 +277,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           @blur="handleFocusHover(false)"
           @click="handleFocusToggle"
         >
-          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium text-muted">
             <Icon :name="focusEntry.icon" class="h-4 w-4" />
             <span>{{ focusEntry.label }}</span>
           </p>
@@ -289,7 +289,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           v-if="cropEntry"
           class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
-          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium text-muted">
             <Icon :name="cropEntry.icon" class="h-4 w-4" />
             <span>{{ cropEntry.label }}</span>
           </p>
@@ -301,7 +301,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           v-if="lightroomRecipe"
           class="grid gap-2 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
-          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium text-muted">
             <Icon name="tabler:adjustments-horizontal" class="h-4 w-4" />
             <span>{{ t('gallery.metadata.lightroom') }}</span>
           </p>
@@ -344,7 +344,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
             v-if="toneCurveChannels.length > 0"
             class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
           >
-            <div class="flex items-center justify-between text-[10px] uppercase tracking-wide text-muted">
+            <div class="flex items-center justify-between label-caption-sm">
               <span>{{ t('gallery.metadata.toneCurve') }}</span>
               <span v-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
             </div>
@@ -381,7 +381,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
               :key="group.key"
               class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
             >
-              <p class="text-[10px] font-semibold uppercase tracking-wide text-muted">
+              <p class="label-caption-sm">
                 {{ group.label }}
               </p>
               <div class="space-y-1.5">
@@ -414,7 +414,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           v-if="showCameraLookCard && cameraLook"
           class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
-          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium text-muted">
             <Icon name="tabler:camera" class="h-4 w-4" />
             <span>{{ t('gallery.metadata.cameraLook') }}</span>
           </p>
@@ -427,7 +427,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
           :key="item.key ?? item.label"
           class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
         >
-          <p class="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <p class="flex items-center gap-2 text-xs font-medium text-muted">
             <Icon :name="item.icon" class="h-4 w-4" />
             <span>{{ item.label }}</span>
           </p>
@@ -445,7 +445,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
         </div>
       </div>
       <div v-if="secondaryExposureEntries.length > 0" class="space-y-2 border-t border-default/10 pt-3">
-        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+        <div class="flex items-center gap-2 text-xs font-medium text-muted">
           <Icon name="tabler:adjustments" class="h-4 w-4" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </div>
@@ -464,7 +464,7 @@ function buildToneCurvePath(points: LightroomCurvePoint[]): string {
       </div>
     </div>
     <div v-else class="px-3 py-4 text-sm text-muted">
-      <p class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted">
+      <p class="flex items-center gap-2 text-xs font-medium text-muted">
         <Icon name="tabler:alert-triangle" class="h-4 w-4" />
         <span>{{ t('gallery.metadata.section') }}</span>
       </p>
