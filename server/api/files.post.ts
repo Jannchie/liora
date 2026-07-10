@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { readBody } from 'h3'
 import { processDirectUpload, processMultipartUpload, startBackgroundUpload } from '../domain/files/service'
 import {
+  assertContentTypePrefix,
   assertMaxFileSize,
   isMultipartRequest,
   parseDirectBody,
@@ -21,8 +22,16 @@ export default defineEventHandler(async (event): Promise<{ accepted: true, uploa
   if (isMultipartRequest(event)) {
     const { image, video, fields } = await parseMultipart(event)
     assertMaxFileSize(image.data.length, 'Image')
+    // Match the presign branch's type checks; entries without a declared type
+    // still go through sharp validation during background processing.
+    if (image.type) {
+      assertContentTypePrefix(image.type, 'image/', 'Image')
+    }
     if (video) {
       assertMaxFileSize(video.data.length, 'Video')
+      if (video.type) {
+        assertContentTypePrefix(video.type, 'video/', 'Video')
+      }
     }
     startBackgroundUpload(() => processMultipartUpload({
       image,
