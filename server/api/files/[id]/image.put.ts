@@ -96,7 +96,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const existing = await requireFileById(id)
 
   const { file, fields } = await parseMultipart(event)
-  const { width, height, contentType } = await validateImage(file)
+  const { width, height, contentType, orientation } = await validateImage(file)
   const characters = parseCharacters(fields.characters)
   const existingCharacters = mapCharacters(existing.characterList)
   const existingFileSize = (() => {
@@ -151,6 +151,9 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const charactersToSave = metadata.characters.length > 0 ? metadata.characters : existingMetadata.characters
   const metadataBase: FileMetadata = {
     ...existingMetadata,
+    // The image itself was replaced, so the new file's orientation applies
+    // even when it is undefined (upright).
+    orientation,
     characters: charactersToSave,
     latitude: Number.isFinite(metadata.latitude ?? null) ? metadata.latitude : existingMetadata.latitude,
     longitude: Number.isFinite(metadata.longitude ?? null) ? metadata.longitude : existingMetadata.longitude,

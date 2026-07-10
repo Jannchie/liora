@@ -224,6 +224,14 @@ export default defineNuxtConfig({
   image: {
     domains: resolveDomains(),
     format: ['webp', 'avif', 'jpeg', 'jpg', 'png'],
+    ipx: {
+      // Resized variants must honor EXIF orientation: sharp neither rotates
+      // nor keeps the orientation tag by default, so portrait shots rendered
+      // sideways (stored File.width/height are display dimensions).
+      sharpOptions: {
+        autoOrient: true,
+      },
+    },
   },
   pwa: {
     registerType: 'autoUpdate',

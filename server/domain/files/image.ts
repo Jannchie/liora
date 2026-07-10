@@ -26,15 +26,22 @@ export function resolveContentType(format: string | undefined, fallback: string 
   return fallbackType && fallbackType.length > 0 ? fallbackType : undefined
 }
 
-export async function validateImage(file: MultipartEntry): Promise<{ width: number, height: number, contentType?: string }> {
+export async function validateImage(file: MultipartEntry): Promise<{ width: number, height: number, contentType?: string, orientation?: number }> {
   try {
     const metadata = await sharp(file.data).metadata()
-    const width = metadata.width ?? 0
-    const height = metadata.height ?? 0
+    // Store display dimensions: EXIF orientations 5-8 rotate by 90°, so the
+    // raw pixel width/height are swapped relative to how browsers render.
+    const width = metadata.autoOrient?.width ?? metadata.width ?? 0
+    const height = metadata.autoOrient?.height ?? metadata.height ?? 0
     if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
       throw createError({ statusCode: 400, statusMessage: 'Invalid image dimensions.' })
     }
-    return { width, height, contentType: resolveContentType(metadata.format, file.type) }
+    return {
+      width,
+      height,
+      contentType: resolveContentType(metadata.format, file.type),
+      orientation: metadata.orientation,
+    }
   }
   catch (error) {
     logger.warn('image validation failed', { error })

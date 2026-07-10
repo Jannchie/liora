@@ -52,6 +52,8 @@ export interface FileMetadata {
   lightroomRecipe?: string
   notes: string
   fileSize: number
+  /** EXIF orientation (1-8) of the stored original; undefined when upright/unknown. */
+  orientation?: number
   arthash?: string
   perceptualHash?: string
   sha256?: string

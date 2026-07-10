@@ -84,6 +84,12 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const depthMapHeight = Number.isFinite(parsedDepthMapHeight) && parsedDepthMapHeight > 0
     ? parsedDepthMapHeight
     : fallbacks.depthMapHeight
+  const parsedOrientation = typeof parsed.orientation === 'number'
+    ? parsed.orientation
+    : Number(parsed.orientation)
+  const orientation = Number.isInteger(parsedOrientation) && parsedOrientation >= 1 && parsedOrientation <= 8
+    ? parsedOrientation
+    : fallbacks.orientation
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -129,6 +135,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     lightroomRecipe: parsedLightroomRecipe ?? fallbacks.lightroomRecipe,
     notes: parsed.notes ?? fallbacks.notes,
     fileSize: Number.isFinite(parsedFileSize) && parsedFileSize >= 0 ? parsedFileSize : fallbacks.fileSize,
+    orientation,
     arthash: parsed.arthash ?? fallbacks.arthash,
     perceptualHash: parsed.perceptualHash ?? fallbacks.perceptualHash,
     sha256: parsed.sha256 ?? fallbacks.sha256,
@@ -208,6 +215,7 @@ export function buildMetadataFallbacks(
     lightroomRecipe: undefined,
     notes: '',
     fileSize: 0,
+    orientation: undefined,
     arthash: undefined,
     perceptualHash: undefined,
     sha256: undefined,

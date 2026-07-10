@@ -269,6 +269,38 @@ function clamp01(value: number): number {
   return Math.min(1, Math.max(0, value))
 }
 
+// FocusLocation coordinates live in the raw sensor space, but the photo is
+// rendered EXIF-oriented; map each normalized corner into display space
+// before the Lightroom transforms (which operate on the oriented image).
+function applyExifOrientation(point: FocusPoint, orientation: number): FocusPoint {
+  switch (orientation) {
+    case 2: {
+      return { x: 1 - point.x, y: point.y }
+    }
+    case 3: {
+      return { x: 1 - point.x, y: 1 - point.y }
+    }
+    case 4: {
+      return { x: point.x, y: 1 - point.y }
+    }
+    case 5: {
+      return { x: point.y, y: point.x }
+    }
+    case 6: {
+      return { x: 1 - point.y, y: point.x }
+    }
+    case 7: {
+      return { x: 1 - point.y, y: 1 - point.x }
+    }
+    case 8: {
+      return { x: point.y, y: 1 - point.x }
+    }
+    default: {
+      return point
+    }
+  }
+}
+
 const transformedFocusBox = computed<FocusBoxRect | null>(() => {
   const metadata = file.metadata
   const focusLocationValues = parseNumbers(metadata.focusLocation)
@@ -295,12 +327,13 @@ const transformedFocusBox = computed<FocusBoxRect | null>(() => {
 
   const halfFrameWidth = frameWidth / 2
   const halfFrameHeight = frameHeight / 2
+  const orientation = typeof metadata.orientation === 'number' ? metadata.orientation : 1
   const corners: FocusPoint[] = [
     { x: (centerX - halfFrameWidth) / sourceWidth, y: (centerY - halfFrameHeight) / sourceHeight },
     { x: (centerX + halfFrameWidth) / sourceWidth, y: (centerY - halfFrameHeight) / sourceHeight },
     { x: (centerX + halfFrameWidth) / sourceWidth, y: (centerY + halfFrameHeight) / sourceHeight },
     { x: (centerX - halfFrameWidth) / sourceWidth, y: (centerY + halfFrameHeight) / sourceHeight },
-  ]
+  ].map(corner => applyExifOrientation(corner, orientation))
 
   const matrix = parseUprightTransform(metadata.uprightTransform)
   const perspectiveHorizontal = parseMetadataNumber(metadata.perspectiveHorizontal) ?? 0

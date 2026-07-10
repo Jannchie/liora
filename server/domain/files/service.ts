@@ -177,6 +177,7 @@ async function processUploadCore(payload: {
   buffer: Buffer
   width: number
   height: number
+  orientation?: number
   originalName: string
   fields: Record<string, string>
   imageUrl: string
@@ -190,6 +191,7 @@ async function processUploadCore(payload: {
   const normalizedGenre = normalizeText(payload.fields.genre)
   metadata.processingStatus = 'processing'
   metadata.uploadId = payload.uploadId
+  metadata.orientation = payload.orientation
   metadata.fileSize = payload.buffer.length
   metadata.sha256 = computeSha256(payload.buffer)
   const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
@@ -228,7 +230,7 @@ async function processUploadCore(payload: {
 export async function processMultipartUpload(payload: MultipartUploadJobPayload): Promise<void> {
   const { image, video, fields, storageConfig, uploadId } = payload
   try {
-    const { width, height, contentType } = await validateImage(image)
+    const { width, height, contentType, orientation } = await validateImage(image)
     const imageUrl = await saveImage(image, storageConfig, contentType)
     const livePhotoVideoUrl = video ? await saveVideo(video, storageConfig) : undefined
     const originalName = image.filename ? basename(image.filename) : ''
@@ -236,6 +238,7 @@ export async function processMultipartUpload(payload: MultipartUploadJobPayload)
       buffer: image.data,
       width,
       height,
+      orientation,
       originalName,
       fields,
       imageUrl,
@@ -269,7 +272,7 @@ export async function processDirectUpload(payload: DirectUploadJobPayload): Prom
       type: imageContentType ?? contentType,
       data: buffer,
     }
-    const { width, height } = await validateImage(image)
+    const { width, height, orientation } = await validateImage(image)
 
     if (videoKey) {
       const head = await headObjectFromS3({
@@ -287,6 +290,7 @@ export async function processDirectUpload(payload: DirectUploadJobPayload): Prom
       buffer,
       width,
       height,
+      orientation,
       originalName,
       fields,
       imageUrl,

@@ -17,6 +17,7 @@
     "test:coverage": "vitest run --coverage",
     "backfill:arthash": "tsx scripts/backfill-arthash.ts",
     "backfill:exif": "tsx scripts/backfill-exif-metadata.ts",
+    "backfill:orientation": "tsx scripts/backfill-orientation.ts",
     "backfill:series": "tsx scripts/backfill-series.ts"
   },
   "dependencies": {
