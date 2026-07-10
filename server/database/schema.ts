@@ -24,7 +24,12 @@ export const files = sqliteTable('File', {
   metadata: text('metadata').notNull().default('{}'),
   genre: text('genre').notNull().default(''),
   createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-})
+}, table => [
+  // Every gallery/series listing orders by this triple; SQLite scans the
+  // index backwards for the DESC variant.
+  index('File_capture_created_id_idx').on(table.captureTime, table.createdAt, table.id),
+  index('File_genre_idx').on(table.genre),
+])
 
 export const series = sqliteTable('Series', {
   id: integer('id').primaryKey({ autoIncrement: true }),

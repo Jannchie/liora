@@ -36,6 +36,13 @@
       "when": 1772086492941,
       "tag": "0004_series_integrity_fix",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1783996800000,
+      "tag": "0005_add_file_indexes",
+      "breakpoints": true
     }
   ]
 }
