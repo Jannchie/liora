@@ -1,3 +1,39 @@
+## v0.33.0
+
+[v0.32.0...v0.33.0](https://github.com/Jannchie/liora/compare/v0.32.0...v0.33.0)
+
+### :sparkles: Features
+
+- **admin**: expose the orientation backfill as an admin endpoint - By [Jannchie](mailto:jannchie@gmail.com) in [4f08364](https://github.com/Jannchie/liora/commit/4f08364)
+
+### :adhesive_bandage: Fixes
+
+- **image**: honor EXIF orientation in resized variants and stored dimensions - By [Jannchie](mailto:jannchie@gmail.com) in [143a1b8](https://github.com/Jannchie/liora/commit/143a1b8)
+- **upload**: validate multipart MIME types like the presign branch - By [Jannchie](mailto:jannchie@gmail.com) in [402621d](https://github.com/Jannchie/liora/commit/402621d)
+
+### :zap: Performance
+
+- **admin**: reclassify untagged files with bounded concurrency - By [Jannchie](mailto:jannchie@gmail.com) in [19900f2](https://github.com/Jannchie/liora/commit/19900f2)
+- **api**: trim list payloads and revalidate with ETags - By [Jannchie](mailto:jannchie@gmail.com) in [92c6b33](https://github.com/Jannchie/liora/commit/92c6b33)
+- **db**: index File listing and genre columns - By [Jannchie](mailto:jannchie@gmail.com) in [6b35bdd](https://github.com/Jannchie/liora/commit/6b35bdd)
+- **geocode**: cache nominatim lookups for 24h - By [Jannchie](mailto:jannchie@gmail.com) in [eb0d088](https://github.com/Jannchie/liora/commit/eb0d088)
+- **live-photo**: stream S3 objects instead of buffering - By [Jannchie](mailto:jannchie@gmail.com) in [96faca2](https://github.com/Jannchie/liora/commit/96faca2)
+- **ui**: coalesce scroll and resize handlers into animation frames - By [Jannchie](mailto:jannchie@gmail.com) in [2ebb59d](https://github.com/Jannchie/liora/commit/2ebb59d)
+
+### :art: Refactors
+
+- **exif**: extract shared formatting utils from composable and backfill script - By [Jannchie](mailto:jannchie@gmail.com) in [7570f0e](https://github.com/Jannchie/liora/commit/7570f0e)
+- **files**: reuse domain image hashing in the replace-image endpoint - By [Jannchie](mailto:jannchie@gmail.com) in [3978523](https://github.com/Jannchie/liora/commit/3978523)
+- **series**: share toIsoString across endpoints - By [Jannchie](mailto:jannchie@gmail.com) in [10e42fb](https://github.com/Jannchie/liora/commit/10e42fb)
+
+### :package: Build
+
+- **docker**: apply migrations from a nitro plugin and drop node_modules from the runner - By [Jannchie](mailto:jannchie@gmail.com) in [56cf9f8](https://github.com/Jannchie/liora/commit/56cf9f8)
+
+### :wrench: Chores
+
+- **ui**: drop unreferenced LoadingIcon and useResolvedSiteInfo - By [Jannchie](mailto:jannchie@gmail.com) in [00a8713](https://github.com/Jannchie/liora/commit/00a8713)
+
 ## v0.32.0
 
 [v0.31.0...v0.32.0](https://github.com/Jannchie/liora/compare/v0.31.0...v0.32.0)
