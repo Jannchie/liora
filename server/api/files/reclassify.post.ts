@@ -26,25 +26,40 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
   let failed = 0
   let processed = 0
 
-  for (const file of targets) {
-    processed += 1
-    logger.info('reclassify processing', { fileId: file.id, processed, total: targets.length })
-    try {
-      const result: GenreClassificationResult | null = await classifyPhotoGenre(event, file.imageUrl)
-      const genre = deriveGenreLabel(result)
-      if (!genre) {
-        skipped += 1
+  // Each classification downloads the original image and calls the AI
+  // provider, so a bounded worker pool keeps large batches from running
+  // strictly serially without stampeding the provider.
+  const concurrency = 4
+  let cursor = 0
+
+  const worker = async (): Promise<void> => {
+    while (cursor < targets.length) {
+      const file = targets[cursor]
+      cursor += 1
+      if (!file) {
         continue
       }
-      await db.update(files).set({ genre }).where(eq(files.id, file.id))
-      logger.info('reclassify updated', { fileId: file.id, genre })
-      updated += 1
-    }
-    catch (error) {
-      failed += 1
-      logger.warn('reclassify failed', { fileId: file.id, error })
+      processed += 1
+      logger.info('reclassify processing', { fileId: file.id, processed, total: targets.length })
+      try {
+        const result: GenreClassificationResult | null = await classifyPhotoGenre(event, file.imageUrl)
+        const genre = deriveGenreLabel(result)
+        if (!genre) {
+          skipped += 1
+          continue
+        }
+        await db.update(files).set({ genre }).where(eq(files.id, file.id))
+        logger.info('reclassify updated', { fileId: file.id, genre })
+        updated += 1
+      }
+      catch (error) {
+        failed += 1
+        logger.warn('reclassify failed', { fileId: file.id, error })
+      }
     }
   }
+
+  await Promise.all(Array.from({ length: Math.min(concurrency, targets.length) }, () => worker()))
 
   return {
     total: targets.length,
