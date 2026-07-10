@@ -2,6 +2,19 @@ import type { FileMetadata } from '../app/types/file'
 import type { FileRow } from '../server/utils/db'
 import { asc, eq } from 'drizzle-orm'
 import exifr from 'exifr'
+import {
+  formatAperture,
+  formatCaptureTime,
+  formatColorSpace,
+  formatExposureBias,
+  formatFocal,
+  formatLocation,
+  formatResolutionUnit,
+  formatResolutionValue,
+  formatShutter,
+  normalizeToOption,
+  textFrom,
+} from '../app/utils/exif-format'
 import { closeDb, db, files as filesTable } from '../server/utils/db'
 
 function escapeRegExp(value: string): string {
@@ -109,77 +122,6 @@ function parseMetadata(raw: string): ParsedMetadata {
   return {}
 }
 
-function formatAperture(value: number | undefined): string {
-  if (!value || value <= 0) {
-    return ''
-  }
-  return `f/${value.toFixed(1)}`
-}
-
-function formatShutter(exposureTime?: number, shutterSpeed?: number): string {
-  if (exposureTime && exposureTime > 0) {
-    if (exposureTime < 1) {
-      return `1/${Math.round(1 / exposureTime)}s`
-    }
-    return `${exposureTime.toFixed(2)}s`
-  }
-  if (shutterSpeed !== undefined) {
-    const base = 2 ** -shutterSpeed
-    if (base < 1) {
-      return `1/${Math.round(1 / base)}s`
-    }
-    return `${base.toFixed(2)}s`
-  }
-  return ''
-}
-
-function formatFocal(value: number | undefined): string {
-  if (!value || value <= 0) {
-    return ''
-  }
-  return `${value.toFixed(0)}mm`
-}
-
-function normalizeToOption(value: string | undefined, options: string[], aliases: Record<string, string> = {}): string {
-  const normalized = value?.trim()
-  if (!normalized) {
-    return ''
-  }
-  const lower = normalized.toLowerCase()
-  const alias = aliases[lower]
-  if (alias) {
-    return alias
-  }
-  const exact = options.find(option => option.toLowerCase() === lower)
-  if (exact) {
-    return exact
-  }
-  for (const [key, mapped] of Object.entries(aliases)) {
-    if (lower.includes(key)) {
-      return mapped
-    }
-  }
-  const partial = options.find(option => lower.includes(option.toLowerCase()))
-  if (partial) {
-    return partial
-  }
-  return normalized
-}
-
-function formatExposureBias(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    const rounded = Math.round(numeric * 10) / 10
-    const sign = rounded > 0 ? '+' : ''
-    return `${sign}${rounded.toFixed(1)} EV`
-  }
-  const text = String(value).trim()
-  return text.length > 0 ? text : ''
-}
-
 function formatExposureProgram(value: number | string | undefined): string {
   const map: Record<number, string> = {
     0: 'Not defined',
@@ -274,71 +216,6 @@ function formatFlash(value: number | string | undefined): string {
     'auto - did not fire': 'Auto (did not fire)',
     'auto, fired': 'Auto (fired)',
   })
-}
-
-function formatColorSpace(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (numeric === 1) {
-      return 'sRGB'
-    }
-    if (numeric === 65_535) {
-      return 'Uncalibrated'
-    }
-  }
-  const text = String(value).trim()
-  return text.length > 0 ? text : ''
-}
-
-function formatResolutionValue(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (Number.isInteger(numeric)) {
-      return numeric.toString()
-    }
-    return numeric.toFixed(2).replace(/\.0+$/, '').replace(/0+$/, '').replace(/\.$/, '')
-  }
-  return String(value)
-}
-
-function formatResolutionUnit(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (numeric === 2) {
-      return 'Pixels/Inch'
-    }
-    if (numeric === 3) {
-      return 'Pixels/Centimeter'
-    }
-  }
-  return String(value)
-}
-
-function formatCaptureTime(value: string | Date | undefined): string {
-  if (!value) {
-    return ''
-  }
-  const date = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  return date.toISOString()
-}
-
-function formatLocation(latitude: number | undefined, longitude: number | undefined): string {
-  if (latitude === undefined || longitude === undefined) {
-    return ''
-  }
-  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
 }
 
 async function fetchImageBuffer(url: string): Promise<Buffer | null> {
@@ -531,9 +408,9 @@ function mergeMetadata(existing: ParsedMetadata, exif: ExifResult): MergeResult 
     merged.resolutionUnit = resolutionUnit
   }
 
-  const software = Array.isArray(exif.software) ? exif.software.join(' ') : exif.software
+  const software = textFrom(exif.software).trim()
   if (!merged.software && software) {
-    merged.software = String(software).trim()
+    merged.software = software
   }
 
   const captureTime = formatCaptureTime(exif.dateTimeOriginal ?? exif.createDate)

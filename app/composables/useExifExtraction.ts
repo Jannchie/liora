@@ -2,6 +2,19 @@ import type { MediaFormState } from '~/types/admin'
 import exifr from 'exifr'
 import { toLocalInputString } from '~/utils/datetime'
 import {
+  formatAperture,
+  formatCaptureTime,
+  formatColorSpace,
+  formatExposureBias,
+  formatFocal,
+  formatLocation,
+  formatResolutionUnit,
+  formatResolutionValue,
+  formatShutter,
+  normalizeToOption,
+  textFrom,
+} from '~/utils/exif-format'
+import {
   normalizeExposureModeValue,
   normalizeExposureProgramValue,
   normalizeFlashValue,
@@ -38,153 +51,6 @@ interface ExifData {
   YResolution?: number | string
   ResolutionUnit?: number | string
   Software?: string | string[]
-}
-
-function normalizeToOption(
-  value: string | undefined,
-  options: { label: string, value: string }[],
-  aliases: Record<string, string> = {},
-): string {
-  const normalized = value?.trim()
-  if (!normalized) {
-    return ''
-  }
-  const lower = normalized.toLowerCase()
-  const alias = aliases[lower]
-  if (alias) {
-    return alias
-  }
-  const exact = options.find(option => option.value.toLowerCase() === lower)
-  if (exact) {
-    return exact.value
-  }
-  for (const [key, mapped] of Object.entries(aliases)) {
-    if (lower.includes(key)) {
-      return mapped
-    }
-  }
-  const partial = options.find(option => lower.includes(option.value.toLowerCase()))
-  if (partial) {
-    return partial.value
-  }
-  return normalized
-}
-
-function formatLocation(latitude: number | undefined, longitude: number | undefined): string {
-  if (latitude === undefined || longitude === undefined) {
-    return ''
-  }
-  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
-}
-
-function textFrom(value: string | string[] | undefined): string {
-  if (Array.isArray(value)) {
-    return value.join(' ')
-  }
-  return value ?? ''
-}
-
-function formatAperture(value: number | undefined): string {
-  if (!value || value <= 0) {
-    return ''
-  }
-  return `f/${value.toFixed(1)}`
-}
-
-function formatShutter(exposureTime?: number, shutterSpeed?: number): string {
-  if (exposureTime && exposureTime > 0) {
-    if (exposureTime < 1) {
-      return `1/${Math.round(1 / exposureTime)}s`
-    }
-    return `${exposureTime.toFixed(2)}s`
-  }
-  if (shutterSpeed !== undefined) {
-    const base = 2 ** -shutterSpeed
-    if (base < 1) {
-      return `1/${Math.round(1 / base)}s`
-    }
-    return `${base.toFixed(2)}s`
-  }
-  return ''
-}
-
-function formatFocal(value: number | undefined): string {
-  if (!value || value <= 0) {
-    return ''
-  }
-  return `${value.toFixed(0)}mm`
-}
-
-function formatExposureBias(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    const rounded = Math.round(numeric * 10) / 10
-    const sign = rounded > 0 ? '+' : ''
-    return `${sign}${rounded.toFixed(1)} EV`
-  }
-  const text = String(value).trim()
-  return text.length > 0 ? text : ''
-}
-
-function formatResolutionValue(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (Number.isInteger(numeric)) {
-      return numeric.toString()
-    }
-    return numeric.toFixed(2).replace(/\.0+$/, '').replace(/0+$/, '').replace(/\.$/, '')
-  }
-  return String(value)
-}
-
-function formatResolutionUnit(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (numeric === 2) {
-      return 'Pixels/Inch'
-    }
-    if (numeric === 3) {
-      return 'Pixels/Centimeter'
-    }
-  }
-  return String(value)
-}
-
-function formatColorSpace(value: number | string | undefined): string {
-  if (value === undefined || value === null) {
-    return ''
-  }
-  const numeric = typeof value === 'string' ? Number(value) : value
-  if (Number.isFinite(numeric)) {
-    if (numeric === 1) {
-      return 'sRGB'
-    }
-    if (numeric === 65_535) {
-      return 'Uncalibrated'
-    }
-  }
-  const text = String(value).trim()
-  return text.length > 0 ? text : ''
-}
-
-function formatDate(value: string | Date | undefined): string {
-  if (!value) {
-    return ''
-  }
-  const date = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return ''
-  }
-  return date.toISOString()
 }
 
 export function useExifExtraction(): {
@@ -268,7 +134,7 @@ export function useExifExtraction(): {
       const resolutionY = formatResolutionValue(parsed.YResolution)
       const resolutionUnit = formatResolutionUnit(parsed.ResolutionUnit)
       const software = textFrom(parsed.Software)
-      const captureTime = formatDate(parsed.DateTimeOriginal ?? parsed.CreateDate)
+      const captureTime = formatCaptureTime(parsed.DateTimeOriginal ?? parsed.CreateDate)
 
       if (!isActiveToken(token)) {
         return {}
