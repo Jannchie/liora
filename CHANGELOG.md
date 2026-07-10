@@ -1,3 +1,15 @@
+## v0.34.0
+
+[v0.33.0...v0.34.0](https://github.com/Jannchie/liora/compare/v0.33.0...v0.34.0)
+
+### :sparkles: Features
+
+- **ui**: replace the wireframe telemetry language with a gallery look - By [Jannchie](mailto:jannchie@gmail.com) in [b4e30e9](https://github.com/Jannchie/liora/commit/b4e30e9)
+
+### :wrench: Chores
+
+- **prompts**: drop decorative emoji from genre classification headings - By [Jannchie](mailto:jannchie@gmail.com) in [27174b6](https://github.com/Jannchie/liora/commit/27174b6)
+
 ## v0.33.0
 
 [v0.32.0...v0.33.0](https://github.com/Jannchie/liora/compare/v0.32.0...v0.33.0)
