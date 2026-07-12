@@ -537,6 +537,40 @@
         "depth": "生成深度图",
         "depthBatch": "生成缺失深度图 ({count})"
       },
+      "recompose": {
+        "title": "二次构图",
+        "open": "二次构图",
+        "framedSize": "取景尺寸",
+        "hint": "构图只改变默认展示范围，原图保持不变；查看大图时缩小即可看到完整原图。",
+        "aspect": {
+          "label": "裁剪比例",
+          "free": "自由",
+          "original": "原始"
+        },
+        "rotate": {
+          "label": "旋转与翻转",
+          "cw": "顺时针 90°",
+          "ccw": "逆时针 90°",
+          "flipH": "水平翻转",
+          "flipV": "垂直翻转"
+        },
+        "straighten": "拉直",
+        "stretch": {
+          "label": "拉伸",
+          "x": "水平",
+          "y": "垂直"
+        },
+        "perspective": {
+          "label": "透视矫正",
+          "h": "水平",
+          "v": "垂直"
+        },
+        "toast": {
+          "saved": "构图已保存",
+          "resetDone": "已还原为原始构图",
+          "failed": "构图保存失败"
+        }
+      },
       "batch": {
         "title": "深度图批量生成",
         "progress": "进度 {processed}/{total}",

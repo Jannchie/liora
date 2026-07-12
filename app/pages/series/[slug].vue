@@ -55,6 +55,9 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
   if (livePhotoVideoUrl) {
     metadata.livePhotoVideoUrl = livePhotoVideoUrl
   }
+  if (file.recompose) {
+    metadata.recompose = file.recompose
+  }
   return {
     id: file.id,
     title: '',

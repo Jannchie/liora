@@ -537,6 +537,40 @@
         "depth": "深度マップ生成",
         "depthBatch": "深度マップ未生成を一括生成（{count}）"
       },
+      "recompose": {
+        "title": "再構図",
+        "open": "再構図",
+        "framedSize": "フレームサイズ",
+        "hint": "再構図はデフォルトの表示範囲だけを変更します。元画像はそのまま保持され、ビューアで縮小すると全体を確認できます。",
+        "aspect": {
+          "label": "切り抜き比率",
+          "free": "自由",
+          "original": "元比率"
+        },
+        "rotate": {
+          "label": "回転と反転",
+          "cw": "時計回りに 90°",
+          "ccw": "反時計回りに 90°",
+          "flipH": "左右反転",
+          "flipV": "上下反転"
+        },
+        "straighten": "角度補正",
+        "stretch": {
+          "label": "伸縮",
+          "x": "水平",
+          "y": "垂直"
+        },
+        "perspective": {
+          "label": "遠近補正",
+          "h": "水平",
+          "v": "垂直"
+        },
+        "toast": {
+          "saved": "構図を保存しました",
+          "resetDone": "元の構図に戻しました",
+          "failed": "構図の保存に失敗しました"
+        }
+      },
       "batch": {
         "title": "深度マップ一括生成",
         "progress": "進捗 {processed}/{total}",

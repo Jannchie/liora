@@ -18,6 +18,7 @@ import type { SiteSettings } from '~/types/site'
 import { breakpointsTailwind, useBreakpoints } from '@vueuse/core'
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, unref, watch } from 'vue'
 import { Waterfall } from 'vue-wf'
+import { computeRecomposePlane, recomposeSourceSize } from '#shared/utils/recompose'
 import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { brandIconSet } from '~/constants/brand-icons'
@@ -601,6 +602,12 @@ function resolveOverlayTargetWidth(file: ResolvedFile, scale: number): number | 
   if (!displaySize) {
     return null
   }
+  // The served pixels are always the original image; with an authored framing
+  // the frame shows a magnified window of it, so the source must be larger.
+  const recompose = file.metadata.recompose
+  if (recompose) {
+    return recomposeSourceSize(recompose, displaySize.width * scale).width
+  }
   const scaledWidth = normalizeImageSize(displaySize.width * scale)
   const maxWidth = Number.isFinite(file.width) && file.width > 0 ? Math.round(file.width) : null
   if (maxWidth && maxWidth > 0) {
@@ -720,13 +727,12 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
   const displaySize = computeDisplaySize(file, aspectRatio, displayWidth)
   const imageUrl = (file.imageUrl ?? '').trim()
   const baseImageUrl = imageUrl
-  const imageAttrs = resolveImageAttrs(baseImageUrl, displaySize, 'inside')
-  const previewSize = computeDisplaySize(
-    file,
-    aspectRatio,
-    displayWidth,
-  )
-  const previewAttrs = resolveImageAttrs(baseImageUrl, previewSize, 'inside')
+  // With an authored framing the served pixels are still the original image,
+  // which must be fetched larger than the frame to fill it 1:1.
+  const recompose = file.metadata.recompose
+  const sourceSize = recompose ? recomposeSourceSize(recompose, displaySize.width) : displaySize
+  const imageAttrs = resolveImageAttrs(baseImageUrl, sourceSize, 'inside')
+  const previewAttrs = imageAttrs
   const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
   const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
     baseImageUrl,
@@ -1291,6 +1297,17 @@ async function saveEditFromModal(): Promise<void> {
   }
   finally {
     editing.value = false
+  }
+}
+
+function handleRecomposed(updated: FileResponse): void {
+  fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
+  const resolved = toResolvedFile(updated, columnWidth.value)
+  if (activeFile.value?.id === updated.id) {
+    activeFile.value = resolved
+  }
+  if (editingFile.value?.id === updated.id) {
+    editingFile.value = resolved
   }
 }
 
@@ -2126,8 +2143,28 @@ const overlayZoomMin = computed<number>(() => {
   if (!Number.isFinite(base) || base <= 0) {
     return 1
   }
+  // With an authored framing the default view is the frame (base scale), but
+  // zooming out further is allowed until the whole original plane fits.
+  const recompose = activeFile.value?.metadata.recompose
+  if (recompose) {
+    const containerWidth = overlayViewerSize.value.width
+    const containerHeight = overlayViewerSize.value.height
+    if (containerWidth > 0 && containerHeight > 0) {
+      const plane = computeRecomposePlane(recompose)
+      const revealMin = Math.min(containerWidth / plane.planeWidth, containerHeight / plane.planeHeight)
+      if (Number.isFinite(revealMin) && revealMin > 0) {
+        return Math.max(overlayZoomEpsilon, Math.min(base, revealMin))
+      }
+    }
+  }
   return Math.max(overlayZoomEpsilon, base)
 })
+
+/** Default view: the framed fit. Differs from the zoom floor when an authored framing allows zooming out. */
+const overlayFitScale = computed<number>(() => Math.max(overlayZoomEpsilon, overlayBaseScale.value))
+
+/** True while the viewer shows beyond-frame content of an authored framing. */
+const overlayZoomedOut = computed<boolean>(() => overlayZoom.value < overlayBaseScale.value - overlayZoomEpsilon)
 
 const isOverlayInteractionDisabled = computed<boolean>(() => isSmallScreen.value)
 
@@ -2383,8 +2420,7 @@ function resetOverlayImage(): void {
 }
 
 function resetOverlayZoom(): void {
-  const base = overlayZoomMin.value
-  overlayZoom.value = base
+  overlayZoom.value = overlayFitScale.value
   overlayPan.value = { x: 0, y: 0 }
   overlayZoomIndicatorVisible.value = false
   clearOverlayZoomIndicatorTimer()
@@ -2459,7 +2495,7 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
   }
   event.preventDefault()
   const isAtOriginal = Math.abs(overlayZoom.value - 1) <= overlayZoomEpsilon
-  const target = isAtOriginal ? overlayZoomMin.value : 1
+  const target = isAtOriginal ? overlayFitScale.value : 1
   const focal = target > overlayZoomMin.value + overlayZoomEpsilon
     ? { clientX: event.clientX, clientY: event.clientY }
     : undefined
@@ -2826,7 +2862,26 @@ function startOverlayImageLoad(
               itself. Cached images that bypass the load event are caught in
               onEntryImageRef.
             -->
+            <RecomposeFrame
+              v-if="entry.metadata.recompose"
+              :params="entry.metadata.recompose"
+              mode="clip"
+              :style="entryTransitionStyle(entry.id)"
+              class="transition-opacity group-hover:opacity-90"
+            >
+              <img
+                :key="entry.id"
+                :ref="el => onEntryImageRef(entry.id, el as Element | null)"
+                :alt="entry.displayTitle"
+                loading="lazy"
+                decoding="async"
+                class="h-full w-full"
+                v-bind="entry.imageAttrs"
+                @load="markEntryLoaded(entry.id)"
+              >
+            </RecomposeFrame>
             <img
+              v-else
               :key="entry.id"
               :ref="el => onEntryImageRef(entry.id, el as Element | null)"
               :alt="entry.displayTitle"
@@ -2893,6 +2948,7 @@ function startOverlayImageLoad(
           :viewer-touch-action="viewerTouchAction"
           :live-photo-sharing="sharingLivePhoto"
           :live-photo-preparing="preparingLivePhotoShare"
+          :overlay-zoomed-out="overlayZoomedOut"
           @close="handleOverlayClose"
           @edit="handleOverlayEdit"
           @share-live-photo="handleShareLivePhoto"
@@ -2919,6 +2975,7 @@ function startOverlayImageLoad(
           @submit="saveEditFromModal"
           @close="closeEditModal"
           @generate-depth="generateDepthMapFromEdit"
+          @recomposed="handleRecomposed"
         />
       </Teleport>
     </template>

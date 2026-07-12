@@ -21,6 +21,7 @@ const emit = defineEmits<{
   (event: 'submit'): void
   (event: 'close'): void
   (event: 'generateDepth'): void
+  (event: 'recomposed', value: FileResponse): void
 }>()
 
 const open = defineModel<boolean>('open', { required: true })
@@ -174,6 +175,12 @@ const effectivePreviewAttrs = computed<ImageAttrs | null>(() => {
   return baseAttrs
 })
 
+const recomposeOpen = ref(false)
+
+function handleRecomposeSaved(updated: FileResponse): void {
+  emit('recomposed', updated)
+}
+
 function handleSubmit(): void {
   emit('submit')
 }
@@ -295,6 +302,16 @@ watch(
                         {{ t('common.actions.changeImage') }}
                       </UButton>
                       <UButton
+                        color="primary"
+                        variant="ghost"
+                        size="sm"
+                        icon="tabler:crop"
+                        :disabled="Boolean(replaceFile)"
+                        @click="recomposeOpen = true"
+                      >
+                        {{ t('admin.files.recompose.open') }}
+                      </UButton>
+                      <UButton
                         v-if="enableDepthAction"
                         color="primary"
                         variant="ghost"
@@ -318,7 +335,26 @@ watch(
                     </div>
                   </div>
                   <div class="flex items-center justify-center bg-muted">
+                    <!-- With an authored framing (and no pending replacement), preview the framed composition. -->
+                    <div
+                      v-if="file.metadata.recompose && !replacePreviewUrl"
+                      class="relative w-full"
+                      :style="{ aspectRatio: `${file.width} / ${file.height}` }"
+                    >
+                      <RecomposeFrame :params="file.metadata.recompose">
+                        <img
+                          :key="file.id"
+                          :src="effectivePreviewAttrs.src || file.imageUrl"
+                          :srcset="effectivePreviewAttrs.srcset"
+                          :sizes="effectivePreviewAttrs.srcset ? effectivePreviewAttrs.sizes : undefined"
+                          :alt="file.title || t('common.labels.untitled')"
+                          loading="lazy"
+                          class="h-full w-full"
+                        >
+                      </RecomposeFrame>
+                    </div>
                     <img
+                      v-else
                       :key="replaceFile?.name || file.id"
                       :src="effectivePreviewAttrs.src || file.imageUrl"
                       :srcset="effectivePreviewAttrs.srcset"
@@ -427,8 +463,8 @@ watch(
                   </USection>
 
                   <AdminMetadataForm
-                    :form="form"
                     v-model:capture-time-local="captureTimeLocal"
+                    :form="form"
                     :classify-source="classifySource"
                   />
                 </div>
@@ -451,6 +487,11 @@ watch(
           </footer>
         </div>
       </div>
+      <AdminRecomposeEditorModal
+        v-model:open="recomposeOpen"
+        :file="file"
+        @saved="handleRecomposeSaved"
+      />
     </template>
   </UModal>
 </template>

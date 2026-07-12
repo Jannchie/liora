@@ -1,5 +1,7 @@
 import type { SQL } from 'drizzle-orm'
+import type { RecomposeParams } from '../../../shared/types/recompose'
 import { sql } from 'drizzle-orm'
+import { validateRecomposeParams } from '../../../shared/utils/recompose'
 import { files } from '../../database/schema'
 
 type QueryInput = unknown
@@ -80,6 +82,8 @@ export interface WaterfallSummaryRow {
   height: number
   arthash: string | null
   livePhotoVideoUrl: string | null
+  /** JSON text of the authored framing (json_extract returns objects as JSON strings). */
+  recompose: string | null
 }
 
 /**
@@ -95,6 +99,7 @@ export function waterfallSummarySelection(): {
   height: typeof files.height
   arthash: SQL.Aliased<string | null>
   livePhotoVideoUrl: SQL.Aliased<string | null>
+  recompose: SQL.Aliased<string | null>
 } {
   return {
     id: files.id,
@@ -103,6 +108,19 @@ export function waterfallSummarySelection(): {
     height: files.height,
     arthash: metadataField('$.arthash', 'arthash'),
     livePhotoVideoUrl: metadataField('$.livePhotoVideoUrl', 'livePhotoVideoUrl'),
+    recompose: metadataField('$.recompose', 'recompose'),
+  }
+}
+
+function parseSummaryRecompose(raw: string | null): RecomposeParams | undefined {
+  if (typeof raw !== 'string' || raw.length === 0) {
+    return undefined
+  }
+  try {
+    return validateRecomposeParams(JSON.parse(raw)) ?? undefined
+  }
+  catch {
+    return undefined
   }
 }
 
@@ -121,6 +139,7 @@ export function toWaterfallSummary(row: WaterfallSummaryRow): {
   height: number
   arthash?: string
   livePhotoVideoUrl?: string
+  recompose?: RecomposeParams
 } {
   return {
     id: row.id,
@@ -131,5 +150,6 @@ export function toWaterfallSummary(row: WaterfallSummaryRow): {
     livePhotoVideoUrl: typeof row.livePhotoVideoUrl === 'string' && row.livePhotoVideoUrl.trim().length > 0
       ? row.livePhotoVideoUrl
       : undefined,
+    recompose: parseSummaryRecompose(row.recompose),
   }
 }

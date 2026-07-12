@@ -1,3 +1,7 @@
+import type { RecomposeParams } from '#shared/types/recompose'
+
+export type { RecomposeCropRect, RecomposeParams } from '#shared/types/recompose'
+
 export interface HistogramData {
   red: number[]
   green: number[]
@@ -68,6 +72,8 @@ export interface FileMetadata {
   depthMapUrl?: string
   depthMapWidth?: number
   depthMapHeight?: number
+  /** Authored display framing; distinct from the read-only Lightroom crop/perspective imports. */
+  recompose?: RecomposeParams | null
 }
 
 export interface FilePayload {
@@ -218,6 +224,8 @@ export interface FileSummary {
   height: number
   arthash?: string
   livePhotoVideoUrl?: string
+  /** Authored display framing; width/height above are the framed dims when set. */
+  recompose?: RecomposeParams
 }
 
 export interface FileSeriesRef {

@@ -33,6 +33,7 @@ const {
   livePhotoPreparing = false,
   overlayImageReady = false,
   previewImageSrc = null,
+  overlayZoomedOut = false,
 } = defineProps<{
   file: ResolvedFile
   overlayBackgroundStyle: Record<string, string> | null
@@ -61,6 +62,8 @@ const {
   livePhotoPreparing?: boolean
   overlayImageReady?: boolean
   previewImageSrc?: string | null
+  /** True while the viewer is zoomed out past the framing (reveals beyond-frame content). */
+  overlayZoomedOut?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -119,6 +122,11 @@ const resolvedPreviewImageSrc = computed<string | null>(() => {
   }
   return null
 })
+
+const recomposeParams = computed(() => file.metadata.recompose ?? null)
+
+const viewerImageWidth = computed(() => recomposeParams.value?.original.width ?? file.width)
+const viewerImageHeight = computed(() => recomposeParams.value?.original.height ?? file.height)
 
 const displayImageUrl = computed<string>(() => {
   const candidates = [
@@ -587,39 +595,56 @@ function handleFocusToggle(): void {
           @pointercancel="emit('pointercancel', $event)"
           @pointerleave="emit('pointerleave', $event)"
         >
-          <video
-            v-if="hasLivePhoto"
-            v-show="livePhotoPlaying"
-            ref="videoRef"
-            :key="`live-${file.id}`"
-            :src="livePhotoVideoUrl || undefined"
-            :poster="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
-            :width="file.width"
-            :height="file.height"
-            :style="[overlayImageFitStyle, overlayImageTransformStyle]"
-            class="max-h-full max-w-full select-none object-contain"
-            muted
-            playsinline
-            preload="metadata"
-            @ended="handleLivePhotoEnded"
-          />
-          <DepthMapViewer
-            v-show="!livePhotoPlaying || !hasLivePhoto"
-            :image-url="displayImageUrl"
-            :depth-url="depthMapUrl"
-            :placeholder-aspect-ratio="file.placeholderAspectRatio"
-            :image-width="file.width"
-            :image-height="file.height"
-            :auto-play="shouldAutoPlay"
-            :show-status-overlay="false"
-            :focus-box="overlayFocusBox"
-            :style="[overlayImageFitStyle, overlayImageTransformStyle]"
-            class="max-h-full max-w-full select-none bg-transparent rounded-none"
-            :class="[
-              canOpenPreview ? 'cursor-zoom-in' : undefined,
-            ]"
-            @click="openPreview"
-          />
+          <!--
+            The frame box takes the fit + zoom/pan transforms; with an authored
+            framing the recompose homography lives inside it (RecomposeFrame
+            renders the slot untransformed when params is null). Beyond-frame
+            content only appears while the viewer is zoomed out.
+          -->
+          <div
+            :style="[overlayImageFitStyle, overlayImageTransformStyle, { aspectRatio: `${file.width} / ${file.height}` }]"
+            class="relative max-h-full max-w-full select-none"
+          >
+            <RecomposeFrame :params="recomposeParams" mode="reveal" :reveal-active="overlayZoomedOut">
+              <template v-if="recomposeParams" #backdrop>
+                <img
+                  :src="displayImageUrl"
+                  alt=""
+                  class="h-full w-full"
+                  draggable="false"
+                >
+              </template>
+              <video
+                v-if="hasLivePhoto"
+                v-show="livePhotoPlaying"
+                ref="videoRef"
+                :key="`live-${file.id}`"
+                :src="livePhotoVideoUrl || undefined"
+                :poster="overlayImageSrc || file.previewUrl || file.coverUrl || file.imageUrl"
+                class="h-full w-full select-none"
+                muted
+                playsinline
+                preload="metadata"
+                @ended="handleLivePhotoEnded"
+              />
+              <DepthMapViewer
+                v-show="!livePhotoPlaying || !hasLivePhoto"
+                :image-url="displayImageUrl"
+                :depth-url="depthMapUrl"
+                :placeholder-aspect-ratio="viewerImageWidth / viewerImageHeight"
+                :image-width="viewerImageWidth"
+                :image-height="viewerImageHeight"
+                :auto-play="shouldAutoPlay"
+                :show-status-overlay="false"
+                :focus-box="overlayFocusBox"
+                class="h-full w-full select-none bg-transparent rounded-none"
+                :class="[
+                  canOpenPreview ? 'cursor-zoom-in' : undefined,
+                ]"
+                @click="openPreview"
+              />
+            </RecomposeFrame>
+          </div>
           <button
             v-if="hasLivePhoto"
             type="button"
@@ -806,12 +831,14 @@ function handleFocusToggle(): void {
         </div>
       </div>
     </div>
+    <!-- The fullscreen pinch-zoom preview always shows the stored original,
+         so with an authored framing its intrinsic dims apply, not the framed ones. -->
     <WaterfallPreviewOverlay
       v-model:open="previewOpen"
       :src="resolvedPreviewImageSrc"
       :alt="file.displayTitle"
-      :width="file.width"
-      :height="file.height"
+      :width="recomposeParams?.original.width ?? file.width"
+      :height="recomposeParams?.original.height ?? file.height"
       :aria-label="t('gallery.viewLarge', { title: file.displayTitle })"
     />
   </div>

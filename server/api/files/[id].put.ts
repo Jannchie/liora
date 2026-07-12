@@ -37,8 +37,11 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
 
   const title = normalizeOptionalText(body.title, existing.title)
   const description = normalizeOptionalText(body.description, existing.description)
-  const width = parseOptionalPositiveNumber(body.width, existing.width, 'Width')
-  const height = parseOptionalPositiveNumber(body.height, existing.height, 'Height')
+  // With an authored framing, width/height hold the framed dims and are owned
+  // by the recompose endpoint; plain metadata edits must not overwrite them.
+  const hasRecompose = Boolean(existingMetadata.recompose)
+  const width = hasRecompose ? existing.width : parseOptionalPositiveNumber(body.width, existing.width, 'Width')
+  const height = hasRecompose ? existing.height : parseOptionalPositiveNumber(body.height, existing.height, 'Height')
   const characters = normalizeOptionalCharacters(body.characters, existingMetadata.characters)
   const genre = normalizeOptionalText(body.genre, existing.genre ?? '')
 

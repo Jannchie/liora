@@ -1,5 +1,6 @@
 import type { FileRow } from './db'
 import type { FileMetadata, FileResponse, FileSeriesRef } from '~/types/file'
+import { validateRecomposeParams } from '../../shared/utils/recompose'
 
 export function mapCharacters(characterList: string): string[] {
   return characterList
@@ -90,6 +91,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const orientation = Number.isInteger(parsedOrientation) && parsedOrientation >= 1 && parsedOrientation <= 8
     ? parsedOrientation
     : fallbacks.orientation
+  const recompose = validateRecomposeParams(parsed.recompose) ?? fallbacks.recompose
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
     characters: parsed.characters ?? fallbacks.characters,
@@ -150,6 +152,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     depthMapUrl: parsedDepthMapUrl ?? fallbacks.depthMapUrl,
     depthMapWidth,
     depthMapHeight,
+    recompose,
   }
 }
 
@@ -230,6 +233,7 @@ export function buildMetadataFallbacks(
     depthMapUrl: undefined,
     depthMapWidth: undefined,
     depthMapHeight: undefined,
+    recompose: undefined,
     ...overrides,
   }
 }

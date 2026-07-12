@@ -1,3 +1,4 @@
+import type { RecomposeParams } from '#shared/types/recompose'
 import type { MediaFormState } from '~/types/admin'
 import type {
   BatchActionResult,
@@ -86,6 +87,13 @@ export function useFileEditApi() {
     })
   }
 
+  const updateRecompose = async (id: number, recompose: RecomposeParams | null): Promise<FileResponse> => {
+    return request<FileResponse>(`/api/files/${id}/recompose`, {
+      method: 'PUT',
+      body: { recompose },
+    })
+  }
+
   const updateFileSeries = async (id: number, seriesIds: number[]): Promise<void> => {
     const payload: FileSeriesUpdatePayload = {
       seriesIds,
@@ -144,6 +152,7 @@ export function useFileEditApi() {
   return {
     saveFileEdit,
     updateFile,
+    updateRecompose,
     updateFileSeries,
     updateFilesBatchMetadata,
     addFilesToSeriesBatch,

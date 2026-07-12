@@ -152,8 +152,10 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   const metadataBase: FileMetadata = {
     ...existingMetadata,
     // The image itself was replaced, so the new file's orientation applies
-    // even when it is undefined (upright).
+    // even when it is undefined (upright), and any authored framing of the
+    // old pixels no longer makes sense.
     orientation,
+    recompose: undefined,
     characters: charactersToSave,
     latitude: Number.isFinite(metadata.latitude ?? null) ? metadata.latitude : existingMetadata.latitude,
     longitude: Number.isFinite(metadata.longitude ?? null) ? metadata.longitude : existingMetadata.longitude,

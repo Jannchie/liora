@@ -83,6 +83,7 @@ async function loadSeriesPreviews(seriesIds: number[]): Promise<Map<number, File
       height: candidates.height,
       arthash: candidates.arthash,
       livePhotoVideoUrl: candidates.livePhotoVideoUrl,
+      recompose: candidates.recompose,
     })
     .from(candidates)
     .where(lte(candidates.rowNumber, SERIES_PREVIEW_LIMIT))

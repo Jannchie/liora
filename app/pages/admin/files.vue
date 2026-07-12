@@ -277,6 +277,16 @@ const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', {
   locale: locale.value,
 }))
 
+/** Contain-fit box for the framed composition inside the fixed 96x56 table thumbnail. */
+function resolveFramedThumbStyle(file: FileResponse): Record<string, string> {
+  const ratio = file.width > 0 && file.height > 0 ? file.width / file.height : 1
+  const boxWidth = 96
+  const boxHeight = 56
+  const width = Math.min(boxWidth, boxHeight * ratio)
+  const height = width / ratio
+  return { width: `${width}px`, height: `${height}px` }
+}
+
 function resolvePreviewUrl(file: FileResponse): string {
   const primary = file.imageUrl.trim()
   if (primary) {
@@ -578,6 +588,13 @@ function openEdit(file: FileResponse): void {
   editingFile.value = file
   fillEditForm(file)
   editModalOpen.value = true
+}
+
+function handleRecomposed(updated: FileResponse): void {
+  filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
+  if (editingFile.value?.id === updated.id) {
+    editingFile.value = updated
+  }
 }
 
 function resetBulkMetadataForm(): void {
@@ -964,8 +981,24 @@ watch(fetchError, (value) => {
               </div>
             </template>
             <template #preview-cell="{ row }">
-              <div class="h-14 w-24 overflow-hidden rounded-none bg-black/5">
+              <div class="flex h-14 w-24 items-center justify-center overflow-hidden rounded-none bg-black/5">
+                <div
+                  v-if="row.original.metadata.recompose"
+                  class="relative"
+                  :style="resolveFramedThumbStyle(row.original)"
+                >
+                  <RecomposeFrame :params="row.original.metadata.recompose">
+                    <img
+                      :key="row.original.id"
+                      :alt="row.original.title || untitledLabel"
+                      loading="lazy"
+                      class="h-full w-full"
+                      v-bind="resolvePreviewImage(row.original)"
+                    >
+                  </RecomposeFrame>
+                </div>
                 <img
+                  v-else
                   :key="row.original.id"
                   :alt="row.original.title || untitledLabel"
                   loading="lazy"
@@ -1042,6 +1075,7 @@ watch(fetchError, (value) => {
       @submit="saveEdit"
       @close="closeEdit"
       @generate-depth="handleGenerateDepthFromEdit"
+      @recomposed="handleRecomposed"
     />
     <UModal
       v-model:open="deleteModalOpen"
@@ -1122,8 +1156,8 @@ watch(fetchError, (value) => {
         </div>
 
         <AdminMetadataForm
-          :form="bulkMetadataForm"
           v-model:capture-time-local="bulkMetadataCaptureTimeLocal"
+          :form="bulkMetadataForm"
           :classify-source="{ imageUrl: '' }"
         />
         <div class="flex justify-end gap-2 border-t border-border-muted pt-3">

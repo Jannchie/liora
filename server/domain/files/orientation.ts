@@ -66,6 +66,13 @@ export async function backfillOrientation(options?: { concurrency?: number }): P
         continue
       }
 
+      const storedMetadata = parseMetadata(file.metadata)
+      if (storedMetadata.recompose) {
+        // width/height hold authored framed dims, not the stored image's; the
+        // original snapshot lives inside metadata.recompose and stays as-is.
+        continue
+      }
+
       const buffer = await fetchImage(sourceUrl)
       if (!buffer) {
         failed += 1
@@ -93,7 +100,6 @@ export async function backfillOrientation(options?: { concurrency?: number }): P
       }
       checked += 1
 
-      const storedMetadata = parseMetadata(file.metadata)
       const dimensionsChanged = orientedWidth !== file.width || orientedHeight !== file.height
       const orientationChanged = storedMetadata.orientation !== orientation
       if (!dimensionsChanged && !orientationChanged) {

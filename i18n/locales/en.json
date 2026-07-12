@@ -537,6 +537,40 @@
         "depth": "Generate depth map",
         "depthBatch": "Generate missing depth maps ({count})"
       },
+      "recompose": {
+        "title": "Re-compose",
+        "open": "Re-compose",
+        "framedSize": "Framed size",
+        "hint": "Re-composition only changes the default framing; the original stays untouched and zooming out in the viewer reveals it.",
+        "aspect": {
+          "label": "Crop aspect",
+          "free": "Free",
+          "original": "Original"
+        },
+        "rotate": {
+          "label": "Rotate & flip",
+          "cw": "Rotate 90° CW",
+          "ccw": "Rotate 90° CCW",
+          "flipH": "Flip horizontal",
+          "flipV": "Flip vertical"
+        },
+        "straighten": "Straighten",
+        "stretch": {
+          "label": "Stretch",
+          "x": "Horizontal",
+          "y": "Vertical"
+        },
+        "perspective": {
+          "label": "Perspective",
+          "h": "Horizontal",
+          "v": "Vertical"
+        },
+        "toast": {
+          "saved": "Framing saved",
+          "resetDone": "Restored to the original framing",
+          "failed": "Failed to save framing"
+        }
+      },
       "batch": {
         "title": "Depth map batch",
         "progress": "Progress {processed}/{total}",
