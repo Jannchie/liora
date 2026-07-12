@@ -1,3 +1,12 @@
+## v0.35.0
+
+[v0.34.0...v0.35.0](https://github.com/Jannchie/liora/compare/v0.34.0...v0.35.0)
+
+### :sparkles: Features
+
+- **recompose**: add non-destructive display framing for images - By [Jannchie](mailto:jannchie@gmail.com) in [ca3da5a](https://github.com/Jannchie/liora/commit/ca3da5a)
+- **ui**: slim the gallery header into a quiet wall-label strip - By [Jannchie](mailto:jannchie@gmail.com) in [5b2ded9](https://github.com/Jannchie/liora/commit/5b2ded9)
+
 ## v0.34.0
 
 [v0.33.0...v0.34.0](https://github.com/Jannchie/liora/compare/v0.33.0...v0.34.0)
