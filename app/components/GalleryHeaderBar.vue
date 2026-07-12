@@ -19,22 +19,27 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <!--
+    The header reads as a quiet museum wall label: one hairline strip, the
+    site name a notch above caption weight, every control ghosted. Nothing
+    here should compete with the photographs below it.
+  -->
   <header
     v-if="showHeaderInfo"
-    class="sticky inset-x-0 top-0 z-30 w-full border-b border-border-muted bg-default"
+    class="sticky inset-x-0 top-0 z-30 w-full border-b border-border-muted/60 bg-default/95 backdrop-blur-sm"
   >
-    <div class="mx-auto flex w-full flex-col items-center gap-2 px-3 py-3 text-center md:max-w-500 md:flex-row md:items-center md:justify-between md:gap-3 md:px-4 md:py-4 md:text-left">
-      <div class="flex w-full flex-col items-center gap-1 md:flex-1 md:flex-row md:items-baseline md:gap-4">
-        <h1 class="leading-tight">
+    <div class="mx-auto flex w-full items-center justify-between gap-3 px-4 py-2.5 md:max-w-500">
+      <div class="flex min-w-0 items-center gap-2.5">
+        <h1 class="min-w-0 leading-none">
           <NuxtLink
             to="/"
             :aria-label="t('series.common.backHome')"
-            class="font-title inline-flex items-center text-lg font-semibold leading-tight text-highlighted outline-none transition-colors hover:text-primary focus-visible:shadow-[var(--ring-focus)] md:text-xl"
+            class="inline-flex max-w-full items-center truncate text-sm font-medium leading-none text-highlighted outline-none transition-colors hover:text-primary focus-visible:shadow-[var(--ring-focus)]"
           >
             {{ title }}
           </NuxtLink>
         </h1>
-        <div class="flex flex-wrap items-center justify-center gap-1 text-muted md:justify-start">
+        <div v-if="socialLinks.length > 0" class="flex shrink-0 items-center gap-0.5">
           <UButton
             v-for="link in socialLinks"
             :key="link.label"
@@ -44,22 +49,22 @@ const { t } = useI18n()
             variant="ghost"
             color="neutral"
             square
-            size="sm"
-            class="text-muted"
+            size="xs"
+            class="text-dimmed hover:text-muted"
             :icon="link.icon"
             :aria-label="link.label"
           />
         </div>
       </div>
-      <div class="flex items-center gap-2 md:shrink-0">
+      <div class="flex shrink-0 items-center gap-1">
         <UButton
           v-if="isAuthenticated"
           to="/admin"
-          color="primary"
-          variant="soft"
+          color="neutral"
+          variant="ghost"
           size="sm"
           icon="tabler:shield-check"
-          class="shrink-0"
+          class="shrink-0 text-muted"
         >
           {{ t('admin.nav.label') }}
         </UButton>
@@ -70,16 +75,16 @@ const { t } = useI18n()
   </header>
   <div
     v-else
-    class="border-b border-border bg-default"
+    class="border-b border-border-muted/60 bg-default"
   >
-    <div class="mx-auto flex flex-wrap items-center justify-end gap-2 px-3 py-2 md:max-w-500 md:flex-nowrap md:gap-3 md:px-4 md:py-3">
+    <div class="mx-auto flex items-center justify-end gap-1 px-4 py-2 md:max-w-500">
       <UButton
         v-if="isAuthenticated"
         to="/admin"
-        color="primary"
-        variant="soft"
+        color="neutral"
+        variant="ghost"
         size="sm"
-        class="shrink-0"
+        class="shrink-0 text-muted"
         icon="tabler:shield-check"
       >
         {{ t('admin.nav.label') }}

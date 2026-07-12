@@ -17,6 +17,8 @@ const props = withDefaults(defineProps<{
   square?: boolean
   type?: 'button' | 'submit' | 'reset'
   to?: string
+  /** External URL — renders an anchor. Pair with target/rel attrs as needed. */
+  href?: string
   ariaLabel?: string
   ariaPressed?: boolean
 }>(), {
@@ -148,8 +150,9 @@ const baseClass = computed(() => [
 
 <template>
   <NuxtLink
-    v-if="to"
-    :to="to"
+    v-if="to || href"
+    :to="to ?? href"
+    :external="href ? true : undefined"
     :aria-disabled="isDisabled ? 'true' : undefined"
     :aria-label="ariaLabel"
     :aria-pressed="ariaPressed"
