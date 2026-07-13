@@ -1,3 +1,11 @@
+## v0.36.0
+
+[v0.35.0...v0.36.0](https://github.com/Jannchie/liora/compare/v0.35.0...v0.36.0)
+
+### :sparkles: Features
+
+- **gallery**: let the lightbox zoom out past an authored framing and toggle to the whole original - By [Jannchie](mailto:jannchie@gmail.com) in [143942f](https://github.com/Jannchie/liora/commit/143942f)
+
 ## v0.35.0
 
 [v0.34.0...v0.35.0](https://github.com/Jannchie/liora/compare/v0.34.0...v0.35.0)
