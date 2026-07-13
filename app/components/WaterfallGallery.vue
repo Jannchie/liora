@@ -2144,14 +2144,17 @@ const overlayZoomMin = computed<number>(() => {
     return 1
   }
   // With an authored framing the default view is the frame (base scale), but
-  // zooming out further is allowed until the whole original plane fits.
+  // zooming out further is allowed well past the point where the whole
+  // original plane fits: the zoom anchors on the frame, so an off-center
+  // framing reveals the original asymmetrically and needs the extra room
+  // (plus panning) to bring all of it into view.
   const recompose = activeFile.value?.metadata.recompose
   if (recompose) {
     const containerWidth = overlayViewerSize.value.width
     const containerHeight = overlayViewerSize.value.height
     if (containerWidth > 0 && containerHeight > 0) {
       const plane = computeRecomposePlane(recompose)
-      const revealMin = Math.min(containerWidth / plane.planeWidth, containerHeight / plane.planeHeight)
+      const revealMin = Math.min(containerWidth / plane.planeWidth, containerHeight / plane.planeHeight) / 2
       if (Number.isFinite(revealMin) && revealMin > 0) {
         return Math.max(overlayZoomEpsilon, Math.min(base, revealMin))
       }
@@ -2159,6 +2162,41 @@ const overlayZoomMin = computed<number>(() => {
   }
   return Math.max(overlayZoomEpsilon, base)
 })
+
+/** An authored framing stays pannable even at the zoom floor: the revealed original is anchored on the frame and can sit partly off-screen. */
+const overlayPannableAtMin = computed<boolean>(() => Boolean(activeFile.value?.metadata.recompose))
+
+/** Zoom at which the whole original plane of an authored framing fits the viewer. */
+const overlayPlaneFitZoom = computed<number | null>(() => {
+  const recompose = activeFile.value?.metadata.recompose
+  const containerWidth = overlayViewerSize.value.width
+  const containerHeight = overlayViewerSize.value.height
+  if (!recompose || containerWidth <= 0 || containerHeight <= 0) {
+    return null
+  }
+  const plane = computeRecomposePlane(recompose)
+  const scale = Math.min(containerWidth / plane.planeWidth, containerHeight / plane.planeHeight)
+  return Number.isFinite(scale) && scale > 0 ? scale : null
+})
+
+/**
+ * Pan that centers the original plane in the viewer at the given zoom. The
+ * transform anchors on the frame's center, so centering the plane means
+ * offsetting by the frame-center → plane-center distance in screen pixels.
+ */
+function computeOverlayPlaneCenterPan(zoom: number): { x: number, y: number } | null {
+  const recompose = activeFile.value?.metadata.recompose
+  if (!recompose) {
+    return null
+  }
+  const plane = computeRecomposePlane(recompose)
+  const frameCenterX = (recompose.crop.x + recompose.crop.width / 2) * plane.planeWidth
+  const frameCenterY = (recompose.crop.y + recompose.crop.height / 2) * plane.planeHeight
+  return {
+    x: (frameCenterX - plane.planeWidth / 2) * zoom,
+    y: (frameCenterY - plane.planeHeight / 2) * zoom,
+  }
+}
 
 /** Default view: the framed fit. Differs from the zoom floor when an authored framing allows zooming out. */
 const overlayFitScale = computed<number>(() => Math.max(overlayZoomEpsilon, overlayBaseScale.value))
@@ -2172,7 +2210,7 @@ const viewerTouchAction = computed<string>(() => {
   if (isOverlayInteractionDisabled.value) {
     return 'pan-y'
   }
-  if (overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon || overlayPointers.value.size >= 2) {
+  if (overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon || overlayPointers.value.size >= 2 || overlayPannableAtMin.value) {
     return 'none'
   }
   return 'pan-y pinch-zoom'
@@ -2466,7 +2504,7 @@ function setOverlayZoom(next: number, focalPoint?: OverlayPointer): void {
     return
   }
   let nextPan = overlayPan.value
-  if (clamped <= minZoom + overlayZoomEpsilon) {
+  if (clamped <= minZoom + overlayZoomEpsilon && !overlayPannableAtMin.value) {
     nextPan = { x: 0, y: 0 }
   }
   else if (focalPoint) {
@@ -2494,6 +2532,22 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
     return
   }
   event.preventDefault()
+  // With an authored framing, double-click toggles between the framed view
+  // (no beyond-frame content) and the whole original centered in the viewer.
+  const planeFit = overlayPlaneFitZoom.value
+  if (planeFit !== null && planeFit < overlayFitScale.value - overlayZoomEpsilon) {
+    const atWholeOriginal = Math.abs(overlayZoom.value - planeFit) <= overlayZoomEpsilon
+    if (atWholeOriginal) {
+      overlayZoom.value = overlayFitScale.value
+      overlayPan.value = { x: 0, y: 0 }
+    }
+    else {
+      overlayZoom.value = planeFit
+      overlayPan.value = computeOverlayPlaneCenterPan(planeFit) ?? { x: 0, y: 0 }
+    }
+    showOverlayZoomIndicator(overlaySessionId.value)
+    return
+  }
   const isAtOriginal = Math.abs(overlayZoom.value - 1) <= overlayZoomEpsilon
   const target = isAtOriginal ? overlayFitScale.value : 1
   const focal = target > overlayZoomMin.value + overlayZoomEpsilon
@@ -2534,7 +2588,7 @@ function handleOverlayPointerDown(event: PointerEvent): void {
     return
   }
 
-  if (overlayZoom.value <= overlayZoomMin.value + overlayZoomEpsilon) {
+  if (overlayZoom.value <= overlayZoomMin.value + overlayZoomEpsilon && !overlayPannableAtMin.value) {
     overlayDragState.value = {
       pointerId: null,
       startX: 0,
