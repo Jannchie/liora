@@ -11,7 +11,7 @@ import { logger } from '../../utils/logger'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, uploadBufferToS3 } from '../../utils/s3'
 import { setUploadStatus } from '../../utils/upload-status'
 import { computePerceptualHash, computeSha256, generateArthash, validateImage } from './image'
-import { buildMetadata, normalizeText, parseCharacters, stripLensFromCamera, validateLengths } from './metadata'
+import { buildMetadata, clampExtractedMetadata, normalizeText, parseCharacters, stripLensFromCamera, validateLengths } from './metadata'
 import { assertMaxFileSize, buildImageKey, buildVideoKey } from './upload'
 
 interface MultipartEntry {
@@ -59,6 +59,7 @@ function applyFocusMetadata(metadata: FileMetadata, focusMetadata: Awaited<Retur
   metadata.perspectiveUpright = focusMetadata.perspectiveUpright
   metadata.uprightTransform = focusMetadata.uprightTransform
   metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
+  metadata.llrRecipe = focusMetadata.llrRecipe ?? metadata.llrRecipe
 }
 
 async function runMetadataPostProcessing(
@@ -197,7 +198,7 @@ async function processUploadCore(payload: {
   const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
   metadata.cameraModel = deduped.cameraModel
   metadata.lensModel = deduped.lensModel
-  const focusMetadata = await extractFocusMetadataFromBuffer(payload.buffer, payload.originalName)
+  const focusMetadata = clampExtractedMetadata(await extractFocusMetadataFromBuffer(payload.buffer, payload.originalName))
   applyFocusMetadata(metadata, focusMetadata)
   if (payload.livePhotoVideoUrl) {
     metadata.livePhotoVideoUrl = payload.livePhotoVideoUrl

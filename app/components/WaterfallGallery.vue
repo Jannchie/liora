@@ -7,6 +7,7 @@ import type {
   FileLocation,
   ImageAttrs,
   LightroomRecipeView,
+  LlrRecipeView,
   MetadataEntry,
   OverlayStat,
   ResolvedFile,
@@ -1867,6 +1868,14 @@ const lightroomRecipe = computed<LightroomRecipeView | null>(() => {
   return parseLightroomRecipeView(file.metadata.lightroomRecipe)
 })
 
+const llrRecipe = computed<LlrRecipeView | null>(() => {
+  const file = activeFile.value
+  if (!file) {
+    return null
+  }
+  return parseLlrRecipeView(file.metadata.llrRecipe)
+})
+
 const exposureEntries = computed<MetadataEntry[]>(() => {
   const file = activeFile.value
   if (!file) {
@@ -1962,7 +1971,8 @@ const hasMetadata = computed<boolean>(() =>
   || exposureEntries.value.length > 0
   || focusEntry.value !== null
   || cropEntry.value !== null
-  || lightroomRecipe.value !== null,
+  || lightroomRecipe.value !== null
+  || llrRecipe.value !== null,
 )
 
 const overlayStats = computed<OverlayStat[]>(() => {
@@ -2993,6 +3003,7 @@ function startOverlayImageLoad(
           :focus-entry="focusEntry"
           :crop-entry="cropEntry"
           :lightroom-recipe="lightroomRecipe"
+          :llr-recipe="llrRecipe"
           :exposure-entries="exposureEntries"
           :has-metadata="hasMetadata"
           :preview-image-src="overlayPreviewSrc"

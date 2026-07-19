@@ -1,6 +1,7 @@
 import type { FileMetadata } from '~/types/file'
 import { createError } from 'h3'
 import { joinCharacters } from '../../utils/file-mapper'
+import { logger } from '../../utils/logger'
 
 const LENGTH_LIMITS = {
   title: { max: 256, label: 'Title' },
@@ -47,11 +48,28 @@ const LENGTH_LIMITS = {
   perspectiveUpright: { max: 32, label: 'Perspective upright' },
   uprightTransform: { max: 256, label: 'Upright transform' },
   lightroomRecipe: { max: 16_000, label: 'Lightroom recipe' },
+  llrRecipe: { max: 16_000, label: 'LLR recipe' },
   notes: { max: 4000, label: 'Notes' },
   originalName: { max: 512, label: 'Original filename' },
 } as const
 
 export const normalizeText = (value: string | undefined): string => value?.trim() ?? ''
+
+// Fields lifted out of an image's own EXIF/XMP are unbounded in length — an
+// editor recipe carrying a dense tone curve can outgrow its column. Dropping
+// the offending field keeps the upload alive; validateLengths would otherwise
+// reject the whole request over metadata the uploader never typed.
+export function clampExtractedMetadata<T extends Record<string, unknown>>(extracted: T): T {
+  const clamped: Record<string, unknown> = { ...extracted }
+  for (const [key, value] of Object.entries(clamped)) {
+    const limit = LENGTH_LIMITS[key as keyof typeof LENGTH_LIMITS]
+    if (typeof value === 'string' && limit && value.length > limit.max) {
+      logger.warn('dropped over-long extracted metadata field', { field: key, length: value.length, max: limit.max })
+      clamped[key] = undefined
+    }
+  }
+  return clamped as T
+}
 
 export const METADATA_TEXT_FIELDS = [
   'fanworkTitle',
@@ -93,6 +111,7 @@ export const METADATA_TEXT_FIELDS = [
   'perspectiveUpright',
   'uprightTransform',
   'lightroomRecipe',
+  'llrRecipe',
   'notes',
 ] as const
 
@@ -270,6 +289,7 @@ export function validateLengths(payload: {
   assertLength(payload.metadata.perspectiveUpright ?? '', LENGTH_LIMITS.perspectiveUpright.max, LENGTH_LIMITS.perspectiveUpright.label)
   assertLength(payload.metadata.uprightTransform ?? '', LENGTH_LIMITS.uprightTransform.max, LENGTH_LIMITS.uprightTransform.label)
   assertLength(payload.metadata.lightroomRecipe ?? '', LENGTH_LIMITS.lightroomRecipe.max, LENGTH_LIMITS.lightroomRecipe.label)
+  assertLength(payload.metadata.llrRecipe ?? '', LENGTH_LIMITS.llrRecipe.max, LENGTH_LIMITS.llrRecipe.label)
   assertLength(payload.metadata.notes, LENGTH_LIMITS.notes.max, LENGTH_LIMITS.notes.label)
   assertLength(payload.originalName, LENGTH_LIMITS.originalName.max, LENGTH_LIMITS.originalName.label)
 

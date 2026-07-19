@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
-import type { FileLocation, LightroomRecipeView, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
+import type { FileLocation, LightroomRecipeView, LlrRecipeView, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
@@ -22,6 +22,7 @@ const {
   focusEntry,
   cropEntry,
   lightroomRecipe,
+  llrRecipe,
   exposureEntries,
   hasMetadata,
   genreLabel,
@@ -51,6 +52,7 @@ const {
   focusEntry: MetadataEntry | null
   cropEntry: MetadataEntry | null
   lightroomRecipe: LightroomRecipeView | null
+  llrRecipe: LlrRecipeView | null
   exposureEntries: MetadataEntry[]
   hasMetadata: boolean
   genreLabel?: string | null
@@ -792,6 +794,7 @@ function handleFocusToggle(): void {
               :focus-entry="focusEntry"
               :crop-entry="cropEntry"
               :lightroom-recipe="lightroomRecipe"
+              :llr-recipe="llrRecipe"
               :exposure-entries="exposureEntries"
               :has-metadata="hasMetadata"
               :focus-indicator-active="focusBoxVisible"

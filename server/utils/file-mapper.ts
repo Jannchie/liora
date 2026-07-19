@@ -76,6 +76,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const parsedPerspectiveUpright = parseTextMetadataField(parsed.perspectiveUpright)
   const parsedUprightTransform = parseTextMetadataField(parsed.uprightTransform)
   const parsedLightroomRecipe = parseTextMetadataField(parsed.lightroomRecipe)
+  const parsedLlrRecipe = parseTextMetadataField(parsed.llrRecipe)
   const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
     ? parsedLivePhotoStillTime
     : fallbacks.livePhotoStillTime
@@ -135,6 +136,7 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
     perspectiveUpright: parsedPerspectiveUpright ?? fallbacks.perspectiveUpright,
     uprightTransform: parsedUprightTransform ?? fallbacks.uprightTransform,
     lightroomRecipe: parsedLightroomRecipe ?? fallbacks.lightroomRecipe,
+    llrRecipe: parsedLlrRecipe ?? fallbacks.llrRecipe,
     notes: parsed.notes ?? fallbacks.notes,
     fileSize: Number.isFinite(parsedFileSize) && parsedFileSize >= 0 ? parsedFileSize : fallbacks.fileSize,
     orientation,
@@ -216,6 +218,7 @@ export function buildMetadataFallbacks(
     perspectiveUpright: undefined,
     uprightTransform: undefined,
     lightroomRecipe: undefined,
+    llrRecipe: undefined,
     notes: '',
     fileSize: 0,
     orientation: undefined,

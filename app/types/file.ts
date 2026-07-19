@@ -54,6 +54,7 @@ export interface FileMetadata {
   perspectiveUpright?: string
   uprightTransform?: string
   lightroomRecipe?: string
+  llrRecipe?: string
   notes: string
   fileSize: number
   /** EXIF orientation (1-8) of the stored original; undefined when upright/unknown. */
@@ -124,6 +125,7 @@ export interface FilePayload {
   perspectiveUpright?: string
   uprightTransform?: string
   lightroomRecipe?: string
+  llrRecipe?: string
   notes?: string
 }
 

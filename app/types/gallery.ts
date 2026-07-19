@@ -44,7 +44,9 @@ export interface MetadataEntry {
   valueIconLabel?: string
 }
 
-export interface LightroomAdjustmentItem {
+// Slider/curve primitives are editor-agnostic: both the Lightroom `crs:*`
+// recipe and the LLR `llr:*` recipe render through the same panel components.
+export interface RecipeAdjustmentItem {
   key: string
   label: string
   value: number
@@ -55,23 +57,23 @@ export interface LightroomAdjustmentItem {
   zeroCentered?: boolean
 }
 
-export interface LightroomAdjustmentGroup {
+export interface RecipeAdjustmentGroup {
   key: string
   label: string
-  items: LightroomAdjustmentItem[]
+  items: RecipeAdjustmentItem[]
 }
 
-export interface LightroomCurvePoint {
+export interface RecipeCurvePoint {
   x: number
   y: number
 }
 
-export interface LightroomToneCurve {
+export interface RecipeToneCurve {
   name?: string
-  composite?: LightroomCurvePoint[]
-  red?: LightroomCurvePoint[]
-  green?: LightroomCurvePoint[]
-  blue?: LightroomCurvePoint[]
+  composite?: RecipeCurvePoint[]
+  red?: RecipeCurvePoint[]
+  green?: RecipeCurvePoint[]
+  blue?: RecipeCurvePoint[]
 }
 
 export interface LightroomRecipeView {
@@ -79,8 +81,20 @@ export interface LightroomRecipeView {
   profile?: string
   cameraLook?: string
   whiteBalance?: string
-  toneCurve?: LightroomToneCurve
-  groups: LightroomAdjustmentGroup[]
+  toneCurve?: RecipeToneCurve
+  groups: RecipeAdjustmentGroup[]
+}
+
+// LLR (~/llr) writes its own XMP schema rather than Adobe's camera-raw
+// settings, so its recipe carries fields Lightroom has no equivalent for
+// (lens correction strength, RAW-domain denoise, the auto-selected DCP).
+export interface LlrRecipeView {
+  version?: string
+  profile?: string
+  denoise?: string
+  aspect?: string
+  toneCurve?: RecipeToneCurve
+  groups: RecipeAdjustmentGroup[]
 }
 
 export interface SocialLink {

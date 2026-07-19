@@ -67,6 +67,7 @@ export interface DirectUploadBody {
   perspectiveUpright?: string
   uprightTransform?: string
   lightroomRecipe?: string
+  llrRecipe?: string
   notes?: string
   livePhotoStillTime?: number
 }
@@ -203,6 +204,7 @@ export function parseDirectBody(body: DirectUploadBody | undefined): ParsedDirec
       perspectiveUpright: toFieldString(body.perspectiveUpright),
       uprightTransform: toFieldString(body.uprightTransform),
       lightroomRecipe: toFieldString(body.lightroomRecipe),
+      llrRecipe: toFieldString(body.llrRecipe),
       notes: toFieldString(body.notes),
       livePhotoStillTime: toFieldString(body.livePhotoStillTime),
     },

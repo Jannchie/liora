@@ -1,8 +1,15 @@
 import type {
-  LightroomAdjustmentGroup,
-  LightroomAdjustmentItem,
   LightroomRecipeView,
+  RecipeAdjustmentGroup,
+  RecipeAdjustmentItem,
 } from '~/types/gallery'
+import {
+  asObject,
+  createRecipeItem,
+  parseCurvePoints,
+  parseRecipeText,
+  toDisplayText,
+} from './recipe-fields'
 
 // Pure parsing of the `lightroomRecipe` metadata field into a view model.
 // Extracted from WaterfallGallery.vue so it can be unit tested in isolation.
@@ -34,70 +41,6 @@ interface LightroomRecipePayload {
   hsl?: unknown
   colorGrading?: unknown
   calibration?: unknown
-}
-
-function toDisplayText(value: string | null | undefined): string | undefined {
-  if (typeof value !== 'string') {
-    return undefined
-  }
-  const normalized = value.trim()
-  return normalized.length > 0 ? normalized : undefined
-}
-
-function isNearlyEqual(value: number, target: number, epsilon: number = 1e-4): boolean {
-  return Math.abs(value - target) <= epsilon
-}
-
-function asObject(value: unknown): Record<string, unknown> | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    return null
-  }
-  return value as Record<string, unknown>
-}
-
-function parseRecipeNumber(value: unknown): number | null {
-  if (typeof value === 'number') {
-    return Number.isFinite(value) ? value : null
-  }
-  if (typeof value === 'string') {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
-  }
-  return null
-}
-
-function parseRecipeText(value: unknown): string | undefined {
-  if (typeof value !== 'string') {
-    return undefined
-  }
-  const trimmed = value.trim()
-  return trimmed.length > 0 ? trimmed : undefined
-}
-
-function parseCurvePoints(source: unknown): { x: number, y: number }[] {
-  if (!Array.isArray(source)) {
-    return []
-  }
-  const points: { x: number, y: number }[] = []
-  for (const element of source) {
-    if (Array.isArray(element) && element.length >= 2) {
-      const x = parseRecipeNumber(element[0])
-      const y = parseRecipeNumber(element[1])
-      if (x !== null && y !== null) {
-        points.push({ x, y })
-      }
-      continue
-    }
-    const object = asObject(element)
-    if (object) {
-      const x = parseRecipeNumber(object.x)
-      const y = parseRecipeNumber(object.y)
-      if (x !== null && y !== null) {
-        points.push({ x, y })
-      }
-    }
-  }
-  return points.length >= 2 ? points : []
 }
 
 function parseToneCurvePayload(source: unknown): LightroomRecipeView['toneCurve'] | undefined {
@@ -134,37 +77,7 @@ function parseToneCurvePayload(source: unknown): LightroomRecipeView['toneCurve'
   return hasCurveData ? toneCurve : undefined
 }
 
-function createLightroomItem(params: {
-  key: string
-  label: string
-  source: unknown
-  min: number
-  max: number
-  digits?: number
-  defaultValue?: number
-  zeroCentered?: boolean
-  unit?: string
-}): LightroomAdjustmentItem | null {
-  const value = parseRecipeNumber(params.source)
-  if (value === null) {
-    return null
-  }
-  if (isNearlyEqual(value, params.defaultValue ?? 0)) {
-    return null
-  }
-  return {
-    key: params.key,
-    label: params.label,
-    value,
-    min: params.min,
-    max: params.max,
-    digits: params.digits,
-    zeroCentered: params.zeroCentered,
-    unit: params.unit,
-  }
-}
-
-function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustmentItem[] {
+function buildHslItems(hslPayload: Record<string, unknown>): RecipeAdjustmentItem[] {
   const colorMap = [
     { key: 'red', label: 'Red' },
     { key: 'orange', label: 'Orange' },
@@ -175,13 +88,13 @@ function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustment
     { key: 'purple', label: 'Purple' },
     { key: 'magenta', label: 'Magenta' },
   ] as const
-  const items: LightroomAdjustmentItem[] = []
+  const items: RecipeAdjustmentItem[] = []
   for (const color of colorMap) {
     const payload = asObject(hslPayload[color.key]) as LightroomColorAdjustmentsPayload | null
     if (!payload) {
       continue
     }
-    const hue = createLightroomItem({
+    const hue = createRecipeItem({
       key: `${color.key}-hue`,
       label: `${color.label} Hue`,
       source: payload.hue,
@@ -189,7 +102,7 @@ function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustment
       max: 100,
       digits: 0,
     })
-    const saturation = createLightroomItem({
+    const saturation = createRecipeItem({
       key: `${color.key}-saturation`,
       label: `${color.label} Sat`,
       source: payload.saturation,
@@ -197,7 +110,7 @@ function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustment
       max: 100,
       digits: 0,
     })
-    const luminance = createLightroomItem({
+    const luminance = createRecipeItem({
       key: `${color.key}-luminance`,
       label: `${color.label} Lum`,
       source: payload.luminance,
@@ -218,8 +131,8 @@ function buildHslItems(hslPayload: Record<string, unknown>): LightroomAdjustment
   return items
 }
 
-function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdjustmentItem[] {
-  const items: LightroomAdjustmentItem[] = []
+function buildColorGradingItems(payload: Record<string, unknown>): RecipeAdjustmentItem[] {
+  const items: RecipeAdjustmentItem[] = []
   const toneMap = [
     { key: 'shadows', label: 'Shadows' },
     { key: 'midtones', label: 'Midtones' },
@@ -231,7 +144,7 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
     if (!tonePayload) {
       continue
     }
-    const hue = createLightroomItem({
+    const hue = createRecipeItem({
       key: `${tone.key}-hue`,
       label: `${tone.label} Hue`,
       source: tonePayload.hue,
@@ -240,7 +153,7 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
       digits: 0,
       zeroCentered: false,
     })
-    const saturation = createLightroomItem({
+    const saturation = createRecipeItem({
       key: `${tone.key}-saturation`,
       label: `${tone.label} Sat`,
       source: tonePayload.saturation,
@@ -249,7 +162,7 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
       digits: 0,
       zeroCentered: false,
     })
-    const luminance = createLightroomItem({
+    const luminance = createRecipeItem({
       key: `${tone.key}-luminance`,
       label: `${tone.label} Lum`,
       source: tonePayload.luminance,
@@ -267,7 +180,7 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
       items.push(luminance)
     }
   }
-  const blending = createLightroomItem({
+  const blending = createRecipeItem({
     key: 'color-grading-blending',
     label: 'Blending',
     source: payload.blending,
@@ -277,7 +190,7 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
     defaultValue: 50,
     zeroCentered: false,
   })
-  const balance = createLightroomItem({
+  const balance = createRecipeItem({
     key: 'color-grading-balance',
     label: 'Balance',
     source: payload.balance,
@@ -294,8 +207,8 @@ function buildColorGradingItems(payload: Record<string, unknown>): LightroomAdju
   return items
 }
 
-function buildCalibrationItems(payload: Record<string, unknown>): LightroomAdjustmentItem[] {
-  const items: LightroomAdjustmentItem[] = []
+function buildCalibrationItems(payload: Record<string, unknown>): RecipeAdjustmentItem[] {
+  const items: RecipeAdjustmentItem[] = []
   const configs = [
     { key: 'shadowTint', label: 'Shadow Tint' },
     { key: 'redPrimaryHue', label: 'Red Primary Hue' },
@@ -306,7 +219,7 @@ function buildCalibrationItems(payload: Record<string, unknown>): LightroomAdjus
     { key: 'bluePrimarySaturation', label: 'Blue Primary Sat' },
   ] as const
   for (const config of configs) {
-    const item = createLightroomItem({
+    const item = createRecipeItem({
       key: config.key,
       label: config.label,
       source: payload[config.key],
@@ -382,18 +295,18 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
   }
 
   const basicItems = [
-    createLightroomItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
-    createLightroomItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
-    createLightroomItem({
+    createRecipeItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
+    createRecipeItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({
       key: 'temperature',
       label: 'Temperature',
       source: basicPayload.temperature,
@@ -403,8 +316,8 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
       zeroCentered: false,
       unit: 'K',
     }),
-    createLightroomItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
-  ].filter((item): item is LightroomAdjustmentItem => item !== null)
+    createRecipeItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
+  ].filter((item): item is RecipeAdjustmentItem => item !== null)
 
   if (basicItems.length === 0 && !processVersion && !profile && !whiteBalance && !toneCurveName) {
     return null
@@ -436,22 +349,22 @@ export function parseLightroomRecipeView(value: string | undefined): LightroomRe
     return null
   }
 
-  const groups: LightroomAdjustmentGroup[] = []
+  const groups: RecipeAdjustmentGroup[] = []
   const basicPayload = asObject(parsedObject.basic)
   if (basicPayload) {
     const items = [
-      createLightroomItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
-      createLightroomItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
-      createLightroomItem({
+      createRecipeItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
+      createRecipeItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({
         key: 'temperature',
         label: 'Temperature',
         source: basicPayload.temperature,
@@ -461,8 +374,8 @@ export function parseLightroomRecipeView(value: string | undefined): LightroomRe
         zeroCentered: false,
         unit: 'K',
       }),
-      createLightroomItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
-    ].filter((item): item is LightroomAdjustmentItem => item !== null)
+      createRecipeItem({ key: 'tint', label: 'Tint', source: basicPayload.tint, min: -150, max: 150, digits: 0 }),
+    ].filter((item): item is RecipeAdjustmentItem => item !== null)
     if (items.length > 0) {
       groups.push({ key: 'basic', label: 'Basic', items })
     }

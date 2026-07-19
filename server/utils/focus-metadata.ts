@@ -25,6 +25,7 @@ type FocusMetadata = Pick<
   | 'perspectiveUpright'
   | 'uprightTransform'
   | 'lightroomRecipe'
+  | 'llrRecipe'
 >
 
 const DEFAULT_FOCUS_METADATA_TIMEOUT_MS = 8000
@@ -390,6 +391,17 @@ function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
   return hasEntries(tone as Record<string, unknown>) ? tone : null
 }
 
+// Which editor wrote the file. Only one recipe extractor runs per image: both
+// read unprefixed tags (`Exposure`, `Clarity`, …), so on an LLR export the
+// Lightroom extractor would happily assemble LLR's values interleaved with
+// whichever camera EXIF shadows them — a recipe belonging to neither editor.
+type RecipeProducer = 'llr' | 'lightroom'
+
+function resolveRecipeProducer(tags: Record<string, unknown>): RecipeProducer {
+  const software = pickFirstTagValue(tags, ['Software', 'XMPToolkit'])?.trim().toUpperCase()
+  return software === 'LLR' ? 'llr' : 'lightroom'
+}
+
 function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined {
   const basic: Record<string, number> = {}
   assignIfChanged(basic, 'exposure', parseTagNumber(tags, ['Exposure2012', 'Exposure']), { digits: 2 })
@@ -526,6 +538,36 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   return JSON.stringify(payload)
 }
 
+// LLR (~/llr) writes its own `llr:*` XMP schema and declares the `llr:Settings`
+// JSON blob the authoritative record. We read only that blob: exiftool flattens
+// XMP and EXIF into one namespace, so the structured `llr:Contrast` is shadowed
+// by the camera's own `Contrast` ("Normal") on Sony files.
+function buildLlrRecipe(tags: Record<string, unknown>): string | undefined {
+  const settings = pickFirstTagValue(tags, ['Settings'])
+  if (!settings) {
+    return undefined
+  }
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(settings)
+  }
+  catch {
+    return undefined
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return undefined
+  }
+  const payload = parsed as Record<string, unknown>
+  if (!payload.recipe || typeof payload.recipe !== 'object') {
+    return undefined
+  }
+  const version = pickFirstTagValue(tags, ['Version'])
+  if (version && /^\d+$/.test(version.trim())) {
+    payload.version = version.trim()
+  }
+  return JSON.stringify(payload)
+}
+
 export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata> {
   if (Date.now() < focusMetadataDisabledUntil) {
     return {}
@@ -538,6 +580,7 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
     await writeFile(sourcePath, buffer)
     const tags = await readFocusTagsWithTimeout(sourcePath, timeoutMs)
     const perspectiveUpright = pickFirstTagValue(tags, ['PerspectiveUpright'])
+    const producer = resolveRecipeProducer(tags)
     return {
       focusDistance: pickFirstTagValue(tags, ['FocusDistance2', 'FocusDistance', 'SubjectDistance']),
       focusFrameSize: pickFirstTagValue(tags, ['FocusFrameSize']),
@@ -556,7 +599,8 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
       perspectiveScale: pickFirstTagValue(tags, ['PerspectiveScale']),
       perspectiveUpright,
       uprightTransform: resolveUprightTransform(tags, perspectiveUpright),
-      lightroomRecipe: buildLightroomRecipe(tags),
+      lightroomRecipe: producer === 'lightroom' ? buildLightroomRecipe(tags) : undefined,
+      llrRecipe: producer === 'llr' ? buildLlrRecipe(tags) : undefined,
     }
   }
   catch (error) {

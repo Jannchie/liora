@@ -5,7 +5,7 @@ import { basename } from 'node:path'
 import { eq } from 'drizzle-orm'
 import { createError, readMultipartFormData } from 'h3'
 import { computePerceptualHash, computeSha256, generateArthash, validateImage } from '../../../domain/files/image'
-import { buildMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
+import { buildMetadata, clampExtractedMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
 import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
@@ -112,7 +112,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     fileSize: existingFileSize,
   }))
   const metadata = buildMetadata(fields, characters)
-  const focusMetadata = await extractFocusMetadataFromBuffer(file.data, file.filename)
+  const focusMetadata = clampExtractedMetadata(await extractFocusMetadataFromBuffer(file.data, file.filename))
   metadata.focusDistance = focusMetadata.focusDistance ?? metadata.focusDistance
   metadata.focusFrameSize = focusMetadata.focusFrameSize ?? metadata.focusFrameSize
   metadata.focusLocation = focusMetadata.focusLocation ?? metadata.focusLocation
@@ -131,6 +131,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   metadata.perspectiveUpright = focusMetadata.perspectiveUpright ?? metadata.perspectiveUpright
   metadata.uprightTransform = focusMetadata.uprightTransform ?? metadata.uprightTransform
   metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
+  metadata.llrRecipe = focusMetadata.llrRecipe ?? metadata.llrRecipe
   metadata.fileSize = file.data.length
   metadata.processingStatus = 'completed'
 
