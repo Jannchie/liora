@@ -1,3 +1,12 @@
+## v0.37.0
+
+[v0.36.0...v0.37.0](https://github.com/Jannchie/liora/compare/v0.36.0...v0.37.0)
+
+### :sparkles: Features
+
+- **metadata**: read LLR editor recipes in preference to Lightroom's - By [Jannchie](mailto:jannchie@gmail.com) in [743c78e](https://github.com/Jannchie/liora/commit/743c78e)
+- **viewer**: swap textures in place when the same scene gains a sharper image - By [Jannchie](mailto:jannchie@gmail.com) in [73f1aac](https://github.com/Jannchie/liora/commit/73f1aac)
+
 ## v0.36.0
 
 [v0.35.0...v0.36.0](https://github.com/Jannchie/liora/compare/v0.35.0...v0.36.0)
