@@ -104,6 +104,12 @@ const props = withDefaults(defineProps<{
   /** Loading/waiting text. Errors surface regardless. */
   showStatusOverlay?: boolean
   focusBox?: FocusBox | null
+  /**
+   * Identity of the pictured scene. When set, an imageUrl change under the same
+   * key is treated as a quality upgrade of the current picture — textures swap
+   * silently instead of replaying the blur-out/reveal transition.
+   */
+  sceneKey?: string | number | null
 }>(), {
   depthUrl: '',
   placeholderUrl: '',
@@ -122,6 +128,7 @@ const props = withDefaults(defineProps<{
   autoPlay: true,
   showStatusOverlay: true,
   focusBox: null,
+  sceneKey: null,
 })
 
 const { t } = useI18n()
@@ -279,6 +286,12 @@ let activeDepthTexture: Texture | null = null
 let revealAnimationFrame: number | null = null
 let resizeObserver: ResizeObserver | null = null
 let loadToken = 0
+let upgradeToken = 0
+let loadedSceneKey: string | number | null = null
+/* Texture loads can overlap (transition preload vs. same-scene upgrade); the
+   sequence numbers make sure an older request never overwrites a newer one. */
+let textureRequestSeq = 0
+let appliedTextureSeq = 0
 let meshScaleX = 1
 let meshScaleY = 1
 
@@ -1002,10 +1015,13 @@ function createFallbackDepthTexture(threeModule: ThreeModule): Texture {
   return texture
 }
 
-function applyTextures(imageTexture: Texture, depthTexture: Texture): void {
-  if (!composeUniforms || !displayUniforms) {
+function applyTextures(imageTexture: Texture, depthTexture: Texture, seq: number): void {
+  if (!composeUniforms || !displayUniforms || seq <= appliedTextureSeq) {
+    imageTexture.dispose()
+    depthTexture.dispose()
     return
   }
+  appliedTextureSeq = seq
   activeImageTexture?.dispose()
   activeDepthTexture?.dispose()
   activeImageTexture = imageTexture
@@ -1086,6 +1102,7 @@ async function runTransition(token: number): Promise<void> {
   // got to play (e.g. autoPlay was false until the full-size image arrived).
   void startReveal(token)
 
+  const seq = ++textureRequestSeq
   const preload = loadPair()
   const blurOut = tween(0, 1, props.transitionBlurSeconds * 1000, setBlurFactor, token)
   const [textures] = await Promise.all([preload, blurOut])
@@ -1095,10 +1112,34 @@ async function runTransition(token: number): Promise<void> {
     return
   }
 
-  applyTextures(textures[0], textures[1])
+  applyTextures(textures[0], textures[1], seq)
   setBlurFactor(0)
   setFadeProgress(0)
   await runReveal(token)
+}
+
+/**
+ * Same-scene quality upgrade: swap in the sharper texture without touching the
+ * animation state. Mid-reveal the compose pass absorbs the new image where
+ * pixels are already revealed; after the reveal the final <img> tracks imageUrl
+ * on its own. The reveal itself stays gated on autoPlay via scheduleAutoPlay.
+ */
+async function upgradeTextures(): Promise<void> {
+  const token = ++upgradeToken
+  const sceneToken = loadToken
+  const seq = ++textureRequestSeq
+  try {
+    const [imageTexture, depthTexture] = await loadPair()
+    if (token !== upgradeToken || sceneToken !== loadToken) {
+      imageTexture.dispose()
+      depthTexture.dispose()
+      return
+    }
+    applyTextures(imageTexture, depthTexture, seq)
+  }
+  catch {
+    // Keep showing the current texture; the upgrade is best-effort.
+  }
 }
 
 async function loadTextures(): Promise<void> {
@@ -1113,19 +1154,21 @@ async function loadTextures(): Promise<void> {
   showFinalImage.value = false
 
   const token = ++loadToken
+  loadedSceneKey = props.sceneKey ?? null
   const isFirstLoad = !activeImageTexture
   isLoading.value = true
   statusMessage.value = ''
 
   try {
     if (isFirstLoad) {
+      const seq = ++textureRequestSeq
       const [imageTexture, depthTexture] = await loadPair()
       if (token !== loadToken) {
         imageTexture.dispose()
         depthTexture.dispose()
         return
       }
-      applyTextures(imageTexture, depthTexture)
+      applyTextures(imageTexture, depthTexture, seq)
       setBlurFactor(0)
       setFadeProgress(0)
       updateUniforms()
@@ -1513,6 +1556,11 @@ onBeforeUnmount(() => {
 watch([imageUrl, depthUrl], () => {
   if (!canRender.value) {
     isReady.value = false
+    return
+  }
+  const sameScene = props.sceneKey != null && props.sceneKey === loadedSceneKey
+  if (sameScene && activeImageTexture) {
+    void upgradeTextures()
     return
   }
   void loadTextures()

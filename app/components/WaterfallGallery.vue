@@ -170,7 +170,9 @@ const overlayPointers = ref<Map<number, { x: number, y: number }>>(new Map())
 const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
 const depthProcessing = reactive<Record<number, boolean>>({})
 
-const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done')
+// 'error' still unlocks the reveal: the viewer falls back to the raw URL and
+// must not stay parked behind the blur waiting for a download that failed.
+const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done' || overlayDownloadState.value.status === 'error')
 const overlayPreviewSrc = computed<string | null>(() => {
   const file = activeFile.value
   if (!file) {
