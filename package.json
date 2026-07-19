@@ -15,6 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "logos:generate": "tsx scripts/generate-brand-logo-paths.ts && eslint --fix app/constants/brand-logo-paths.ts",
     "backfill:arthash": "tsx scripts/backfill-arthash.ts",
     "backfill:exif": "tsx scripts/backfill-exif-metadata.ts",
     "backfill:orientation": "tsx scripts/backfill-orientation.ts",

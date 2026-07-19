@@ -1,6 +1,7 @@
 import type { FileResponse } from '~/types/file'
 import { computed, watchEffect } from 'vue'
 import { defineOgImage, useSeoMeta } from '#imports'
+import { resolveCameraBrand } from '~/utils/camera-brand'
 
 function normalizeRouteParam(param: string | string[] | null | undefined): string {
   if (Array.isArray(param)) {
@@ -37,7 +38,6 @@ export async function usePhotoShareSeo(): Promise<void> {
   const { t } = useI18n()
   const route = useRoute()
   const image = useImage()
-  const siteConfig = useSiteConfig()
 
   const routePhotoId = computed<number | null>(() => {
     if (normalizeRouteParam(route.params.section) !== 'photo') {
@@ -85,8 +85,14 @@ export async function usePhotoShareSeo(): Promise<void> {
     return description && description.length > 0 ? description : undefined
   })
 
-  const photoCamera = computed(() => joinParts(
-    [sharedPhoto.value?.metadata.cameraModel, sharedPhoto.value?.metadata.lensModel],
+  /* Same split the gallery metadata panel uses, so the share card labels a
+     shot with the brand logo and the bare model exactly as the app does. */
+  const photoBrand = computed(() => resolveCameraBrand(sharedPhoto.value?.metadata.cameraModel))
+
+  /* The focal length belongs with the lens, not with the exposure triad —
+     it names the framing rather than the light. */
+  const photoLens = computed(() => joinParts(
+    [sharedPhoto.value?.metadata.lensModel, sharedPhoto.value?.metadata.focalLength],
     ' · ',
   ))
 
@@ -97,7 +103,6 @@ export async function usePhotoShareSeo(): Promise<void> {
       [
         metadata?.aperture,
         metadata?.shutterSpeed,
-        metadata?.focalLength,
         iso ? `ISO ${iso}` : undefined,
       ],
       ' · ',
@@ -131,9 +136,13 @@ export async function usePhotoShareSeo(): Promise<void> {
     }
     defineOgImage('LioraPhotoCard', {
       imageUrl: photoOgImageUrl.value,
-      siteName: siteConfig.name,
-      // The camera line stands in when EXIF is absent (e.g. illustrations).
-      exposure: truncate(photoExposure.value || photoCamera.value, 90),
+      // Every line is optional — an illustration with no EXIF simply drops
+      // the whole caption block rather than showing an empty rule.
+      brand: photoBrand.value.brandIcon ?? '',
+      brandLabel: photoBrand.value.brandLabel ?? '',
+      camera: truncate(photoBrand.value.model, 46),
+      lens: truncate(photoLens.value, 60),
+      exposure: truncate(photoExposure.value, 60),
     }, {
       alt: photoTitle.value,
     })
