@@ -1,3 +1,19 @@
+## v0.38.0
+
+[v0.37.0...v0.38.0](https://github.com/Jannchie/liora/compare/v0.37.0...v0.38.0)
+
+### :sparkles: Features
+
+- **og**: show camera brand logo, lens and exposure triad on the photo card - By [Jannchie](mailto:jannchie@gmail.com) in [7958149](https://github.com/Jannchie/liora/commit/7958149)
+
+### :adhesive_bandage: Fixes
+
+- **exif**: pick raw GPS tags so uploads parse coordinates - By [Jannchie](mailto:jannchie@gmail.com) in [9d8adea](https://github.com/Jannchie/liora/commit/9d8adea)
+
+### :art: Refactors
+
+- **metadata**: extract camera brand resolution into a shared util - By [Jannchie](mailto:jannchie@gmail.com) in [1f9ec46](https://github.com/Jannchie/liora/commit/1f9ec46)
+
 ## v0.37.0
 
 [v0.36.0...v0.37.0](https://github.com/Jannchie/liora/compare/v0.36.0...v0.37.0)
