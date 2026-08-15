@@ -200,7 +200,8 @@
       "logout": "サインアウト",
       "logoutSuccess": "サインアウトしました",
       "logoutFailed": "サインアウトに失敗しました",
-      "series": "シリーズ"
+      "series": "シリーズ",
+      "backfill": "メンテナンス"
     },
     "redirecting": "アップロードにリダイレクトしています…",
     "login": {
@@ -866,6 +867,48 @@
         "reorderSuccess": "並び順を保存しました。",
         "reorderFailed": "並び順の保存に失敗しました。",
         "reorderFailedFallback": "並び順保存に失敗しました。"
+      }
+    },
+    "backfill": {
+      "seoTitle": "メンテナンス | Liora",
+      "seoDescription": "バックフィルタスクを実行して既存作品のメタデータを修復・更新します。",
+      "title": "メンテナンス",
+      "warningTitle": "注意",
+      "warningDescription": "これらのタスクはすべての作品を走査するため、時間がかかる場合があります。アクセスが少ない時間に実行してください。",
+      "run": "実行",
+      "running": "実行中…",
+      "result": {
+        "none": "未実行",
+        "generic": "合計 {total} 件、更新 {updated} 件、スキップ {skipped} 件",
+        "orientation": "合計 {total} 件、確認 {checked} 件、更新 {updated} 件、失敗 {failed} 件",
+        "series": "作品 {totalFiles} 件、シリーズ作成 {createdSeries} 件、関連付け {linkedFiles} 件"
+      },
+      "commands": {
+        "arthash": {
+          "title": "Arthash を補完",
+          "description": "arthash・知覚ハッシュ・SHA-256 が欠けている作品を再生成します。"
+        },
+        "exif": {
+          "title": "EXIF メタデータを補完",
+          "description": "元画像から EXIF / GPS を読み取り、既存作品へ反映します。"
+        },
+        "histogram": {
+          "title": "ヒストグラムを補完",
+          "description": "ヒストグラムが欠けている作品を再計算します。"
+        },
+        "orientation": {
+          "title": "向きを修正",
+          "description": "EXIF の向き情報から保存済み寸法と orientation を修正します。"
+        },
+        "series": {
+          "title": "シリーズを自動整理",
+          "description": "fanworkTitle からシリーズを自動作成・関連付けします。"
+        }
+      },
+      "toast": {
+        "success": "バックフィルが完了しました",
+        "failed": "バックフィルに失敗しました",
+        "failedFallback": "バックフィルに失敗しました。サーバーログを確認してください。"
       }
     }
   },

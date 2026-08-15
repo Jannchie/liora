@@ -18,6 +18,7 @@
     "logos:generate": "tsx scripts/generate-brand-logo-paths.ts && eslint --fix app/constants/brand-logo-paths.ts",
     "backfill:arthash": "tsx scripts/backfill-arthash.ts",
     "backfill:exif": "tsx scripts/backfill-exif-metadata.ts",
+    "backfill:histogram": "tsx scripts/backfill-histogram.ts",
     "backfill:orientation": "tsx scripts/backfill-orientation.ts",
     "backfill:series": "tsx scripts/backfill-series.ts"
   },

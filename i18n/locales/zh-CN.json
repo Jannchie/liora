@@ -200,7 +200,8 @@
       "logout": "退出",
       "logoutSuccess": "已退出登录",
       "logoutFailed": "退出失败，请重试",
-      "series": "系列"
+      "series": "系列",
+      "backfill": "数据维护"
     },
     "redirecting": "正在跳转到上传管理…",
     "login": {
@@ -866,6 +867,48 @@
         "reorderSuccess": "排序已保存。",
         "reorderFailed": "保存排序失败。",
         "reorderFailedFallback": "保存排序失败。"
+      }
+    },
+    "backfill": {
+      "seoTitle": "数据维护 | Liora",
+      "seoDescription": "运行补齐任务，修复或更新已有作品的元数据。",
+      "title": "数据维护",
+      "warningTitle": "注意",
+      "warningDescription": "这些任务会遍历全部作品，可能耗时较长。建议在访问量低时执行。",
+      "run": "运行",
+      "running": "运行中…",
+      "result": {
+        "none": "尚未运行",
+        "generic": "共 {total} 条，更新 {updated} 条，跳过 {skipped} 条",
+        "orientation": "共 {total} 条，检查 {checked} 条，更新 {updated} 条，失败 {failed} 条",
+        "series": "共 {totalFiles} 个作品，新建 {createdSeries} 个系列，关联 {linkedFiles} 个作品"
+      },
+      "commands": {
+        "arthash": {
+          "title": "补齐 Arthash",
+          "description": "为缺少 arthash、感知哈希或 SHA-256 的作品重新生成。"
+        },
+        "exif": {
+          "title": "补齐 EXIF 元数据",
+          "description": "从原图读取 EXIF / GPS 并填充到已有作品。"
+        },
+        "histogram": {
+          "title": "补齐直方图",
+          "description": "为缺少直方图的作品重新计算。"
+        },
+        "orientation": {
+          "title": "修复图片方向",
+          "description": "根据 EXIF 方向修正宽高与 orientation 元数据。"
+        },
+        "series": {
+          "title": "系列自动归类",
+          "description": "根据 fanworkTitle 自动创建/关联系列。"
+        }
+      },
+      "toast": {
+        "success": "运行完成",
+        "failed": "运行失败",
+        "failedFallback": "运行失败，请查看服务端日志。"
       }
     }
   },

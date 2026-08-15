@@ -35,6 +35,7 @@ const navItems = computed<NavItem[]>(() => [
   { label: t('admin.nav.upload'), to: '/admin/upload', icon: 'tabler:upload' },
   { label: t('admin.nav.files'), to: '/admin/files', icon: 'tabler:list' },
   { label: t('admin.nav.series'), to: '/admin/series', icon: 'tabler:stack-3' },
+  { label: t('admin.nav.backfill'), to: '/admin/backfill', icon: 'tabler:tools' },
   { label: t('admin.nav.site'), to: '/admin/site', icon: 'tabler:globe' },
 ])
 

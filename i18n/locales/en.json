@@ -200,7 +200,8 @@
       "logout": "Sign out",
       "logoutSuccess": "Signed out",
       "logoutFailed": "Failed to sign out",
-      "series": "Series"
+      "series": "Series",
+      "backfill": "Maintenance"
     },
     "redirecting": "Redirecting to upload…",
     "login": {
@@ -866,6 +867,48 @@
         "reorderSuccess": "Series order saved.",
         "reorderFailed": "Failed to save order.",
         "reorderFailedFallback": "Save order failed."
+      }
+    },
+    "backfill": {
+      "seoTitle": "Maintenance | Liora",
+      "seoDescription": "Run backfill tasks to repair or update existing works.",
+      "title": "Maintenance",
+      "warningTitle": "Heads up",
+      "warningDescription": "These tasks scan every work and may take a while. Run them during off-peak hours.",
+      "run": "Run",
+      "running": "Running…",
+      "result": {
+        "none": "Not run yet",
+        "generic": "{total} total, {updated} updated, {skipped} skipped",
+        "orientation": "{total} total, {checked} checked, {updated} updated, {failed} failed",
+        "series": "{totalFiles} files, {createdSeries} series created, {linkedFiles} files linked"
+      },
+      "commands": {
+        "arthash": {
+          "title": "Backfill Arthash",
+          "description": "Regenerate arthash, perceptual hash, or SHA-256 for works that are missing them."
+        },
+        "exif": {
+          "title": "Backfill EXIF metadata",
+          "description": "Read EXIF / GPS from original images and fill existing works."
+        },
+        "histogram": {
+          "title": "Backfill histogram",
+          "description": "Recalculate histograms for works that are missing them."
+        },
+        "orientation": {
+          "title": "Fix orientation",
+          "description": "Correct stored dimensions and orientation metadata from EXIF."
+        },
+        "series": {
+          "title": "Auto-organize series",
+          "description": "Create or link series automatically from fanworkTitle."
+        }
+      },
+      "toast": {
+        "success": "Backfill completed",
+        "failed": "Backfill failed",
+        "failedFallback": "Backfill failed. Check the server logs."
       }
     }
   },

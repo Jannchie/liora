@@ -1,4 +1,4 @@
-import type { HistogramData } from '~/types/file'
+import type { HistogramData } from '../../app/types/file'
 import sharp from 'sharp'
 import { logger } from './logger'
 
