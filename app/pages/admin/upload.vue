@@ -804,55 +804,92 @@ onBeforeUnmount(() => {
         class="space-y-4"
         @submit.prevent="submit"
       >
-        <AdminUploadEditorHeader
-          :display-file-name="displayFileName"
-          :preview-chips="previewChips"
-          :submitting="submitting"
-          :has-selected-file="Boolean(selectedFile)"
-          @clear-selection="clearSelectedFile"
-        />
+        <UCard class="overflow-hidden">
+          <template #header>
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div class="min-w-0 space-y-1">
+                <p class="label-caption">
+                  {{ t('admin.upload.sections.edit.title') }}
+                </p>
+                <p class="truncate font-mono text-sm text-highlighted">
+                  {{ displayFileName }}
+                </p>
+                <div
+                  v-if="previewChips.length > 0"
+                  class="flex flex-wrap items-center gap-x-4 gap-y-1 num-tabular text-[11px] text-muted"
+                >
+                  <span
+                    v-for="chip in previewChips"
+                    :key="`${chip.icon}-${chip.text}`"
+                    class="inline-flex items-center gap-1.5"
+                  >
+                    <Icon :name="chip.icon" class="h-3.5 w-3.5" />
+                    <span>{{ chip.text }}</span>
+                  </span>
+                </div>
+              </div>
+              <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <UButton
+                  variant="ghost"
+                  color="neutral"
+                  type="button"
+                  @click="clearSelectedFile"
+                >
+                  {{ t('common.actions.cancel') }}
+                </UButton>
+                <UButton
+                  color="primary"
+                  type="submit"
+                  :loading="submitting"
+                  :disabled="!selectedFile"
+                  icon="tabler:device-floppy"
+                >
+                  {{ t('admin.upload.actions.save') }}
+                </UButton>
+              </div>
+            </div>
+          </template>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px),1fr]">
-          <AdminUploadPreviewCard
-            :preview-max-height="previewMaxHeight"
-            :aspect-ratio-style="aspectRatioStyle"
-            :change-primary-label="changePrimaryLabel"
-            :preview-url="previewUrl"
-            :is-live-mode="isLiveMode"
-            :selected-file-name="selectedFileName"
-            :selected-file-type="selectedFile?.type ?? ''"
-            :has-selected-file="Boolean(selectedFile)"
-            :selected-video-name="selectedVideoName"
-            :selected-video-type="selectedVideo?.type ?? ''"
-            :has-selected-video="Boolean(selectedVideo)"
-            :video-preview-url="videoPreviewUrl"
-            :live-frame-duration-label="liveFrameDurationLabel"
-            :live-frame-time-label="liveFrameTimeLabel"
-            :live-frame-duration="liveFrameDuration"
-            :live-frame-time="liveFrameTime"
-            :live-frame-pending="liveFramePending"
-            :is-uploading="isUploading"
-            :upload-progress-percent="uploadProgressPercent"
-            :uploaded-bytes-text="uploadedBytesText"
-            :upload-total-bytes="uploadTotalBytes"
-            :upload-total-text="uploadTotalText"
-            :upload-speed-text="uploadSpeedText"
-            :set-video-element-ref="setVideoElementRef"
-            @open-file-dialog="openFileDialog"
-            @video-metadata-loaded="handleVideoMetadataLoaded"
-            @video-error="handleVideoError"
-            @frame-input="handleFrameInput"
-            @capture-live-frame="captureLiveFrame"
-          />
+          <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px),1fr]">
+            <AdminUploadPreviewCard
+              :preview-max-height="previewMaxHeight"
+              :aspect-ratio-style="aspectRatioStyle"
+              :change-primary-label="changePrimaryLabel"
+              :preview-url="previewUrl"
+              :is-live-mode="isLiveMode"
+              :selected-file-name="selectedFileName"
+              :selected-file-type="selectedFile?.type ?? ''"
+              :has-selected-file="Boolean(selectedFile)"
+              :selected-video-name="selectedVideoName"
+              :selected-video-type="selectedVideo?.type ?? ''"
+              :has-selected-video="Boolean(selectedVideo)"
+              :video-preview-url="videoPreviewUrl"
+              :live-frame-duration-label="liveFrameDurationLabel"
+              :live-frame-time-label="liveFrameTimeLabel"
+              :live-frame-duration="liveFrameDuration"
+              :live-frame-time="liveFrameTime"
+              :live-frame-pending="liveFramePending"
+              :is-uploading="isUploading"
+              :upload-progress-percent="uploadProgressPercent"
+              :uploaded-bytes-text="uploadedBytesText"
+              :upload-total-bytes="uploadTotalBytes"
+              :upload-total-text="uploadTotalText"
+              :upload-speed-text="uploadSpeedText"
+              :set-video-element-ref="setVideoElementRef"
+              @open-file-dialog="openFileDialog"
+              @video-metadata-loaded="handleVideoMetadataLoaded"
+              @video-error="handleVideoError"
+              @frame-input="handleFrameInput"
+              @capture-live-frame="captureLiveFrame"
+            />
 
-          <AdminUploadMetadataCard
-            v-model:form="formModel"
-            v-model:capture-time-local="captureTimeLocal"
-            :selected-file="selectedFile"
-            :submitting="submitting"
-            @clear-selection="clearSelectedFile"
-          />
-        </div>
+            <AdminUploadMetadataCard
+              v-model:form="formModel"
+              v-model:capture-time-local="captureTimeLocal"
+              :selected-file="selectedFile"
+            />
+          </div>
+        </UCard>
       </UForm>
     </UContainer>
   </div>

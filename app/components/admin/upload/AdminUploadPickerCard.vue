@@ -27,21 +27,30 @@ function handleFile(file: File | null): void {
 </script>
 
 <template>
-  <USection
-    :label="t('admin.upload.sections.upload.label')"
-    icon="tabler:upload"
-  >
-    <UFileUpload
-      :ref="setFileUploadRef"
-      :model-value="null"
-      accept="image/*,video/*"
-      :label="t('admin.upload.sections.upload.dropHint')"
-      :description="t('admin.upload.sections.upload.supported')"
-      class="w-full"
-      @update:model-value="handleFile"
-    />
-    <p class="mt-3 text-xs text-muted">
-      {{ t('admin.upload.sections.upload.autoRouteHint') }}
-    </p>
-  </USection>
+  <UCard class="overflow-hidden">
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-2">
+        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
+          <Icon name="tabler:upload" class="h-5 w-5" />
+        </span>
+        <div class="min-w-0 space-y-0.5">
+          <h2 class="text-sm font-semibold text-highlighted">
+            {{ t('admin.upload.sections.upload.label') }}
+          </h2>
+          <p class="text-xs text-muted">
+            {{ t('admin.upload.sections.upload.autoRouteHint') }}
+          </p>
+        </div>
+      </div>
+      <UFileUpload
+        :ref="setFileUploadRef"
+        :model-value="null"
+        accept="image/*,video/*"
+        :label="t('admin.upload.sections.upload.dropHint')"
+        :description="t('admin.upload.sections.upload.supported')"
+        class="w-full"
+        @update:model-value="handleFile"
+      />
+    </div>
+  </UCard>
 </template>
