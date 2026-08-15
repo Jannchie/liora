@@ -1,3 +1,19 @@
+## v0.39.0
+
+[v0.38.0...v0.39.0](https://github.com/Jannchie/liora/compare/v0.38.0...v0.39.0)
+
+### :sparkles: Features
+
+- **admin**: add backfill maintenance page and API endpoints - By [Jannchie](mailto:jannchie@gmail.com) in [6406e31](https://github.com/Jannchie/liora/commit/6406e31)
+
+### :adhesive_bandage: Fixes
+
+- **arthash**: include wasm in server bundle and retry initialization - By [Jannchie](mailto:jannchie@gmail.com) in [1542b7b](https://github.com/Jannchie/liora/commit/1542b7b)
+
+### :lipstick: Styles
+
+- **admin**: unify upload workflow UI - By [Jannchie](mailto:jannchie@gmail.com) in [317b4b1](https://github.com/Jannchie/liora/commit/317b4b1)
+
 ## v0.38.0
 
 [v0.37.0...v0.38.0](https://github.com/Jannchie/liora/compare/v0.37.0...v0.38.0)
