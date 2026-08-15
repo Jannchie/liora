@@ -1,4 +1,9 @@
+import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
+
+const arthashWasmPath = fileURLToPath(
+  new URL('node_modules/arthash/wasm/pkg/arthash_wasm_bg.wasm', import.meta.url),
+)
 
 function resolveDomains(): string[] {
   const domains = new Set<string>()
@@ -72,6 +77,15 @@ export default defineNuxtConfig({
 
     timeline: {
       enabled: true,
+    },
+  },
+  nitro: {
+    externals: {
+      // Keep the WASM binary in the server bundle so upload-time arthash
+      // generation works in production images that only ship .output.
+      traceInclude: [
+        arthashWasmPath,
+      ],
     },
   },
   css: ['~/assets/css/main.css'],
