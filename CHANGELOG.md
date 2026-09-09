@@ -1,3 +1,11 @@
+## v0.40.0
+
+[v0.39.0...v0.40.0](https://github.com/Jannchie/liora/compare/v0.39.0...v0.40.0)
+
+### :sparkles: Features
+
+- **viewer**: rework the depth reveal as a frosted-glass wipe - By [Jannchie](mailto:jannchie@gmail.com) in [004e115](https://github.com/Jannchie/liora/commit/004e115)
+
 ## v0.39.0
 
 [v0.38.0...v0.39.0](https://github.com/Jannchie/liora/compare/v0.38.0...v0.39.0)
