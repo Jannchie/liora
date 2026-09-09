@@ -286,6 +286,11 @@ let composeMesh: Mesh | null = null
 let composeMaterial: ShaderMaterial | null = null
 let copyScene: Scene | null = null
 let copyMesh: Mesh | null = null
+let depthBlurScene: Scene | null = null
+let depthBlurMaterial: ShaderMaterial | null = null
+let depthBlurMesh: Mesh | null = null
+let depthBlurUniforms: { uTexture: UniformValue<Texture | null>, uStep: UniformValue<Vector2>, uSigma: UniformValue<number> } | null = null
+let depthBlurTargets: [WebGLRenderTarget, WebGLRenderTarget] | null = null
 let copyMaterial: ShaderMaterial | null = null
 let copyUniforms: { uTexture: UniformValue<Texture | null> } | null = null
 let composeUniforms: ComposeUniforms | null = null
@@ -324,6 +329,39 @@ const PRIME_TIMEOUT_MS = 500
 /** Extra time after the reveal finishes for the exponential mix to converge. */
 const SETTLE_MS = 400
 const MAX_DELTA = 1 / 30
+
+/**
+ * Depth maps carry hard silhouettes, and a sparse per-pixel disk kernel turns
+ * them into a visible cloudy pattern that follows the edge. So the depth is
+ * blurred once per texture, with a dense separable Gaussian, into a small
+ * render target — smooth silhouettes, single-tap lookups afterwards.
+ */
+const DEPTH_BLUR_WIDTH = 256
+/** Gaussian sigma as a fraction of image width. */
+const DEPTH_SOFTEN = 0.035
+
+const depthBlurFragmentShader = `
+precision highp float;
+varying vec2 vUv;
+uniform sampler2D uTexture;
+uniform vec2 uStep;
+uniform float uSigma;
+const int MAX_TAPS = 40;
+void main() {
+  float sum = texture2D(uTexture, vUv).r;
+  float total = 1.0;
+  for (int i = 1; i <= MAX_TAPS; i++) {
+    float x = float(i);
+    if (x > uSigma * 3.0) {
+      break;
+    }
+    float weight = exp(-(x * x) / (2.0 * uSigma * uSigma));
+    sum += (texture2D(uTexture, vUv + uStep * x).r + texture2D(uTexture, vUv - uStep * x).r) * weight;
+    total += 2.0 * weight;
+  }
+  gl_FragColor = vec4(vec3(sum / total), 1.0);
+}
+`
 
 const vertexShader = `
   varying vec2 vUv;
@@ -470,24 +508,9 @@ float easeSignedPow(float value, float power) {
 
 /* Returns nearness: 1 = closest to camera. MiDaS emits inverse depth, so the
    raw texture is already nearness — uInvertDepth is for maps that are not. */
-/* Depth maps carry hard silhouettes; Gaussian-weighted over a disk so the
-   sweep front feathers across object edges instead of tracing them. Gaussian
-   rather than a flat average: a box kernel turns a step into a ramp with two
-   visible knees, a Gaussian turns it into an S with none. */
-const int DEPTH_TAPS = 24;
-const float DEPTH_SOFTEN = 0.07;
-
+/* uDepth is pre-blurred on upload (see softenDepth), so one tap is enough. */
 float sampleNearness(vec2 imageUv) {
-  float sigma = DEPTH_SOFTEN * 0.5;
   float d = texture2D(uDepth, imageUv).r;
-  float total = 1.0;
-  for (int i = 0; i < DEPTH_TAPS; i++) {
-    vec2 offset = vogelDisk(i, DEPTH_TAPS) * DEPTH_SOFTEN;
-    float weight = gaussian(length(offset), sigma);
-    d += texture2D(uDepth, imageUv + offset).r * weight;
-    total += weight;
-  }
-  d /= total;
   if (uInvertDepth > 0.5) {
     d = 1.0 - d;
   }
@@ -1105,6 +1128,52 @@ function createFallbackDepthTexture(threeModule: ThreeModule): Texture {
   return texture
 }
 
+/**
+ * Two-pass Gaussian of the depth map into a render target sized to
+ * DEPTH_BLUR_WIDTH. Returns the source untouched when there is no real depth.
+ */
+function softenDepth(source: Texture): Texture {
+  const threeModule = three
+  if (!threeModule || !renderer || !depthBlurScene || !depthBlurUniforms || !hasDepth.value) {
+    return source
+  }
+  const image = source.image as { width?: number, height?: number } | null | undefined
+  const aspect = (image?.width ?? 1) / Math.max(1, image?.height ?? 1)
+  const width = DEPTH_BLUR_WIDTH
+  const height = Math.max(1, Math.round(width / aspect))
+  if (!depthBlurTargets || depthBlurTargets[0].width !== width || depthBlurTargets[0].height !== height) {
+    if (depthBlurTargets) {
+      for (const target of depthBlurTargets) target.dispose()
+    }
+    const options = {
+      minFilter: threeModule.LinearFilter,
+      magFilter: threeModule.LinearFilter,
+      format: threeModule.RGBAFormat,
+      depthBuffer: false,
+      stencilBuffer: false,
+      generateMipmaps: false,
+    }
+    depthBlurTargets = [
+      new threeModule.WebGLRenderTarget(width, height, options),
+      new threeModule.WebGLRenderTarget(width, height, options),
+    ]
+  }
+  const [horizontal, vertical] = depthBlurTargets
+  const uniforms = depthBlurUniforms
+  uniforms.uSigma.value = DEPTH_SOFTEN * width
+  uniforms.uTexture.value = source
+  uniforms.uStep.value.set(1 / width, 0)
+  renderer.setRenderTarget(horizontal)
+  renderer.render(depthBlurScene, camera!)
+  uniforms.uTexture.value = horizontal.texture
+  uniforms.uStep.value.set(0, 1 / height)
+  renderer.setRenderTarget(vertical)
+  renderer.render(depthBlurScene, camera!)
+  renderer.setRenderTarget(null)
+  uniforms.uTexture.value = null
+  return vertical.texture
+}
+
 function applyTextures(imageTexture: Texture, depthTexture: Texture, seq: number): void {
   if (!composeUniforms || !displayUniforms || seq <= appliedTextureSeq) {
     imageTexture.dispose()
@@ -1116,9 +1185,10 @@ function applyTextures(imageTexture: Texture, depthTexture: Texture, seq: number
   activeDepthTexture?.dispose()
   activeImageTexture = imageTexture
   activeDepthTexture = depthTexture
+  const softened = softenDepth(depthTexture)
   composeUniforms.uImage.value = imageTexture
-  composeUniforms.uDepth.value = depthTexture
-  displayUniforms.uDepth.value = depthTexture
+  composeUniforms.uDepth.value = softened
+  displayUniforms.uDepth.value = softened
   const image = imageTexture.image as { width?: number, height?: number } | null | undefined
   imageSize = {
     width: image?.width ?? 1,
@@ -1554,6 +1624,21 @@ function initThree(): void {
   copyMesh.frustumCulled = false
   copyScene.add(copyMesh)
 
+  depthBlurScene = new threeModule.Scene()
+  depthBlurUniforms = {
+    uTexture: { value: null },
+    uStep: { value: new threeModule.Vector2(0, 0) },
+    uSigma: { value: 1 },
+  }
+  depthBlurMaterial = new threeModule.ShaderMaterial({
+    uniforms: depthBlurUniforms,
+    vertexShader: fullscreenVertexShader,
+    fragmentShader: depthBlurFragmentShader,
+  })
+  depthBlurMesh = new threeModule.Mesh(new threeModule.PlaneGeometry(2, 2), depthBlurMaterial)
+  depthBlurMesh.frustumCulled = false
+  depthBlurScene.add(depthBlurMesh)
+
   scene = new threeModule.Scene()
   displayMaterial = new threeModule.ShaderMaterial({
     uniforms: displayUniforms,
@@ -1627,6 +1712,11 @@ onBeforeUnmount(() => {
   renderer?.dispose()
   activeImageTexture?.dispose()
   activeDepthTexture?.dispose()
+  if (depthBlurTargets) {
+    for (const target of depthBlurTargets) target.dispose()
+  }
+  depthBlurMaterial?.dispose()
+  depthBlurMesh?.geometry.dispose()
   displayMaterial?.dispose()
   mesh?.geometry.dispose()
   composeMaterial?.dispose()
