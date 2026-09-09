@@ -314,8 +314,8 @@ let meshScaleY = 1
  * frame's result, so the per-frame radius is deliberately tiny — the effective
  * radius grows exponentially across frames.
  */
-const COMPOSE_RADIUS = 0.008
-const DEFAULT_DISPLAY_RADIUS = 0.06
+const COMPOSE_RADIUS = 0.011
+const DEFAULT_DISPLAY_RADIUS = 0.08
 /** Frames the compose pass writes the source image straight through to prime both buffers. */
 const BAKE_FRAMES = 3
 /**
@@ -623,7 +623,7 @@ uniform float uDelta;
 
 const int COMPOSE_SAMPLES = 8;
 const float COMPOSE_RADIUS = ${COMPOSE_RADIUS.toFixed(6)};
-const float FADE_AMPLITUDE = 1.6;
+const float FADE_AMPLITUDE = 1.1;
 const float FADE_MID_START = -0.4;
 const float FADE_ENDS_AT = 0.7;
 const float MIX_MULTIPLIER = 4.0;
@@ -686,7 +686,7 @@ const int DISPLAY_SAMPLES = 32;
    (order 1 = full frost) — then it settles: the contact line reaches the
    bottom at mid-reveal and climbs to the top by the end, the tilt flattening
    as it goes, so blur grades across the whole height at every instant. */
-const float FADE_AMPLITUDE = 1.6;
+const float FADE_AMPLITUDE = 1.1;
 const float FADE_MID_START = -0.2;
 /* After Apple's iPhone Duo product viewer: darkening only rides the last 30%
    of the blur ramp (their shade = smoothstep(1.3, 0.9, blurArea)). */
