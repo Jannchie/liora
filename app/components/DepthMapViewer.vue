@@ -186,6 +186,14 @@ const wrapperStyle = computed<Record<string, string> | undefined>(() => {
     width: '100%',
   }
 })
+/**
+ * The canvas bleeds past the wrapper by this fraction per side so the frosted
+ * edge can blur *outward* into the backdrop; inside its own box the bleed
+ * would be clipped and the edge could only fade inward.
+ */
+const BLEED = 0.08
+const BLEED_SCALE = 1 + 2 * BLEED
+const bleedStyle = { inset: `-${BLEED * 100}%` }
 const showOverlay = computed(() => {
   if (statusMessage.value.length > 0) {
     return true
@@ -952,19 +960,24 @@ function updateProjection(): void {
   if (width <= 0 || height <= 0) {
     return
   }
+  // Letterbox the image inside the wrapper, then place the wrapper inside the
+  // bled canvas. Same aspect either way, since the bleed is proportional.
   for (const target of [composeUniforms, displayUniforms]) {
-    target.uRectMin.value.set((1 - meshScaleX) / 2, (1 - meshScaleY) / 2)
-    target.uRectSize.value.set(meshScaleX, meshScaleY)
+    target.uRectMin.value.set(
+      (BLEED + (1 - meshScaleX) / 2) / BLEED_SCALE,
+      (BLEED + (1 - meshScaleY) / 2) / BLEED_SCALE,
+    )
+    target.uRectSize.value.set(meshScaleX / BLEED_SCALE, meshScaleY / BLEED_SCALE)
     target.uCanvasAspect.value = width / height
   }
-  displayUniforms.uPixel.value = 1 / height
+  displayUniforms.uPixel.value = 1 / (height * BLEED_SCALE)
 
   // Per-sample radius, not the perceived one: the feedback loop compounds it
   // across frames, so it is several times wider than this by the time it lands.
   const maxBlur = props.maxBlur
   displayUniforms.uMaxRadius.value
     = typeof maxBlur === 'number' && Number.isFinite(maxBlur) && maxBlur > 0
-      ? Math.min(0.2, maxBlur / width)
+      ? Math.min(0.2, maxBlur / (width * BLEED_SCALE))
       : DEFAULT_DISPLAY_RADIUS
 }
 
@@ -974,7 +987,9 @@ function canvasSize(): { width: number, height: number } | null {
     return null
   }
   const { width, height } = host.getBoundingClientRect()
-  return width > 0 && height > 0 ? { width, height } : null
+  return width > 0 && height > 0
+    ? { width: width * BLEED_SCALE, height: height * BLEED_SCALE }
+    : null
 }
 
 /**
@@ -994,8 +1009,8 @@ function ensureFeedback(): boolean {
   if (!size) {
     return false
   }
-  // updateStyle must stay on: the canvas's CSS height is what gives the wrapper
-  // its height, and the wrapper's height is what we measure here.
+  // The canvas is absolutely positioned and bled past the wrapper, so it never
+  // sizes the wrapper: that comes from the aspect ratio or the host.
   renderer.setSize(size.width, size.height)
   if (!renderer.domElement.isConnected) {
     renderer.domElement.style.display = 'block'
@@ -1680,7 +1695,7 @@ watch(
 </script>
 
 <template>
-  <div ref="wrapperRef" class="depth-viewer-root relative overflow-hidden rounded-none bg-default/60" :style="wrapperStyle">
+  <div ref="wrapperRef" class="depth-viewer-root relative rounded-none bg-default/60" :style="wrapperStyle">
     <div
       v-if="hasPlaceholder"
       class="absolute inset-0 z-0 flex items-center justify-center"
@@ -1692,11 +1707,8 @@ watch(
         aria-hidden="true"
       >
     </div>
-    <div
-      :class="hasPlaceholder ? 'absolute inset-0 z-10' : 'relative z-10'"
-      :style="revealMaskStyle"
-    >
-      <div ref="canvasHost" :class="hasPlaceholder ? 'h-full w-full' : 'w-full'" />
+    <div class="absolute z-10" :style="[bleedStyle, revealMaskStyle]">
+      <div ref="canvasHost" class="h-full w-full" />
     </div>
     <img
       v-if="showFinalImage"
