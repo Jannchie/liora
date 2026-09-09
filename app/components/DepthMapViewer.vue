@@ -57,6 +57,7 @@ interface DisplayUniforms extends Record<string, UniformValue<unknown>> {
   uBlurFactor: UniformValue<number>
   uMaxRadius: UniformValue<number>
   uGrain: UniformValue<number>
+  uPixel: UniformValue<number>
   uCanvasAspect: UniformValue<number>
   uRectMin: UniformValue<Vector2>
   uRectSize: UniformValue<Vector2>
@@ -115,11 +116,11 @@ const props = withDefaults(defineProps<{
   placeholderUrl: '',
   revealDurationMs: 600,
   directionDurationSeconds: 0,
-  depthDurationSeconds: 1.8,
-  transitionBlurSeconds: 0.4,
+  depthDurationSeconds: 3,
+  transitionBlurSeconds: 0.8,
   blurEasePower: 1,
-  directionalDelay: 0,
-  depthDelay: 0.4,
+  directionalDelay: 0.5,
+  depthDelay: 0.2,
   depthEasePower: 1,
   depthDetail: 1,
   grain: 0.05,
@@ -300,8 +301,8 @@ let meshScaleY = 1
  * frame's result, so the per-frame radius is deliberately tiny — the effective
  * radius grows exponentially across frames.
  */
-const COMPOSE_RADIUS = 0.005
-const DEFAULT_DISPLAY_RADIUS = 0.04
+const COMPOSE_RADIUS = 0.008
+const DEFAULT_DISPLAY_RADIUS = 0.06
 /** Frames the compose pass writes the source image straight through to prime both buffers. */
 const BAKE_FRAMES = 3
 /**
@@ -383,10 +384,6 @@ vec2 toImageUv(vec2 screenUv) {
   return clamp((screenUv - uRectMin) / uRectSize, 0.0, 1.0);
 }
 
-vec2 toScreenUv(vec2 imageUv) {
-  return uRectMin + imageUv * uRectSize;
-}
-
 float valueRemap(float value, float inMin, float inMax, float outMin, float outMax) {
   return outMin + (value - inMin) * (outMax - outMin) / (inMax - inMin);
 }
@@ -465,8 +462,24 @@ float easeSignedPow(float value, float power) {
 
 /* Returns nearness: 1 = closest to camera. MiDaS emits inverse depth, so the
    raw texture is already nearness — uInvertDepth is for maps that are not. */
+/* Depth maps carry hard silhouettes; Gaussian-weighted over a disk so the
+   sweep front feathers across object edges instead of tracing them. Gaussian
+   rather than a flat average: a box kernel turns a step into a ramp with two
+   visible knees, a Gaussian turns it into an S with none. */
+const int DEPTH_TAPS = 24;
+const float DEPTH_SOFTEN = 0.07;
+
 float sampleNearness(vec2 imageUv) {
+  float sigma = DEPTH_SOFTEN * 0.5;
   float d = texture2D(uDepth, imageUv).r;
+  float total = 1.0;
+  for (int i = 0; i < DEPTH_TAPS; i++) {
+    vec2 offset = vogelDisk(i, DEPTH_TAPS) * DEPTH_SOFTEN;
+    float weight = gaussian(length(offset), sigma);
+    d += texture2D(uDepth, imageUv + offset).r * weight;
+    total += weight;
+  }
+  d /= total;
   if (uInvertDepth > 0.5) {
     d = 1.0 - d;
   }
@@ -526,8 +539,10 @@ float getFadeFactor(float order, float lo, float hi, float amplitude, float midL
   float progress = clamp(valueRemap(uFadeProgress, lo, hi, 0.0, 1.0), 0.0, 1.0);
   float halfAmplitude = amplitude * 0.5;
   float middle = valueRemap(progress, 0.0, 1.0, midLow, 1.0 + halfAmplitude);
-  float fade = valueRemap(order, middle - halfAmplitude, middle + halfAmplitude, 1.0, 0.0);
-  return easeSignedPow(clamp(fade, 0.0, 1.0), uBlurEasePower);
+  float fade = clamp(valueRemap(order, middle - halfAmplitude, middle + halfAmplitude, 1.0, 0.0), 0.0, 1.0);
+  // Hermite across the band: a linear ramp shows both of its edges.
+  fade = fade * fade * (3.0 - 2.0 * fade);
+  return easeSignedPow(fade, uBlurEasePower);
 }
 
 /* Samples in screen uv; the x correction keeps the disk circular on screen. */
@@ -557,9 +572,15 @@ vec3 vogelBlur(sampler2D tex, vec2 screenUv, float radius, float sigma, float ro
 /**
  * Pass 1 — writes into the float ping-pong buffer.
  *
- * Unrevealed pixels re-blur the previous frame's output, so the old image
- * dissolves. Only once a pixel is fully revealed does it start absorbing the
- * target colour, at a frame-rate independent exponential rate.
+ * Every pixel re-blurs the previous frame's output by (1 - fade) while
+ * absorbing the target colour at a frame-rate independent exponential rate —
+ * slowly where unrevealed, faster as the front passes. The equilibrium of
+ * "blur, then mix in a little sharp target" is the target seen through frosted
+ * glass, so the whole frame shows the new image frosted within ~half a second
+ * and the sweep only grades the frost down to sharp. That graded frost, rather
+ * than an old image dissolving into a new one, is what reads as Apple's
+ * product-viewer wipe. Held off during blur-out, or the sharp old image would
+ * fight the blur.
  */
 const composeFragmentShader = `
 ${shaderCommon}
@@ -571,9 +592,12 @@ uniform float uDelta;
 
 const int COMPOSE_SAMPLES = 8;
 const float COMPOSE_RADIUS = ${COMPOSE_RADIUS.toFixed(6)};
-const float FADE_AMPLITUDE = 0.4;
+const float FADE_AMPLITUDE = 1.6;
+const float FADE_MID_START = -0.4;
 const float FADE_ENDS_AT = 0.7;
 const float MIX_MULTIPLIER = 4.0;
+/* Absorption rate for unrevealed pixels, as a fraction of the revealed rate. */
+const float FROST_ABSORB = 0.5;
 
 void main() {
   // vUv is screen uv here: this pass fills the whole feedback buffer, including
@@ -586,20 +610,21 @@ void main() {
   }
 
   float order = getOrder(imageUv);
-  float fade = getFadeFactor(order, 0.0, FADE_ENDS_AT, FADE_AMPLITUDE, 0.0);
+  float fade = getFadeFactor(order, 0.0, FADE_ENDS_AT, FADE_AMPLITUDE, FADE_MID_START);
 
   float blurSize = max(1.0 - fade, uBlurFactor);
+  vec3 previous;
   if (blurSize > 0.000001) {
     float rotation = getNoise(gl_FragCoord.xy) * TAU;
     float radius = COMPOSE_RADIUS * blurSize;
-    vec3 blurred = vogelBlur(uFeedback, vUv, radius, radius * 0.5, rotation, COMPOSE_SAMPLES);
-    gl_FragColor = vec4(blurred, 1.0);
-    return;
+    previous = vogelBlur(uFeedback, vUv, radius, radius * 0.5, rotation, COMPOSE_SAMPLES);
+  }
+  else {
+    previous = texture2D(uFeedback, vUv).rgb;
   }
 
-  vec3 previous = texture2D(uFeedback, vUv).rgb;
   vec3 target = texture2D(uImage, imageUv).rgb;
-  float mixFactor = clamp(fade * MIX_MULTIPLIER * uDelta, 0.0, 1.0);
+  float mixFactor = clamp(mix(FROST_ABSORB, 1.0, fade) * (1.0 - uBlurFactor) * MIX_MULTIPLIER * uDelta, 0.0, 1.0);
   gl_FragColor = vec4(mix(previous, target, mixFactor), 1.0);
 }
 `
@@ -607,7 +632,12 @@ void main() {
 /**
  * Pass 2 — reads the feedback buffer, applies the wide bokeh, presents to canvas.
  *
- * Its progress window is offset against the compose pass ([0.3, 1] vs [0, 0.7]),
+ * Covers the whole canvas, not just the image rect: samples that land outside
+ * the rect count as the surround, so the edge blurs outward exactly as far as
+ * the content does — at full frost the frame melts into the backdrop, when
+ * sharp the edge is hard. The letterbox stays transparent for the host to paint.
+ *
+ * Its progress window runs the full reveal, while the compose pass finishes at 0.7,
  * so colour lands before sharpness does.
  */
 const displayFragmentShader = `
@@ -616,31 +646,76 @@ ${shaderCommon}
 uniform sampler2D uFeedback;
 uniform float uMaxRadius;
 uniform float uGrain;
+uniform float uPixel;
 
 const int DISPLAY_SAMPLES = 32;
-const float FADE_AMPLITUDE = 0.2;
-const float FADE_STARTS_AT = 0.3;
+/* The band is wider than the frame on purpose: think of a tilted sheet of
+   frosted glass laid down onto the photo. At progress 0 it hovers over the
+   whole frame — lower at the bottom (order 0 ≈ 2/3 frost) than the top
+   (order 1 = full frost) — then it settles: the contact line reaches the
+   bottom at mid-reveal and climbs to the top by the end, the tilt flattening
+   as it goes, so blur grades across the whole height at every instant. */
+const float FADE_AMPLITUDE = 1.6;
+const float FADE_MID_START = -0.2;
+/* After Apple's iPhone Duo product viewer: darkening only rides the last 30%
+   of the blur ramp (their shade = smoothstep(1.3, 0.9, blurArea)). */
+const float SHADE_FLOOR = 0.25;
+
+/* 1 inside the image rect, 0 outside, feathered over one pixel so the sharp
+   edge stays antialiased. */
+float coverage(vec2 screenUv) {
+  vec2 d = min(screenUv - uRectMin, uRectMin + uRectSize - screenUv);
+  return smoothstep(0.0, uPixel, min(d.x, d.y));
+}
+
+/* vogelBlur with coverage: colour is averaged over covered samples only (the
+   feedback's clamped letterbox must not tint the edge), alpha is the covered
+   share of the kernel. Straight alpha. */
+vec4 blurCovered(vec2 screenUv, float radius, float rotation) {
+  vec3 color = vec3(0.0);
+  float cover = 0.0;
+  float totalWeight = 0.0;
+  float cosR = cos(rotation);
+  float sinR = sin(rotation);
+  for (int i = 0; i < DISPLAY_SAMPLES; i++) {
+    vec2 offset = vogelDisk(i, DISPLAY_SAMPLES) * radius;
+    vec2 rotated = vec2(
+      offset.x * cosR - offset.y * sinR,
+      offset.x * sinR + offset.y * cosR
+    );
+    rotated.x /= uCanvasAspect;
+    vec2 uv = screenUv + rotated;
+    float weight = gaussian(length(rotated), radius * 0.5);
+    float covered = weight * coverage(uv);
+    color += texture2D(uFeedback, uv).rgb * covered;
+    cover += covered;
+    totalWeight += weight;
+  }
+  return vec4(color / max(cover, 0.000001), cover / totalWeight);
+}
 
 void main() {
-  // vUv is image uv here: this pass draws the contained quad, not the full canvas.
-  vec2 screenUv = toScreenUv(vUv);
+  // vUv is screen uv here: this pass covers the whole canvas.
+  vec2 screenUv = vUv;
+  vec2 imageUv = toImageUv(screenUv);
 
-  float order = getOrder(vUv);
-  float fade = getFadeFactor(order, FADE_STARTS_AT, 1.0, FADE_AMPLITUDE, -FADE_AMPLITUDE * 0.5);
+  float order = getOrder(imageUv);
+  float fade = getFadeFactor(order, 0.0, 1.0, FADE_AMPLITUDE, FADE_MID_START);
 
   float blurAmount = max(1.0 - fade, uBlurFactor);
   float noiseFactor = getNoise(gl_FragCoord.xy);
   float radius = uMaxRadius * blurAmount;
 
-  vec3 color;
+  vec4 frosted;
   if (radius < 0.000001) {
-    color = texture2D(uFeedback, screenUv).rgb;
+    frosted = vec4(texture2D(uFeedback, screenUv).rgb, coverage(screenUv));
   }
   else {
-    color = vogelBlur(uFeedback, screenUv, radius, radius * 0.5, noiseFactor * TAU, DISPLAY_SAMPLES);
+    frosted = blurCovered(screenUv, radius, noiseFactor * TAU);
   }
 
-  gl_FragColor = vec4(color, 1.0);
+  float shade = mix(1.0, SHADE_FLOOR, smoothstep(0.7, 1.0, blurAmount));
+  gl_FragColor = vec4(frosted.rgb * shade, frosted.a);
 
   // The pipeline is gamma-space end to end (no decode on load, no encode
   // here), so the grain offset lands on encoded values, where it stays
@@ -668,19 +743,19 @@ interface Tween {
 let tweens: Tween[] = []
 
 /**
- * cubic-bezier(0, 0, 0.58, 1) — the standard `easeOut`. Deliberately gentler
- * than easeOutCubic: the shader's soft band already carries most of the easing,
- * and stacking two ease-outs collapses the reveal into the first third.
+ * cubic-bezier(0.42, 0, 1, 1) — the standard `ease-in`: the sweep gathers speed
+ * instead of snapping off the line. No ease-out at the end — the shader's soft
+ * band already lands the reveal gently.
  */
-function easeOut(t: number): number {
+function easeIn(t: number): number {
   if (t <= 0) {
     return 0
   }
   if (t >= 1) {
     return 1
   }
-  const x1 = 0
-  const x2 = 0.58
+  const x1 = 0.42
+  const x2 = 1
   // Solve x(u) = t for u by bisection, then evaluate y(u).
   let low = 0
   let high = 1
@@ -737,7 +812,7 @@ function stepTweens(now: number): void {
       continue
     }
     const progress = Math.min(1, (now - item.startedAt) / item.durationMs)
-    item.apply(item.from + (item.to - item.from) * easeOut(progress))
+    item.apply(item.from + (item.to - item.from) * easeIn(progress))
     if (progress < 1) {
       remaining.push(item)
     }
@@ -858,7 +933,6 @@ function updateMeshScale(): void {
   else {
     meshScaleX = imageAspect / containerAspect
   }
-  mesh.scale.set(meshScaleX, meshScaleY, 1)
 }
 
 /**
@@ -883,6 +957,7 @@ function updateProjection(): void {
     target.uRectSize.value.set(meshScaleX, meshScaleY)
     target.uCanvasAspect.value = width / height
   }
+  displayUniforms.uPixel.value = 1 / height
 
   // Per-sample radius, not the perceived one: the feedback loop compounds it
   // across frames, so it is several times wider than this by the time it lands.
@@ -1429,6 +1504,7 @@ function initThree(): void {
     uBlurFactor: { value: 0 },
     uMaxRadius: { value: DEFAULT_DISPLAY_RADIUS },
     uGrain: { value: props.grain },
+    uPixel: { value: 0.001 },
     uCanvasAspect: { value: 1 },
     uRectMin: { value: new threeModule.Vector2(0, 0) },
     uRectSize: { value: new threeModule.Vector2(1, 1) },
