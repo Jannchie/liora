@@ -33,3 +33,6 @@ storage/*
 docker-compose.dev.yml
 # Sentry Config File
 .env.sentry-build-plugin
+
+# stray screenshots dropped in the repo root
+/*.png
