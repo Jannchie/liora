@@ -1,3 +1,16 @@
+## v0.41.0
+
+[v0.40.0...v0.41.0](https://github.com/Jannchie/liora/compare/v0.40.0...v0.41.0)
+
+### :sparkles: Features
+
+- **viewer**: heavier frost with a shorter blur-to-sharp gradient - By [Jannchie](mailto:jannchie@gmail.com) in [517eef3](https://github.com/Jannchie/liora/commit/517eef3)
+
+### :adhesive_bandage: Fixes
+
+- **viewer**: pre-blur the depth map with a dense Gaussian - By [Jannchie](mailto:jannchie@gmail.com) in [64b3a06](https://github.com/Jannchie/liora/commit/64b3a06)
+- **viewer**: bleed the canvas past the frame so the frosted edge blurs outward - By [Jannchie](mailto:jannchie@gmail.com) in [553c8f2](https://github.com/Jannchie/liora/commit/553c8f2)
+
 ## v0.40.0
 
 [v0.39.0...v0.40.0](https://github.com/Jannchie/liora/compare/v0.39.0...v0.40.0)
