@@ -11,6 +11,7 @@ import { createEmptyMediaFormState, fillMediaFormStateFromFile, resetMediaFormSt
 
 const { t, locale } = useI18n()
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin-auth',
 })
 
@@ -71,7 +72,7 @@ const isLoading = computed(() => pendingFiles.value)
 
 const page = ref(1)
 const pageSize = ref(10)
-type SortKey = 'title' | 'captureTime' | 'createdAt'
+type SortKey = 'id' | 'captureTime' | 'createdAt'
 type SortDirection = 'asc' | 'desc'
 const sortKey = ref<SortKey>('createdAt')
 const sortDirection = ref<SortDirection>('desc')
@@ -102,21 +103,29 @@ const sortedFiles = computed<FileResponse[]>(() => {
   }
   return result
 })
-const paginatedFiles = computed<FileResponse[]>(() => {
+/*
+ * The rows the table renders: the current page, each carrying the one
+ * derived string the row shows. Deriving it here rather than in the
+ * template keeps it to one pass per page instead of one call per cell
+ * read.
+ */
+interface FileRow extends FileResponse {
+  cameraSummary: string
+}
+
+const paginatedFiles = computed<FileRow[]>(() => {
   const start = (page.value - 1) * pageSize.value
-  return sortedFiles.value.slice(start, start + pageSize.value)
+  return sortedFiles.value.slice(start, start + pageSize.value).map(file => ({
+    ...file,
+    cameraSummary: [file.metadata.cameraModel, file.metadata.lensModel].filter(Boolean).join(' · '),
+  }))
 })
 const recordCountText = computed(() => t('common.labels.recordCount', { count: totalFiles.value }))
 const paginationText = computed(() => t('common.labels.pageIndicator', { page: page.value, pageCount: pageCount.value }))
 const tableEmptyText = computed(() => t('admin.files.table.empty'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 const unknownLabel = computed(() => t('common.labels.unknown'))
-const tableUi = computed(() => ({
-  wrapper: 'relative overflow-visible',
-  table: 'min-w-0 w-full table-auto',
-  th: 'text-left text-sm font-semibold text-muted',
-  td: 'align-middle whitespace-normal break-words',
-}))
+const tableUi = { td: 'align-middle whitespace-normal break-words' }
 interface DepthBatchSummary {
   total: number
   success: number
@@ -168,7 +177,7 @@ watch(
 const tableColumns = computed(() => [
   { id: 'select', header: t('admin.files.table.headers.select'), accessorFn: (row: FileResponse) => row.id },
   { id: 'preview', header: t('admin.files.table.headers.preview'), accessorFn: (row: FileResponse) => row.imageUrl },
-  { accessorKey: 'title', id: 'title', header: t('admin.files.table.headers.title') },
+  { id: 'file', header: t('admin.files.table.headers.file'), accessorFn: (row: FileResponse) => row.originalName },
   { id: 'captureTime', header: t('admin.files.table.headers.captureTime'), accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt },
   { accessorKey: 'createdAt', id: 'createdAt', header: t('admin.files.table.headers.createdAt') },
   { id: 'actions', header: t('admin.files.table.headers.actions'), accessorFn: (row: FileResponse) => row.id },
@@ -280,8 +289,8 @@ const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', {
 /** Contain-fit box for the framed composition inside the fixed 96x56 table thumbnail. */
 function resolveFramedThumbStyle(file: FileResponse): Record<string, string> {
   const ratio = file.width > 0 && file.height > 0 ? file.width / file.height : 1
-  const boxWidth = 96
-  const boxHeight = 56
+  const boxWidth = 112
+  const boxHeight = 64
   const width = Math.min(boxWidth, boxHeight * ratio)
   const height = width / ratio
   return { width: `${width}px`, height: `${height}px` }
@@ -335,8 +344,8 @@ function normalizeDate(value: string | undefined): number | undefined {
 }
 
 function sortAccessor(file: FileResponse, key: SortKey): string | number | undefined {
-  if (key === 'title') {
-    return file.title?.toLowerCase() ?? ''
+  if (key === 'id') {
+    return file.id
   }
   if (key === 'captureTime') {
     return normalizeDate(file.metadata.captureTime || file.createdAt)
@@ -366,7 +375,7 @@ function handleSort(column: SortKey): void {
   }
   else {
     sortKey.value = column
-    sortDirection.value = column === 'title' ? 'asc' : 'desc'
+    sortDirection.value = 'desc'
   }
   page.value = 1
 }
@@ -807,259 +816,265 @@ watch(fetchError, (value) => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <UContainer rails class="space-y-10 py-10">
-      <AdminNav />
+  <div class="space-y-8">
+    <UPageHeader
+      :title="t('admin.files.title')"
+    >
+      <template #actions>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          :disabled="!hasFiles || reclassifying"
+          :loading="reclassifying"
+          icon="tabler:wand"
+          @click="reclassifyMissing"
+        >
+          {{ t('admin.files.actions.reclassify') }}
+        </UButton>
+        <UButton
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          :disabled="missingDepthCount === 0 || bulkDepthProcessing"
+          :loading="bulkDepthProcessing"
+          icon="tabler:stack-2"
+          @click="generateMissingDepthMaps"
+        >
+          {{ depthBatchLabel }}
+        </UButton>
+        <UButton
+          color="primary"
+          size="sm"
+          :loading="isLoading"
+          icon="tabler:refresh"
+          @click="handleRefresh"
+        >
+          {{ t('admin.files.actions.refresh') }}
+        </UButton>
+      </template>
+    </UPageHeader>
 
-      <UPageHeader
-        :eyebrow="t('admin.nav.label')"
-        icon="tabler:shield-check"
-        :title="t('admin.files.title')"
-      >
-        <template #actions>
-          <UButton
-            color="primary"
-            variant="ghost"
-            size="sm"
-            :disabled="!hasFiles || reclassifying"
-            :loading="reclassifying"
-            icon="tabler:wand"
-            @click="reclassifyMissing"
-          >
-            {{ t('admin.files.actions.reclassify') }}
-          </UButton>
-          <UButton
-            color="primary"
-            variant="ghost"
-            size="sm"
-            :disabled="missingDepthCount === 0 || bulkDepthProcessing"
-            :loading="bulkDepthProcessing"
-            icon="tabler:stack-2"
-            @click="generateMissingDepthMaps"
-          >
-            {{ depthBatchLabel }}
-          </UButton>
-          <UButton
-            color="primary"
-            size="sm"
-            :loading="isLoading"
-            icon="tabler:refresh"
-            @click="handleRefresh"
-          >
-            {{ t('admin.files.actions.refresh') }}
-          </UButton>
-        </template>
-      </UPageHeader>
+    <section
+      v-if="showBatchProgress"
+      class="space-y-2"
+    >
+      <div class="flex items-center justify-between gap-2 label-caption">
+        <span class="flex items-center gap-1.5">
+          <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
+          <span>{{ t('admin.files.batch.title') }}</span>
+        </span>
+        <span>{{ batchProgressPercent.toFixed(1) }}%</span>
+      </div>
+      <div class="h-1 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          class="h-full rounded-full bg-primary transition-all"
+          :style="{ width: `${batchProgressPercent}%` }"
+        />
+      </div>
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <span>{{ batchProgressLabel }}</span>
+        <span>{{ batchProgressSummary }}</span>
+      </div>
+    </section>
 
-      <section
-        v-if="showBatchProgress"
-        class="space-y-2"
-      >
-        <div class="flex items-center justify-between gap-2 label-caption">
-          <span class="flex items-center gap-1.5">
-            <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
-            <span>{{ t('admin.files.batch.title') }}</span>
+    <USection
+      panel
+      :label="t('admin.files.section.title')"
+      icon="tabler:table"
+    >
+      <template #actions>
+        <span class="text-xs text-muted">{{ recordCountText }}</span>
+      </template>
+      <div class="space-y-3">
+        <div
+          v-if="selectedCount > 0"
+          class="flex flex-wrap items-center gap-2 rounded-lg bg-primary-soft px-3 py-2"
+        >
+          <span class="text-sm font-medium text-highlighted">
+            {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
           </span>
-          <span>{{ batchProgressPercent.toFixed(1) }}%</span>
-        </div>
-        <div class="h-px w-full overflow-hidden bg-border-muted">
-          <div
-            class="h-full bg-primary transition-all"
-            :style="{ width: `${batchProgressPercent}%` }"
-          />
-        </div>
-        <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-          <span>{{ batchProgressLabel }}</span>
-          <span>{{ batchProgressSummary }}</span>
-        </div>
-      </section>
-
-      <USection
-        :label="t('admin.files.section.title')"
-        icon="tabler:table"
-      >
-        <template #actions>
-          <span class="text-xs text-muted">{{ recordCountText }}</span>
-        </template>
-        <div class="space-y-3">
-          <div
-            v-if="selectedCount > 0"
-            class="flex flex-wrap items-center gap-2 border-l-2 border-primary bg-primary-soft/40 px-3 py-2"
+          <UButton
+            size="xs"
+            color="primary"
+            variant="soft"
+            icon="tabler:edit"
+            @click="openBulkMetadataModal"
           >
-            <span class="text-sm font-medium text-highlighted">
-              {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
-            </span>
-            <UButton
-              size="xs"
-              color="primary"
-              variant="soft"
-              icon="tabler:edit"
-              @click="openBulkMetadataModal"
-            >
-              {{ t('admin.files.bulk.editMetadata') }}
-            </UButton>
-            <UButton
-              size="xs"
-              color="primary"
-              variant="soft"
-              icon="tabler:photo-up"
-              @click="openBulkSeriesModal"
-            >
-              {{ t('admin.files.bulk.addToSeries') }}
-            </UButton>
-            <UButton
-              size="xs"
-              color="neutral"
-              variant="ghost"
-              icon="tabler:x"
-              @click="clearSelection"
-            >
-              {{ t('admin.files.bulk.clearSelection') }}
-            </UButton>
-          </div>
-          <UTable
-            :columns="tableColumns"
-            :data="paginatedFiles"
-            :loading="isLoading"
-            :empty="tableEmptyText"
-            :ui="tableUi"
+            {{ t('admin.files.bulk.editMetadata') }}
+          </UButton>
+          <UButton
+            size="xs"
+            color="primary"
+            variant="soft"
+            icon="tabler:photo-up"
+            @click="openBulkSeriesModal"
           >
-            <template #select-header>
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  :checked="allOnPageSelected"
-                  :aria-label="t('admin.files.bulk.selectPage')"
-                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
-                  @change="toggleSelectOnPage(($event.target as HTMLInputElement).checked)"
-                >
-                <span v-if="someOnPageSelected" class="sr-only">{{ t('admin.files.bulk.partialSelected') }}</span>
-              </div>
-            </template>
-            <template #title-header>
-              <button
-                type="button"
-                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
-                :aria-sort="resolveAriaSort('title')"
-                @click="handleSort('title')"
+            {{ t('admin.files.bulk.addToSeries') }}
+          </UButton>
+          <UButton
+            size="xs"
+            color="neutral"
+            variant="ghost"
+            icon="tabler:x"
+            @click="clearSelection"
+          >
+            {{ t('admin.files.bulk.clearSelection') }}
+          </UButton>
+        </div>
+        <UTable
+          :columns="tableColumns"
+          :data="paginatedFiles"
+          :loading="isLoading"
+          :empty="tableEmptyText"
+          :ui="tableUi"
+        >
+          <template #select-header>
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                :checked="allOnPageSelected"
+                :aria-label="t('admin.files.bulk.selectPage')"
+                class="h-4 w-4 cursor-pointer accent-primary"
+                @change="toggleSelectOnPage(($event.target as HTMLInputElement).checked)"
               >
-                <span>{{ t('admin.files.table.headers.title') }}</span>
-                <Icon :name="resolveSortIcon('title')" class="h-4 w-4 text-muted" />
-              </button>
-            </template>
-            <template #captureTime-header>
-              <button
-                type="button"
-                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
-                :aria-sort="resolveAriaSort('captureTime')"
-                @click="handleSort('captureTime')"
-              >
-                <span>{{ t('admin.files.table.headers.captureTime') }}</span>
-                <Icon :name="resolveSortIcon('captureTime')" class="h-4 w-4 text-muted" />
-              </button>
-            </template>
-            <template #createdAt-header>
-              <button
-                type="button"
-                class="flex items-center gap-1 text-left text-sm font-semibold text-toned transition hover:text-primary"
-                :aria-sort="resolveAriaSort('createdAt')"
-                @click="handleSort('createdAt')"
-              >
-                <span>{{ t('admin.files.table.headers.createdAt') }}</span>
-                <Icon :name="resolveSortIcon('createdAt')" class="h-4 w-4 text-muted" />
-              </button>
-            </template>
-            <template #select-cell="{ row }">
-              <div class="flex items-center">
-                <input
-                  type="checkbox"
-                  :checked="selectedFileIdSet.has(row.original.id)"
-                  :aria-label="t('admin.files.bulk.selectOne', { id: row.original.id })"
-                  class="h-4 w-4 cursor-pointer rounded border-default text-primary"
-                  @change="toggleFileSelection(row.original.id, ($event.target as HTMLInputElement).checked)"
-                >
-              </div>
-            </template>
-            <template #preview-cell="{ row }">
-              <div class="flex h-14 w-24 items-center justify-center overflow-hidden rounded-none bg-black/5">
-                <div
-                  v-if="row.original.metadata.recompose"
-                  class="relative"
-                  :style="resolveFramedThumbStyle(row.original)"
-                >
-                  <RecomposeFrame :params="row.original.metadata.recompose">
-                    <img
-                      :key="row.original.id"
-                      :alt="row.original.title || untitledLabel"
-                      loading="lazy"
-                      class="h-full w-full"
-                      v-bind="resolvePreviewImage(row.original)"
-                    >
-                  </RecomposeFrame>
-                </div>
-                <img
-                  v-else
-                  :key="row.original.id"
-                  :alt="row.original.title || untitledLabel"
-                  loading="lazy"
-                  class="h-full w-full object-cover"
-                  v-bind="resolvePreviewImage(row.original)"
-                >
-              </div>
-            </template>
-            <template #title-cell="{ row }">
-              <div class="space-y-1">
-                <p class="font-medium leading-tight">
-                  {{ row.original.title || untitledLabel }}
-                </p>
-                <p v-if="row.original.description" class="text-xs text-muted line-clamp-2">
-                  {{ row.original.description }}
-                </p>
-              </div>
-            </template>
-            <template #captureTime-cell="{ row }">
-              <span class="text-sm text-toned">
-                {{ formatDateTime(row.original.metadata.captureTime || row.original.createdAt) || unknownLabel }}
-              </span>
-            </template>
-            <template #createdAt-cell="{ row }">
-              <span class="text-sm text-toned">
-                {{ formatDateTime(row.original.createdAt) }}
-              </span>
-            </template>
-            <template #actions-cell="{ row }">
-              <div class="flex flex-wrap items-center gap-2">
-                <UButton
-                  size="xs"
-                  variant="soft"
-                  color="primary"
-                  icon="tabler:pencil"
-                  @click="openEdit(row.original)"
-                >
-                  {{ t('common.actions.edit') }}
-                </UButton>
-                <UButton
-                  size="xs"
-                  variant="soft"
-                  color="error"
-                  :loading="deletingId === row.original.id"
-                  icon="tabler:trash"
-                  @click="openDelete(row.original)"
-                >
-                  {{ t('common.actions.delete') }}
-                </UButton>
-              </div>
-            </template>
-          </UTable>
-          <div class="flex flex-col gap-3 border-t border-border-muted pt-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="text-sm text-muted">
-              {{ paginationText }}
+              <span v-if="someOnPageSelected" class="sr-only">{{ t('admin.files.bulk.partialSelected') }}</span>
             </div>
-            <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
+          </template>
+          <template #file-header>
+            <button
+              type="button"
+              class="label-caption flex items-center gap-1 text-left transition hover:text-primary"
+              :aria-sort="resolveAriaSort('id')"
+              @click="handleSort('id')"
+            >
+              <span>{{ t('admin.files.table.headers.file') }}</span>
+              <Icon :name="resolveSortIcon('id')" class="h-3.5 w-3.5" />
+            </button>
+          </template>
+          <template #captureTime-header>
+            <button
+              type="button"
+              class="label-caption flex items-center gap-1 text-left transition hover:text-primary"
+              :aria-sort="resolveAriaSort('captureTime')"
+              @click="handleSort('captureTime')"
+            >
+              <span>{{ t('admin.files.table.headers.captureTime') }}</span>
+              <Icon :name="resolveSortIcon('captureTime')" class="h-3.5 w-3.5" />
+            </button>
+          </template>
+          <template #createdAt-header>
+            <button
+              type="button"
+              class="label-caption flex items-center gap-1 text-left transition hover:text-primary"
+              :aria-sort="resolveAriaSort('createdAt')"
+              @click="handleSort('createdAt')"
+            >
+              <span>{{ t('admin.files.table.headers.createdAt') }}</span>
+              <Icon :name="resolveSortIcon('createdAt')" class="h-3.5 w-3.5" />
+            </button>
+          </template>
+          <template #select-cell="{ row }">
+            <div class="flex items-center">
+              <input
+                type="checkbox"
+                :checked="selectedFileIdSet.has(row.original.id)"
+                :aria-label="t('admin.files.bulk.selectOne', { id: row.original.id })"
+                class="h-4 w-4 cursor-pointer accent-primary"
+                @change="toggleFileSelection(row.original.id, ($event.target as HTMLInputElement).checked)"
+              >
+            </div>
+          </template>
+          <template #preview-cell="{ row }">
+            <div class="flex h-16 w-28 items-center justify-center overflow-hidden rounded-none bg-muted">
+              <div
+                v-if="row.original.metadata.recompose"
+                class="relative"
+                :style="resolveFramedThumbStyle(row.original)"
+              >
+                <RecomposeFrame :params="row.original.metadata.recompose">
+                  <img
+                    :key="row.original.id"
+                    :alt="row.original.title || untitledLabel"
+                    loading="lazy"
+                    class="h-full w-full"
+                    v-bind="resolvePreviewImage(row.original)"
+                  >
+                </RecomposeFrame>
+              </div>
+              <img
+                v-else
+                :key="row.original.id"
+                :alt="row.original.title || untitledLabel"
+                loading="lazy"
+                class="h-full w-full object-cover"
+                v-bind="resolvePreviewImage(row.original)"
+              >
+            </div>
+          </template>
+          <!--
+              Identity, not headline. Most frames are untitled, so a bold
+              title column left the list reading as a stack of "Untitled"
+              with the real identifiers whispered underneath. The id, the
+              file name and the camera are what you scan for; the title
+              is a caption the photographer may or may not have written.
+            -->
+          <template #file-cell="{ row }">
+            <div class="min-w-0 space-y-1">
+              <div class="flex min-w-0 items-baseline gap-2">
+                <span class="num-tabular shrink-0 font-mono text-xs text-dimmed">#{{ row.original.id }}</span>
+                <span class="truncate font-mono text-xs text-muted">{{ row.original.originalName }}</span>
+              </div>
+              <p v-if="row.original.title" class="truncate text-sm text-toned">
+                {{ row.original.title }}
+              </p>
+              <p v-if="row.original.cameraSummary" class="truncate text-xs text-dimmed">
+                {{ row.original.cameraSummary }}
+              </p>
+            </div>
+          </template>
+          <template #captureTime-cell="{ row }">
+            <span class="num-tabular whitespace-nowrap text-xs text-muted">
+              {{ formatDateTime(row.original.metadata.captureTime || row.original.createdAt) || unknownLabel }}
+            </span>
+          </template>
+          <template #createdAt-cell="{ row }">
+            <span class="num-tabular whitespace-nowrap text-xs text-muted">
+              {{ formatDateTime(row.original.createdAt) }}
+            </span>
+          </template>
+          <template #actions-cell="{ row }">
+            <div class="flex flex-wrap items-center gap-1">
+              <UButton
+                size="xs"
+                variant="ghost"
+                color="neutral"
+                icon="tabler:pencil"
+                @click="openEdit(row.original)"
+              >
+                {{ t('common.actions.edit') }}
+              </UButton>
+              <UButton
+                size="xs"
+                variant="ghost"
+                color="error"
+                :loading="deletingId === row.original.id"
+                icon="tabler:trash"
+                :aria-label="t('common.actions.delete')"
+                square
+                @click="openDelete(row.original)"
+              />
+            </div>
+          </template>
+        </UTable>
+        <div class="flex flex-col gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
+          <div class="text-sm text-muted">
+            {{ paginationText }}
           </div>
+          <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
         </div>
-      </USection>
-    </UContainer>
+      </div>
+    </USection>
 
     <AdminEditModal
       v-model:open="editModalOpen"
@@ -1102,7 +1117,7 @@ watch(fetchError, (value) => {
             </dd>
           </div>
         </dl>
-        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
+        <div class="flex justify-end gap-2 pt-2">
           <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>
@@ -1134,7 +1149,7 @@ watch(fetchError, (value) => {
             <label
               v-for="field in batchEditableFields"
               :key="field.key"
-              class="flex items-center gap-2 border-l border-border-muted pl-2 text-sm transition-colors hover:border-primary"
+              class="flex items-center gap-2 rounded-md px-2 py-1 text-sm transition-colors hover:bg-overlay-hover"
             >
               <input
                 type="checkbox"
@@ -1160,7 +1175,7 @@ watch(fetchError, (value) => {
           :form="bulkMetadataForm"
           :classify-source="{ imageUrl: '' }"
         />
-        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
+        <div class="flex justify-end gap-2 pt-2">
           <UButton variant="ghost" color="neutral" @click="bulkMetadataModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>
@@ -1193,7 +1208,7 @@ watch(fetchError, (value) => {
             :placeholder="t('admin.files.bulk.seriesPlaceholder')"
           />
         </UFormField>
-        <div class="flex justify-end gap-2 border-t border-border-muted pt-3">
+        <div class="flex justify-end gap-2 pt-2">
           <UButton variant="ghost" color="neutral" @click="bulkSeriesModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>

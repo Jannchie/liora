@@ -126,7 +126,7 @@ function nextMode(): void {
 <template>
   <button
     type="button"
-    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-elevated leading-none text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented focus-visible:shadow-[var(--ring-focus)]"
+    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-elevated leading-none text-muted outline-none transition-colors duration-150 ease-out hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
     :title="`Theme: ${label} (click to cycle)`"
     :aria-label="`Switch theme (current: ${label})`"
     @click="nextMode"

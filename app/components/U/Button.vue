@@ -28,6 +28,18 @@ const props = withDefaults(defineProps<{
   type: 'button',
 })
 
+/*
+ * Hover / press feedback is a translucent neutral wash (see
+ * `--overlay-hover` in main.css). A fixed fill such as `bg-muted` only
+ * reads correctly on one background: on a panel — which is lighter than
+ * the grey — the control appears to sink into a hole on hover. The
+ * overlay is relative to whatever sits beneath, so one rule covers the
+ * page ground, panels and sunken wells alike. Coloured variants keep
+ * their colour in the label and the glyph rather than flooding the
+ * button with a second tint.
+ */
+const HOVER_OVERLAY = 'hover:bg-overlay-hover active:bg-overlay-active'
+
 const isDisabled = computed(() => props.disabled || props.loading)
 
 const sizeClass = computed(() => {
@@ -68,67 +80,69 @@ const iconSize = computed(() => {
   }
 })
 
+/*
+ * Per-variant colour tables.
+ *
+ * Once hover feedback became uniform (a neutral wash for the
+ * transparent variants, a deepened tint for the filled ones), the
+ * per-colour branches differed only by the colour word — thirteen `if`s
+ * spelling out one rule each, which is how `ghost` ended up with no
+ * `info` case and silently fell through to the neutral foreground. A
+ * table states the rule once and cannot forget a colour.
+ *
+ * `solid` is a table too, but a less regular one: the brand colour gets
+ * a dedicated hover/active pair from the palette, while the status
+ * colours dim instead, because there is no second tone defined for them.
+ */
+const TONE: Record<Color, string> = {
+  primary: 'text-primary',
+  error: 'text-error',
+  warning: 'text-warning',
+  success: 'text-success',
+  info: 'text-info',
+  neutral: 'text-fg',
+}
+
+const SOFT: Record<Color, string> = {
+  primary: 'bg-primary-soft text-primary hover:bg-primary-soft-hover',
+  error: 'bg-error-soft text-error hover:bg-error-soft-hover',
+  warning: 'bg-warning-soft text-warning hover:bg-warning-soft-hover',
+  success: 'bg-success-soft text-success hover:bg-success-soft-hover',
+  info: 'bg-info-soft text-info hover:bg-info-soft-hover',
+  neutral: 'bg-elevated text-fg hover:bg-accented',
+}
+
+const SOLID: Record<Color, string> = {
+  primary: 'bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active',
+  error: 'bg-error text-white hover:opacity-90',
+  warning: 'bg-warning text-fg-highlighted hover:opacity-90',
+  success: 'bg-success text-white hover:opacity-90',
+  info: 'bg-info text-white hover:opacity-90',
+  neutral: 'bg-fg text-bg hover:opacity-90',
+}
+
+const OUTLINE_BORDER: Record<Color, string> = {
+  primary: 'border-primary',
+  error: 'border-error',
+  warning: 'border-warning',
+  success: 'border-success',
+  info: 'border-info',
+  neutral: 'border-border-strong',
+}
+
 const variantClass = computed(() => {
   const { variant, color } = props
   if (variant === 'solid') {
-    if (color === 'primary') {
-      return 'bg-primary text-on-primary hover:bg-primary-hover active:bg-primary-active'
-    }
-    if (color === 'error') {
-      return 'bg-error text-white hover:opacity-90 active:opacity-100'
-    }
-    if (color === 'warning') {
-      return 'bg-warning text-fg-highlighted hover:opacity-90'
-    }
-    if (color === 'success') {
-      return 'bg-success text-white hover:opacity-90'
-    }
-    if (color === 'info') {
-      return 'bg-info text-white hover:opacity-90'
-    }
-    return 'bg-fg text-bg hover:opacity-90'
+    return SOLID[color]
   }
   if (variant === 'soft') {
-    if (color === 'primary') {
-      return 'bg-primary-soft text-primary hover:bg-primary-softer'
-    }
-    if (color === 'error') {
-      return 'bg-error-soft text-error hover:opacity-80'
-    }
-    if (color === 'warning') {
-      return 'bg-warning-soft text-warning hover:opacity-80'
-    }
-    if (color === 'success') {
-      return 'bg-success-soft text-success hover:opacity-80'
-    }
-    if (color === 'info') {
-      return 'bg-info-soft text-info hover:opacity-80'
-    }
-    return 'bg-elevated text-fg hover:bg-accented'
+    return SOFT[color]
   }
   if (variant === 'ghost') {
-    if (color === 'primary') {
-      return 'bg-transparent text-primary hover:bg-primary-soft'
-    }
-    if (color === 'error') {
-      return 'bg-transparent text-error hover:bg-error-soft'
-    }
-    if (color === 'warning') {
-      return 'bg-transparent text-warning hover:bg-warning-soft'
-    }
-    if (color === 'success') {
-      return 'bg-transparent text-success hover:bg-success-soft'
-    }
-    return 'bg-transparent text-fg hover:bg-muted'
+    return `bg-transparent ${TONE[color]} ${HOVER_OVERLAY}`
   }
   if (variant === 'outline') {
-    if (color === 'primary') {
-      return 'border border-primary text-primary bg-transparent hover:bg-primary-soft'
-    }
-    if (color === 'error') {
-      return 'border border-error text-error bg-transparent hover:bg-error-soft'
-    }
-    return 'border border-border-strong text-fg bg-transparent hover:bg-muted'
+    return `border ${OUTLINE_BORDER[color]} ${TONE[color]} bg-transparent ${HOVER_OVERLAY}`
   }
   if (variant === 'subtle') {
     return 'bg-primary-softer text-primary border border-primary-border hover:bg-primary-soft'

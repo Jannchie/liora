@@ -50,7 +50,7 @@ const { t } = useI18n()
             color="neutral"
             square
             size="xs"
-            class="text-dimmed hover:text-muted"
+            class="text-dimmed hover:text-fg-muted"
             :icon="link.icon"
             :aria-label="link.label"
           />

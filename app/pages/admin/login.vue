@@ -55,13 +55,13 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-muted/60 px-4 py-10">
+  <div class="flex min-h-screen items-center justify-center bg-chrome px-4 py-10">
     <UCard
-      class="w-full max-w-md border border-default/60 bg-default shadow-none"
+      class="w-full max-w-md"
     >
       <div class="space-y-6">
         <div class="space-y-2 text-center">
-          <div class="mx-auto inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+          <div class="mx-auto inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
             <Icon name="tabler:shield-lock" class="h-4 w-4" />
             <span>{{ t('admin.login.sectionLabel') }}</span>
           </div>

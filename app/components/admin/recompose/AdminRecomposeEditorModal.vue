@@ -211,7 +211,7 @@ async function handleSave(): Promise<void> {
   >
     <template #content>
       <div class="flex h-full flex-col bg-bg">
-        <header class="flex items-start justify-between gap-3 border-b border-border-muted bg-bg/95 px-6 py-4">
+        <header class="flex items-start justify-between gap-3 bg-panel px-6 py-4">
           <div class="min-w-0 space-y-1">
             <p class="label-caption">
               {{ t('admin.files.recompose.title') }}
@@ -251,8 +251,8 @@ async function handleSave(): Promise<void> {
           </div>
 
           <!-- CONTROLS -->
-          <aside v-if="editor" class="w-full shrink-0 space-y-6 overflow-y-auto border-t border-border-muted p-5 lg:w-80 lg:border-l lg:border-t-0">
-            <USection :label="t('admin.files.recompose.aspect.label')" icon="tabler:crop" divider="none">
+          <aside v-if="editor" class="surface-sunken w-full shrink-0 space-y-6 overflow-y-auto p-5 lg:w-80">
+            <USection :label="t('admin.files.recompose.aspect.label')" icon="tabler:crop">
               <div class="flex flex-wrap gap-1.5">
                 <UButton
                   v-for="preset in aspectPresets"
@@ -268,7 +268,7 @@ async function handleSave(): Promise<void> {
               </div>
             </USection>
 
-            <USection :label="t('admin.files.recompose.rotate.label')" icon="tabler:rotate-clockwise-2" divider="none">
+            <USection :label="t('admin.files.recompose.rotate.label')" icon="tabler:rotate-clockwise-2">
               <div class="flex flex-wrap gap-1.5">
                 <UButton size="sm" type="button" color="neutral" variant="ghost" icon="tabler:rotate-clockwise-2" @click="editor.rotate90(1)">
                   {{ t('admin.files.recompose.rotate.cw') }}
@@ -299,7 +299,7 @@ async function handleSave(): Promise<void> {
               </div>
             </USection>
 
-            <USection :label="t('admin.files.recompose.straighten')" icon="tabler:angle" divider="none">
+            <USection :label="t('admin.files.recompose.straighten')" icon="tabler:angle">
               <div class="flex items-center gap-2 num-tabular text-[11px]">
                 <input
                   type="range"
@@ -314,7 +314,7 @@ async function handleSave(): Promise<void> {
               </div>
             </USection>
 
-            <USection :label="t('admin.files.recompose.stretch.label')" icon="tabler:arrows-horizontal" divider="none">
+            <USection :label="t('admin.files.recompose.stretch.label')" icon="tabler:arrows-horizontal">
               <div class="space-y-2">
                 <div class="flex items-center gap-2 num-tabular text-[11px]">
                   <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.stretch.x') }}</span>
@@ -345,7 +345,7 @@ async function handleSave(): Promise<void> {
               </div>
             </USection>
 
-            <USection :label="t('admin.files.recompose.perspective.label')" icon="tabler:perspective" divider="none">
+            <USection :label="t('admin.files.recompose.perspective.label')" icon="tabler:perspective">
               <div class="space-y-2">
                 <div class="flex items-center gap-2 num-tabular text-[11px]">
                   <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.perspective.h') }}</span>
@@ -376,7 +376,7 @@ async function handleSave(): Promise<void> {
               </div>
             </USection>
 
-            <dl class="space-y-1 border-t border-border-muted pt-3 num-tabular text-[11px]">
+            <dl class="space-y-1 pt-1 num-tabular text-[11px]">
               <div class="flex items-baseline justify-between gap-2">
                 <dt class="text-muted">
                   {{ t('admin.files.recompose.framedSize') }}
@@ -392,7 +392,7 @@ async function handleSave(): Promise<void> {
           </aside>
         </div>
 
-        <footer class="flex items-center justify-between gap-2 border-t border-border-muted bg-bg/95 px-6 py-3">
+        <footer class="flex items-center justify-between gap-2 bg-panel px-6 py-3">
           <UButton
             variant="ghost"
             color="neutral"

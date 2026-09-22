@@ -85,7 +85,7 @@ const { t } = useI18n()
 
     <dl
       v-if="props.hasSelectedFile || props.hasSelectedVideo"
-      class="grid grid-cols-[auto,1fr] gap-x-4 gap-y-1 num-tabular text-[11px]"
+      class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 num-tabular text-[11px]"
     >
       <template v-if="props.hasSelectedFile">
         <dt class="text-muted">
@@ -105,7 +105,7 @@ const { t } = useI18n()
       </template>
     </dl>
 
-    <div v-if="props.hasSelectedVideo" class="space-y-3 border-t border-border-muted pt-4">
+    <div v-if="props.hasSelectedVideo" class="space-y-3 pt-2">
       <p class="label-caption">
         {{ t('admin.upload.sections.livePhoto.title') }}
       </p>
@@ -150,12 +150,12 @@ const { t } = useI18n()
       </div>
     </div>
 
-    <div v-if="props.isUploading" class="space-y-2 border-t border-border-muted pt-4">
+    <div v-if="props.isUploading" class="space-y-2 pt-2">
       <div class="flex items-center justify-between gap-2 label-caption">
         <span>{{ t('admin.upload.sections.progress.title') }}</span>
         <span class="num-tabular">{{ props.uploadProgressPercent.toFixed(1) }}%</span>
       </div>
-      <div class="h-1 w-full overflow-hidden rounded-full bg-border-muted">
+      <div class="h-1 w-full overflow-hidden rounded-full bg-muted">
         <div
           class="h-full rounded-full bg-primary transition-all"
           :style="{ width: `${props.uploadProgressPercent}%` }"

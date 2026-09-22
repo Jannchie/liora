@@ -691,7 +691,7 @@ function handleFocusToggle(): void {
             </div>
           </Transition>
         </div>
-        <div class="font-prose flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-default/20 md:p-4 md:overflow-y-auto">
+        <div class="font-prose flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-border/20 md:p-4 md:overflow-y-auto">
           <div class="space-y-2.5">
             <div class="flex items-start justify-between gap-3">
               <div class="space-y-1">

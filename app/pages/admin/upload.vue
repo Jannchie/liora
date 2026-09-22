@@ -12,6 +12,7 @@ const { t } = useI18n()
 const toast = useToast()
 const requestFetch = useRequestFetch()
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin-auth',
 })
 
@@ -642,255 +643,250 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <UContainer rails class="space-y-10 py-10">
-      <AdminNav />
+  <div class="space-y-8">
+    <UPageHeader
+      :title="t('admin.upload.title')"
+    >
+      <template #actions>
+        <UButton
+          size="sm"
+          color="primary"
+          icon="tabler:photo-plus"
+          @click="openBatchFileDialog"
+        >
+          {{ t('admin.upload.batch.pickFiles') }}
+        </UButton>
+        <UButton
+          v-if="batchItems.length > 0"
+          size="sm"
+          color="neutral"
+          variant="ghost"
+          icon="tabler:trash"
+          @click="clearBatchQueue"
+        >
+          {{ t('admin.upload.batch.clearQueue') }}
+        </UButton>
+      </template>
+    </UPageHeader>
 
-      <UPageHeader
-        :eyebrow="t('admin.nav.label')"
-        icon="tabler:shield-check"
-        :title="t('admin.upload.title')"
-      >
-        <template #actions>
-          <UButton
-            size="sm"
-            color="primary"
-            icon="tabler:photo-plus"
-            @click="openBatchFileDialog"
+    <input
+      ref="batchInputRef"
+      type="file"
+      accept="image/*"
+      multiple
+      class="hidden"
+      @change="handleBatchFilesPicked"
+    >
+    <USection
+      v-if="batchItems.length > 0"
+      panel
+      :label="t('admin.upload.batch.title')"
+      icon="tabler:photo-plus"
+    >
+      <template #actions>
+        <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(true)">
+          {{ t('admin.upload.batch.selectAll') }}
+        </UButton>
+        <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(false)">
+          {{ t('admin.upload.batch.selectNone') }}
+        </UButton>
+        <UButton
+          size="xs"
+          color="primary"
+          icon="tabler:upload"
+          :loading="batchSubmitting"
+          @click="submitBatchUpload"
+        >
+          {{ t('admin.upload.batch.startUpload') }}
+        </UButton>
+      </template>
+      <div class="space-y-4">
+        <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Total
+            </dt><dd class="num-tabular">
+              {{ batchItems.length }}
+            </dd>
+          </div>
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Selected
+            </dt><dd class="num-tabular">
+              {{ batchSelectedCount }}
+            </dd>
+          </div>
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Pending
+            </dt><dd class="num-tabular">
+              {{ batchPendingCount }}
+            </dd>
+          </div>
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Uploading
+            </dt><dd class="num-tabular">
+              {{ batchUploadingCount }}
+            </dd>
+          </div>
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Success
+            </dt><dd class="num-tabular text-success">
+              {{ batchSuccessCount }}
+            </dd>
+          </div>
+          <div class="flex items-center gap-1">
+            <dt class="text-muted">
+              Failed
+            </dt><dd class="num-tabular text-error">
+              {{ batchFailedCount }}
+            </dd>
+          </div>
+        </dl>
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <div
+            v-for="item in batchItems"
+            :key="item.id"
+            class="space-y-2"
           >
-            {{ t('admin.upload.batch.pickFiles') }}
-          </UButton>
-          <UButton
-            v-if="batchItems.length > 0"
-            size="sm"
-            color="neutral"
-            variant="ghost"
-            icon="tabler:trash"
-            @click="clearBatchQueue"
-          >
-            {{ t('admin.upload.batch.clearQueue') }}
-          </UButton>
-        </template>
-      </UPageHeader>
-
-      <input
-        ref="batchInputRef"
-        type="file"
-        accept="image/*"
-        multiple
-        class="hidden"
-        @change="handleBatchFilesPicked"
-      >
-      <USection
-        v-if="batchItems.length > 0"
-        :label="t('admin.upload.batch.title')"
-        icon="tabler:photo-plus"
-      >
-        <template #actions>
-          <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(true)">
-            {{ t('admin.upload.batch.selectAll') }}
-          </UButton>
-          <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(false)">
-            {{ t('admin.upload.batch.selectNone') }}
-          </UButton>
-          <UButton
-            size="xs"
-            color="primary"
-            icon="tabler:upload"
-            :loading="batchSubmitting"
-            @click="submitBatchUpload"
-          >
-            {{ t('admin.upload.batch.startUpload') }}
-          </UButton>
-        </template>
-        <div class="space-y-4">
-          <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Total
-              </dt><dd class="num-tabular">
-                {{ batchItems.length }}
-              </dd>
+            <div class="relative">
+              <img
+                :src="item.previewUrl"
+                :alt="item.file.name"
+                class="aspect-[4/3] w-full object-cover"
+              >
+              <UButton
+                size="xs"
+                color="neutral"
+                variant="ghost"
+                icon="tabler:x"
+                class="absolute right-1 top-1 bg-default/80 backdrop-blur"
+                @click="removeBatchItem(item.id)"
+              />
             </div>
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Selected
-              </dt><dd class="num-tabular">
-                {{ batchSelectedCount }}
-              </dd>
-            </div>
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Pending
-              </dt><dd class="num-tabular">
-                {{ batchPendingCount }}
-              </dd>
-            </div>
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Uploading
-              </dt><dd class="num-tabular">
-                {{ batchUploadingCount }}
-              </dd>
-            </div>
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Success
-              </dt><dd class="num-tabular text-success">
-                {{ batchSuccessCount }}
-              </dd>
-            </div>
-            <div class="flex items-center gap-1">
-              <dt class="text-muted">
-                Failed
-              </dt><dd class="num-tabular text-error">
-                {{ batchFailedCount }}
-              </dd>
-            </div>
-          </dl>
-          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <div
-              v-for="item in batchItems"
-              :key="item.id"
-              class="space-y-2"
-            >
-              <div class="relative">
-                <img
-                  :src="item.previewUrl"
-                  :alt="item.file.name"
-                  class="aspect-[4/3] w-full object-cover"
+            <div class="space-y-1">
+              <label class="flex items-center gap-2 text-sm">
+                <input
+                  v-model="item.selected"
+                  type="checkbox"
+                  class="h-4 w-4 accent-primary"
                 >
-                <UButton
-                  size="xs"
-                  color="neutral"
-                  variant="ghost"
-                  icon="tabler:x"
-                  class="absolute right-1 top-1 bg-default/80 backdrop-blur"
-                  @click="removeBatchItem(item.id)"
-                />
+                <span class="truncate font-medium">{{ item.file.name }}</span>
+              </label>
+              <div class="flex items-center justify-between num-tabular text-[11px] text-muted">
+                <span>{{ item.form.width }} × {{ item.form.height }}</span>
+                <span>{{ formatFileSize(item.file.size) }}</span>
               </div>
-              <div class="space-y-1">
-                <label class="flex items-center gap-2 text-sm">
-                  <input
-                    v-model="item.selected"
-                    type="checkbox"
-                    class="h-4 w-4 accent-primary"
-                  >
-                  <span class="truncate font-medium">{{ item.file.name }}</span>
-                </label>
-                <div class="flex items-center justify-between num-tabular text-[11px] text-muted">
-                  <span>{{ item.form.width }} × {{ item.form.height }}</span>
-                  <span>{{ formatFileSize(item.file.size) }}</span>
-                </div>
-                <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
-                  {{ t(`admin.upload.batch.status.${item.status}`) }}
-                  <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
-                </p>
-              </div>
+              <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
+                {{ t(`admin.upload.batch.status.${item.status}`) }}
+                <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
+              </p>
             </div>
           </div>
         </div>
-      </USection>
+      </div>
+    </USection>
 
-      <AdminUploadPickerCard
-        v-show="!hasSelection"
-        :set-file-upload-ref="setFileUploadRef"
-        @pick="ingestPickedFile"
-      />
+    <AdminUploadPickerCard
+      v-show="!hasSelection"
+      :set-file-upload-ref="setFileUploadRef"
+      @pick="ingestPickedFile"
+    />
 
-      <UForm
-        v-if="hasSelection"
-        :state="form"
-        class="space-y-4"
-        @submit.prevent="submit"
-      >
-        <UCard class="overflow-hidden">
-          <template #header>
-            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div class="min-w-0 space-y-1">
-                <p class="label-caption">
-                  {{ t('admin.upload.sections.edit.title') }}
-                </p>
-                <p class="truncate font-mono text-sm text-highlighted">
-                  {{ displayFileName }}
-                </p>
-                <div
-                  v-if="previewChips.length > 0"
-                  class="flex flex-wrap items-center gap-x-4 gap-y-1 num-tabular text-[11px] text-muted"
+    <UForm
+      v-if="hasSelection"
+      :state="form"
+      class="space-y-4"
+      @submit.prevent="submit"
+    >
+      <UCard class="overflow-hidden" :ui="{ body: 'px-5 pb-5 pt-2' }">
+        <template #header>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0 space-y-1">
+              <p class="label-caption">
+                {{ t('admin.upload.sections.edit.title') }}
+              </p>
+              <p class="truncate font-mono text-sm text-highlighted">
+                {{ displayFileName }}
+              </p>
+              <div
+                v-if="previewChips.length > 0"
+                class="flex flex-wrap items-center gap-x-4 gap-y-1 num-tabular text-[11px] text-muted"
+              >
+                <span
+                  v-for="chip in previewChips"
+                  :key="`${chip.icon}-${chip.text}`"
+                  class="inline-flex items-center gap-1.5"
                 >
-                  <span
-                    v-for="chip in previewChips"
-                    :key="`${chip.icon}-${chip.text}`"
-                    class="inline-flex items-center gap-1.5"
-                  >
-                    <Icon :name="chip.icon" class="h-3.5 w-3.5" />
-                    <span>{{ chip.text }}</span>
-                  </span>
-                </div>
-              </div>
-              <div class="flex shrink-0 flex-wrap items-center gap-2">
-                <UButton
-                  variant="ghost"
-                  color="neutral"
-                  type="button"
-                  @click="clearSelectedFile"
-                >
-                  {{ t('common.actions.cancel') }}
-                </UButton>
-                <UButton
-                  color="primary"
-                  type="submit"
-                  :loading="submitting"
-                  :disabled="!selectedFile"
-                  icon="tabler:device-floppy"
-                >
-                  {{ t('admin.upload.actions.save') }}
-                </UButton>
+                  <Icon :name="chip.icon" class="h-3.5 w-3.5" />
+                  <span>{{ chip.text }}</span>
+                </span>
               </div>
             </div>
-          </template>
-
-          <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px),1fr]">
-            <AdminUploadPreviewCard
-              :preview-max-height="previewMaxHeight"
-              :aspect-ratio-style="aspectRatioStyle"
-              :change-primary-label="changePrimaryLabel"
-              :preview-url="previewUrl"
-              :is-live-mode="isLiveMode"
-              :selected-file-name="selectedFileName"
-              :selected-file-type="selectedFile?.type ?? ''"
-              :has-selected-file="Boolean(selectedFile)"
-              :selected-video-name="selectedVideoName"
-              :selected-video-type="selectedVideo?.type ?? ''"
-              :has-selected-video="Boolean(selectedVideo)"
-              :video-preview-url="videoPreviewUrl"
-              :live-frame-duration-label="liveFrameDurationLabel"
-              :live-frame-time-label="liveFrameTimeLabel"
-              :live-frame-duration="liveFrameDuration"
-              :live-frame-time="liveFrameTime"
-              :live-frame-pending="liveFramePending"
-              :is-uploading="isUploading"
-              :upload-progress-percent="uploadProgressPercent"
-              :uploaded-bytes-text="uploadedBytesText"
-              :upload-total-bytes="uploadTotalBytes"
-              :upload-total-text="uploadTotalText"
-              :upload-speed-text="uploadSpeedText"
-              :set-video-element-ref="setVideoElementRef"
-              @open-file-dialog="openFileDialog"
-              @video-metadata-loaded="handleVideoMetadataLoaded"
-              @video-error="handleVideoError"
-              @frame-input="handleFrameInput"
-              @capture-live-frame="captureLiveFrame"
-            />
-
-            <AdminUploadMetadataCard
-              v-model:form="formModel"
-              v-model:capture-time-local="captureTimeLocal"
-              :selected-file="selectedFile"
-            />
+            <div class="flex shrink-0 flex-wrap items-center gap-2">
+              <UButton
+                variant="ghost"
+                color="neutral"
+                type="button"
+                @click="clearSelectedFile"
+              >
+                {{ t('common.actions.cancel') }}
+              </UButton>
+              <UButton
+                color="primary"
+                type="submit"
+                :loading="submitting"
+                :disabled="!selectedFile"
+                icon="tabler:device-floppy"
+              >
+                {{ t('admin.upload.actions.save') }}
+              </UButton>
+            </div>
           </div>
-        </UCard>
-      </UForm>
-    </UContainer>
+        </template>
+
+        <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px)_1fr]">
+          <AdminUploadPreviewCard
+            :preview-max-height="previewMaxHeight"
+            :aspect-ratio-style="aspectRatioStyle"
+            :change-primary-label="changePrimaryLabel"
+            :preview-url="previewUrl"
+            :is-live-mode="isLiveMode"
+            :selected-file-name="selectedFileName"
+            :selected-file-type="selectedFile?.type ?? ''"
+            :has-selected-file="Boolean(selectedFile)"
+            :selected-video-name="selectedVideoName"
+            :selected-video-type="selectedVideo?.type ?? ''"
+            :has-selected-video="Boolean(selectedVideo)"
+            :video-preview-url="videoPreviewUrl"
+            :live-frame-duration-label="liveFrameDurationLabel"
+            :live-frame-time-label="liveFrameTimeLabel"
+            :live-frame-duration="liveFrameDuration"
+            :live-frame-time="liveFrameTime"
+            :live-frame-pending="liveFramePending"
+            :is-uploading="isUploading"
+            :upload-progress-percent="uploadProgressPercent"
+            :uploaded-bytes-text="uploadedBytesText"
+            :upload-total-bytes="uploadTotalBytes"
+            :upload-total-text="uploadTotalText"
+            :upload-speed-text="uploadSpeedText"
+            :set-video-element-ref="setVideoElementRef"
+            @open-file-dialog="openFileDialog"
+            @video-metadata-loaded="handleVideoMetadataLoaded"
+            @video-error="handleVideoError"
+            @frame-input="handleFrameInput"
+            @capture-live-frame="captureLiveFrame"
+          />
+
+          <AdminUploadMetadataCard
+            v-model:form="formModel"
+            v-model:capture-time-local="captureTimeLocal"
+            :selected-file="selectedFile"
+          />
+        </div>
+      </UCard>
+    </UForm>
   </div>
 </template>

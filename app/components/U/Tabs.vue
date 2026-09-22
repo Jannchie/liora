@@ -35,7 +35,7 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
   <div>
     <div
       class="flex items-center gap-1 overflow-x-auto overflow-y-hidden"
-      :class="variant === 'underline' ? 'border-b border-border-muted' : ''"
+      :class="variant === 'pill' ? 'surface-sunken w-fit gap-0.5 p-1' : ''"
       role="tablist"
     >
       <button
@@ -49,12 +49,12 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
           variant === 'underline'
             ? (active === item.value
               ? 'text-primary shadow-[inset_0_-2px_0_0_var(--color-primary)]'
-              : 'text-muted hover:text-foreground')
+              : 'text-muted hover:text-fg')
             : [
               'rounded-md',
               active === item.value
-                ? 'bg-primary-soft text-primary'
-                : 'text-muted hover:bg-muted',
+                ? 'chip-raised'
+                : 'text-muted hover:text-fg',
             ],
         ]"
         @click="setActive(item.value)"

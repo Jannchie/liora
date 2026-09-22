@@ -1,21 +1,17 @@
 <script setup lang="ts">
 /*
- * Admin top bar — full-bleed within the container rails, multi-button nav,
- * utility cluster on the right.
+ * Admin top bar — one unbroken strip of chrome, no frame.
  *
- * Why a header bar (not inline tabs):
- *   AdminNav previously rendered an underline-tab inside the content stack,
- *   which left a heavy block of empty space above and below it and competed
- *   visually with USection's own divider. A dedicated bar pinned to the top
- *   of the container, separated by a single hairline, reads as page chrome
- *   instead of "section one."
+ * Why no border:
+ *   A rule under the bar plus the side rails on the container drew a box
+ *   around every admin page; the chrome ended up louder than the content
+ *   it framed. The bar now separates from the page by *rhythm* alone —
+ *   it sits above the page header with its own breathing room.
  *
- * Layout notes:
- *   - Negative margins break out of UContainer's px / pt so the bar's
- *     border-b lands flush with the rails on the left/right and at the
- *     viewport top.
- *   - Nav items are rendered as buttons (UButton). The active one uses the
- *     subtle/primary fill; inactive items are ghost. No underline.
+ * Nav items form a single segmented control: one sunken track holding
+ * all destinations, the active one lifted out of it with the page fill.
+ * That reads as one object you move through, rather than five buttons
+ * that happen to sit next to each other.
  */
 import { computed, ref } from 'vue'
 
@@ -59,79 +55,76 @@ async function handleLogout(): Promise<void> {
 </script>
 
 <template>
-  <header
-    class="-mx-4 -mt-10 border-b border-border sm:-mx-6 lg:-mx-8"
-  >
-    <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-4 py-4 sm:px-6 lg:px-8">
-      <!-- left: brand eyebrow + multi-button nav -->
-      <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2" :aria-label="t('admin.nav.label')">
-        <p class="label-caption flex shrink-0 items-center gap-1.5 text-foreground">
-          <Icon name="tabler:shield-check" class="h-3.5 w-3.5" />
-          <span>{{ t('admin.nav.label') }}</span>
-        </p>
-        <div class="flex flex-wrap items-center gap-1.5">
-          <UButton
-            v-for="item in navItems"
-            :key="item.to"
-            :to="item.to"
-            size="sm"
-            :icon="item.icon"
-            :variant="isActive(item.to) ? 'soft' : 'ghost'"
-            :color="isActive(item.to) ? 'primary' : 'neutral'"
-            :aria-current="isActive(item.to) ? 'page' : undefined"
-          >
-            {{ item.label }}
-          </UButton>
-        </div>
-      </nav>
-
-      <!-- right: utility cluster -->
-      <div class="flex shrink-0 items-center gap-1.5">
-        <UThemeToggle />
-        <LanguageSwitcher class="hidden sm:block" />
-        <UButton
-          to="/"
-          variant="ghost"
-          color="neutral"
-          icon="tabler:home"
-          size="sm"
-          square
-          class="sm:hidden"
-          :aria-label="t('admin.nav.viewFrontend')"
-        />
-        <UButton
-          to="/"
-          variant="ghost"
-          color="neutral"
-          icon="tabler:home"
-          size="sm"
-          class="hidden sm:inline-flex"
+  <header class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 pt-2">
+    <!-- left: brand eyebrow + segmented nav -->
+    <nav class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2" :aria-label="t('admin.nav.label')">
+      <p class="label-caption flex shrink-0 items-center gap-1.5 text-foreground">
+        <Icon name="tabler:shield-check" class="h-3.5 w-3.5" />
+        <span>{{ t('admin.nav.label') }}</span>
+      </p>
+      <div class="surface-sunken flex flex-wrap items-center gap-0.5 p-1">
+        <NuxtLink
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
+          :class="isActive(item.to)
+            ? 'chip-raised'
+            : 'text-muted hover:text-fg'"
+          :aria-current="isActive(item.to) ? 'page' : undefined"
         >
-          {{ t('admin.nav.viewFrontend') }}
-        </UButton>
-        <UButton
-          variant="ghost"
-          color="neutral"
-          :loading="loggingOut"
-          icon="tabler:logout"
-          size="sm"
-          square
-          class="sm:hidden"
-          :aria-label="t('admin.nav.logout')"
-          @click="handleLogout"
-        />
-        <UButton
-          variant="soft"
-          color="primary"
-          :loading="loggingOut"
-          icon="tabler:logout"
-          size="sm"
-          class="hidden sm:inline-flex"
-          @click="handleLogout"
-        >
-          {{ t('admin.nav.logout') }}
-        </UButton>
+          <Icon :name="item.icon" class="h-4 w-4" />
+          <span>{{ item.label }}</span>
+        </NuxtLink>
       </div>
+    </nav>
+
+    <!-- right: utility cluster -->
+    <div class="flex shrink-0 items-center gap-1">
+      <UThemeToggle />
+      <LanguageSwitcher class="hidden sm:block" />
+      <UButton
+        to="/"
+        variant="ghost"
+        color="neutral"
+        icon="tabler:home"
+        size="sm"
+        square
+        class="sm:hidden"
+        :aria-label="t('admin.nav.viewFrontend')"
+      />
+      <UButton
+        to="/"
+        variant="ghost"
+        color="neutral"
+        icon="tabler:home"
+        size="sm"
+        class="hidden sm:inline-flex"
+      >
+        {{ t('admin.nav.viewFrontend') }}
+      </UButton>
+      <UButton
+        variant="ghost"
+        color="neutral"
+        :loading="loggingOut"
+        icon="tabler:logout"
+        size="sm"
+        square
+        class="sm:hidden"
+        :aria-label="t('admin.nav.logout')"
+        @click="handleLogout"
+      />
+      <UButton
+        variant="ghost"
+        color="neutral"
+        :loading="loggingOut"
+        icon="tabler:logout"
+        size="sm"
+        class="hidden sm:inline-flex"
+        @click="handleLogout"
+      >
+        {{ t('admin.nav.logout') }}
+      </UButton>
     </div>
   </header>
 </template>

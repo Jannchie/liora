@@ -54,7 +54,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
   <nav class="flex items-center gap-1" aria-label="Pagination">
     <button
       type="button"
-      class="text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+      class="text-muted hover:text-fg disabled:opacity-50 disabled:cursor-not-allowed"
       :class="btnBase"
       :disabled="page <= 1"
       aria-label="Previous page"
@@ -70,7 +70,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
           btnBase,
           item === page
             ? 'bg-primary text-on-primary'
-            : 'text-foreground hover:bg-muted',
+            : 'text-foreground hover:bg-overlay-hover',
         ]"
         :aria-current="item === page ? 'page' : undefined"
         @click="go(item)"
@@ -81,7 +81,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
     </template>
     <button
       type="button"
-      class="text-muted hover:text-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+      class="text-muted hover:text-fg disabled:opacity-50 disabled:cursor-not-allowed"
       :class="btnBase"
       :disabled="page >= pageCount"
       aria-label="Next page"

@@ -267,7 +267,7 @@ watch(
   >
     <template #content>
       <div class="flex h-full flex-col bg-bg">
-        <header class="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-border-muted bg-bg/95 px-6 py-4 backdrop-blur">
+        <header class="sticky top-0 z-10 flex items-start justify-between gap-3 bg-panel/95 px-6 py-4 shadow-xs backdrop-blur">
           <div class="min-w-0 space-y-1">
             <p class="label-caption">
               {{ t('common.actions.edit') }}
@@ -406,7 +406,7 @@ watch(
 
                 <!-- METADATA PANE -->
                 <div class="min-w-0 flex-1 space-y-6">
-                  <USection label="Series" icon="tabler:stack-3" divider="none">
+                  <USection label="Series" icon="tabler:stack-3">
                     <div class="space-y-3">
                       <UAlert
                         v-if="seriesManageErrorMessage"
@@ -455,7 +455,7 @@ watch(
 
                       <p
                         v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
-                        class="border-t border-border-muted pt-3 text-xs text-muted"
+                        class="text-xs text-muted"
                       >
                         {{ t('series.assign.noSeries') }}
                       </p>
@@ -471,7 +471,7 @@ watch(
               </div>
             </UForm>
           </UContainer>
-          <footer class="sticky bottom-0 flex justify-end gap-2 border-t border-border-muted bg-bg/95 px-6 py-3 backdrop-blur">
+          <footer class="sticky bottom-0 flex justify-end gap-2 bg-panel/95 px-6 py-3 shadow-xs-up backdrop-blur">
             <UButton variant="ghost" color="neutral" @click="handleClose">
               {{ t('common.actions.cancel') }}
             </UButton>

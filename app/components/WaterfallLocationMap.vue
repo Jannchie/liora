@@ -170,7 +170,7 @@ function zoomBy(delta: number): void {
         :href="externalUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
+        class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
         :title="t('gallery.map.openExternal')"
         :aria-label="t('gallery.map.openExternal')"
       >
@@ -191,7 +191,7 @@ function zoomBy(delta: number): void {
       >
         <button
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
           :aria-label="t('gallery.map.zoomIn')"
           @click="zoomBy(1)"
         >
@@ -200,7 +200,7 @@ function zoomBy(delta: number): void {
         <div class="h-px bg-default/30" />
         <button
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
           :aria-label="t('gallery.map.zoomOut')"
           @click="zoomBy(-1)"
         >

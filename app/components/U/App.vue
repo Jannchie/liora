@@ -57,7 +57,7 @@ const iconColorClass: Record<ToastColor, string> = {
         <div
           v-for="item in toastStore.items"
           :key="item.id"
-          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-[var(--shadow-lg)] ring-1 ring-border"
+          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-lg ring-1 ring-border"
           :class="colorClass[item.color]"
           role="status"
         >
@@ -72,7 +72,7 @@ const iconColorClass: Record<ToastColor, string> = {
           </div>
           <button
             type="button"
-            class="shrink-0 rounded-md p-0.5 text-muted outline-none transition hover:bg-muted hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
+            class="shrink-0 rounded-md p-0.5 text-muted outline-none transition hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
             aria-label="Dismiss"
             @click="toast.remove(item.id)"
           >

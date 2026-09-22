@@ -64,6 +64,7 @@
   --shadow-md:  0 4px 12px -2px rgb(15 18 28 / 0.10), 0 2px 4px -2px rgb(15 18 28 / 0.06);
   --shadow-lg:  0 16px 40px -12px rgb(15 18 28 / 0.18), 0 4px 12px -4px rgb(15 18 28 / 0.08);
   --shadow-card:    0 1px 2px rgb(15 18 28 / 0.04);
+  --shadow-xs-up:   0 -1px 2px rgb(15 18 28 / 0.05);
   --shadow-overlay: 0 24px 64px -16px rgb(15 18 28 / 0.24), 0 8px 20px -8px rgb(15 18 28 / 0.10);
 
   /* ---------- semantic palette — LIGHT defaults ---------- */
@@ -76,6 +77,7 @@
   --color-primary-hover:  oklch(42% 0.17 18);
   --color-primary-active: oklch(36% 0.16 18);
   --color-primary-soft:   color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 20%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
   --color-primary-border: color-mix(in srgb, var(--color-primary) 30%, transparent);
   --color-on-primary:     #ffffff;
@@ -91,6 +93,17 @@
   --color-border-muted:  #e2e4ea;
   --color-border-strong: #b4bac6;
 
+  /* Chrome surfaces — the three fills that carry grouping where a border
+     used to. `chrome` is the admin's page ground, `panel` sits above it,
+     `sunken` below, so a well nested in a panel separates without a rule
+     between them. Kept apart from bg/default/muted, which the gallery
+     uses for its own purposes: the gallery wants a near-black ground to
+     set off photographs, the admin wants a ground close enough to its
+     panels that the page reads as one surface. */
+  --color-chrome: #eef0f4;
+  --color-panel:  #fbfbfd;
+  --color-sunken: #e4e6ec;
+
   /* Text ramp, tuned against --color-bg. Contrast is a constraint, not a
      style knob: `muted` and `dimmed` clear AA (4.5:1) at any size; `subtle`
      only clears AA-large (3:1), so it is for ≥18px or non-essential text.
@@ -105,12 +118,16 @@
   /* status */
   --color-error:        #b91c1c;
   --color-error-soft:   color-mix(in srgb, var(--color-error) 12%, transparent);
+  --color-error-soft-hover: color-mix(in srgb, var(--color-error) 20%, transparent);
   --color-warning:      #b45309;
   --color-warning-soft: color-mix(in srgb, var(--color-warning) 14%, transparent);
+  --color-warning-soft-hover: color-mix(in srgb, var(--color-warning) 22%, transparent);
   --color-success:      #047857;
   --color-success-soft: color-mix(in srgb, var(--color-success) 12%, transparent);
+  --color-success-soft-hover: color-mix(in srgb, var(--color-success) 20%, transparent);
   --color-info:         #0284c7;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 12%, transparent);
+  --color-info-soft-hover: color-mix(in srgb, var(--color-info) 20%, transparent);
 
   /* Photographic annotation — the AF point the camera reported, drawn on top
      of the image. Not a status: nothing succeeded. Held apart from the status
@@ -122,6 +139,19 @@
 
   --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 40%, transparent);
+
+  /* ---------- interaction overlays ----------
+     Hover and press feedback is a translucent *neutral* wash, never a
+     fixed grey. A fixed grey only works on one background: `bg-muted`
+     under a control reads as a lift on the page ground and as a hole on
+     a panel, because the panel is lighter than the grey. An overlay is
+     relative to whatever it sits on — always one notch darker in light
+     mode, one notch lighter in dark — so the same control behaves the
+     same on the page, on a panel and inside a sunken well. Named in the
+     `--color-*` namespace so Tailwind derives `bg-overlay-hover` /
+     `bg-overlay-active` from it, variants included. */
+  --color-overlay-hover:  rgb(15 18 28 / 0.055);
+  --color-overlay-active: rgb(15 18 28 / 0.10);
 
   /* ---------- z scale ---------- */
   --z-base: 1;
@@ -139,6 +169,7 @@
   --color-primary-hover:  oklch(68% 0.15 20);
   --color-primary-active: oklch(56% 0.14 20);
   --color-primary-soft:   color-mix(in srgb, var(--color-primary) 18%, transparent);
+  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 28%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --color-primary-border: color-mix(in srgb, var(--color-primary) 36%, transparent);
   --color-on-primary:     #0b0d12;
@@ -153,6 +184,14 @@
   --color-border-muted:  #1f1f22;
   --color-border-strong: #3f3f46;
 
+  /* The admin does not inherit the gallery's near-black ground: against
+     it, a panel bright enough to register reads as a lit box floating in
+     a void. The chrome ground comes up, the panel comes down, and the
+     two sit a couple of notches apart. */
+  --color-chrome: #131417;
+  --color-panel:  #191a1e;
+  --color-sunken: #0e0f11;
+
   --color-fg:             #f4f4f5;
   --color-fg-highlighted: #ffffff;
   --color-fg-toned:       #d4d4d8;
@@ -162,12 +201,16 @@
 
   --color-error:        #ef4444;
   --color-error-soft:   color-mix(in srgb, var(--color-error) 18%, transparent);
+  --color-error-soft-hover: color-mix(in srgb, var(--color-error) 28%, transparent);
   --color-warning:      #f59e0b;
   --color-warning-soft: color-mix(in srgb, var(--color-warning) 18%, transparent);
+  --color-warning-soft-hover: color-mix(in srgb, var(--color-warning) 28%, transparent);
   --color-success:      #10b981;
   --color-success-soft: color-mix(in srgb, var(--color-success) 16%, transparent);
+  --color-success-soft-hover: color-mix(in srgb, var(--color-success) 26%, transparent);
   --color-info:         #38bdf8;
   --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
+  --color-info-soft-hover: color-mix(in srgb, var(--color-info) 26%, transparent);
 
   /* On a near-black ground shadows need more weight to register. */
   --shadow-xs:  0 1px 2px rgb(0 0 0 / 0.4);
@@ -175,10 +218,16 @@
   --shadow-md:  0 4px 12px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
   --shadow-lg:  0 16px 40px -12px rgb(0 0 0 / 0.6), 0 4px 12px -4px rgb(0 0 0 / 0.45);
   --shadow-card:    0 1px 2px rgb(0 0 0 / 0.35);
+  --shadow-xs-up:   0 -1px 2px rgb(0 0 0 / 0.4);
   --shadow-overlay: 0 24px 64px -16px rgb(0 0 0 / 0.65), 0 8px 20px -8px rgb(0 0 0 / 0.4);
 
   --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
+
+  /* Lighten rather than darken, and carry a little more weight — on a
+     dark ground an equally-subtle wash disappears. */
+  --color-overlay-hover:  rgb(255 255 255 / 0.07);
+  --color-overlay-active: rgb(255 255 255 / 0.12);
 }
 
 /*
@@ -208,10 +257,30 @@ html.disable-transitions *::after {
 }
 
 /*
- * Utility shims — semantic helpers used across templates.
+ * Utility shims — semantic aliases used across templates.
+ *
+ * These are plain rules, so they work applied directly but generate
+ * NOTHING under a variant: `hover:text-foreground` produces no CSS at
+ * all. When a variant is needed, use the name Tailwind derives from the
+ * `@theme` token instead — `hover:text-fg`, `hover:text-fg-highlighted`,
+ * `hover:bg-overlay-hover` — which carries the full variant system.
+ *
+ * They cannot simply become `@utility`, which would register them
+ * properly: six of these names collide with utilities Tailwind already
+ * derives from `@theme`, and the theme-derived class wins. `--color-muted`
+ * yields `text-muted`/`bg-muted`/`border-muted`, but here `muted` names a
+ * background fill, while the matching foreground is `--color-fg-muted`
+ * and the border is `--color-border-muted`. These later rules override
+ * that — which is exactly why they cannot carry variants. The collisions
+ * are `text-default`, `text-muted`, `border-default`, `border-muted`,
+ * `border-primary-soft` and `ring-default`; fixing them properly means
+ * renaming the palette so each name maps to one role.
  */
 @layer utilities {
   .bg-bg            { background-color: var(--color-bg); }
+  .bg-chrome        { background-color: var(--color-chrome); }
+  .bg-panel         { background-color: var(--color-panel); }
+  .bg-sunken        { background-color: var(--color-sunken); }
   .bg-default       { background-color: var(--color-default); }
   .bg-muted         { background-color: var(--color-muted); }
   .bg-elevated      { background-color: var(--color-elevated); }
@@ -287,38 +356,34 @@ html.disable-transitions *::after {
     font-family: var(--stack-sans);
   }
 
-  /* Card surface — hairline border, soft rounding, a whisper of shadow.
-     The workhorse fill used by Card / Modal / panels. */
+  /* Card surface — a raised fill, not an outlined box.
+     Chrome groups things by *fill and whitespace*, not by drawing a frame
+     around every block: a page of outlined cards reads as a stack of
+     unrelated tiles. `--color-panel` sits one step above the chrome
+     ground in both themes, so the block separates on its own; the shadow
+     is a whisper that only lifts the edge. */
   .surface-card {
-    background-color: var(--color-default);
-    border: 1px solid var(--color-border-muted);
-    border-radius: var(--radius-lg);
+    background-color: var(--color-panel);
+    border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
   }
-  .surface-card-muted {
-    background-color: var(--color-bg);
-    border: 1px solid var(--color-border-muted);
+
+  /* Sunken surface — a well *inside* a card (stat tile, inline list,
+     read-only readout). One step down from the card fill, so nesting
+     reads without a rule between the two. */
+  .surface-sunken {
+    background-color: var(--color-sunken);
     border-radius: var(--radius-lg);
   }
 
-  /* Section rule — thin hairline divider between content blocks.
-     Drawn via a ::before so the line can bleed out to the container rails:
-     UContainer publishes `--page-px` (its current horizontal padding) and
-     the rule extends left/right by that amount. Outside a container the
-     variable defaults to 0, so the line sits inside the section's own box
-     (the legacy behaviour). */
-  .rule-bleed {
-    position: relative;
-  }
-  .rule-bleed::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    height: 1px;
-    background: var(--color-border);
-    left:  calc(-1 * var(--page-px, 0px));
-    right: calc(-1 * var(--page-px, 0px));
-    pointer-events: none;
+  /* The selected item in a segmented control or list: lifted out of a
+     sunken track with the panel fill. Used by the admin nav, the pill
+     tabs and the series list, which is why it is a class and not three
+     copies of the same three utilities. */
+  .chip-raised {
+    background-color: var(--color-panel);
+    color: var(--color-fg-highlighted);
+    box-shadow: var(--shadow-xs);
   }
 }
 

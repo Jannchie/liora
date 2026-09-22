@@ -188,15 +188,15 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-default shadow-[var(--shadow-md)] ring-1 ring-border"
+        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-panel shadow-lg"
       >
-        <div class="border-b border-border-muted p-2">
+        <div class="p-2 pb-1">
           <input
             ref="inputEl"
             v-model="query"
             type="text"
             :placeholder="placeholder"
-            class="w-full rounded bg-transparent px-2 py-1 text-sm outline-none placeholder:text-fg-dimmed"
+            class="w-full rounded-md bg-muted px-2 py-1.5 text-sm outline-none placeholder:text-fg-dimmed"
             @keydown.escape="open = false"
           >
         </div>
@@ -205,7 +205,7 @@ onBeforeUnmount(() => {
             v-for="item in filteredItems"
             :key="String(readField(item, valueKey))"
             type="button"
-            class="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-muted"
+            class="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-overlay-hover"
             :class="isSelected(item) ? 'bg-primary-soft text-primary' : 'text-foreground'"
             @click="toggleItem(item)"
           >

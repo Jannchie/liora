@@ -34,8 +34,8 @@ const captureTimeLocalModel = computed<string>({
       </p>
     </div>
     <AdminMetadataForm
-      :form="formModel"
       v-model:capture-time-local="captureTimeLocalModel"
+      :form="formModel"
       :classify-source="{ file: props.selectedFile }"
     />
   </div>

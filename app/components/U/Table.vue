@@ -1,4 +1,13 @@
 <script setup lang="ts" generic="Row extends object">
+/*
+ * Table — rows separated by rhythm, not by rules.
+ *
+ * A grid of hairlines turns a data list into a ledger and fights every
+ * other surface on the page. Instead: a quiet caption header, generous
+ * row height, and a fill that appears under the row on hover. The only
+ * line left is the one under the header, and even that is carried by the
+ * header's own fill rather than a border.
+ */
 import { computed } from 'vue'
 
 interface Column<R> {
@@ -49,13 +58,13 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
 
 <template>
   <div class="relative w-full" :class="ui?.wrapper">
-    <table class="w-full border-collapse" :class="ui?.table">
+    <table class="w-full border-separate border-spacing-0" :class="ui?.table">
       <thead :class="ui?.thead">
-        <tr class="border-b border-border" :class="ui?.tr">
+        <tr :class="ui?.tr">
           <th
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
-            class="px-3 py-2.5 text-left text-xs font-medium text-muted"
+            class="px-3 pb-2 pt-1 text-left text-xs font-medium text-muted"
             :class="ui?.th"
           >
             <slot :name="headerSlotName(column)" :column="(column as Column<Row>)">
@@ -82,13 +91,13 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
           v-for="(row, rowIndex) in data"
           v-else
           :key="rowIndex"
-          class="border-b border-border-muted transition-colors hover:bg-muted/40"
+          class="transition-colors hover:bg-overlay-hover"
           :class="ui?.tr"
         >
           <td
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
-            class="px-3 py-2.5 text-sm text-foreground"
+            class="px-3 py-2.5 text-sm text-foreground first:rounded-l-lg last:rounded-r-lg"
             :class="ui?.td"
           >
             <slot

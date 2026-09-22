@@ -9,6 +9,7 @@ interface BackfillCommand {
 
 const { t } = useI18n()
 definePageMeta({
+  layout: 'admin',
   middleware: 'admin-auth',
 })
 
@@ -87,66 +88,60 @@ async function run(command: BackfillCommand): Promise<void> {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <UContainer rails class="space-y-10 py-10">
-      <AdminNav />
+  <div class="space-y-8">
+    <UPageHeader
+      :title="t('admin.backfill.title')"
+      :description="t('admin.backfill.seoDescription')"
+    />
 
-      <UPageHeader
-        :eyebrow="t('admin.nav.label')"
-        icon="tabler:shield-check"
-        :title="t('admin.backfill.title')"
-        :description="t('admin.backfill.seoDescription')"
-      />
+    <UAlert
+      color="warning"
+      variant="soft"
+      icon="tabler:alert-triangle"
+      :title="t('admin.backfill.warningTitle')"
+      :description="t('admin.backfill.warningDescription')"
+    />
 
-      <UAlert
-        color="warning"
-        variant="soft"
-        icon="tabler:alert-triangle"
-        :title="t('admin.backfill.warningTitle')"
-        :description="t('admin.backfill.warningDescription')"
-      />
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <UCard
-          v-for="command in commands"
-          :key="command.key"
-        >
-          <template #header>
-            <div class="flex items-start gap-3">
-              <Icon :name="command.icon" class="mt-0.5 h-5 w-5 shrink-0 text-muted" />
-              <div class="min-w-0 space-y-1">
-                <h3 class="text-sm font-semibold text-highlighted">
-                  {{ t(`admin.backfill.commands.${command.key}.title`) }}
-                </h3>
-                <p class="text-xs text-muted">
-                  {{ t(`admin.backfill.commands.${command.key}.description`) }}
-                </p>
-              </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <UCard
+        v-for="command in commands"
+        :key="command.key"
+      >
+        <template #header>
+          <div class="flex items-start gap-3">
+            <Icon :name="command.icon" class="mt-0.5 h-5 w-5 shrink-0 text-muted" />
+            <div class="min-w-0 space-y-1">
+              <h3 class="text-sm font-semibold text-highlighted">
+                {{ t(`admin.backfill.commands.${command.key}.title`) }}
+              </h3>
+              <p class="text-xs text-muted">
+                {{ t(`admin.backfill.commands.${command.key}.description`) }}
+              </p>
             </div>
-          </template>
-
-          <div class="flex items-center justify-between gap-4">
-            <p class="min-w-0 text-sm text-muted">
-              <template v-if="results[command.key]">
-                {{ results[command.key] }}
-              </template>
-              <template v-else>
-                {{ t('admin.backfill.result.none') }}
-              </template>
-            </p>
-            <UButton
-              color="primary"
-              size="sm"
-              icon="tabler:play"
-              :loading="runningKey === command.key"
-              :disabled="runningKey !== null"
-              @click="run(command)"
-            >
-              {{ runningKey === command.key ? t('admin.backfill.running') : t('admin.backfill.run') }}
-            </UButton>
           </div>
-        </UCard>
-      </div>
-    </UContainer>
+        </template>
+
+        <div class="flex items-center justify-between gap-4">
+          <p class="min-w-0 text-sm text-muted">
+            <template v-if="results[command.key]">
+              {{ results[command.key] }}
+            </template>
+            <template v-else>
+              {{ t('admin.backfill.result.none') }}
+            </template>
+          </p>
+          <UButton
+            color="primary"
+            size="sm"
+            icon="tabler:play"
+            :loading="runningKey === command.key"
+            :disabled="runningKey !== null"
+            @click="run(command)"
+          >
+            {{ runningKey === command.key ? t('admin.backfill.running') : t('admin.backfill.run') }}
+          </UButton>
+        </div>
+      </UCard>
+    </div>
   </div>
 </template>

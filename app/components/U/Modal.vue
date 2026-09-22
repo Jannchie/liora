@@ -96,7 +96,9 @@ const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
 }
 
 const contentClass = computed(() => {
-  const base = 'relative bg-default text-foreground shadow-[var(--shadow-overlay)] ring-1 ring-border-muted'
+  // No ring: the overlay shadow and the dimmed backdrop already lift the
+  // dialog off the page, and an outline on top of both reads as a seam.
+  const base = 'relative bg-panel text-foreground shadow-overlay'
   if (props.fullscreen) {
     return `${base} h-full w-full overflow-hidden`
   }
@@ -137,7 +139,7 @@ const contentClass = computed(() => {
               :class="[contentClass, ui?.content]"
               @click.stop
             >
-              <header v-if="title || description" class="flex items-start justify-between gap-3 border-b border-border-muted px-5 py-4">
+              <header v-if="title || description" class="flex items-start justify-between gap-3 px-5 pb-2 pt-5">
                 <div class="space-y-1">
                   <h3 v-if="title" class="text-base font-semibold text-highlighted">
                     {{ title }}
@@ -149,14 +151,14 @@ const contentClass = computed(() => {
                 <button
                   v-if="closable"
                   type="button"
-                  class="rounded-md p-1 text-muted outline-none transition hover:bg-muted hover:text-highlighted focus-visible:shadow-[var(--ring-focus)]"
+                  class="rounded-md p-1 text-muted outline-none transition hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
                   aria-label="Close"
                   @click="close"
                 >
                   <Icon name="tabler:x" class="h-4 w-4" />
                 </button>
               </header>
-              <div class="px-5 py-5">
+              <div class="px-5 pb-5 pt-3">
                 <slot />
               </div>
             </div>
