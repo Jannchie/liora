@@ -1,3 +1,19 @@
+## v0.42.0
+
+[v0.41.0...v0.42.0](https://github.com/Jannchie/liora/compare/v0.41.0...v0.42.0)
+
+### :adhesive_bandage: Fixes
+
+- **exif**: write GPS to the coordinate fields, not the address ones - By [Jannchie](mailto:jannchie@gmail.com) in [f545b7d](https://github.com/Jannchie/liora/commit/f545b7d)
+
+### :art: Refactors
+
+- **admin**: group by fill and whitespace instead of borders - By [Jannchie](mailto:jannchie@gmail.com) in [cfd8a36](https://github.com/Jannchie/liora/commit/cfd8a36)
+
+### :wrench: Chores
+
+- **backfill**: fix pre-existing lint and type errors - By [Jannchie](mailto:jannchie@gmail.com) in [3c5a3d3](https://github.com/Jannchie/liora/commit/3c5a3d3)
+
 ## v0.41.0
 
 [v0.40.0...v0.41.0](https://github.com/Jannchie/liora/compare/v0.40.0...v0.41.0)
