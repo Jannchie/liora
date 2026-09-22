@@ -1,6 +1,7 @@
 import type { GeocodeResult, MediaFormState } from '~/types/admin'
 import { computed, ref } from 'vue'
 import { useI18n, useToast } from '#imports'
+import { readCoordinate } from '~/utils/exif-format'
 
 export function useLocationSearch(form: MediaFormState) {
   const { t } = useI18n()
@@ -24,8 +25,8 @@ export function useLocationSearch(form: MediaFormState) {
   }
 
   const getFormCoordinates = (): { latitude: number, longitude: number } | null => {
-    const latitude = Number.isFinite(form.latitude) ? Number(form.latitude) : null
-    const longitude = Number.isFinite(form.longitude) ? Number(form.longitude) : null
+    const latitude = readCoordinate(form.latitude)
+    const longitude = readCoordinate(form.longitude)
     if (latitude === null || longitude === null) {
       return null
     }
@@ -33,10 +34,10 @@ export function useLocationSearch(form: MediaFormState) {
   }
 
   const applyGeocodeResult = (result: GeocodeResult): void => {
-    const safeLat = Number.isFinite(result.latitude) ? Number.parseFloat(result.latitude.toFixed(6)) : null
-    const safeLon = Number.isFinite(result.longitude) ? Number.parseFloat(result.longitude.toFixed(6)) : null
-    const hasLatitude = form.latitude !== null && form.latitude !== undefined && !Number.isNaN(form.latitude)
-    const hasLongitude = form.longitude !== null && form.longitude !== undefined && !Number.isNaN(form.longitude)
+    const safeLat = readCoordinate(result.latitude)
+    const safeLon = readCoordinate(result.longitude)
+    const hasLatitude = readCoordinate(form.latitude) !== null
+    const hasLongitude = readCoordinate(form.longitude) !== null
     if (safeLat !== null && !hasLatitude) {
       form.latitude = safeLat
     }

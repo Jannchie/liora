@@ -5,7 +5,6 @@ import {
   formatColorSpace,
   formatExposureBias,
   formatFocal,
-  formatLocation,
   formatResolutionUnit,
   formatResolutionValue,
   formatShutter,
@@ -57,19 +56,6 @@ describe('app/utils/exif-format', () => {
 
     it('prefers exact option matches over substring aliases', () => {
       expect(normalizeToOption('Pattern', stringOptions, { pat: 'Spot' })).toBe('Pattern')
-    })
-  })
-
-  describe('formatlocation', () => {
-    it('formats a coordinate pair to six decimal places', () => {
-      expect(formatLocation(35.658_581, 139.745_433)).toBe('35.658581, 139.745433')
-      expect(formatLocation(0, 0)).toBe('0.000000, 0.000000')
-    })
-
-    it('returns empty string when either coordinate is missing', () => {
-      expect(formatLocation(undefined, 139.745_433)).toBe('')
-      expect(formatLocation(35.658_581, undefined)).toBe('')
-      expect(formatLocation(undefined, undefined)).toBe('')
     })
   })
 

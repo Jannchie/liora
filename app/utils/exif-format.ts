@@ -44,11 +44,17 @@ export function normalizeToOption(
   return normalized
 }
 
-export function formatLocation(latitude: number | undefined, longitude: number | undefined): string {
-  if (latitude === undefined || longitude === undefined) {
-    return ''
+/**
+ * A GPS tag as a usable coordinate, or null when it is absent or
+ * unusable. Rounded to six decimals (~11cm) — the precision the admin
+ * form and the geocoder both work in, so a photo lands on the same
+ * numbers whether it came through upload or through backfill.
+ */
+export function readCoordinate(value: number | null | undefined): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    return null
   }
-  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`
+  return Number.parseFloat(value.toFixed(6))
 }
 
 export function textFrom(value: string | string[] | undefined): string {

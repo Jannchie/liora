@@ -8,11 +8,11 @@ import {
   formatColorSpace,
   formatExposureBias,
   formatFocal,
-  formatLocation,
   formatResolutionUnit,
   formatResolutionValue,
   formatShutter,
   normalizeToOption,
+  readCoordinate,
   textFrom,
 } from '../../../app/utils/exif-format'
 import { db, files as filesTable } from '../../utils/db'
@@ -423,15 +423,11 @@ function mergeMetadata(existing: ParsedMetadata, exif: ExifResult): MergeResult 
     merged.captureTime = captureTime
   }
 
-  merged.latitude ??= exif.latitude ?? null
-  merged.longitude ??= exif.longitude ?? null
-  const locationText = formatLocation(exif.latitude, exif.longitude)
-  if (!merged.location && locationText) {
-    merged.location = locationText
-  }
-  if (!merged.locationName && locationText) {
-    merged.locationName = locationText
-  }
+  // GPS lands in the coordinate fields only. `location` / `locationName`
+  // hold the human-readable address and place name, which come from
+  // (reverse) geocoding — a raw lat/lon string does not belong there.
+  merged.latitude ??= readCoordinate(exif.latitude)
+  merged.longitude ??= readCoordinate(exif.longitude)
 
   return { metadata: merged, cameraModel: normalizedCamera }
 }

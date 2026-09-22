@@ -7,11 +7,11 @@ import {
   formatColorSpace,
   formatExposureBias,
   formatFocal,
-  formatLocation,
   formatResolutionUnit,
   formatResolutionValue,
   formatShutter,
   normalizeToOption,
+  readCoordinate,
   textFrom,
 } from '~/utils/exif-format'
 import {
@@ -121,7 +121,8 @@ export function useExifExtraction(): {
 
       const model = [parsed.Make, parsed.Model].filter(Boolean).join(' ').trim()
       const lens = parsed.LensModel ?? ''
-      const locationText = formatLocation(parsed.latitude, parsed.longitude)
+      const latitude = readCoordinate(parsed.latitude)
+      const longitude = readCoordinate(parsed.longitude)
       const description = textFrom(parsed.ImageDescription ?? parsed.XPComment ?? textFrom(parsed.XPKeywords))
       const aperture = formatAperture(parsed.FNumber)
       const shutter = formatShutter(parsed.ExposureTime, parsed.ShutterSpeedValue)
@@ -150,9 +151,14 @@ export function useExifExtraction(): {
       if (lens) {
         form.lensModel = lens
       }
-      if (locationText) {
-        form.location = locationText
-        form.locationName = locationText
+      // GPS goes to the coordinate fields only. `location` / `locationName`
+      // are the human-readable address and place name — they are filled by
+      // (reverse) geocoding, never by a raw lat/lon string.
+      if (latitude !== null) {
+        form.latitude = latitude
+      }
+      if (longitude !== null) {
+        form.longitude = longitude
       }
       if (description && !form.description) {
         form.description = description
