@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LightroomRecipeView, LlrRecipeView, MetadataEntry } from '~/types/gallery'
+import type { LightroomRecipeView, LlrRecipeView, MetadataEntry, RecipeAdjustmentGroup } from '~/types/gallery'
 import { computed, defineAsyncComponent } from 'vue'
 
 const props = defineProps<{
@@ -139,9 +139,32 @@ const llrBadges = computed<string[]>(() => {
   return [
     recipe.version ? `v${recipe.version}` : null,
     recipe.profile ? `${t('gallery.metadata.llrProfile')}: ${recipe.profile}` : null,
+    recipe.dcp ? `${t('gallery.metadata.llrStyle')}: ${recipe.dcp}` : null,
+    recipe.lookStyle ? `${t('gallery.metadata.llrLook')}: ${recipe.lookStyle}` : null,
+    recipe.dro ? `DRO ${recipe.dro}` : null,
     recipe.denoise ? `${t('gallery.metadata.llrDenoise')}: ${recipe.denoise}` : null,
     recipe.aspect ? `${t('gallery.metadata.llrAspect')}: ${recipe.aspect}` : null,
+    recipe.geometry ? `${t('gallery.metadata.llrGeometry')}: ${recipe.geometry}` : null,
+    ...recipe.toggles,
+    ...recipe.bypass.map(module => `${t('gallery.metadata.llrBypass')}: ${module}`),
   ].filter((badge): badge is string => badge !== null)
+})
+
+// The Creative Look's tweaks are a group of their own: they drive Sony's own
+// stages rather than the Tone panel's sliders, so they do not belong among the
+// global adjustments.
+const llrGroups = computed<RecipeAdjustmentGroup[]>(() => {
+  const recipe = llrRecipe.value
+  if (!recipe) {
+    return []
+  }
+  if (recipe.lookItems.length === 0) {
+    return recipe.groups
+  }
+  return [
+    ...recipe.groups,
+    { key: 'look', label: t('gallery.metadata.llrLookGroup'), items: recipe.lookItems },
+  ]
 })
 
 const totalEntryCount = computed<number>(() => {
@@ -237,7 +260,8 @@ const totalEntryCount = computed<number>(() => {
           :title="t('gallery.metadata.llr')"
           :badges="llrBadges"
           :tone-curve="llrRecipe.toneCurve"
-          :groups="llrRecipe.groups"
+          :groups="llrGroups"
+          :masks="llrRecipe.masks"
         />
         <WaterfallRecipeCard
           v-if="lightroomRecipe"

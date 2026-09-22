@@ -1,17 +1,21 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
-import type { RecipeAdjustmentGroup, RecipeAdjustmentItem, RecipeCurvePoint, RecipeToneCurve } from '~/types/gallery'
+import type { LlrMaskView, RecipeAdjustmentGroup, RecipeAdjustmentItem, RecipeCurvePoint, RecipeToneCurve } from '~/types/gallery'
 import { computed } from 'vue'
 
 // Renders one editor's recipe: badge row, tone curve, then the slider groups.
 // Shared by the Lightroom (`crs:*`) and LLR (`llr:*`) cards — the two differ
 // only in which badges they supply, so the drawing lives here once.
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   title: string
   badges?: string[]
   toneCurve?: RecipeToneCurve | null
   groups: RecipeAdjustmentGroup[]
-}>()
+  /** Local adjustments, each with its own selection. */
+  masks?: LlrMaskView[]
+}>(), {
+  masks: () => [],
+})
 
 const { t } = useI18n()
 
@@ -162,6 +166,60 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
           <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
           <span>{{ channel.label }}</span>
         </span>
+      </div>
+    </div>
+    <div v-if="masks.length > 0" class="space-y-2">
+      <div
+        v-for="(mask, maskIndex) in masks"
+        :key="mask.key"
+        class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
+      >
+        <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <p class="label-caption-sm flex items-center gap-1.5">
+            <Icon name="tabler:mask" class="h-3.5 w-3.5" />
+            <span class="text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
+          </p>
+          <span v-if="mask.disabled || mask.inverted" class="flex gap-1">
+            <span v-if="mask.inverted" class="rounded-full bg-default/30 px-1.5 py-0.5 text-[10px] text-muted">
+              {{ t('gallery.metadata.llrMaskInverted') }}
+            </span>
+            <span v-if="mask.disabled" class="rounded-full bg-default/30 px-1.5 py-0.5 text-[10px] text-muted">
+              {{ t('gallery.metadata.llrMaskDisabled') }}
+            </span>
+          </span>
+        </div>
+        <p v-if="mask.components.length > 0" class="flex flex-wrap gap-1">
+          <span
+            v-for="(component, componentIndex) in mask.components"
+            :key="`${mask.key}-c${componentIndex}`"
+            class="inline-flex items-center rounded bg-default/25 px-1.5 py-0.5 text-[10px] text-muted ring-1 ring-default/10"
+          >
+            {{ component }}
+          </span>
+        </p>
+        <div v-if="mask.items.length > 0" class="space-y-1.5">
+          <div
+            v-for="item in mask.items"
+            :key="`${mask.key}-${item.key}`"
+            class="grid gap-1"
+          >
+            <div class="flex items-center justify-between text-[11px] text-muted">
+              <span class="font-medium text-highlighted">{{ item.label }}</span>
+              <span>{{ formatAdjustmentValue(item) }}</span>
+            </div>
+            <div class="relative h-px rounded bg-accented ring-1 ring-default/10">
+              <div
+                v-if="isZeroCentered(item)"
+                class="pointer-events-none absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-default/60"
+              />
+              <div
+                class="absolute bottom-0 top-0 rounded"
+                :class="sliderFillClass(item)"
+                :style="buildSliderFillStyle(item)"
+              />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     <div class="space-y-2">

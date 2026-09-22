@@ -88,13 +88,44 @@ export interface LightroomRecipeView {
 // LLR (~/llr) writes its own XMP schema rather than Adobe's camera-raw
 // settings, so its recipe carries fields Lightroom has no equivalent for
 // (lens correction strength, RAW-domain denoise, the auto-selected DCP).
+/**
+ * One local-adjustment mask from an LLR recipe: the selection (up to four
+ * analytic components combined with add / subtract / intersect) and the
+ * slider deltas applied inside it.
+ */
+export interface LlrMaskView {
+  key: string
+  name?: string
+  disabled: boolean
+  inverted: boolean
+  /** Human-readable selection, one entry per component. */
+  components: string[]
+  items: RecipeAdjustmentItem[]
+}
+
 export interface LlrRecipeView {
   version?: string
+  /** Rendering profile (`sony`, `standard`, …). */
   profile?: string
+  /** DCP / Creative Look style baked into the profile. */
+  dcp?: string
+  /** Sony Creative Look style code, when overridden from as-shot. */
+  lookStyle?: string
+  /** Creative Look tweaks, on Imaging Edge Edit's own panel scale. */
+  lookItems: RecipeAdjustmentItem[]
+  /** Resolved DRO state: off / auto / a level. */
+  dro?: string
   denoise?: string
   aspect?: string
+  /** Crop, rotation, flips and perspective, when any of them moved. */
+  geometry?: string
+  /** Modules explicitly bypassed in the editor. */
+  bypass: string[]
+  /** Camera-matching toggles that are not at their default. */
+  toggles: string[]
   toneCurve?: RecipeToneCurve
   groups: RecipeAdjustmentGroup[]
+  masks: LlrMaskView[]
 }
 
 export interface SocialLink {

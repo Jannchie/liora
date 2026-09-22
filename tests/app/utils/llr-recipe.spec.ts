@@ -145,13 +145,129 @@ describe('app/utils/llr-recipe', () => {
       aspect: '16:9',
       version: '1',
     }))
-    expect(view?.denoise).toBe('wavelet 80%')
-    expect(view?.profile).toBe('Sony ILCE-7RM5 Camera Standard')
+    expect(view?.denoise).toBe('wavelet · 80%')
+    // `dcp` is the camera style; `profile` is the rendering pipeline. They
+    // used to be read from the same field, which hid the profile entirely.
+    expect(view?.dcp).toBe('Sony ILCE-7RM5 Camera Standard')
     expect(view?.aspect).toBe('16:9')
     expect(view?.version).toBe('1')
   })
 
   it('treats the untouched "orig" aspect as no framing choice', () => {
     expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } }))?.aspect).toBeUndefined()
+  })
+
+  // A recipe whose global sliders all sit at their defaults is not an empty
+  // recipe: the work can live entirely in a mask, as it does on the frames
+  // this was written against.
+  it('reads a recipe whose only edit is a mask', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      masks: [{
+        id: 'crl3lv',
+        enabled: true,
+        invert: false,
+        components: [
+          { op: 'add', invert: false, type: 'radial', cx: 0.5, cy: 0.76, rx: 0.22, ry: 0.3, angle: 0, feather: 1 },
+          { op: 'intersect', invert: false, type: 'luminance', lo: 0, hi: 45, featherLo: 25, featherHi: 25 },
+        ],
+        adjust: { exposure: 0.22, shadows: 40, temperature: 0, tint: 0, saturation: 0, vibrance: 0, highlights: 0, clarity: 0, dehaze: 0, hue: 0, tintHue: 0, tintSat: 0 },
+        name: 'Subject shadows',
+      }],
+    }))
+    expect(view).not.toBeNull()
+    expect(view?.groups).toEqual([])
+    expect(view?.masks).toHaveLength(1)
+    const mask = view!.masks[0]!
+    expect(mask.name).toBe('Subject shadows')
+    expect(mask.disabled).toBe(false)
+    // The leading component has nothing to combine with, so it carries no operator.
+    expect(mask.components).toEqual(['Radial', '∩ Luminance 0–45'])
+    expect(mask.items.map(item => item.label)).toEqual(['Exposure', 'Shadows'])
+    expect(mask.items[0]?.value).toBeCloseTo(0.22)
+  })
+
+  it('skips masks that select nothing and adjust nothing', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      recipe: { exposure: 1 },
+      masks: [{ id: 'empty', enabled: true, invert: false, components: [], adjust: {} }],
+    }))
+    expect(view?.masks).toEqual([])
+  })
+
+  it('flags a mask that is inverted or switched off', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      masks: [{
+        id: 'm1',
+        enabled: false,
+        invert: true,
+        components: [{ op: 'add', invert: true, type: 'linear', x0: 0.5, y0: 0.15, x1: 0.5, y1: 0.55 }],
+        adjust: { exposure: -0.5 },
+      }],
+    }))
+    const mask = view!.masks[0]!
+    expect(mask.disabled).toBe(true)
+    expect(mask.inverted).toBe(true)
+    expect(mask.components).toEqual(['Linear (inverted)'])
+  })
+
+  it('reads the creative look, its style and dro', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      look: { contrast: 22, highlights: -30, shadows: -31, white: -26, black: 0, fade: 0, hue: 0, saturation: -10, clarity: 20 },
+      lookStyle: 'FL',
+      dro: 1,
+      droLevel: 70,
+    }))
+    expect(view?.lookStyle).toBe('FL')
+    expect(view?.dro).toBe('Lv70')
+    expect(view?.lookItems.map(item => item.label)).toEqual([
+      'Contrast',
+      'Highlights',
+      'Shadows',
+      'White',
+      'Saturation',
+      'Clarity',
+    ])
+  })
+
+  // Strength zero is off whatever level is selected — the same way LLR's own
+  // worker resolves the two fields.
+  it('reports dro off when the strength is zero', () => {
+    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 0, droLevel: 70 }))?.dro).toBe('off')
+  })
+
+  it('reports dro auto when no level is chosen', () => {
+    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 1, droLevel: -1 }))?.dro).toBe('auto 1')
+  })
+
+  it('describes the current denoiser block', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      denoise: { enabled: true, auto: true, amount: 100, edge: 100, chroma: 50 },
+    }))
+    // edge moved off 50, chroma did not.
+    expect(view?.denoise).toBe('auto · 100% · edge 100')
+  })
+
+  it('reports geometry only for the parts that moved', () => {
+    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } }))?.geometry).toBeUndefined()
+    const view = parseLlrRecipeView(buildSettings({
+      crop: { cx: 0.5, cy: 0.56, w: 0.88, h: 0.88, angle: 1.5, flipH: true, flipV: false, orientation: 0, xf: { vertical: 0, horizontal: 0, aspect: 0, scale: 105, offsetX: 0, offsetY: 0 } },
+    }))
+    expect(view?.geometry).toBe('crop 88% × 88% · rotate 1.5° · flip H · scale 105')
+  })
+
+  it('reports bypassed modules and camera-match toggles', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      bypass: ['clarity', 'dehaze'],
+      sonyAdvancedColour: true,
+      sonyCameraMatch: false,
+    }))
+    expect(view?.bypass).toEqual(['clarity', 'dehaze'])
+    expect(view?.toggles).toEqual(['Advanced colour', 'Camera match off'])
+  })
+
+  it('reads the rendering profile separately from the camera style', () => {
+    const view = parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, profile: 'sony', dcp: 'FL' }))
+    expect(view?.profile).toBe('sony')
+    expect(view?.dcp).toBe('FL')
   })
 })
