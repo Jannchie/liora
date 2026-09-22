@@ -3,13 +3,6 @@ import { db, files } from '../../utils/db'
 import { logger } from '../../utils/logger'
 import { computePerceptualHash, computeSha256, generateArthash } from './image'
 
-interface ParsedMetadata {
-  arthash?: unknown
-  perceptualHash?: unknown
-  sha256?: unknown
-  [key: string]: unknown
-}
-
 function parseMetadata(raw: string): Record<string, unknown> {
   try {
     return JSON.parse(raw) as Record<string, unknown>

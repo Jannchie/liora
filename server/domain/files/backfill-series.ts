@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, sql } from 'drizzle-orm'
-import { slugifySeriesTitle } from '../series/service'
 import { db, files, series, seriesFiles } from '../../utils/db'
 import { logger } from '../../utils/logger'
+import { slugifySeriesTitle } from '../series/service'
 
 interface FileCandidate {
   id: number
@@ -160,7 +160,8 @@ export async function backfillSeries(): Promise<SeriesBackfillSummary> {
       .from(seriesFiles)
       .where(eq(seriesFiles.seriesId, targetSeries.id))
 
-    const baseSort = Number.isInteger(currentMaxOrder[0]?.maxSort) ? currentMaxOrder[0].maxSort : 0
+    const maxSort = currentMaxOrder[0]?.maxSort
+    const baseSort = Number.isInteger(maxSort) ? Number(maxSort) : 0
     const newEntries = orderedIds.filter(fileId => !existingSet.has(fileId))
 
     if (newEntries.length > 0) {
