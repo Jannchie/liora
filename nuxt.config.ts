@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
+import jannchieIcons from './app/assets/icons/jannchie.json'
 
 const arthashWasmPath = fileURLToPath(
   new URL('node_modules/arthash/wasm/pkg/arthash_wasm_bg.wasm', import.meta.url),
@@ -268,6 +269,10 @@ export default defineNuxtConfig({
         { src: '/pwa-512x512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
       ],
     },
+  },
+  icon: {
+    // Subset vendored by `pnpm icons:generate`; brand logos stay on tabler.
+    customCollections: [jannchieIcons],
   },
   eslint: {
     config: {
