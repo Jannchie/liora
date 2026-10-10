@@ -1,3 +1,16 @@
+## v0.43.0
+
+[v0.42.0...v0.43.0](https://github.com/Jannchie/liora/compare/v0.42.0...v0.43.0)
+
+### :sparkles: Features
+
+- **ui**: restyle admin and gallery after the Jannchie Icons wireframe - By [Jannchie](mailto:jannchie@gmail.com) in [8702412](https://github.com/Jannchie/liora/commit/8702412)
+- **gallery**: surface the whole LLR recipe, masks included - By [Jannchie](mailto:jannchie@gmail.com) in [956fbb1](https://github.com/Jannchie/liora/commit/956fbb1)
+
+### :wrench: Chores
+
+- **icons**: vendor the used Jannchie Icons subset as a custom collection - By [Jannchie](mailto:jannchie@gmail.com) in [34880ac](https://github.com/Jannchie/liora/commit/34880ac)
+
 ## v0.42.0
 
 [v0.41.0...v0.42.0](https://github.com/Jannchie/liora/compare/v0.41.0...v0.42.0)
