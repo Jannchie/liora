@@ -4,7 +4,7 @@ import type { LlrMaskView, RecipeAdjustmentGroup, RecipeAdjustmentItem, RecipeCu
 import { computed } from 'vue'
 
 // Renders one editor's recipe: badge row, tone curve, then the slider groups.
-// Shared by the Lightroom (`crs:*`) and LLR (`llr:*`) cards — the two differ
+// Shared by the Lightroom (`crs:*`) and LLR (`llr:*`) sections — the two differ
 // only in which badges they supply, so the drawing lives here once.
 const props = withDefaults(defineProps<{
   title: string
@@ -113,148 +113,148 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
 </script>
 
 <template>
-  <div class="grid gap-2 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15">
-    <p class="flex items-center gap-2 text-xs font-medium text-muted">
-      <Icon name="tabler:adjustments-horizontal" class="h-4 w-4" />
-      <span>{{ title }}</span>
-    </p>
-    <div v-if="(badges?.length ?? 0) > 0 || toneCurveName" class="flex flex-wrap gap-1.5">
-      <span
-        v-for="badge in badges ?? []"
-        :key="badge"
-        class="inline-flex items-center rounded-full bg-default/30 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
-      >
-        {{ badge }}
-      </span>
-      <span
-        v-if="toneCurveName"
-        class="inline-flex items-center rounded-full bg-default/30 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
-      >
-        {{ `Curve ${toneCurveName}` }}
-      </span>
-    </div>
-    <div
-      v-if="toneCurveChannels.length > 0"
-      class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
-    >
-      <div class="flex items-center justify-between label-caption-sm">
-        <span>{{ t('gallery.metadata.toneCurve') }}</span>
-        <span v-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
-      </div>
-      <svg
-        viewBox="0 0 255 255"
-        class="h-28 w-full rounded border border-default/10 bg-default/20"
-        role="img"
-        :aria-label="t('gallery.metadata.toneCurve')"
-      >
-        <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
-        <path
-          v-for="channel in toneCurveChannels"
-          :key="channel.key"
-          :d="buildToneCurvePath(channel.points)"
-          :stroke="channel.color"
-          stroke-width="2"
-          fill="none"
-        />
-      </svg>
-      <div class="flex flex-wrap gap-1">
+  <!--
+    One section of the viewer's info column. The head carries the caption,
+    the badges as hairline pills and the tone curve; masks and slider groups
+    follow as sub-blocks split by full-width hairlines rather than nested cards.
+  -->
+  <section class="border-b border-border">
+    <div class="space-y-3 px-5 py-4">
+      <p class="label-caption flex items-center gap-1.5 text-dimmed">
+        <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
+        <span>{{ title }}</span>
+      </p>
+      <div v-if="(badges?.length ?? 0) > 0 || toneCurveName" class="flex flex-wrap gap-1">
         <span
-          v-for="channel in toneCurveChannels"
-          :key="`${channel.key}-legend`"
-          class="inline-flex items-center gap-1 rounded-full bg-default/25 px-2 py-0.5 text-[10px] text-muted ring-1 ring-default/15"
+          v-for="badge in badges ?? []"
+          :key="badge"
+          class="inline-flex items-center rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
         >
-          <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
-          <span>{{ channel.label }}</span>
+          {{ badge }}
+        </span>
+        <span
+          v-if="toneCurveName"
+          class="inline-flex items-center rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
+        >
+          {{ `Curve ${toneCurveName}` }}
         </span>
       </div>
-    </div>
-    <div v-if="masks.length > 0" class="space-y-2">
-      <div
-        v-for="(mask, maskIndex) in masks"
-        :key="mask.key"
-        class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
-      >
-        <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <p class="label-caption-sm flex items-center gap-1.5">
-            <Icon name="tabler:mask" class="h-3.5 w-3.5" />
-            <span class="text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
-          </p>
-          <span v-if="mask.disabled || mask.inverted" class="flex gap-1">
-            <span v-if="mask.inverted" class="rounded-full bg-default/30 px-1.5 py-0.5 text-[10px] text-muted">
-              {{ t('gallery.metadata.llrMaskInverted') }}
-            </span>
-            <span v-if="mask.disabled" class="rounded-full bg-default/30 px-1.5 py-0.5 text-[10px] text-muted">
-              {{ t('gallery.metadata.llrMaskDisabled') }}
-            </span>
-          </span>
+      <div v-if="toneCurveChannels.length > 0" class="space-y-2">
+        <div class="label-caption-sm flex items-center justify-between text-dimmed">
+          <span>{{ t('gallery.metadata.toneCurve') }}</span>
+          <span v-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
         </div>
-        <p v-if="mask.components.length > 0" class="flex flex-wrap gap-1">
+        <svg
+          viewBox="0 0 255 255"
+          class="h-28 w-full rounded-md border border-border bg-muted"
+          role="img"
+          :aria-label="t('gallery.metadata.toneCurve')"
+        >
+          <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
+          <path
+            v-for="channel in toneCurveChannels"
+            :key="channel.key"
+            :d="buildToneCurvePath(channel.points)"
+            :stroke="channel.color"
+            stroke-width="2"
+            fill="none"
+          />
+        </svg>
+        <div class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
           <span
-            v-for="(component, componentIndex) in mask.components"
-            :key="`${mask.key}-c${componentIndex}`"
-            class="inline-flex items-center rounded bg-default/25 px-1.5 py-0.5 text-[10px] text-muted ring-1 ring-default/10"
+            v-for="channel in toneCurveChannels"
+            :key="`${channel.key}-legend`"
+            class="inline-flex items-center gap-1.5"
           >
-            {{ component }}
+            <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
+            <span>{{ channel.label }}</span>
           </span>
+        </div>
+      </div>
+    </div>
+    <div
+      v-for="(mask, maskIndex) in masks"
+      :key="mask.key"
+      class="space-y-2 border-t border-border px-5 py-3"
+    >
+      <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <p class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+          <Icon name="jannchie:fill-mask" class="h-3.5 w-3.5" />
+          <span class="text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
         </p>
-        <div v-if="mask.items.length > 0" class="space-y-1.5">
-          <div
-            v-for="item in mask.items"
-            :key="`${mask.key}-${item.key}`"
-            class="grid gap-1"
-          >
-            <div class="flex items-center justify-between text-[11px] text-muted">
-              <span class="font-medium text-highlighted">{{ item.label }}</span>
-              <span>{{ formatAdjustmentValue(item) }}</span>
-            </div>
-            <div class="relative h-px rounded bg-accented ring-1 ring-default/10">
-              <div
-                v-if="isZeroCentered(item)"
-                class="pointer-events-none absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-default/60"
-              />
-              <div
-                class="absolute bottom-0 top-0 rounded"
-                :class="sliderFillClass(item)"
-                :style="buildSliderFillStyle(item)"
-              />
-            </div>
+        <span v-if="mask.disabled || mask.inverted" class="flex gap-1">
+          <span v-if="mask.inverted" class="rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted">
+            {{ t('gallery.metadata.llrMaskInverted') }}
+          </span>
+          <span v-if="mask.disabled" class="rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted">
+            {{ t('gallery.metadata.llrMaskDisabled') }}
+          </span>
+        </span>
+      </div>
+      <p v-if="mask.components.length > 0" class="flex flex-wrap gap-1">
+        <span
+          v-for="(component, componentIndex) in mask.components"
+          :key="`${mask.key}-c${componentIndex}`"
+          class="inline-flex items-center rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted"
+        >
+          {{ component }}
+        </span>
+      </p>
+      <div v-if="mask.items.length > 0" class="space-y-2">
+        <div
+          v-for="item in mask.items"
+          :key="`${mask.key}-${item.key}`"
+          class="grid gap-1"
+        >
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-foreground">{{ item.label }}</span>
+            <span class="font-mono text-highlighted">{{ formatAdjustmentValue(item) }}</span>
+          </div>
+          <div class="relative h-0.5 bg-border-strong">
+            <div
+              v-if="isZeroCentered(item)"
+              class="pointer-events-none absolute -top-0.5 -bottom-0.5 left-1/2 w-px -translate-x-1/2 bg-fg-dimmed"
+            />
+            <div
+              class="absolute bottom-0 top-0"
+              :class="sliderFillClass(item)"
+              :style="buildSliderFillStyle(item)"
+            />
           </div>
         </div>
       </div>
     </div>
-    <div class="space-y-2">
-      <div
-        v-for="group in groups"
-        :key="group.key"
-        class="space-y-1.5 rounded-md border border-default/10 bg-default/40 px-2 py-2"
-      >
-        <p class="label-caption-sm">
-          {{ group.label }}
-        </p>
-        <div class="space-y-1.5">
-          <div
-            v-for="item in group.items"
-            :key="item.key"
-            class="grid gap-1"
-          >
-            <div class="flex items-center justify-between text-[11px] text-muted">
-              <span class="font-medium text-highlighted">{{ item.label }}</span>
-              <span>{{ formatAdjustmentValue(item) }}</span>
-            </div>
-            <div class="relative h-px rounded bg-accented ring-1 ring-default/10">
-              <div
-                v-if="isZeroCentered(item)"
-                class="pointer-events-none absolute bottom-0 left-1/2 top-0 w-px -translate-x-1/2 bg-default/60"
-              />
-              <div
-                class="absolute bottom-0 top-0 rounded"
-                :class="sliderFillClass(item)"
-                :style="buildSliderFillStyle(item)"
-              />
-            </div>
+    <div
+      v-for="group in groups"
+      :key="group.key"
+      class="space-y-2 border-t border-border px-5 py-3"
+    >
+      <p class="label-caption-sm text-dimmed">
+        {{ group.label }}
+      </p>
+      <div class="space-y-2">
+        <div
+          v-for="item in group.items"
+          :key="item.key"
+          class="grid gap-1"
+        >
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-foreground">{{ item.label }}</span>
+            <span class="font-mono text-highlighted">{{ formatAdjustmentValue(item) }}</span>
+          </div>
+          <div class="relative h-0.5 bg-border-strong">
+            <div
+              v-if="isZeroCentered(item)"
+              class="pointer-events-none absolute -top-0.5 -bottom-0.5 left-1/2 w-px -translate-x-1/2 bg-fg-dimmed"
+            />
+            <div
+              class="absolute bottom-0 top-0"
+              :class="sliderFillClass(item)"
+              :style="buildSliderFillStyle(item)"
+            />
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>

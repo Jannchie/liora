@@ -584,7 +584,7 @@ function handleFocusToggle(): void {
     />
     <div class="absolute inset-0" @click="emit('close')" />
     <div class="relative flex h-full w-full overlay-safe-area">
-      <div class="relative z-10 flex h-full w-full flex-col gap-4 overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:gap-0 md:overflow-y-visible">
+      <div class="relative z-10 flex h-full w-full flex-col overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:overflow-y-visible">
         <div
           ref="viewerRef"
           class="overlay-viewer relative flex w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full"
@@ -651,11 +651,11 @@ function handleFocusToggle(): void {
           <button
             v-if="hasLivePhoto"
             type="button"
-            class="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10"
+            class="absolute left-4 top-4 inline-flex h-7 items-center gap-1.5 rounded-md bg-black/60 px-2.5 text-xs font-medium text-white ring-1 ring-white/10 backdrop-blur transition-colors hover:bg-black/75"
             :aria-pressed="livePhotoPlaying"
             @click="toggleLivePhoto"
           >
-            <Icon :name="livePhotoPlaying ? 'tabler:photo' : 'tabler:player-play'" class="h-4 w-4" />
+            <Icon :name="livePhotoPlaying ? 'jannchie:image' : 'jannchie:play'" class="h-3.5 w-3.5" />
             <span>{{ livePhotoLabel }}</span>
           </button>
           <Transition
@@ -685,153 +685,119 @@ function handleFocusToggle(): void {
           >
             <div
               v-if="overlayZoomIndicatorVisible"
-              class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1 text-xs font-semibold text-white ring-1 ring-white/10 backdrop-blur"
+              class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/60 px-2.5 py-1 font-mono text-xs text-white ring-1 ring-white/10 backdrop-blur"
             >
               {{ overlayZoomLabel }}
             </div>
           </Transition>
         </div>
-        <div class="font-prose flex min-h-0 flex-col gap-4 p-3 md:border-l md:border-border/20 md:p-4 md:overflow-y-auto">
-          <div class="space-y-2.5">
-            <div class="flex items-start justify-between gap-3">
-              <div class="space-y-1">
-                <h3 :id="`overlay-title-${file.id}`" class="font-title text-xl font-semibold leading-snug text-highlighted">
-                  {{ file.displayTitle }}
-                </h3>
+        <!--
+          Info column, after the icons site's detail column: a header, then
+          full-width sections stacked edge to edge, each closed by a single
+          hairline. No floating cards — the lines are the structure.
+        -->
+        <div class="flex min-h-0 flex-col text-[13px] md:overflow-y-auto md:border-l md:border-border">
+          <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-5">
+            <div class="min-w-0 space-y-2">
+              <h3 :id="`overlay-title-${file.id}`" class="font-title text-base font-semibold leading-snug tracking-[-0.01em] text-highlighted">
+                {{ file.displayTitle }}
+              </h3>
+              <div v-if="overlayStats.length > 0" class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
+                <span
+                  v-for="stat in overlayStats"
+                  :key="`${stat.icon}-${stat.label}`"
+                  class="inline-flex items-center gap-1"
+                >
+                  <Icon :name="stat.icon" class="h-3.5 w-3.5" />
+                  <span class="leading-none">{{ stat.label }}</span>
+                </span>
               </div>
-              <div class="flex items-center gap-2">
-                <UButton
-                  type="button"
-                  size="md"
-                  color="neutral"
-                  variant="ghost"
-                  icon="tabler:x"
-                  :aria-label="t('common.actions.close')"
-                  @click="emit('close')"
-                />
+              <div v-if="genreLabel || file.series.length > 0" class="flex flex-wrap items-center gap-1 pt-1">
+                <span
+                  v-if="genreLabel"
+                  class="inline-flex items-center gap-1 rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-highlighted"
+                >
+                  <Icon name="jannchie:tag" class="h-3 w-3" />
+                  <span>{{ genreLabel }}</span>
+                </span>
+                <span
+                  v-for="item in file.series"
+                  :key="item.id"
+                  class="inline-flex items-center gap-1 rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
+                >
+                  <Icon name="jannchie:layers" class="h-3 w-3" />
+                  <span>{{ item.title }}</span>
+                </span>
               </div>
             </div>
-            <div class="flex flex-wrap items-center gap-2 text-xs font-medium text-muted">
-              <div
-                v-for="stat in overlayStats"
-                :key="`${stat.icon}-${stat.label}`"
-                class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-highlighted ring-1 ring-default/30"
-              >
-                <Icon :name="stat.icon" class="h-3.5 w-3.5" />
-                <span class="leading-none">{{ stat.label }}</span>
-              </div>
-            </div>
-            <div v-if="genreLabel" class="flex items-center gap-2">
-              <span class="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs font-semibold text-primary ring-1 ring-primary/20">
-                <Icon name="tabler:tag" class="h-3.5 w-3.5" />
-                <span>{{ genreLabel }}</span>
-              </span>
-            </div>
-            <div v-if="file.series.length > 0" class="flex flex-wrap items-center gap-2">
-              <span
-                v-for="item in file.series"
-                :key="item.id"
-                class="inline-flex items-center gap-1 rounded bg-elevated/80 px-2 py-1 text-xs text-muted ring-1 ring-default/30"
-              >
-                <Icon name="tabler:stack-2" class="h-3.5 w-3.5" />
-                <span>{{ item.title }}</span>
-              </span>
-            </div>
-          </div>
-          <div class="space-y-3">
-            <Suspense>
-              <template #default>
-                <WaterfallHistogramPanel :histogram="histogram" />
-              </template>
-              <template #fallback>
-                <div class="rounded-lg border border-default/20 bg-elevated/80" aria-hidden="true">
-                  <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs font-medium text-muted">
-                    <div class="flex items-center gap-2">
-                      <div class="h-4 w-4 rounded bg-default/40" />
-                      <div class="h-4 w-24 rounded bg-default/40" />
-                    </div>
-                  </div>
-                  <div class="space-y-3 p-3">
-                    <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
-                      <div class="absolute inset-0 animate-pulse bg-default/40" />
-                    </div>
-                    <div class="grid grid-cols-3 gap-2 text-xs">
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                          <div class="h-4 w-12 rounded bg-default/40" />
-                          <div class="h-4 w-8 rounded bg-default/40" />
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full w-1/2 rounded-full bg-default/50" />
-                        </div>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                          <div class="h-4 w-12 rounded bg-default/40" />
-                          <div class="h-4 w-8 rounded bg-default/40" />
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full w-1/2 rounded-full bg-default/50" />
-                        </div>
-                      </div>
-                      <div class="space-y-1">
-                        <div class="flex items-center justify-between">
-                          <div class="h-4 w-12 rounded bg-default/40" />
-                          <div class="h-4 w-8 rounded bg-default/40" />
-                        </div>
-                        <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-                          <div class="h-full w-1/2 rounded-full bg-default/50" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </template>
-            </Suspense>
-            <WaterfallLocationMap v-if="location" :location="location" />
-            <WaterfallMetadataPanel
-              :metadata-entries="metadataEntries"
-              :focus-entry="focusEntry"
-              :crop-entry="cropEntry"
-              :lightroom-recipe="lightroomRecipe"
-              :llr-recipe="llrRecipe"
-              :exposure-entries="exposureEntries"
-              :has-metadata="hasMetadata"
-              :focus-indicator-active="focusBoxVisible"
-              @focus-hover="handleFocusHover"
-              @focus-toggle="handleFocusToggle"
+            <UButton
+              type="button"
+              size="sm"
+              square
+              color="neutral"
+              variant="ghost"
+              icon="jannchie:x"
+              class="shrink-0"
+              :aria-label="t('common.actions.close')"
+              @click="emit('close')"
             />
           </div>
+          <!-- Actions: equal cells sharing one row, divided by hairlines. -->
           <div
             v-if="canEdit || hasLivePhoto"
-            class="mt-auto border-t border-default/10 pt-3"
+            class="grid auto-cols-fr grid-flow-col divide-x divide-border border-b border-border"
           >
-            <div class="flex flex-wrap gap-2">
-              <UButton
-                v-if="canEdit"
-                type="button"
-                icon="tabler:settings"
-                size="md"
-                variant="soft"
-                @click="emit('edit')"
-              >
-                {{ t('common.actions.edit') }}
-              </UButton>
-              <UButton
-                v-if="hasLivePhoto"
-                type="button"
-                icon="tabler:share"
-                size="md"
-                variant="soft"
-                color="primary"
-                :loading="livePhotoPreparing || livePhotoSharing"
-                :disabled="livePhotoSharing"
-                @click="emit('shareLivePhoto')"
-              >
-                {{ t('gallery.livePhoto.share') }}
-              </UButton>
-            </div>
+            <button
+              v-if="canEdit"
+              type="button"
+              class="inline-flex h-11 items-center justify-center gap-1.5 text-[13px] text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:bg-muted"
+              @click="emit('edit')"
+            >
+              <Icon name="jannchie:settings" class="h-4 w-4" />
+              <span>{{ t('common.actions.edit') }}</span>
+            </button>
+            <button
+              v-if="hasLivePhoto"
+              type="button"
+              class="inline-flex h-11 items-center justify-center gap-1.5 text-[13px] text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:bg-muted disabled:cursor-not-allowed disabled:opacity-45"
+              :class="livePhotoPreparing || livePhotoSharing ? 'cursor-progress' : undefined"
+              :disabled="livePhotoPreparing || livePhotoSharing"
+              @click="emit('shareLivePhoto')"
+            >
+              <Icon
+                :name="livePhotoPreparing || livePhotoSharing ? 'jannchie:loader' : 'jannchie:share'"
+                class="h-4 w-4"
+                :class="livePhotoPreparing || livePhotoSharing ? 'animate-spin' : undefined"
+              />
+              <span>{{ t('gallery.livePhoto.share') }}</span>
+            </button>
           </div>
+          <Suspense>
+            <template #default>
+              <WaterfallHistogramPanel :histogram="histogram" />
+            </template>
+            <template #fallback>
+              <section class="space-y-3 border-b border-border px-5 py-4" aria-hidden="true">
+                <p class="label-caption text-dimmed">
+                  {{ t('gallery.histogram.title') }}
+                </p>
+                <div class="h-36 w-full animate-pulse rounded-md bg-muted" />
+              </section>
+            </template>
+          </Suspense>
+          <WaterfallLocationMap v-if="location" :location="location" />
+          <WaterfallMetadataPanel
+            :metadata-entries="metadataEntries"
+            :focus-entry="focusEntry"
+            :crop-entry="cropEntry"
+            :lightroom-recipe="lightroomRecipe"
+            :llr-recipe="llrRecipe"
+            :exposure-entries="exposureEntries"
+            :has-metadata="hasMetadata"
+            :focus-indicator-active="focusBoxVisible"
+            @focus-hover="handleFocusHover"
+            @focus-toggle="handleFocusToggle"
+          />
         </div>
       </div>
     </div>

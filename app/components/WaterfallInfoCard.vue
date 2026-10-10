@@ -36,36 +36,40 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <!--
+    The site's wall label when it sits inside the waterfall: name and
+    description up top, then a hairline-ruled foot with the mono work
+    count and the social links as ghost controls.
+  -->
   <div
-    class="flex h-full w-full flex-col justify-between p-4 text-default"
+    class="flex h-full w-full flex-col justify-between text-default"
     :style="{ height: `${displaySize.height}px` }"
   >
-    <div class="space-y-3">
-      <div class="space-y-2">
-        <h2 class="font-title text-2xl font-semibold leading-tight text-highlighted">
-          {{ siteName }}
-        </h2>
-        <p class="font-prose text-sm leading-relaxed text-muted">
-          {{ siteDescription }}
-        </p>
-      </div>
+    <div class="space-y-2 px-4 pt-4">
+      <h2 class="flex items-center gap-2.5 text-lg font-semibold leading-tight tracking-[-0.01em] text-highlighted">
+        <Icon name="jannchie:aperture" class="h-5 w-5 shrink-0" />
+        <span class="min-w-0">{{ siteName }}</span>
+      </h2>
+      <p class="text-[13px] leading-relaxed text-dimmed">
+        {{ siteDescription }}
+      </p>
       <p
         v-if="photoCount === 0 && !isLoading"
-        class="text-xs text-muted"
+        class="text-[13px] text-dimmed"
       >
         {{ emptyText }}
       </p>
     </div>
-    <div class="space-y-3 text-sm text-muted">
-      <div class="label-caption num-tabular flex items-center justify-center gap-1.5">
-        <span>{{ t('gallery.totalWorks') }}</span>
-        <span class="text-highlighted">
+    <div class="border-t border-border">
+      <div class="flex items-baseline justify-between gap-3 px-4 py-2.5">
+        <span class="label-caption">{{ t('gallery.totalWorks') }}</span>
+        <span class="font-mono text-[13px] text-highlighted">
           {{ photoCount }}
         </span>
       </div>
       <div
         v-if="socialLinks.length > 0"
-        class="flex flex-wrap items-center justify-center gap-3"
+        class="flex flex-wrap items-center gap-0.5 border-t border-border px-2.5 py-2"
       >
         <UButton
           v-for="link in socialLinks"
@@ -73,13 +77,13 @@ const { t } = useI18n()
           :href="link.url"
           target="_blank"
           rel="noopener noreferrer"
-          variant="soft"
+          variant="ghost"
           color="neutral"
           square
           :size="socialButtonSize"
-          class="text-muted"
           :icon="link.icon"
           :aria-label="link.label"
+          :title="link.label"
         />
       </div>
     </div>

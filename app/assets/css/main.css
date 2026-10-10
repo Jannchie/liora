@@ -1,25 +1,55 @@
 @import "tailwindcss";
 @import "tailwindcss-safe-area";
 
+/* Berkeley Mono — Latin only; CJK falls through to the system mono/sans
+   stack in `--stack-mono`. */
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('https://cdn.jannchie.com/fonts/variants/BerkeleyMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('https://cdn.jannchie.com/fonts/variants/BerkeleyMono-Oblique.woff2') format('woff2');
+  font-weight: 400;
+  font-style: oblique;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('https://cdn.jannchie.com/fonts/variants/BerkeleyMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Berkeley Mono';
+  src: url('https://cdn.jannchie.com/fonts/variants/BerkeleyMono-Bold-Oblique.woff2') format('woff2');
+  font-weight: 700;
+  font-style: oblique;
+  font-display: swap;
+}
+
 /*
- * Design tokens — gallery / print-editorial language, original palette.
+ * Design tokens — the Jannchie Icons wireframe language.
  *
- * Why: the system is built around two reading modes:
- *   1. CONTENT (photos) — full-bleed plates with square corners, like prints
- *      in a photo book. Images never get rounded or decorated.
- *   2. CHROME (admin, panels, headers, metadata) — quiet exhibition chrome:
- *      sans UI type, sentence-case labels, soft rounding, low shadows.
+ * Why: the chrome steps back so the photographs carry all the colour.
+ *   1. CONTENT (photos) — full-bleed plates with square corners. Images
+ *      never get rounded or decorated.
+ *   2. CHROME (headers, panels, admin) — a wireframe: one 1px hairline
+ *      wherever structure needs a boundary, shared edges instead of
+ *      stacked boxes, gentle 4/6/8px corners, no resting shadows.
  *
- * The color palette (burgundy primary on cool slate) is unchanged.
+ * Near-monochrome: the accent *is* the ink. Selection is a faint wash of
+ * the ink plus an inset hairline, never a brand colour. Status colours
+ * appear only on text and thin fills.
  *
- * Typography: sans everywhere — no serifs in the UI by explicit request.
- * Titles (`.font-title`) share the sans stacks and differentiate through
- * weight and size. Mono is reserved for literal data strings (file names,
- * hashes, code) via `.font-mono`.
+ * Typography: Inter for UI, Berkeley Mono for labels, counts and data —
+ * small uppercase mono captions are the system's signature.
  *
- * Elevation: containers round at radius-md/lg and floating surfaces
- * (modal, dropdown, toast) carry a soft shadow; resting cards sit on a
- * hairline border with at most a whisper of shadow.
+ * Elevation is reserved for overlays (modal, dropdown, toast).
  */
 
 @theme {
@@ -41,12 +71,12 @@
      (card / modal / panel / dropdown) use md/lg. Photo plates opt out
      with explicit `rounded-none` — images stay square. */
   --radius-xs:   4px;
-  --radius-sm:   6px;
-  --radius-md:   8px;
-  --radius-lg:   10px;
-  --radius-xl:   12px;
-  --radius-2xl:  14px;
-  --radius-3xl:  16px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   8px;
+  --radius-2xl:  10px;
+  --radius-3xl:  12px;
   --radius-full: 9999px;
 
   /* ---------- motion ---------- */
@@ -56,64 +86,59 @@
   --ease-out-quint:  cubic-bezier(.2, .8, .2, 1);
 
   /* ---------- shadow ----------
-     Soft, cool-tinted and shallow: resting cards get a whisper (card/xs),
-     floating surfaces (dropdown, toast, modal) get md/lg. Nothing glows;
-     alpha stays low so surfaces read as paper, not plastic. */
-  --shadow-xs:  0 1px 2px rgb(15 18 28 / 0.05);
-  --shadow-sm:  0 1px 3px rgb(15 18 28 / 0.07), 0 1px 2px rgb(15 18 28 / 0.04);
-  --shadow-md:  0 4px 12px -2px rgb(15 18 28 / 0.10), 0 2px 4px -2px rgb(15 18 28 / 0.06);
-  --shadow-lg:  0 16px 40px -12px rgb(15 18 28 / 0.18), 0 4px 12px -4px rgb(15 18 28 / 0.08);
-  --shadow-card:    0 1px 2px rgb(15 18 28 / 0.04);
-  --shadow-xs-up:   0 -1px 2px rgb(15 18 28 / 0.05);
-  --shadow-overlay: 0 24px 64px -16px rgb(15 18 28 / 0.24), 0 8px 20px -8px rgb(15 18 28 / 0.10);
+     Resting surfaces carry none: a hairline does the separating. Only
+     floating surfaces (dropdown, toast, modal) lift off the page. */
+  --shadow-xs:  none;
+  --shadow-sm:  none;
+  --shadow-md:  0 12px 32px rgb(0 0 0 / 0.12);
+  --shadow-lg:  0 16px 48px rgb(0 0 0 / 0.16);
+  --shadow-card:    none;
+  --shadow-xs-up:   none;
+  --shadow-overlay: 0 16px 48px rgb(0 0 0 / 0.18);
 
   /* ---------- semantic palette — LIGHT defaults ---------- */
 
-  /* burgundy primary — drives every accent / focus / selection.
-     Light mode targets L≈48% so the brand reads as a vivid burgundy
-     (rather than near-black wine) while keeping AA contrast on white
-     text. Hover / active step down two L-notches for press feedback. */
-  --color-primary:        oklch(48% 0.16 18);
-  --color-primary-hover:  oklch(42% 0.17 18);
-  --color-primary-active: oklch(36% 0.16 18);
-  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 12%, transparent);
-  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 20%, transparent);
-  --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
-  --color-primary-border: color-mix(in srgb, var(--color-primary) 30%, transparent);
+  /* Ink primary — the accent is the text colour itself. Hover / active
+     lift toward grey for press feedback. `soft` is the selection wash. */
+  --color-primary:        #0e0e11;
+  --color-primary-hover:  #2a2a31;
+  --color-primary-active: #3a3b43;
+  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 9%, transparent);
+  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  --color-primary-softer: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --color-primary-border: var(--color-border-strong);
   --color-on-primary:     #ffffff;
 
-  /* cool slate surfaces */
-  --color-bg:       #f1f2f5;
-  --color-default:  #fbfbfd;
-  --color-muted:    #ebecf0;
-  --color-elevated: #e1e3e8;
-  --color-accented: #d2d5dc;
+  /* Neutral surfaces: page ground, surface, sunken; then two hover fills. */
+  --color-bg:       #fbfbfc;
+  --color-default:  #ffffff;
+  --color-muted:    #f3f3f5;
+  --color-elevated: #ececef;
+  --color-accented: #e0e0e5;
 
-  --color-border:        #d4d8e0;
-  --color-border-muted:  #e2e4ea;
-  --color-border-strong: #b4bac6;
+  /* Hairlines: `border` is the structural line, `strong` outlines
+     controls and pressed states. */
+  --color-border:        #e6e6ea;
+  --color-border-muted:  #ededf0;
+  --color-border-strong: #d4d4da;
 
-  /* Chrome surfaces — the three fills that carry grouping where a border
-     used to. `chrome` is the admin's page ground, `panel` sits above it,
-     `sunken` below, so a well nested in a panel separates without a rule
-     between them. Kept apart from bg/default/muted, which the gallery
-     uses for its own purposes: the gallery wants a near-black ground to
-     set off photographs, the admin wants a ground close enough to its
-     panels that the page reads as one surface. */
-  --color-chrome: #eef0f4;
-  --color-panel:  #fbfbfd;
-  --color-sunken: #e4e6ec;
+  /* Chrome surfaces. In the wireframe the admin ground and its panels
+     are the same surface — hairlines, not fills, do the grouping;
+     `sunken` is the one step down for wells and tracks. */
+  --color-chrome: #ffffff;
+  --color-panel:  #ffffff;
+  --color-sunken: #f3f3f5;
 
   /* Text ramp, tuned against --color-bg. Contrast is a constraint, not a
      style knob: `muted` and `dimmed` clear AA (4.5:1) at any size; `subtle`
      only clears AA-large (3:1), so it is for ≥18px or non-essential text.
      Do not fade these with an alpha suffix — /80 drops `muted` to 3.94:1. */
-  --color-fg:             #1a1d24;
-  --color-fg-highlighted: #0d1019;
-  --color-fg-toned:       #2f3441;
-  --color-fg-muted:       #525a6b;
-  --color-fg-dimmed:      #666d7f;
-  --color-fg-subtle:      #828a9b;
+  --color-fg:             #0e0e11;
+  --color-fg-highlighted: #0e0e11;
+  --color-fg-toned:       #2b2c33;
+  --color-fg-muted:       #4a4b53;
+  --color-fg-dimmed:      #6e6f78;
+  --color-fg-subtle:      #8b8c95;
 
   /* status */
   --color-error:        #b91c1c;
@@ -137,7 +162,7 @@
   --color-focus-point:      #22c55e;
   --color-focus-point-soft: color-mix(in srgb, var(--color-focus-point) 10%, transparent);
 
-  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent);
+  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 40%, transparent);
 
   /* ---------- interaction overlays ----------
@@ -150,8 +175,8 @@
      same on the page, on a panel and inside a sunken well. Named in the
      `--color-*` namespace so Tailwind derives `bg-overlay-hover` /
      `bg-overlay-active` from it, variants included. */
-  --color-overlay-hover:  rgb(15 18 28 / 0.055);
-  --color-overlay-active: rgb(15 18 28 / 0.10);
+  --color-overlay-hover:  rgb(14 14 17 / 0.045);
+  --color-overlay-active: rgb(14 14 17 / 0.08);
 
   /* ---------- z scale ---------- */
   --z-base: 1;
@@ -161,43 +186,39 @@
 }
 
 /*
- * Dark palette. Burgundy lifted to L 62% so brand reads at equal weight
- * against #0a0a0b ground.
+ * Dark palette — the same wireframe inverted: ink becomes near-white,
+ * hairlines sit a couple of notches above the ground.
  */
 .dark {
-  --color-primary:        oklch(62% 0.14 20);
-  --color-primary-hover:  oklch(68% 0.15 20);
-  --color-primary-active: oklch(56% 0.14 20);
-  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 18%, transparent);
-  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 28%, transparent);
-  --color-primary-softer: color-mix(in srgb, var(--color-primary) 10%, transparent);
-  --color-primary-border: color-mix(in srgb, var(--color-primary) 36%, transparent);
-  --color-on-primary:     #0b0d12;
+  --color-primary:        #f2f2f4;
+  --color-primary-hover:  #d4d4da;
+  --color-primary-active: #c2c3ca;
+  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
+  --color-primary-border: var(--color-border-strong);
+  --color-on-primary:     #09090b;
 
-  --color-bg:       #0a0a0b;
-  --color-default:  #111113;
-  --color-muted:    #16171a;
-  --color-elevated: #1d1e22;
-  --color-accented: #2a2b30;
+  --color-bg:       #09090b;
+  --color-default:  #0e0e11;
+  --color-muted:    #141418;
+  --color-elevated: #1a1a1f;
+  --color-accented: #232329;
 
-  --color-border:        #27272a;
-  --color-border-muted:  #1f1f22;
-  --color-border-strong: #3f3f46;
+  --color-border:        #1d1d22;
+  --color-border-muted:  #18181c;
+  --color-border-strong: #2a2a31;
 
-  /* The admin does not inherit the gallery's near-black ground: against
-     it, a panel bright enough to register reads as a lit box floating in
-     a void. The chrome ground comes up, the panel comes down, and the
-     two sit a couple of notches apart. */
-  --color-chrome: #131417;
-  --color-panel:  #191a1e;
-  --color-sunken: #0e0f11;
+  --color-chrome: #0e0e11;
+  --color-panel:  #0e0e11;
+  --color-sunken: #141418;
 
-  --color-fg:             #f4f4f5;
+  --color-fg:             #f2f2f4;
   --color-fg-highlighted: #ffffff;
-  --color-fg-toned:       #d4d4d8;
-  --color-fg-muted:       #a1a1aa;
-  --color-fg-dimmed:      #797983;
-  --color-fg-subtle:      #5e5e66;
+  --color-fg-toned:       #dcdce0;
+  --color-fg-muted:       #c2c3ca;
+  --color-fg-dimmed:      #9a9ba4;
+  --color-fg-subtle:      #6e6f78;
 
   --color-error:        #ef4444;
   --color-error-soft:   color-mix(in srgb, var(--color-error) 18%, transparent);
@@ -212,22 +233,17 @@
   --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
   --color-info-soft-hover: color-mix(in srgb, var(--color-info) 26%, transparent);
 
-  /* On a near-black ground shadows need more weight to register. */
-  --shadow-xs:  0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-sm:  0 1px 3px rgb(0 0 0 / 0.45), 0 1px 2px rgb(0 0 0 / 0.3);
-  --shadow-md:  0 4px 12px -2px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
-  --shadow-lg:  0 16px 40px -12px rgb(0 0 0 / 0.6), 0 4px 12px -4px rgb(0 0 0 / 0.45);
-  --shadow-card:    0 1px 2px rgb(0 0 0 / 0.35);
-  --shadow-xs-up:   0 -1px 2px rgb(0 0 0 / 0.4);
-  --shadow-overlay: 0 24px 64px -16px rgb(0 0 0 / 0.65), 0 8px 20px -8px rgb(0 0 0 / 0.4);
+  --shadow-md:  0 12px 32px rgb(0 0 0 / 0.5);
+  --shadow-lg:  0 16px 48px rgb(0 0 0 / 0.6);
+  --shadow-overlay: 0 16px 48px rgb(0 0 0 / 0.6);
 
-  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 50%, transparent);
+  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
 
   /* Lighten rather than darken, and carry a little more weight — on a
      dark ground an equally-subtle wash disappears. */
-  --color-overlay-hover:  rgb(255 255 255 / 0.07);
-  --color-overlay-active: rgb(255 255 255 / 0.12);
+  --color-overlay-hover:  rgb(255 255 255 / 0.05);
+  --color-overlay-active: rgb(255 255 255 / 0.09);
 }
 
 /*
@@ -239,7 +255,7 @@
  * `.font-sans` utility overrides further down.
  */
 :root {
-  --stack-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
+  --stack-mono: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
                 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
                 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
   --stack-sans: 'Inter', system-ui, -apple-system, 'Segoe UI',
@@ -324,20 +340,24 @@ html.disable-transitions *::after {
 
   /* ---------- chrome primitives ---------- */
 
-  /* Caption label — the museum-wall-label register. Small, quiet,
-     sentence case. Use on eyebrow rows, section labels, metadata keys. */
+  /* Caption label — the wireframe's signature: small uppercase mono,
+     tracked out, muted. Eyebrows, section labels, metadata keys. */
   .label-caption {
-    font-size: 12px;
-    line-height: 1.2;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    color: var(--color-fg-muted);
+    font-family: var(--stack-mono);
+    font-size: 11.5px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-fg-dimmed);
   }
   .label-caption-sm {
-    font-size: 11px;
-    line-height: 1.2;
-    font-weight: 500;
-    letter-spacing: 0.01em;
+    font-family: var(--stack-mono);
+    font-size: 10.5px;
+    line-height: 1.4;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
     color: var(--color-fg-dimmed);
   }
   .num-tabular {
@@ -356,34 +376,57 @@ html.disable-transitions *::after {
     font-family: var(--stack-sans);
   }
 
-  /* Card surface — a raised fill, not an outlined box.
-     Chrome groups things by *fill and whitespace*, not by drawing a frame
-     around every block: a page of outlined cards reads as a stack of
-     unrelated tiles. `--color-panel` sits one step above the chrome
-     ground in both themes, so the block separates on its own; the shadow
-     is a whisper that only lifts the edge. */
+  /* Card surface — a hairline frame on the surface fill. No shadow:
+     the line alone separates it from the page. */
   .surface-card {
     background-color: var(--color-panel);
-    border-radius: var(--radius-xl);
-    box-shadow: var(--shadow-card);
-  }
-
-  /* Sunken surface — a well *inside* a card (stat tile, inline list,
-     read-only readout). One step down from the card fill, so nesting
-     reads without a rule between the two. */
-  .surface-sunken {
-    background-color: var(--color-sunken);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
   }
 
-  /* The selected item in a segmented control or list: lifted out of a
-     sunken track with the panel fill. Used by the admin nav, the pill
-     tabs and the series list, which is why it is a class and not three
-     copies of the same three utilities. */
+  /* Sunken surface — a well (stat tile, inline list, read-only readout,
+     segmented-control track). One fill step down, no line. */
+  .surface-sunken {
+    background-color: var(--color-sunken);
+    border-radius: var(--radius-md);
+  }
+
+  /* The pressed / selected item in a segmented control or list: sunken
+     fill plus an inset strong hairline — the icons site's
+     `[aria-pressed='true']` state. */
   .chip-raised {
-    background-color: var(--color-panel);
+    background-color: var(--color-muted);
     color: var(--color-fg-highlighted);
-    box-shadow: var(--shadow-xs);
+    box-shadow: inset 0 0 0 1px var(--color-border-strong);
+  }
+
+  /* Wireframe shell — the centred column with a hairline down each side
+     that every page sits in. */
+  .wire-shell {
+    width: 100%;
+    max-width: 1680px;
+    min-height: 100vh;
+    margin-inline: auto;
+    border-inline: 1px solid var(--color-border);
+    background-color: var(--color-default);
+  }
+
+  /* Content band — a full-width strip of the shell, closed by a hairline
+     underneath. Admin pages are a stack of these instead of floating
+     cards, so every rule runs edge to edge and meets the shell's sides. */
+  .wire-band {
+    padding: 24px 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  @media (min-width: 640px) {
+    .wire-band { padding: 28px 32px; }
+  }
+
+  /* Frosted sticky bar behind every page header. */
+  .wire-bar {
+    background-color: color-mix(in srgb, var(--color-default) 85%, transparent);
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
   }
 }
 
@@ -508,7 +551,7 @@ html.dark  { color-scheme: dark; }
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-primary) 28%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
     color: var(--color-fg);
   }
 }

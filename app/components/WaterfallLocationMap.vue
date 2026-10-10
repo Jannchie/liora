@@ -156,28 +156,33 @@ function zoomBy(delta: number): void {
 </script>
 
 <template>
-  <section class="rounded-md border border-default/20 bg-elevated/80 p-3">
-    <div class="mb-2 flex items-start justify-between gap-2">
-      <div class="min-w-0 space-y-0.5">
-        <p class="text-sm font-semibold text-highlighted">
-          {{ t('gallery.map.title') }}
+  <!-- A section of the viewer's info column: caption + place, then the map. -->
+  <section class="space-y-3 border-b border-border px-5 py-4">
+    <div class="flex items-start justify-between gap-2">
+      <div class="min-w-0 space-y-1">
+        <p class="label-caption flex items-center gap-1.5 text-dimmed">
+          <Icon name="jannchie:map-pin" class="h-3.5 w-3.5" />
+          <span>{{ t('gallery.map.title') }}</span>
         </p>
-        <p class="text-xs text-muted truncate" :title="locationLabel">
+        <p class="truncate text-[13px] text-highlighted" :class="locationLabel === formattedCoordinates ? 'font-mono' : undefined" :title="locationLabel">
           {{ locationLabel }}
+        </p>
+        <p v-if="locationLabel !== formattedCoordinates" class="truncate font-mono text-xs text-dimmed">
+          {{ formattedCoordinates }}
         </p>
       </div>
       <a
         :href="externalUrl"
         target="_blank"
         rel="noopener noreferrer"
-        class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+        class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
         :title="t('gallery.map.openExternal')"
         :aria-label="t('gallery.map.openExternal')"
       >
-        <Icon name="tabler:external-link" class="h-4 w-4 shrink-0" />
+        <Icon name="jannchie:external-link" class="h-4 w-4 shrink-0" />
       </a>
     </div>
-    <div class="relative overflow-hidden rounded-sm border border-default/20 bg-muted">
+    <div class="relative overflow-hidden rounded-md border border-border bg-muted">
       <div
         ref="mapContainer"
         role="img"
@@ -187,24 +192,24 @@ function zoomBy(delta: number): void {
       />
       <div
         v-if="mapReady"
-        class="absolute right-2 bottom-2 z-10 flex flex-col overflow-hidden rounded-md border border-default/30 bg-elevated/90 shadow-sm backdrop-blur-sm"
+        class="absolute right-2 bottom-2 z-10 flex flex-col overflow-hidden rounded-md border border-border-strong bg-default/90 backdrop-blur-sm"
       >
         <button
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
           :aria-label="t('gallery.map.zoomIn')"
           @click="zoomBy(1)"
         >
-          <Icon name="tabler:plus" class="h-3.5 w-3.5 shrink-0" />
+          <Icon name="jannchie:plus" class="h-3.5 w-3.5 shrink-0" />
         </button>
-        <div class="h-px bg-default/30" />
+        <div class="h-px bg-border-strong" />
         <button
           type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-accented hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
           :aria-label="t('gallery.map.zoomOut')"
           @click="zoomBy(-1)"
         >
-          <Icon name="tabler:minus" class="h-3.5 w-3.5 shrink-0" />
+          <Icon name="jannchie:minus" class="h-3.5 w-3.5 shrink-0" />
         </button>
       </div>
     </div>

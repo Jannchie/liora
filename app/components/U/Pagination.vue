@@ -47,11 +47,11 @@ function go(target: number): void {
   emit('update:page', target)
 }
 
-const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md px-2 text-sm outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
+const btnBase = 'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 font-mono text-[12.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
 </script>
 
 <template>
-  <nav class="flex items-center gap-1" aria-label="Pagination">
+  <nav class="flex items-center gap-0.5" aria-label="Pagination">
     <button
       type="button"
       class="text-muted hover:text-fg disabled:opacity-50 disabled:cursor-not-allowed"
@@ -60,7 +60,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
       aria-label="Previous page"
       @click="go(page - 1)"
     >
-      <Icon name="tabler:chevron-left" class="h-4 w-4" />
+      <Icon name="jannchie:chevron-left" class="h-4 w-4" />
     </button>
     <template v-for="(item, idx) in visiblePages" :key="`${item}-${idx}`">
       <button
@@ -69,8 +69,8 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
         :class="[
           btnBase,
           item === page
-            ? 'bg-primary text-on-primary'
-            : 'text-foreground hover:bg-overlay-hover',
+            ? 'chip-raised'
+            : 'text-muted hover:text-fg-highlighted',
         ]"
         :aria-current="item === page ? 'page' : undefined"
         @click="go(item)"
@@ -87,7 +87,7 @@ const btnBase = 'inline-flex h-8 min-w-8 items-center justify-center rounded-md 
       aria-label="Next page"
       @click="go(page + 1)"
     >
-      <Icon name="tabler:chevron-right" class="h-4 w-4" />
+      <Icon name="jannchie:chevron-right" class="h-4 w-4" />
     </button>
   </nav>
 </template>

@@ -78,9 +78,9 @@ const canAutoClassify = computed(() => {
   return hasFile || hasUrl
 })
 const exposureHighlights = computed<ExposureHighlight[]>(() => [
-  { label: t('admin.upload.fields.aperture.label'), value: form.value.aperture || '—', icon: 'tabler:aperture' },
-  { label: t('admin.upload.fields.shutterSpeed.label'), value: form.value.shutterSpeed || '—', icon: 'tabler:clock' },
-  { label: 'ISO', value: form.value.iso || '—', icon: 'tabler:circle-letter-i' },
+  { label: t('admin.upload.fields.aperture.label'), value: form.value.aperture || '—', icon: 'jannchie:aperture' },
+  { label: t('admin.upload.fields.shutterSpeed.label'), value: form.value.shutterSpeed || '—', icon: 'jannchie:clock' },
+  { label: 'ISO', value: form.value.iso || '—', icon: 'jannchie:letter-i-circle' },
 ])
 
 interface GenreClassificationPayload {
@@ -150,10 +150,16 @@ watch(
 </script>
 
 <template>
-  <section class="mx-auto flex w-full max-w-6xl flex-col gap-5 lg:gap-6">
-    <section class="space-y-3">
-      <div class="flex items-center gap-2 pt-2">
-        <Icon name="tabler:shape" class="h-3.5 w-3.5 text-muted" />
+  <!--
+    Metadata groups stacked in one column and divided by hairlines, each
+    headed by a mono caption. The groups carry only vertical padding, so
+    a host can give them its own gutter (`*:px-…`) and let the rules run
+    the full width of its pane.
+  -->
+  <section class="flex w-full flex-col divide-y divide-border">
+    <section class="space-y-4 py-6 first:pt-0 last:pb-0">
+      <div class="flex items-center gap-2">
+        <Icon name="jannchie:shapes" class="h-3.5 w-3.5 text-dimmed" />
         <p class="label-caption">
           {{ t('admin.upload.formSections.basic.label') }}
         </p>
@@ -165,7 +171,7 @@ watch(
         <UFormField :label="t('admin.files.form.description.label')" name="description">
           <UTextarea v-model="form.description" class="w-full" :placeholder="t('admin.files.form.description.placeholder')" :rows="3" />
         </UFormField>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <UFormField :label="t('admin.upload.fields.captureTime.label')" name="captureTime" :description="t('admin.upload.fields.captureTime.description')">
             <UInput v-model="captureTimeLocal" class="w-full" type="datetime-local" step="1" :placeholder="t('admin.upload.fields.captureTime.placeholder')" />
           </UFormField>
@@ -182,12 +188,12 @@ watch(
                 :ui="selectMenuUi"
               />
               <UButton
-                variant="soft"
-                color="primary"
+                variant="outline"
+                color="neutral"
                 class="shrink-0"
                 :disabled="!canAutoClassify"
                 :loading="classifyingGenre"
-                icon="tabler:robot"
+                icon="jannchie:robot"
                 @click="autoClassifyGenre"
               >
                 {{ t('admin.files.form.genre.auto') }}
@@ -195,20 +201,20 @@ watch(
             </div>
           </UFormField>
         </div>
-        <div class="grid gap-3 sm:grid-cols-2">
+        <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')">
-            <UInput v-model.number="form.width" class="w-full" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
+            <UInput v-model.number="form.width" class="w-full font-mono" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
           </UFormField>
           <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')">
-            <UInput v-model.number="form.height" class="w-full" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
+            <UInput v-model.number="form.height" class="w-full font-mono" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
           </UFormField>
         </div>
       </div>
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-2 pt-2">
-        <Icon name="tabler:map-pin" class="h-3.5 w-3.5 text-muted" />
+    <section class="space-y-4 py-6 first:pt-0 last:pb-0">
+      <div class="flex items-center gap-2">
+        <Icon name="jannchie:map-pin" class="h-3.5 w-3.5 text-dimmed" />
         <p class="label-caption">
           {{ t('admin.upload.formSections.location.label') }}
         </p>
@@ -220,13 +226,14 @@ watch(
               v-model="geocodeQuery"
               class="min-w-0 flex-1"
               :placeholder="t('admin.upload.fields.locationSearch.placeholder')"
-              icon="tabler:map-search"
+              icon="jannchie:map-search"
               @keydown.enter.prevent="searchLocation"
             />
             <UButton
-              color="primary"
+              variant="outline"
+              color="neutral"
               :loading="geocoding"
-              icon="tabler:search"
+              icon="jannchie:search"
               class="shrink-0"
               @click="searchLocation"
             >
@@ -234,55 +241,55 @@ watch(
             </UButton>
           </div>
         </UFormField>
-        <div v-if="geocodeResults.length > 0" class="space-y-1">
+        <div v-if="geocodeResults.length > 0" class="space-y-2">
           <p class="label-caption">
             {{ t('admin.upload.fields.locationSearch.resultsLabel') }}
           </p>
-          <div class="surface-sunken divide-y divide-transparent p-1">
+          <div class="divide-y divide-border overflow-hidden rounded-lg border border-border">
             <button
               v-for="result in geocodeResults"
               :key="result.id"
               type="button"
-              class="flex w-full items-center justify-between gap-3 rounded-md px-2 py-2 text-left transition hover:bg-overlay-hover"
+              class="flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors hover:bg-muted"
               @click="applyGeocodeResult(result)"
             >
               <div class="min-w-0 space-y-0.5">
-                <p class="truncate text-sm text-highlighted">
+                <p class="truncate text-[13px] text-highlighted">
                   {{ result.name }}
                 </p>
-                <p class="truncate text-xs text-muted">
+                <p class="truncate text-xs text-dimmed">
                   {{ result.placeName }}
                 </p>
               </div>
-              <span class="shrink-0 text-xs text-primary">
+              <span class="shrink-0 font-mono text-xs text-muted">
                 {{ t('admin.upload.fields.locationSearch.apply') }} →
               </span>
             </button>
           </div>
         </div>
       </div>
-      <div class="grid gap-3 sm:grid-cols-3">
+      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-3">
         <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
-          <UInput v-model.number="form.latitude" class="w-full" type="number" step="0.000001" placeholder="39.9087" />
+          <UInput v-model.number="form.latitude" class="w-full font-mono" type="number" step="0.000001" placeholder="39.9087" />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.longitude.label')" name="longitude">
-          <UInput v-model.number="form.longitude" class="w-full" type="number" step="0.000001" placeholder="116.3975" />
+          <UInput v-model.number="form.longitude" class="w-full font-mono" type="number" step="0.000001" placeholder="116.3975" />
         </UFormField>
         <UFormField :label="t('admin.files.form.locationReverse.actionShort')">
           <UButton
-            variant="soft"
-            color="primary"
+            variant="outline"
+            color="neutral"
             :loading="geocoding"
             :disabled="!canReverseGeocode"
             class="w-full"
-            icon="tabler:map-pin-search"
+            icon="jannchie:map-pin-search"
             @click="searchLocation"
           >
             {{ t('admin.files.form.locationReverse.actionShort') }}
           </UButton>
         </UFormField>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName">
           <UInput v-model="form.locationName" class="w-full" :placeholder="t('admin.upload.fields.locationName.placeholder')" />
         </UFormField>
@@ -292,29 +299,30 @@ watch(
       </div>
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-2 pt-2">
-        <Icon name="tabler:camera" class="h-3.5 w-3.5 text-muted" />
+    <section class="space-y-4 py-6 first:pt-0 last:pb-0">
+      <div class="flex items-center gap-2">
+        <Icon name="jannchie:camera" class="h-3.5 w-3.5 text-dimmed" />
         <p class="label-caption">
           {{ t('admin.upload.formSections.camera.label') }}
         </p>
       </div>
-      <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+      <!-- Exposure triangle readout: one ruled strip, cells split by hairlines. -->
+      <div class="grid grid-cols-3 divide-x divide-border rounded-lg border border-border">
         <div
           v-for="highlight in exposureHighlights"
           :key="highlight.label"
-          class="surface-sunken p-3 text-center"
+          class="min-w-0 space-y-1 px-3 py-2.5"
         >
-          <div class="flex items-center justify-center gap-1 text-xs font-medium text-muted">
-            <Icon :name="highlight.icon" class="h-4 w-4 text-primary" />
-            <span>{{ highlight.label }}</span>
+          <div class="label-caption flex min-w-0 items-center gap-1.5">
+            <Icon :name="highlight.icon" class="h-3.5 w-3.5 shrink-0" />
+            <span class="truncate">{{ highlight.label }}</span>
           </div>
-          <p class="text-2xl font-semibold text-highlighted">
+          <p class="num-tabular truncate font-mono text-lg text-highlighted">
             {{ highlight.value }}
           </p>
         </div>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel">
           <UInput v-model="form.cameraModel" class="w-full" :placeholder="t('admin.upload.fields.cameraModel.placeholder')" />
         </UFormField>
@@ -322,7 +330,7 @@ watch(
           <UInput v-model="form.lensModel" class="w-full" :placeholder="t('admin.upload.fields.lensModel.placeholder')" />
         </UFormField>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
         <UFormField :label="t('admin.upload.fields.aperture.label')" name="aperture">
           <UInput v-model="form.aperture" class="w-full" :placeholder="t('admin.upload.fields.aperture.placeholder')" />
         </UFormField>
@@ -401,14 +409,14 @@ watch(
       </div>
     </section>
 
-    <section class="space-y-3">
-      <div class="flex items-center gap-2 pt-2">
-        <Icon name="tabler:palette" class="h-3.5 w-3.5 text-muted" />
+    <section class="space-y-4 py-6 first:pt-0 last:pb-0">
+      <div class="flex items-center gap-2">
+        <Icon name="jannchie:palette" class="h-3.5 w-3.5 text-dimmed" />
         <p class="label-caption">
           {{ t('admin.upload.formSections.color.label') }}
         </p>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2">
+      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.colorSpace.label')" name="colorSpace">
           <UInput v-model="form.colorSpace" class="w-full" :placeholder="t('admin.upload.fields.colorSpace.placeholder')" />
         </UFormField>

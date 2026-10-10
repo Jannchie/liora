@@ -28,14 +28,14 @@ function setActive(value: V): void {
   emit('update:modelValue', value)
 }
 
-const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-sm font-medium transition-colors outline-none focus-visible:shadow-[var(--ring-focus)]'
+const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 text-[13px] transition-colors outline-none focus-visible:shadow-[var(--ring-focus)]'
 </script>
 
 <template>
   <div>
     <div
       class="flex items-center gap-1 overflow-x-auto overflow-y-hidden"
-      :class="variant === 'pill' ? 'surface-sunken w-fit gap-0.5 p-1' : ''"
+      :class="variant === 'pill' ? 'w-fit gap-0.5' : 'gap-0 border-b border-border'"
       role="tablist"
     >
       <button
@@ -47,14 +47,14 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
         :class="[
           tabBaseClass,
           variant === 'underline'
-            ? (active === item.value
-              ? 'text-primary shadow-[inset_0_-2px_0_0_var(--color-primary)]'
-              : 'text-muted hover:text-fg')
+            ? ['-mb-px h-9 border-b px-3', active === item.value
+              ? 'border-primary text-highlighted'
+              : 'border-transparent text-dimmed hover:text-fg-highlighted']
             : [
-              'rounded-md',
+              'h-7 rounded-md px-2.5',
               active === item.value
                 ? 'chip-raised'
-                : 'text-muted hover:text-fg',
+                : 'text-dimmed hover:text-fg-highlighted',
             ],
         ]"
         @click="setActive(item.value)"
@@ -65,7 +65,7 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 px-3 py-2 text-s
         <span>{{ item.label }}</span>
       </button>
     </div>
-    <div v-if="content" class="mt-3">
+    <div v-if="content" class="mt-4">
       <slot name="content">
         <template v-for="item in items" :key="String(item.value)">
           <div v-if="active === item.value" role="tabpanel">

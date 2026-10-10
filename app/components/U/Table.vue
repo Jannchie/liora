@@ -1,12 +1,8 @@
 <script setup lang="ts" generic="Row extends object">
 /*
- * Table — rows separated by rhythm, not by rules.
- *
- * A grid of hairlines turns a data list into a ledger and fights every
- * other surface on the page. Instead: a quiet caption header, generous
- * row height, and a fill that appears under the row on hover. The only
- * line left is the one under the header, and even that is carried by the
- * header's own fill rather than a border.
+ * Table — the wireframe ledger: an uppercase mono header, then rows
+ * divided by single hairlines (each row draws only its bottom edge, so
+ * no line is ever doubled) and a sunken fill under the hovered row.
  */
 import { computed } from 'vue'
 
@@ -64,7 +60,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
           <th
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
-            class="px-3 pb-2 pt-1 text-left text-xs font-medium text-muted"
+            class="border-b border-border px-3 py-2 text-left font-mono text-[11px] font-normal uppercase tracking-[0.06em] text-dimmed"
             :class="ui?.th"
           >
             <slot :name="headerSlotName(column)" :column="(column as Column<Row>)">
@@ -75,15 +71,15 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
       </thead>
       <tbody :class="ui?.tbody">
         <tr v-if="loading">
-          <td :colspan="columns.length" class="py-10 text-center text-sm text-muted">
+          <td :colspan="columns.length" class="border-b border-border py-10 text-center text-[13px] text-dimmed">
             <span class="inline-flex items-center gap-2">
-              <Icon name="tabler:loader-2" class="h-4 w-4 animate-spin" />
+              <Icon name="jannchie:loader" class="h-4 w-4 animate-spin" />
               Loading…
             </span>
           </td>
         </tr>
         <tr v-else-if="isEmpty">
-          <td :colspan="columns.length" class="py-10 text-center text-sm text-muted">
+          <td :colspan="columns.length" class="border-b border-border py-10 text-center text-[13px] text-dimmed">
             {{ empty ?? '—' }}
           </td>
         </tr>
@@ -91,13 +87,13 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
           v-for="(row, rowIndex) in data"
           v-else
           :key="rowIndex"
-          class="transition-colors hover:bg-overlay-hover"
+          class="transition-colors hover:bg-muted"
           :class="ui?.tr"
         >
           <td
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
-            class="px-3 py-2.5 text-sm text-foreground first:rounded-l-lg last:rounded-r-lg"
+            class="border-b border-border px-3 py-2.5 text-[13px] text-foreground"
             :class="ui?.td"
           >
             <slot

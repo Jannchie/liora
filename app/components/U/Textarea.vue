@@ -25,9 +25,9 @@ const attrs = useAttrs()
 
 const variantClass = computed(() => {
   if (props.variant === 'outline') {
-    return 'bg-default border border-border hover:border-border-strong focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
+    return 'bg-transparent border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
   }
-  return 'bg-muted border border-transparent hover:bg-elevated focus-within:bg-default focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
+  return 'bg-default border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
 })
 
 function onInput(event: Event): void {
@@ -54,7 +54,7 @@ function onInput(event: Event): void {
       :readonly="readonly"
       :aria-invalid="invalid || undefined"
       v-bind="{ ...attrs, class: undefined }"
-      class="block w-full resize-y bg-transparent px-3 py-2 text-sm outline-none placeholder:text-fg-dimmed"
+      class="block w-full resize-y bg-transparent px-2.5 py-2 text-[13px] leading-relaxed outline-none placeholder:text-fg-subtle"
       @input="onInput"
     />
   </div>

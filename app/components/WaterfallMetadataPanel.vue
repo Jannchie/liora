@@ -178,160 +178,161 @@ const totalEntryCount = computed<number>(() => {
 </script>
 
 <template>
-  <div class="rounded-lg border border-default/20 bg-elevated/80 text-sm text-default">
-    <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs font-medium text-muted">
-      <div class="flex items-center gap-2">
-        <Icon name="tabler:info-circle" class="h-4 w-4" />
-        <span>{{ t('gallery.metadata.section') }}</span>
-      </div>
-      <span class="rounded-full bg-default/60 px-2 py-0.5 text-xs font-semibold text-highlighted ring-1 ring-default/15">
-        {{ totalEntryCount }}
-      </span>
-    </div>
-    <div v-if="hasMetadata" class="space-y-3 p-3">
-      <div v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0" class="space-y-3">
-        <div class="flex items-center gap-2 text-xs font-medium text-muted">
-          <Icon name="tabler:adjustments" class="h-4 w-4" />
+  <!--
+    Sections of the viewer's info column, stacked edge to edge and closed by
+    one hairline each: the exposure triangle as a strip of cells (like the
+    icons site's size scales), then key/value rows, then the recipes.
+    Numbers (exposure values, dates, sizes) are set in mono.
+  -->
+  <div class="text-[13px] text-default">
+    <template v-if="hasMetadata">
+      <section
+        v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0"
+        class="border-b border-border"
+      >
+        <p class="label-caption flex items-center gap-1.5 px-5 pt-4 pb-3 text-dimmed">
+          <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
-        </div>
-        <div v-if="mainExposureEntries.length > 0" class="grid grid-cols-3 gap-2">
+        </p>
+        <div
+          v-if="mainExposureEntries.length > 0"
+          class="grid divide-x divide-border border-t border-border"
+          :style="{ gridTemplateColumns: `repeat(${mainExposureEntries.length}, minmax(0, 1fr))` }"
+        >
           <div
             v-for="item in mainExposureEntries"
             :key="item.label"
-            class="flex items-center gap-2 rounded-md bg-default/70 px-2 py-1.5 ring-1 ring-default/15"
+            class="flex min-w-0 flex-col gap-1.5 px-3 py-3"
             :aria-label="`${item.label}: ${item.value}`"
           >
-            <Icon :name="item.icon" class="h-4 w-4 text-muted" />
-            <div class="flex flex-col leading-tight">
-              <span class="label-caption-sm">{{ item.label }}</span>
-              <span class="text-sm font-semibold text-highlighted">{{ item.value }}</span>
-            </div>
+            <span class="label-caption-sm flex items-center gap-1 text-dimmed">
+              <Icon :name="item.icon" class="h-3 w-3 shrink-0" />
+              <span class="truncate">{{ item.label }}</span>
+            </span>
+            <span class="truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
           </div>
         </div>
-        <div v-if="halfWidthExposureEntries.length > 0" class="grid grid-cols-2 gap-2">
+        <div
+          v-if="halfWidthExposureEntries.length > 0"
+          class="grid divide-x divide-border border-t border-border"
+          :style="{ gridTemplateColumns: `repeat(${halfWidthExposureEntries.length}, minmax(0, 1fr))` }"
+        >
           <div
             v-for="item in halfWidthExposureEntries"
             :key="item.label"
-            class="flex items-center gap-2 rounded-md bg-default/70 px-2 py-2 ring-1 ring-default/15"
+            class="flex min-w-0 flex-col gap-1.5 px-3 py-3"
             :aria-label="`${item.label}: ${item.value}`"
           >
-            <Icon :name="item.icon" class="h-4 w-4 text-muted" />
-            <div class="flex flex-col leading-tight">
-              <span class="label-caption-sm">{{ item.label }}</span>
-              <span class="text-base font-semibold text-highlighted">{{ item.value }}</span>
-            </div>
+            <span class="label-caption-sm flex items-center gap-1 text-dimmed">
+              <Icon :name="item.icon" class="h-3 w-3 shrink-0" />
+              <span class="truncate">{{ item.label }}</span>
+            </span>
+            <span class="truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
           </div>
         </div>
-      </div>
-      <div v-if="focusEntry || cropEntry || lightroomRecipe || llrRecipe || showCameraLookCard || metadataEntries.length > 0" class="space-y-2">
-        <button
-          v-if="focusEntry"
-          type="button"
-          class="grid w-full gap-1 rounded-md bg-default/60 px-2 py-2 text-left ring-1 ring-default/15 transition-colors hover:bg-focus-point/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus-point/60"
-          :class="focusIndicatorActive ? 'bg-focus-point/10 ring-focus-point/40' : undefined"
-          @mouseenter="handleFocusHover(true)"
-          @mouseleave="handleFocusHover(false)"
-          @focus="handleFocusHover(true)"
-          @blur="handleFocusHover(false)"
-          @click="handleFocusToggle"
-        >
-          <p class="flex items-center gap-2 text-xs font-medium text-muted">
-            <Icon :name="focusEntry.icon" class="h-4 w-4" />
-            <span>{{ focusEntry.label }}</span>
-          </p>
-          <p class="text-sm leading-snug whitespace-pre-line text-highlighted">
-            {{ focusEntry.value }}
-          </p>
-        </button>
-        <div
-          v-if="cropEntry"
-          class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-        >
-          <p class="flex items-center gap-2 text-xs font-medium text-muted">
-            <Icon :name="cropEntry.icon" class="h-4 w-4" />
-            <span>{{ cropEntry.label }}</span>
-          </p>
-          <p class="text-sm leading-snug whitespace-pre-line text-highlighted">
-            {{ cropEntry.value }}
-          </p>
-        </div>
-        <WaterfallRecipeCard
-          v-if="llrRecipe"
-          :title="t('gallery.metadata.llr')"
-          :badges="llrBadges"
-          :tone-curve="llrRecipe.toneCurve"
-          :groups="llrGroups"
-          :masks="llrRecipe.masks"
-        />
-        <WaterfallRecipeCard
-          v-if="lightroomRecipe"
-          :title="t('gallery.metadata.lightroom')"
-          :badges="lightroomBadges"
-          :tone-curve="lightroomRecipe.toneCurve"
-          :groups="lightroomRecipe.groups"
-        />
-        <div
-          v-if="showCameraLookCard && cameraLook"
-          class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-        >
-          <p class="flex items-center gap-2 text-xs font-medium text-muted">
-            <Icon name="tabler:camera" class="h-4 w-4" />
-            <span>{{ t('gallery.metadata.cameraLook') }}</span>
-          </p>
-          <p class="text-sm leading-snug text-highlighted">
-            {{ cameraLook }}
-          </p>
-        </div>
-        <div
-          v-for="item in metadataEntries"
-          :key="item.key ?? item.label"
-          class="grid gap-1 rounded-md bg-default/60 px-2 py-2 ring-1 ring-default/15"
-        >
-          <p class="flex items-center gap-2 text-xs font-medium text-muted">
-            <Icon :name="item.icon" class="h-4 w-4" />
-            <span>{{ item.label }}</span>
-          </p>
-          <p
-            v-if="item.valueIcon"
-            class="flex items-center gap-2 text-sm leading-snug text-highlighted"
+      </section>
+      <section
+        v-if="focusEntry || cropEntry || showCameraLookCard || metadataEntries.length > 0"
+        class="border-b border-border"
+      >
+        <p class="label-caption flex items-center gap-1.5 px-5 pt-4 pb-3 text-dimmed">
+          <Icon name="jannchie:info" class="h-3.5 w-3.5" />
+          <span>{{ t('gallery.metadata.section') }} · <span class="font-mono">{{ totalEntryCount }}</span></span>
+        </p>
+        <div class="divide-y divide-border border-t border-border">
+          <!-- The focus row keeps the viewfinder green: it drives the AF box drawn on the photo. -->
+          <button
+            v-if="focusEntry"
+            type="button"
+            class="grid w-full gap-1 px-5 py-2.5 text-left outline-none transition-colors hover:bg-focus-point-soft focus-visible:bg-focus-point-soft"
+            :class="focusIndicatorActive ? 'bg-focus-point-soft shadow-[inset_2px_0_0_var(--color-focus-point)]' : undefined"
+            @mouseenter="handleFocusHover(true)"
+            @mouseleave="handleFocusHover(false)"
+            @focus="handleFocusHover(true)"
+            @blur="handleFocusHover(false)"
+            @click="handleFocusToggle"
           >
-            <BrandIcon :name="item.valueIcon" class="h-[1em] text-highlighted" />
-            <span v-if="item.valueIconLabel" class="sr-only">{{ item.valueIconLabel }}</span>
-            <span>{{ item.value }}</span>
-          </p>
-          <p v-else class="text-sm leading-snug text-highlighted">
-            {{ item.value }}
-          </p>
-        </div>
-      </div>
-      <div v-if="secondaryExposureEntries.length > 0" class="space-y-2 border-t border-default/10 pt-3">
-        <div class="flex items-center gap-2 text-xs font-medium text-muted">
-          <Icon name="tabler:adjustments" class="h-4 w-4" />
-          <span>{{ t('gallery.metadata.exposure') }}</span>
-        </div>
-        <div class="flex flex-wrap gap-2">
+            <span class="label-caption-sm flex items-center gap-1.5" :class="focusIndicatorActive ? 'text-focus-point' : 'text-dimmed'">
+              <Icon :name="focusEntry.icon" class="h-3.5 w-3.5" />
+              <span>{{ focusEntry.label }}</span>
+            </span>
+            <span class="font-mono text-xs leading-relaxed whitespace-pre-line text-highlighted">{{ focusEntry.value }}</span>
+          </button>
+          <div v-if="cropEntry" class="grid gap-1 px-5 py-2.5">
+            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+              <Icon :name="cropEntry.icon" class="h-3.5 w-3.5" />
+              <span>{{ cropEntry.label }}</span>
+            </span>
+            <span class="font-mono text-xs leading-relaxed whitespace-pre-line text-highlighted">{{ cropEntry.value }}</span>
+          </div>
+          <div v-if="showCameraLookCard && cameraLook" class="grid gap-1 px-5 py-2.5">
+            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+              <Icon name="jannchie:camera" class="h-3.5 w-3.5" />
+              <span>{{ t('gallery.metadata.cameraLook') }}</span>
+            </span>
+            <span class="leading-snug text-highlighted">{{ cameraLook }}</span>
+          </div>
           <div
+            v-for="item in metadataEntries"
+            :key="item.key ?? item.label"
+            class="grid gap-1 px-5 py-2.5"
+          >
+            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+              <Icon :name="item.icon" class="h-3.5 w-3.5" />
+              <span>{{ item.label }}</span>
+            </span>
+            <span
+              v-if="item.valueIcon"
+              class="flex items-center gap-2 leading-snug text-highlighted"
+            >
+              <BrandIcon :name="item.valueIcon" class="h-[1em] text-highlighted" />
+              <span v-if="item.valueIconLabel" class="sr-only">{{ item.valueIconLabel }}</span>
+              <span>{{ item.value }}</span>
+            </span>
+            <!-- Capture time and pixel size are numbers: mono, like the exposure strip. -->
+            <span
+              v-else
+              class="leading-snug whitespace-pre-line text-highlighted"
+              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'font-mono text-xs' : undefined"
+            >{{ item.value }}</span>
+          </div>
+        </div>
+      </section>
+      <WaterfallRecipeCard
+        v-if="llrRecipe"
+        :title="t('gallery.metadata.llr')"
+        :badges="llrBadges"
+        :tone-curve="llrRecipe.toneCurve"
+        :groups="llrGroups"
+        :masks="llrRecipe.masks"
+      />
+      <WaterfallRecipeCard
+        v-if="lightroomRecipe"
+        :title="t('gallery.metadata.lightroom')"
+        :badges="lightroomBadges"
+        :tone-curve="lightroomRecipe.toneCurve"
+        :groups="lightroomRecipe.groups"
+      />
+      <section v-if="secondaryExposureEntries.length > 0" class="space-y-3 border-b border-border px-5 py-4">
+        <p class="label-caption flex items-center gap-1.5 text-dimmed">
+          <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
+          <span>{{ t('gallery.metadata.exposure') }}</span>
+        </p>
+        <div class="flex flex-wrap gap-1">
+          <span
             v-for="item in secondaryExposureEntries"
             :key="item.label"
-            class="inline-flex items-center gap-1.5 rounded-full bg-default/30 px-2.5 py-1 text-xs text-muted ring-1 ring-default/10"
+            class="inline-flex items-center gap-1 rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
             :aria-label="`${item.label}: ${item.value}`"
           >
-            <Icon :name="item.icon" class="h-3.5 w-3.5 text-muted" />
-            <span class="font-medium">{{ item.label }}</span>
-            <span class="text-highlighted/80">· {{ item.value }}</span>
-          </div>
+            <span>{{ item.label }}</span>
+            <span class="font-mono text-highlighted">{{ item.value }}</span>
+          </span>
         </div>
-      </div>
-    </div>
-    <div v-else class="px-3 py-4 text-sm text-muted">
-      <p class="flex items-center gap-2 text-xs font-medium text-muted">
-        <Icon name="tabler:alert-triangle" class="h-4 w-4" />
-        <span>{{ t('gallery.metadata.section') }}</span>
-      </p>
-      <p class="mt-2 flex items-center gap-2 text-highlighted">
-        <Icon name="tabler:info-circle" class="h-4 w-4 text-muted" />
-        <span>{{ t('gallery.metadata.empty') }}</span>
-      </p>
+      </section>
+    </template>
+    <div v-else class="border-b border-border px-5 py-8 text-center text-[13px] text-dimmed">
+      {{ t('gallery.metadata.empty') }}
     </div>
   </div>
 </template>

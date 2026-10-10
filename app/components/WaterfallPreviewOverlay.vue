@@ -327,16 +327,15 @@ function endPointer(event: PointerEvent): void {
       :aria-label="ariaLabel"
       @click.self="close"
     >
-      <UButton
+      <!-- Sits on the black backdrop in either theme, so it uses the on-photo wash rather than the surface hover. -->
+      <button
         type="button"
-        size="sm"
-        color="neutral"
-        variant="ghost"
-        icon="tabler:x"
         :aria-label="t('common.actions.close')"
-        class="absolute right-3 top-3 z-10 text-white"
+        class="absolute right-3 top-3 z-10 inline-flex h-8 w-8 items-center justify-center rounded-md bg-black/40 text-white/80 ring-1 ring-white/10 outline-none backdrop-blur transition-colors duration-150 ease-out hover:bg-white/10 hover:text-white focus-visible:ring-white/40"
         @click="close"
-      />
+      >
+        <Icon name="jannchie:x" class="h-4 w-4" />
+      </button>
       <div
         ref="viewerRef"
         :class="cursorClass"

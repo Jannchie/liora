@@ -41,6 +41,8 @@ const { t } = useI18n()
 </script>
 
 <template>
+  <!-- A floating control, so it is one of the few surfaces allowed a shadow:
+       frosted like the header, ruled by a strong hairline. -->
   <Transition
     enter-active-class="transition duration-200 ease-out"
     leave-active-class="transition duration-200 ease-in"
@@ -52,12 +54,12 @@ const { t } = useI18n()
     <UButton
       v-if="visible"
       type="button"
-      icon="tabler:arrow-up"
+      icon="jannchie:arrow-up"
       size="lg"
       color="neutral"
-      variant="solid"
+      variant="outline"
       square
-      class="fixed bottom-6 right-6 z-40"
+      class="wire-bar fixed bottom-6 right-6 z-40 text-highlighted shadow-md"
       :aria-label="t('common.actions.backToTop')"
       @click="scrollToTop"
     />

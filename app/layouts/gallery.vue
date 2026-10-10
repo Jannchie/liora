@@ -360,7 +360,7 @@ const headerSocialLinks = computed<SocialLink[]>(() => {
     }
   }
 
-  appendLink('Homepage', social?.homepage, 'tabler:home')
+  appendLink('Homepage', social?.homepage, 'jannchie:home')
   appendLink('GitHub', social?.github, 'tabler:brand-github')
   appendLink('X', social?.twitter, 'tabler:brand-x')
   appendLink('Instagram', social?.instagram, 'tabler:brand-instagram')
@@ -416,24 +416,30 @@ defineOgImage('LioraCard', {
 </script>
 
 <template>
-  <div class="font-prose min-h-screen w-full">
-    <GalleryHeaderBar
-      :title="pageTitle"
-      :social-links="headerSocialLinks"
-      :show-header-info="showHeaderInfo"
-      :is-authenticated="isAuthenticated"
-    />
-    <template v-if="showSeriesLanding">
-      <section class="mx-auto w-full max-w-6xl px-3 py-6 md:px-4 md:py-10">
-        <header class="mb-8 space-y-3 md:mb-12">
-          <p class="label-caption flex items-center gap-1.5">
-            <Icon name="tabler:books" class="h-3.5 w-3.5" />
-            <span>{{ t('series.list.totalSeries', { count: seriesList.length }) }}</span>
-          </p>
-          <h2 class="font-title text-3xl font-semibold leading-[1.1] text-highlighted md:text-4xl">
+  <!--
+    The public shell: the admin wireframe's centred column with a hairline
+    down each side, widened to the waterfall's 2000px so the photos stay
+    full-bleed inside it. Chrome (header, series heading, grid) is ruled;
+    the photographs carry the colour.
+  -->
+  <div class="font-prose min-h-screen w-full bg-bg">
+    <div class="mx-auto min-h-screen w-full max-w-500 border-x border-border bg-default">
+      <GalleryHeaderBar
+        :title="pageTitle"
+        :social-links="headerSocialLinks"
+        :show-header-info="showHeaderInfo"
+        :is-authenticated="isAuthenticated"
+      />
+      <section v-if="showSeriesLanding">
+        <header class="border-b border-border px-4 pb-5 pt-7 sm:px-8">
+          <h2 class="flex items-baseline gap-2.5 text-lg font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
             {{ t('series.list.title') }}
+            <small
+              class="font-mono text-[13px] font-normal text-dimmed"
+              :title="t('series.list.totalSeries', { count: seriesList.length })"
+            >{{ seriesList.length }}</small>
           </h2>
-          <p class="max-w-xl text-sm leading-relaxed text-muted">
+          <p class="mt-1.5 max-w-xl text-[13px] leading-relaxed text-dimmed">
             {{ t('series.list.description') }}
           </p>
         </header>
@@ -444,55 +450,56 @@ defineOgImage('LioraCard', {
           @retry="refreshSeries"
         />
       </section>
-    </template>
 
-    <div v-else class="max-w-500 m-auto">
-      <UAlert
-        v-if="fetchError"
-        color="error"
-        variant="soft"
-        :title="alertTitle"
-        :description="alertDescription"
-      >
-        <template #icon>
-          <Icon name="tabler:alert-circle" class="h-5 w-5" />
-        </template>
-      </UAlert>
-
-      <WaterfallGallery
-        :files="files"
-        :is-loading="isLoading"
-        :site-settings="siteSettings ?? undefined"
-        :scroll-element="scrollElementRef"
-        :empty-text="emptyText"
-        :is-authenticated="isAuthenticated"
-      />
-      <div
-        v-show="showLoadMoreSentinel"
-        ref="loadMoreSentinel"
-        class="flex min-h-12 items-center justify-center gap-2 py-6 text-xs text-muted"
-        aria-live="polite"
-      >
-        <template v-if="isLoadingMore">
-          <Icon name="tabler:loader-2" class="h-4 w-4 animate-spin" />
-          <span>{{ t('common.loading') }}</span>
-        </template>
-        <template v-else-if="loadMoreError">
-          <span>{{ t('common.toast.loadFailed') }}</span>
-          <UButton
-            size="xs"
+      <div v-else>
+        <div v-if="fetchError" class="wire-band">
+          <UAlert
+            color="error"
             variant="soft"
-            color="neutral"
-            icon="tabler:refresh"
-            @click="loadMoreError = false; loadMore()"
+            :title="alertTitle"
+            :description="alertDescription"
           >
-            {{ t('common.actions.retry') }}
-          </UButton>
-        </template>
+            <template #icon>
+              <Icon name="jannchie:alert-circle" class="h-5 w-5" />
+            </template>
+          </UAlert>
+        </div>
+
+        <WaterfallGallery
+          :files="files"
+          :is-loading="isLoading"
+          :site-settings="siteSettings ?? undefined"
+          :scroll-element="scrollElementRef"
+          :empty-text="emptyText"
+          :is-authenticated="isAuthenticated"
+        />
+        <div
+          v-show="showLoadMoreSentinel"
+          ref="loadMoreSentinel"
+          class="flex min-h-12 items-center justify-center gap-2 py-6 font-mono text-xs text-dimmed"
+          aria-live="polite"
+        >
+          <template v-if="isLoadingMore">
+            <Icon name="jannchie:loader" class="h-4 w-4 animate-spin" />
+            <span>{{ t('common.loading') }}</span>
+          </template>
+          <template v-else-if="loadMoreError">
+            <span>{{ t('common.toast.loadFailed') }}</span>
+            <UButton
+              size="xs"
+              variant="ghost"
+              color="neutral"
+              icon="jannchie:refresh"
+              @click="loadMoreError = false; loadMore()"
+            >
+              {{ t('common.actions.retry') }}
+            </UButton>
+          </template>
+        </div>
       </div>
-    </div>
-    <div class="hidden">
-      <slot />
+      <div class="hidden">
+        <slot />
+      </div>
     </div>
     <BackToTop />
   </div>

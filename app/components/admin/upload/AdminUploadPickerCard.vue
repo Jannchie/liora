@@ -27,30 +27,26 @@ function handleFile(file: File | null): void {
 </script>
 
 <template>
-  <UCard class="overflow-hidden">
-    <div class="flex flex-col gap-4">
-      <div class="flex items-center gap-2">
-        <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary-soft text-primary">
-          <Icon name="tabler:upload" class="h-5 w-5" />
-        </span>
-        <div class="min-w-0 space-y-0.5">
-          <h2 class="text-sm font-semibold text-highlighted">
-            {{ t('admin.upload.sections.upload.label') }}
-          </h2>
-          <p class="text-xs text-muted">
-            {{ t('admin.upload.sections.upload.autoRouteHint') }}
-          </p>
-        </div>
-      </div>
-      <UFileUpload
-        :ref="setFileUploadRef"
-        :model-value="null"
-        accept="image/*,video/*"
-        :label="t('admin.upload.sections.upload.dropHint')"
-        :description="t('admin.upload.sections.upload.supported')"
-        class="w-full"
-        @update:model-value="handleFile"
-      />
-    </div>
-  </UCard>
+  <!-- A page band of its own: caption row, then the dropzone. No card —
+       the band's bottom hairline is the only frame. -->
+  <section class="wire-band space-y-4">
+    <header class="space-y-1">
+      <p class="label-caption flex items-center gap-2">
+        <Icon name="jannchie:upload" class="h-3.5 w-3.5" />
+        <span>{{ t('admin.upload.sections.upload.label') }}</span>
+      </p>
+      <p class="text-[13px] text-dimmed">
+        {{ t('admin.upload.sections.upload.autoRouteHint') }}
+      </p>
+    </header>
+    <UFileUpload
+      :ref="setFileUploadRef"
+      :model-value="null"
+      accept="image/*,video/*"
+      :label="t('admin.upload.sections.upload.dropHint')"
+      :description="t('admin.upload.sections.upload.supported')"
+      class="w-full"
+      @update:model-value="handleFile"
+    />
+  </section>
 </template>

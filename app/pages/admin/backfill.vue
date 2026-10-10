@@ -27,11 +27,11 @@ useSeoMeta({
 })
 
 const commands = computed<BackfillCommand[]>(() => [
-  { key: 'arthash', endpoint: '/api/files/backfill-arthash', icon: 'tabler:hash' },
-  { key: 'exif', endpoint: '/api/files/backfill-exif', icon: 'tabler:camera' },
-  { key: 'histogram', endpoint: '/api/files/backfill-histogram', icon: 'tabler:chart-bar' },
-  { key: 'orientation', endpoint: '/api/files/backfill-orientation', icon: 'tabler:aspect-ratio' },
-  { key: 'series', endpoint: '/api/files/backfill-series', icon: 'tabler:stack-3' },
+  { key: 'arthash', endpoint: '/api/files/backfill-arthash', icon: 'jannchie:hash' },
+  { key: 'exif', endpoint: '/api/files/backfill-exif', icon: 'jannchie:camera' },
+  { key: 'histogram', endpoint: '/api/files/backfill-histogram', icon: 'jannchie:chart-bar' },
+  { key: 'orientation', endpoint: '/api/files/backfill-orientation', icon: 'jannchie:aspect-ratio' },
+  { key: 'series', endpoint: '/api/files/backfill-series', icon: 'jannchie:layers' },
 ])
 
 const runningKey = ref<BackfillCommand['key'] | null>(null)
@@ -88,41 +88,46 @@ async function run(command: BackfillCommand): Promise<void> {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div>
     <UPageHeader
       :title="t('admin.backfill.title')"
       :description="t('admin.backfill.seoDescription')"
     />
 
-    <UAlert
-      color="warning"
-      variant="soft"
-      icon="tabler:alert-triangle"
-      :title="t('admin.backfill.warningTitle')"
-      :description="t('admin.backfill.warningDescription')"
-    />
+    <div class="wire-band">
+      <UAlert
+        color="warning"
+        variant="soft"
+        icon="jannchie:alert-triangle"
+        :title="t('admin.backfill.warningTitle')"
+        :description="t('admin.backfill.warningDescription')"
+      />
+    </div>
 
-    <div class="grid gap-4 sm:grid-cols-2">
-      <UCard
+    <!-- Commands form one hairline grid with shared edges: the band above
+         supplies the top rule, each cell draws only its right and bottom,
+         and the last column's right edge tucks under the shell's side rule
+         (-mr-px) so no line doubles. -->
+    <div class="grid sm:-mr-px sm:grid-cols-2">
+      <section
         v-for="command in commands"
         :key="command.key"
+        class="flex flex-col gap-4 border-b border-border px-4 py-6 sm:border-r sm:px-8 sm:py-7"
       >
-        <template #header>
-          <div class="flex items-start gap-3">
-            <Icon :name="command.icon" class="mt-0.5 h-5 w-5 shrink-0 text-muted" />
-            <div class="min-w-0 space-y-1">
-              <h3 class="text-sm font-semibold text-highlighted">
-                {{ t(`admin.backfill.commands.${command.key}.title`) }}
-              </h3>
-              <p class="text-xs text-muted">
-                {{ t(`admin.backfill.commands.${command.key}.description`) }}
-              </p>
-            </div>
+        <div class="flex items-start gap-3">
+          <Icon :name="command.icon" class="mt-0.5 h-4 w-4 shrink-0 text-dimmed" />
+          <div class="min-w-0 space-y-1">
+            <h3 class="text-[13.5px] font-semibold tracking-[-0.01em] text-highlighted">
+              {{ t(`admin.backfill.commands.${command.key}.title`) }}
+            </h3>
+            <p class="text-[13px] leading-relaxed text-dimmed">
+              {{ t(`admin.backfill.commands.${command.key}.description`) }}
+            </p>
           </div>
-        </template>
+        </div>
 
-        <div class="flex items-center justify-between gap-4">
-          <p class="min-w-0 text-sm text-muted">
+        <div class="mt-auto flex items-center justify-between gap-4 pl-7">
+          <p class="num-tabular min-w-0 font-mono text-xs" :class="results[command.key] ? 'text-toned' : 'text-subtle'">
             <template v-if="results[command.key]">
               {{ results[command.key] }}
             </template>
@@ -133,7 +138,8 @@ async function run(command: BackfillCommand): Promise<void> {
           <UButton
             color="primary"
             size="sm"
-            icon="tabler:play"
+            icon="jannchie:play"
+            class="shrink-0"
             :loading="runningKey === command.key"
             :disabled="runningKey !== null"
             @click="run(command)"
@@ -141,7 +147,13 @@ async function run(command: BackfillCommand): Promise<void> {
             {{ runningKey === command.key ? t('admin.backfill.running') : t('admin.backfill.run') }}
           </UButton>
         </div>
-      </UCard>
+      </section>
+      <!-- Odd count: a blank cell closes the last row so its rules stay whole. -->
+      <div
+        v-if="commands.length % 2 === 1"
+        class="hidden border-b border-r border-border sm:block"
+        aria-hidden="true"
+      />
     </div>
   </div>
 </template>

@@ -210,21 +210,21 @@ async function handleSave(): Promise<void> {
     }"
   >
     <template #content>
-      <div class="flex h-full flex-col bg-bg">
-        <header class="flex items-start justify-between gap-3 bg-panel px-6 py-4">
-          <div class="min-w-0 space-y-1">
+      <div class="flex h-full flex-col bg-default">
+        <header class="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+          <div class="min-w-0 space-y-0.5">
             <p class="label-caption">
               {{ t('admin.files.recompose.title') }}
             </p>
-            <h3 class="truncate text-lg font-semibold text-highlighted">
+            <h3 class="truncate text-[15px] font-semibold tracking-[-0.01em] text-highlighted">
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="ghost" color="neutral" icon="tabler:x" :aria-label="t('common.actions.close')" @click="handleClose" />
+          <UButton variant="ghost" color="neutral" icon="jannchie:x" :aria-label="t('common.actions.close')" @click="handleClose" />
         </header>
 
         <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <!-- STAGE -->
+          <!-- STAGE: the photo is the hero, so the canvas stays black in both themes. -->
           <div
             ref="stageEl"
             class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black"
@@ -250,153 +250,176 @@ async function handleSave(): Promise<void> {
             </div>
           </div>
 
-          <!-- CONTROLS -->
-          <aside v-if="editor" class="surface-sunken w-full shrink-0 space-y-6 overflow-y-auto p-5 lg:w-80">
-            <USection :label="t('admin.files.recompose.aspect.label')" icon="tabler:crop">
-              <div class="flex flex-wrap gap-1.5">
-                <UButton
-                  v-for="preset in aspectPresets"
-                  :key="preset.key"
-                  size="sm"
-                  type="button"
-                  :color="activeAspectKey === preset.key ? 'primary' : 'neutral'"
-                  :variant="activeAspectKey === preset.key ? 'soft' : 'ghost'"
-                  @click="selectAspect(preset)"
-                >
-                  {{ preset.label }}
-                </UButton>
-              </div>
-            </USection>
+          <!-- CONTROLS: a detail column of hairline-separated sections, one line per seam. -->
+          <aside
+            v-if="editor"
+            class="recompose-controls flex max-h-[45vh] w-full shrink-0 flex-col overflow-y-auto border-t border-border bg-default lg:max-h-none lg:w-[340px] lg:border-t-0 lg:border-l"
+          >
+            <div class="border-b border-border px-5 py-4">
+              <USection :label="t('admin.files.recompose.aspect.label')" icon="jannchie:crop">
+                <div class="flex flex-wrap gap-1">
+                  <UButton
+                    v-for="preset in aspectPresets"
+                    :key="preset.key"
+                    size="sm"
+                    type="button"
+                    color="neutral"
+                    variant="ghost"
+                    :aria-pressed="activeAspectKey === preset.key"
+                    :class="preset.key.includes(':') ? 'font-mono' : ''"
+                    @click="selectAspect(preset)"
+                  >
+                    {{ preset.label }}
+                  </UButton>
+                </div>
+              </USection>
+            </div>
 
-            <USection :label="t('admin.files.recompose.rotate.label')" icon="tabler:rotate-clockwise-2">
-              <div class="flex flex-wrap gap-1.5">
-                <UButton size="sm" type="button" color="neutral" variant="ghost" icon="tabler:rotate-clockwise-2" @click="editor.rotate90(1)">
-                  {{ t('admin.files.recompose.rotate.cw') }}
-                </UButton>
-                <UButton size="sm" type="button" color="neutral" variant="ghost" icon="tabler:rotate-2" @click="editor.rotate90(-1)">
-                  {{ t('admin.files.recompose.rotate.ccw') }}
-                </UButton>
-                <UButton
-                  size="sm"
-                  type="button"
-                  :color="editor.params.flipH ? 'primary' : 'neutral'"
-                  variant="ghost"
-                  icon="tabler:flip-vertical"
-                  @click="editor.flip('h')"
-                >
-                  {{ t('admin.files.recompose.rotate.flipH') }}
-                </UButton>
-                <UButton
-                  size="sm"
-                  type="button"
-                  :color="editor.params.flipV ? 'primary' : 'neutral'"
-                  variant="ghost"
-                  icon="tabler:flip-horizontal"
-                  @click="editor.flip('v')"
-                >
-                  {{ t('admin.files.recompose.rotate.flipV') }}
-                </UButton>
-              </div>
-            </USection>
+            <div class="border-b border-border px-5 py-4">
+              <USection :label="t('admin.files.recompose.rotate.label')" icon="jannchie:rotate">
+                <div class="flex flex-wrap gap-1">
+                  <UButton size="sm" type="button" color="neutral" variant="ghost" icon="jannchie:rotate" @click="editor.rotate90(1)">
+                    {{ t('admin.files.recompose.rotate.cw') }}
+                  </UButton>
+                  <UButton size="sm" type="button" color="neutral" variant="ghost" icon="jannchie:rotate-ccw" @click="editor.rotate90(-1)">
+                    {{ t('admin.files.recompose.rotate.ccw') }}
+                  </UButton>
+                  <UButton
+                    size="sm"
+                    type="button"
+                    color="neutral"
+                    variant="ghost"
+                    icon="jannchie:flip-vertical"
+                    :aria-pressed="editor.params.flipH"
+                    @click="editor.flip('h')"
+                  >
+                    {{ t('admin.files.recompose.rotate.flipH') }}
+                  </UButton>
+                  <UButton
+                    size="sm"
+                    type="button"
+                    color="neutral"
+                    variant="ghost"
+                    icon="jannchie:flip"
+                    :aria-pressed="editor.params.flipV"
+                    @click="editor.flip('v')"
+                  >
+                    {{ t('admin.files.recompose.rotate.flipV') }}
+                  </UButton>
+                </div>
+              </USection>
+            </div>
 
-            <USection :label="t('admin.files.recompose.straighten')" icon="tabler:angle">
-              <div class="flex items-center gap-2 num-tabular text-[11px]">
-                <input
-                  type="range"
-                  min="-45"
-                  max="45"
-                  step="0.1"
-                  :value="editor.params.straighten"
-                  class="h-1 w-full cursor-pointer accent-primary"
-                  @input="editor.setStraighten(Number(($event.target as HTMLInputElement).value))"
-                >
-                <span class="w-14 shrink-0 text-right tabular-nums text-highlighted">{{ editor.params.straighten.toFixed(1) }}°</span>
-              </div>
-            </USection>
-
-            <USection :label="t('admin.files.recompose.stretch.label')" icon="tabler:arrows-horizontal">
-              <div class="space-y-2">
-                <div class="flex items-center gap-2 num-tabular text-[11px]">
-                  <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.stretch.x') }}</span>
+            <div class="border-b border-border px-5 py-4">
+              <USection :label="t('admin.files.recompose.straighten')" icon="jannchie:angle">
+                <div class="flex items-center gap-3">
                   <input
                     type="range"
-                    min="0.5"
-                    max="2"
-                    step="0.01"
-                    :value="editor.params.stretchX"
-                    class="h-1 w-full cursor-pointer accent-primary"
-                    @input="editor.setStretch('x', Number(($event.target as HTMLInputElement).value))"
+                    min="-45"
+                    max="45"
+                    step="0.1"
+                    :value="editor.params.straighten"
+                    :style="{ '--p': `${(editor.params.straighten + 45) / 90 * 100}%` }"
+                    class="recompose-slider"
+                    @input="editor.setStraighten(Number(($event.target as HTMLInputElement).value))"
                   >
-                  <span class="w-12 shrink-0 text-right tabular-nums text-highlighted">{{ editor.params.stretchX.toFixed(2) }}×</span>
+                  <span class="w-14 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.straighten.toFixed(1) }}°</span>
                 </div>
-                <div class="flex items-center gap-2 num-tabular text-[11px]">
-                  <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.stretch.y') }}</span>
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2"
-                    step="0.01"
-                    :value="editor.params.stretchY"
-                    class="h-1 w-full cursor-pointer accent-primary"
-                    @input="editor.setStretch('y', Number(($event.target as HTMLInputElement).value))"
-                  >
-                  <span class="w-12 shrink-0 text-right tabular-nums text-highlighted">{{ editor.params.stretchY.toFixed(2) }}×</span>
-                </div>
-              </div>
-            </USection>
+              </USection>
+            </div>
 
-            <USection :label="t('admin.files.recompose.perspective.label')" icon="tabler:perspective">
-              <div class="space-y-2">
-                <div class="flex items-center gap-2 num-tabular text-[11px]">
-                  <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.perspective.h') }}</span>
-                  <input
-                    type="range"
-                    min="-1"
-                    max="1"
-                    step="0.01"
-                    :value="editor.params.perspectiveH"
-                    class="h-1 w-full cursor-pointer accent-primary"
-                    @input="editor.setPerspective('h', Number(($event.target as HTMLInputElement).value))"
-                  >
-                  <span class="w-12 shrink-0 text-right tabular-nums text-highlighted">{{ editor.params.perspectiveH.toFixed(2) }}</span>
+            <div class="border-b border-border px-5 py-4">
+              <USection :label="t('admin.files.recompose.stretch.label')" icon="jannchie:arrows-horizontal">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-3">
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.stretch.x') }}</span>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.01"
+                      :value="editor.params.stretchX"
+                      :style="{ '--p': `${(editor.params.stretchX - 0.5) / 1.5 * 100}%` }"
+                      class="recompose-slider"
+                      @input="editor.setStretch('x', Number(($event.target as HTMLInputElement).value))"
+                    >
+                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.stretchX.toFixed(2) }}×</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.stretch.y') }}</span>
+                    <input
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.01"
+                      :value="editor.params.stretchY"
+                      :style="{ '--p': `${(editor.params.stretchY - 0.5) / 1.5 * 100}%` }"
+                      class="recompose-slider"
+                      @input="editor.setStretch('y', Number(($event.target as HTMLInputElement).value))"
+                    >
+                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.stretchY.toFixed(2) }}×</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-2 num-tabular text-[11px]">
-                  <span class="w-10 shrink-0 text-muted">{{ t('admin.files.recompose.perspective.v') }}</span>
-                  <input
-                    type="range"
-                    min="-1"
-                    max="1"
-                    step="0.01"
-                    :value="editor.params.perspectiveV"
-                    class="h-1 w-full cursor-pointer accent-primary"
-                    @input="editor.setPerspective('v', Number(($event.target as HTMLInputElement).value))"
-                  >
-                  <span class="w-12 shrink-0 text-right tabular-nums text-highlighted">{{ editor.params.perspectiveV.toFixed(2) }}</span>
-                </div>
-              </div>
-            </USection>
+              </USection>
+            </div>
 
-            <dl class="space-y-1 pt-1 num-tabular text-[11px]">
-              <div class="flex items-baseline justify-between gap-2">
-                <dt class="text-muted">
+            <div class="border-b border-border px-5 py-4">
+              <USection :label="t('admin.files.recompose.perspective.label')" icon="jannchie:perspective">
+                <div class="space-y-1">
+                  <div class="flex items-center gap-3">
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.perspective.h') }}</span>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="1"
+                      step="0.01"
+                      :value="editor.params.perspectiveH"
+                      :style="{ '--p': `${(editor.params.perspectiveH + 1) / 2 * 100}%` }"
+                      class="recompose-slider"
+                      @input="editor.setPerspective('h', Number(($event.target as HTMLInputElement).value))"
+                    >
+                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveH.toFixed(2) }}</span>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.perspective.v') }}</span>
+                    <input
+                      type="range"
+                      min="-1"
+                      max="1"
+                      step="0.01"
+                      :value="editor.params.perspectiveV"
+                      :style="{ '--p': `${(editor.params.perspectiveV + 1) / 2 * 100}%` }"
+                      class="recompose-slider"
+                      @input="editor.setPerspective('v', Number(($event.target as HTMLInputElement).value))"
+                    >
+                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveV.toFixed(2) }}</span>
+                  </div>
+                </div>
+              </USection>
+            </div>
+
+            <!-- Readout + hint close the column; nothing follows, so no bottom hairline. -->
+            <div class="space-y-3 px-5 py-4">
+              <dl class="flex items-baseline justify-between gap-2">
+                <dt class="label-caption">
                   {{ t('admin.files.recompose.framedSize') }}
                 </dt>
-                <dd class="tabular-nums text-highlighted">
+                <dd class="font-mono text-xs tabular-nums text-highlighted">
                   {{ editor.framedDims.width }} × {{ editor.framedDims.height }}
                 </dd>
-              </div>
-            </dl>
-            <p class="text-xs leading-relaxed text-muted">
-              {{ t('admin.files.recompose.hint') }}
-            </p>
+              </dl>
+              <p class="text-xs leading-relaxed text-dimmed">
+                {{ t('admin.files.recompose.hint') }}
+              </p>
+            </div>
           </aside>
         </div>
 
-        <footer class="flex items-center justify-between gap-2 bg-panel px-6 py-3">
+        <footer class="flex items-center justify-between gap-2 border-t border-border bg-default px-5 py-3">
           <UButton
             variant="ghost"
             color="neutral"
-            icon="tabler:restore"
+            icon="jannchie:undo"
             :disabled="!editor || editor.isIdentity"
             @click="editor?.reset()"
           >
@@ -409,7 +432,7 @@ async function handleSave(): Promise<void> {
             <UButton
               color="primary"
               type="button"
-              icon="tabler:device-floppy"
+              icon="jannchie:save"
               :loading="saving"
               @click="handleSave"
             >
@@ -421,3 +444,70 @@ async function handleSave(): Promise<void> {
     </template>
   </UModal>
 </template>
+
+<style scoped>
+/* Thin scrollbar so the control column reads as a quiet rail. */
+.recompose-controls {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border-strong) transparent;
+}
+
+/* Icons-site slider: 2px hairline track, ink progress (`--p` set inline, WebKit has no range-progress), 10px solid ink dot. */
+.recompose-slider {
+  flex: 1;
+  min-width: 0;
+  height: 26px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.recompose-slider:focus-visible {
+  outline: none;
+}
+.recompose-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 1px;
+  background:
+    linear-gradient(var(--color-primary), var(--color-primary)) 0 / var(--p, 50%) 100% no-repeat,
+    var(--color-border-strong);
+}
+.recompose-slider::-moz-range-track {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-border-strong);
+}
+.recompose-slider::-moz-range-progress {
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-primary);
+}
+.recompose-slider::-webkit-slider-thumb {
+  width: 10px;
+  height: 10px;
+  margin-top: -4px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+  -webkit-appearance: none;
+  appearance: none;
+}
+.recompose-slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+/* Kept as two rules: a selector list mixing vendor pseudo-elements is dropped whole by each engine. */
+.recompose-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+.recompose-slider:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-border-strong);
+  outline-offset: 2px;
+}
+</style>

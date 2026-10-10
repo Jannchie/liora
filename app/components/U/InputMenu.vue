@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<{
   valueKey: 'value',
   items: () => [],
   filterFields: () => ['label'],
-  icon: 'tabler:chevron-down',
+  icon: 'jannchie:chevron-down',
 })
 
 const emit = defineEmits<{
@@ -138,8 +138,8 @@ onBeforeUnmount(() => {
     <button
       type="button"
       :disabled="disabled"
-      class="flex w-full min-h-9 cursor-text items-center gap-2 rounded-md border border-transparent bg-muted px-3 py-1.5 text-left text-sm transition-colors hover:bg-elevated focus-within:border-primary focus-within:bg-default focus-within:shadow-[var(--ring-focus)]"
-      :class="open ? 'border-primary bg-default shadow-[var(--ring-focus)]' : ''"
+      class="flex w-full min-h-8 cursor-text items-center gap-2 rounded-md border border-border-strong bg-default px-2.5 py-1 text-left text-[13px] transition-colors hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]"
+      :class="open ? '!border-primary shadow-[var(--ring-focus)]' : ''"
       @click="openMenu"
     >
       <Icon v-if="icon" :name="icon" class="h-4 w-4 shrink-0 text-muted" />
@@ -148,15 +148,15 @@ onBeforeUnmount(() => {
           <span
             v-for="item in selectedItems"
             :key="String(readField(item, valueKey))"
-            class="inline-flex items-center gap-1 rounded-md bg-primary-soft px-1.5 py-0.5 text-xs text-primary"
+            class="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-xs text-highlighted shadow-[inset_0_0_0_1px_var(--color-border-strong)]"
           >
             {{ readField(item, labelKey) }}
             <button
               type="button"
-              class="text-primary/70 hover:text-primary"
+              class="text-dimmed hover:text-fg-highlighted"
               @click.stop="removeItem(item)"
             >
-              <Icon name="tabler:x" class="h-3 w-3" />
+              <Icon name="jannchie:x" class="h-3 w-3" />
             </button>
           </span>
         </template>
@@ -167,12 +167,12 @@ onBeforeUnmount(() => {
       </div>
       <Icon
         v-if="loading"
-        name="tabler:loader-2"
+        name="jannchie:loader"
         class="h-4 w-4 shrink-0 animate-spin text-muted"
       />
       <Icon
         v-else
-        name="tabler:chevron-down"
+        name="jannchie:chevron-down"
         class="h-4 w-4 shrink-0 text-muted transition-transform"
         :class="open ? 'rotate-180' : ''"
       />
@@ -188,7 +188,7 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg bg-panel shadow-lg"
+        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border-strong bg-panel shadow-md"
       >
         <div class="p-2 pb-1">
           <input
@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
             v-model="query"
             type="text"
             :placeholder="placeholder"
-            class="w-full rounded-md bg-muted px-2 py-1.5 text-sm outline-none placeholder:text-fg-dimmed"
+            class="w-full rounded-md border border-border-strong bg-transparent px-2 py-1.5 text-[13px] outline-none placeholder:text-fg-subtle focus:border-primary"
             @keydown.escape="open = false"
           >
         </div>
@@ -205,15 +205,15 @@ onBeforeUnmount(() => {
             v-for="item in filteredItems"
             :key="String(readField(item, valueKey))"
             type="button"
-            class="flex w-full items-start gap-2 px-3 py-1.5 text-left text-sm transition-colors hover:bg-overlay-hover"
-            :class="isSelected(item) ? 'bg-primary-soft text-primary' : 'text-foreground'"
+            class="flex w-full items-start gap-2 px-3 py-1.5 text-left text-[13px] transition-colors hover:bg-muted"
+            :class="isSelected(item) ? 'text-highlighted' : 'text-muted'"
             @click="toggleItem(item)"
           >
             <Icon
               v-if="multiple"
-              :name="isSelected(item) ? 'tabler:square-check-filled' : 'tabler:square'"
+              :name="isSelected(item) ? 'jannchie:check-square' : 'jannchie:square'"
               class="mt-0.5 h-4 w-4 shrink-0"
-              :class="isSelected(item) ? 'text-primary' : 'text-muted'"
+              :class="isSelected(item) ? 'text-highlighted' : 'text-subtle'"
             />
             <span class="min-w-0 flex-1">
               <slot name="item-label" :item="item">

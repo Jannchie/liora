@@ -26,13 +26,11 @@ const captureTimeLocalModel = computed<string>({
 </script>
 
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center gap-2">
-      <Icon name="tabler:database-edit" class="h-4 w-4 text-muted" />
-      <p class="label-caption">
-        {{ t('admin.upload.sections.edit.title') }}
-      </p>
-    </div>
+  <div class="space-y-5">
+    <p class="label-caption flex min-h-7 items-center gap-2">
+      <Icon name="jannchie:database" class="h-3.5 w-3.5" />
+      <span>{{ t('admin.upload.sections.edit.title') }}</span>
+    </p>
     <AdminMetadataForm
       v-model:capture-time-local="captureTimeLocalModel"
       :form="formModel"

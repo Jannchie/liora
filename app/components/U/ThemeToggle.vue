@@ -98,11 +98,11 @@ const cycle: Record<Mode, Mode> = {
 
 const icon = computed(() => {
   switch (userMode.value) {
-    case 'light': { return 'tabler:sun'
+    case 'light': { return 'jannchie:sun'
     }
-    case 'dark': { return 'tabler:moon'
+    case 'dark': { return 'jannchie:moon'
     }
-    default: { return 'tabler:device-laptop'
+    default: { return 'jannchie:theme'
     }
   }
 })
@@ -126,7 +126,7 @@ function nextMode(): void {
 <template>
   <button
     type="button"
-    class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-elevated leading-none text-muted outline-none transition-colors duration-150 ease-out hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+    class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md leading-none text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
     :title="`Theme: ${label} (click to cycle)`"
     :aria-label="`Switch theme (current: ${label})`"
     @click="nextMode"

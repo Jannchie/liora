@@ -152,7 +152,7 @@ const headerSocialLinks = computed<SocialLink[]>(() => {
     }
   }
 
-  appendLink('Homepage', social?.homepage, 'tabler:home')
+  appendLink('Homepage', social?.homepage, 'jannchie:home')
   appendLink('GitHub', social?.github, 'tabler:brand-github')
   appendLink('X', social?.twitter, 'tabler:brand-x')
   appendLink('Instagram', social?.instagram, 'tabler:brand-instagram')
@@ -391,43 +391,51 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="min-h-screen">
-    <GalleryHeaderBar
-      :title="pageHeaderTitle"
-      :social-links="headerSocialLinks"
-      :show-header-info="showHeaderInfo"
-      :is-authenticated="isAuthenticated"
-    />
-    <div class="max-w-500 m-auto space-y-6 px-3 py-8 md:px-4">
-      <header class="space-y-1">
+  <!-- Same shell as the gallery layout: ruled chrome, full-bleed photos. -->
+  <div class="min-h-screen w-full bg-bg">
+    <div class="mx-auto min-h-screen w-full max-w-500 border-x border-border bg-default">
+      <GalleryHeaderBar
+        :title="pageHeaderTitle"
+        :social-links="headerSocialLinks"
+        :show-header-info="showHeaderInfo"
+        :is-authenticated="isAuthenticated"
+      />
+      <header class="border-b border-border px-4 pb-5 pt-6 sm:px-8 sm:pt-7">
+        <NuxtLink
+          to="/series"
+          class="label-caption outline-none transition-colors hover:text-fg-highlighted focus-visible:text-fg-highlighted"
+        >
+          {{ t('series.list.title') }}
+        </NuxtLink>
         <template v-if="showSeriesHeaderSkeleton">
-          <div class="space-y-2 py-1" aria-hidden="true">
-            <USkeleton class="h-8 w-48" />
+          <div class="mt-2.5 space-y-2" aria-hidden="true">
+            <USkeleton class="h-6 w-48" />
             <USkeleton class="h-4 w-80 max-w-[80vw]" />
-            <USkeleton class="h-3 w-20" />
           </div>
           <span class="sr-only">{{ t('common.loading') }}</span>
         </template>
         <template v-else>
-          <h1 class="font-title text-3xl font-semibold leading-[1.15] text-highlighted">
+          <h1 class="mt-2 flex items-baseline gap-2.5 text-xl font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
             {{ displaySeriesTitle }}
+            <small
+              class="font-mono text-[13px] font-normal text-dimmed"
+              :title="t('series.list.count', { count: seriesDetail?.fileCount ?? files.length })"
+            >{{ seriesDetail?.fileCount ?? files.length }}</small>
           </h1>
-          <p class="font-prose max-w-2xl pt-1 text-sm leading-relaxed text-muted">
+          <p class="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-dimmed">
             {{ displaySeriesDescription }}
-          </p>
-          <p class="label-caption-sm num-tabular pt-1">
-            {{ t('series.list.count', { count: seriesDetail?.fileCount ?? files.length }) }}
           </p>
         </template>
       </header>
 
-      <UAlert
-        v-if="error"
-        color="error"
-        variant="soft"
-        :title="t('series.detail.loadFailed')"
-        :description="error.message"
-      />
+      <div v-if="error" class="wire-band">
+        <UAlert
+          color="error"
+          variant="soft"
+          :title="t('series.detail.loadFailed')"
+          :description="error.message"
+        />
+      </div>
 
       <WaterfallGallery
         :files="files"
@@ -446,20 +454,20 @@ onBeforeUnmount(() => {
       <div
         v-show="showLoadMoreSentinel"
         ref="loadMoreSentinel"
-        class="flex min-h-12 items-center justify-center gap-2 py-6 text-xs text-muted"
+        class="flex min-h-12 items-center justify-center gap-2 py-6 font-mono text-xs text-dimmed"
         aria-live="polite"
       >
         <template v-if="isLoadingMore">
-          <Icon name="tabler:loader-2" class="h-4 w-4 animate-spin" />
+          <Icon name="jannchie:loader" class="h-4 w-4 animate-spin" />
           <span>{{ t('common.loading') }}</span>
         </template>
         <template v-else-if="loadMoreError">
           <span>{{ t('common.toast.loadFailed') }}</span>
           <UButton
             size="xs"
-            variant="soft"
+            variant="ghost"
             color="neutral"
-            icon="tabler:refresh"
+            icon="jannchie:refresh"
             @click="loadMoreError = false; loadMore()"
           >
             {{ t('common.actions.retry') }}

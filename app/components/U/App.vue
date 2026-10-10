@@ -5,26 +5,17 @@ import { useToast, useToastStore } from '~/composables/useToast'
 const toastStore = useToastStore()
 const toast = useToast()
 
-const colorClass: Record<ToastColor, string> = {
-  primary: 'border-l-4 border-l-primary',
-  error: 'border-l-4 border-l-error',
-  warning: 'border-l-4 border-l-warning',
-  success: 'border-l-4 border-l-success',
-  info: 'border-l-4 border-l-info',
-  neutral: 'border-l-4 border-l-border-strong',
-}
-
 const iconFor: Record<ToastColor, string> = {
-  primary: 'tabler:circle-check',
-  error: 'tabler:alert-octagon',
-  warning: 'tabler:alert-triangle',
-  success: 'tabler:circle-check',
-  info: 'tabler:info-circle',
-  neutral: 'tabler:bell',
+  primary: 'jannchie:check-circle',
+  error: 'jannchie:octagon-x',
+  warning: 'jannchie:alert-triangle',
+  success: 'jannchie:check-circle',
+  info: 'jannchie:info',
+  neutral: 'jannchie:bell',
 }
 
 const iconColorClass: Record<ToastColor, string> = {
-  primary: 'text-primary',
+  primary: 'text-highlighted',
   error: 'text-error',
   warning: 'text-warning',
   success: 'text-success',
@@ -57,26 +48,25 @@ const iconColorClass: Record<ToastColor, string> = {
         <div
           v-for="item in toastStore.items"
           :key="item.id"
-          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg bg-default px-3 py-2.5 shadow-lg ring-1 ring-border"
-          :class="colorClass[item.color]"
+          class="pointer-events-auto flex w-full max-w-sm items-start gap-3 rounded-lg border border-border-strong bg-default px-3 py-2.5 shadow-md"
           role="status"
         >
           <Icon :name="iconFor[item.color]" class="mt-0.5 h-4 w-4 shrink-0" :class="iconColorClass[item.color]" />
           <div class="min-w-0 flex-1 space-y-0.5">
-            <p class="text-sm font-semibold text-highlighted">
+            <p class="text-[13px] font-medium text-highlighted">
               {{ item.title }}
             </p>
-            <p v-if="item.description" class="text-xs text-muted">
+            <p v-if="item.description" class="text-xs text-dimmed">
               {{ item.description }}
             </p>
           </div>
           <button
             type="button"
-            class="shrink-0 rounded-md p-0.5 text-muted outline-none transition hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+            class="shrink-0 rounded-md p-0.5 text-muted outline-none transition hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
             aria-label="Dismiss"
             @click="toast.remove(item.id)"
           >
-            <Icon name="tabler:x" class="h-3.5 w-3.5" />
+            <Icon name="jannchie:x" class="h-3.5 w-3.5" />
           </button>
         </div>
       </TransitionGroup>

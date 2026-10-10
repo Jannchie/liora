@@ -72,11 +72,11 @@ defineExpose({ inputRef, clear })
 
 <template>
   <div
-    class="group relative flex flex-col items-center justify-center gap-3 rounded-xl px-6 py-14 text-center outline-none transition-all duration-200 focus-visible:shadow-[var(--ring-focus)] sm:py-16"
+    class="group relative flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center outline-none transition-colors duration-150 focus-visible:shadow-[var(--ring-focus)] sm:py-16"
     :class="[
       isDragging
-        ? 'bg-primary-soft'
-        : 'bg-sunken hover:bg-primary-softer',
+        ? 'border-primary bg-muted'
+        : 'border-border-strong hover:border-fg-subtle hover:bg-muted',
       disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
     ]"
     role="button"
@@ -88,19 +88,19 @@ defineExpose({ inputRef, clear })
     @dragleave="onDragLeave"
   >
     <span
-      class="flex h-12 w-12 items-center justify-center rounded-full bg-primary-soft text-primary transition-transform duration-200 group-hover:-translate-y-0.5"
-      :class="isDragging ? 'scale-110' : ''"
+      class="flex h-11 w-11 items-center justify-center rounded-md border border-border-strong text-highlighted transition-colors"
+      :class="isDragging ? 'bg-default' : ''"
     >
-      <Icon name="tabler:cloud-upload" class="h-6 w-6" />
+      <Icon name="jannchie:cloud-upload" class="h-6 w-6" />
     </span>
     <div class="space-y-1">
-      <p v-if="label" class="text-sm font-semibold text-highlighted">
+      <p v-if="label" class="text-[13px] font-medium text-highlighted">
         {{ label }}
       </p>
-      <p v-if="description" class="text-xs text-muted">
+      <p v-if="description" class="text-xs text-dimmed">
         {{ description }}
       </p>
-      <p v-if="modelValue" class="text-xs text-primary">
+      <p v-if="modelValue" class="font-mono text-xs text-highlighted">
         {{ modelValue.name }}
       </p>
     </div>

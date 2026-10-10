@@ -141,7 +141,8 @@ function endDrag(event: PointerEvent): void {
       @pointerup="endDrag"
       @pointercancel="endDrag"
     >
-      <div class="pointer-events-none absolute inset-0 border border-white/90" />
+      <!-- Neutral, photo-safe frame: white line with a dark hairline halo so it reads on bright and dark scenes alike. -->
+      <div class="pointer-events-none absolute inset-0 border border-white shadow-[0_0_0_1px_rgb(0_0_0/0.35)]" />
       <!-- Rule-of-thirds grid -->
       <div class="pointer-events-none absolute inset-y-0 left-1/3 w-px bg-white/30" />
       <div class="pointer-events-none absolute inset-y-0 left-2/3 w-px bg-white/30" />
@@ -150,7 +151,7 @@ function endDrag(event: PointerEvent): void {
       <div
         v-for="handle in cornerHandles"
         :key="handle.id"
-        class="absolute h-3 w-3 touch-none border border-black/40 bg-white"
+        class="absolute h-2.5 w-2.5 touch-none rounded-[2px] border border-black/50 bg-white"
         :class="handle.class"
         :style="{ cursor: handle.cursor }"
         @pointerdown="startDrag($event, handle.id)"
@@ -162,7 +163,7 @@ function endDrag(event: PointerEvent): void {
         <div
           v-for="handle in edgeHandles"
           :key="handle.id"
-          class="absolute h-2.5 w-2.5 touch-none rounded-full border border-black/40 bg-white"
+          class="absolute h-2 w-2 touch-none rounded-[2px] border border-black/50 bg-white"
           :class="handle.class"
           :style="{ cursor: handle.cursor }"
           @pointerdown="startDrag($event, handle.id)"

@@ -175,14 +175,14 @@ function handleReset(): void {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div>
     <UPageHeader
       :title="t('admin.site.title')"
       :description="t('admin.site.seoDescription')"
     >
       <template #actions>
-        <span class="hidden self-center text-xs text-muted sm:inline-flex sm:items-center sm:gap-1.5">
-          <Icon name="tabler:clock" class="h-3.5 w-3.5" />
+        <span class="mr-1.5 hidden self-center font-mono text-xs text-dimmed sm:inline-flex sm:items-center sm:gap-1.5">
+          <Icon name="jannchie:clock" class="h-3.5 w-3.5" />
           {{ lastUpdated }}
         </span>
         <UButton
@@ -190,7 +190,7 @@ function handleReset(): void {
           color="neutral"
           size="sm"
           :disabled="saving || loadingSettings"
-          icon="tabler:restore"
+          icon="jannchie:undo"
           @click="handleReset"
         >
           {{ t('common.actions.reset') }}
@@ -200,7 +200,7 @@ function handleReset(): void {
           size="sm"
           :loading="saving"
           :disabled="saving || loadingSettings"
-          icon="tabler:device-floppy"
+          icon="jannchie:save"
           @click="handleSubmit"
         >
           {{ t('common.actions.save') }}
@@ -208,20 +208,22 @@ function handleReset(): void {
       </template>
     </UPageHeader>
 
-    <UAlert
-      v-if="settingsError"
-      color="error"
-      variant="soft"
-      :title="toastMessages.loadFailed"
-      :description="settingsError?.message"
-    />
+    <!-- Page-level alerts live in their own band so the rule rhythm holds. -->
+    <div v-if="settingsError" class="wire-band">
+      <UAlert
+        color="error"
+        variant="soft"
+        :title="toastMessages.loadFailed"
+        :description="settingsError?.message"
+      />
+    </div>
 
     <USection
       panel
       :label="t('admin.site.sections.basic.title')"
-      icon="tabler:settings"
+      icon="jannchie:settings"
     >
-      <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
+      <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
         <UFormField :label="t('admin.site.fields.name.label')" :description="t('admin.site.fields.name.help')">
           <UInput
             v-model="form.name"
@@ -252,7 +254,7 @@ function handleReset(): void {
             <img
               :src="resolvedIconPreview"
               alt="Site icon preview"
-              class="h-9 w-9 shrink-0 self-center rounded-md bg-white object-contain"
+              class="h-9 w-9 shrink-0 self-center rounded-md border border-border bg-white object-contain p-0.5"
             >
             <UInput
               v-model="form.iconUrl"
@@ -261,11 +263,11 @@ function handleReset(): void {
               :disabled="saving || loadingSettings"
             />
             <UButton
-              color="primary"
-              variant="soft"
+              color="neutral"
+              variant="outline"
               :loading="uploadingIcon"
               :disabled="saving || loadingSettings || uploadingIcon"
-              icon="tabler:photo-plus"
+              icon="jannchie:image-plus"
               class="shrink-0"
               @click="openIconPicker"
             >
@@ -286,7 +288,7 @@ function handleReset(): void {
     <USection
       panel
       :label="t('admin.site.fields.customCss.label')"
-      icon="tabler:code"
+      icon="jannchie:code"
     >
       <UFormField :description="t('admin.site.fields.customCss.help')">
         <UTextarea
@@ -302,11 +304,11 @@ function handleReset(): void {
     <USection
       panel
       :label="t('admin.site.sections.social.title')"
-      icon="tabler:share"
+      icon="jannchie:share"
     >
-      <div class="grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         <UFormField label="Homepage">
-          <UInput v-model="form.social.homepage" class="w-full" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="tabler:home" />
+          <UInput v-model="form.social.homepage" class="w-full" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="jannchie:home" />
         </UFormField>
         <UFormField label="GitHub">
           <UInput v-model="form.social.github" class="w-full" :placeholder="t('admin.site.fields.github.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-github" />

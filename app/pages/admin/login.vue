@@ -55,27 +55,29 @@ async function handleSubmit(): Promise<void> {
 </script>
 
 <template>
-  <div class="flex min-h-screen items-center justify-center bg-chrome px-4 py-10">
-    <UCard
-      class="w-full max-w-md"
-    >
-      <div class="space-y-6">
-        <div class="space-y-2 text-center">
-          <div class="mx-auto inline-flex items-center gap-2 rounded-full bg-primary-soft px-3 py-1 text-xs font-medium text-primary">
-            <Icon name="tabler:shield-lock" class="h-4 w-4" />
-            <span>{{ t('admin.login.sectionLabel') }}</span>
-          </div>
-          <h1 class="text-2xl font-semibold">
+  <div class="flex min-h-screen items-center justify-center bg-bg px-4 py-10">
+    <div class="w-full max-w-sm overflow-hidden rounded-[10px] border border-border bg-default">
+      <div class="flex h-14 items-center gap-2.5 border-b border-border px-5">
+        <Icon name="jannchie:aperture" class="h-5 w-5 shrink-0 text-highlighted" />
+        <span class="font-semibold tracking-[-0.01em] text-highlighted">Liora</span>
+        <span class="label-caption ml-auto flex items-center gap-1.5">
+          <Icon name="jannchie:shield-lock" class="h-3.5 w-3.5" />
+          {{ t('admin.login.sectionLabel') }}
+        </span>
+      </div>
+      <div class="space-y-6 px-5 py-6">
+        <div class="space-y-1.5">
+          <h1 class="text-xl font-semibold tracking-[-0.01em] text-highlighted">
             {{ t('admin.login.heading') }}
           </h1>
-          <p class="text-sm text-muted">
+          <p class="text-[13px] text-dimmed">
             {{ pageDescription }}
           </p>
         </div>
 
         <UForm class="flex flex-col gap-4" @submit.prevent="handleSubmit">
           <div class="flex flex-col gap-2">
-            <label :for="usernameId" class="text-sm font-medium text-foreground">
+            <label :for="usernameId" class="label-caption">
               {{ t('admin.login.usernameLabel') }}
             </label>
             <UInput
@@ -87,7 +89,7 @@ async function handleSubmit(): Promise<void> {
           </div>
 
           <div class="flex flex-col gap-2">
-            <label :for="passwordId" class="text-sm font-medium text-foreground">
+            <label :for="passwordId" class="label-caption">
               {{ t('admin.login.passwordLabel') }}
             </label>
             <UInput
@@ -107,7 +109,7 @@ async function handleSubmit(): Promise<void> {
             :description="errorMessage"
           >
             <template #icon>
-              <Icon name="tabler:alert-circle" class="h-5 w-5" />
+              <Icon name="jannchie:alert-circle" class="h-5 w-5" />
             </template>
           </UAlert>
 
@@ -117,12 +119,12 @@ async function handleSubmit(): Promise<void> {
             variant="solid"
             block
             :loading="submitting"
-            icon="tabler:login"
+            icon="jannchie:login"
           >
             {{ t('admin.login.submit') }}
           </UButton>
         </UForm>
       </div>
-    </UCard>
+    </div>
   </div>
 </template>

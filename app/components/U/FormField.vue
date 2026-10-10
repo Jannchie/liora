@@ -26,15 +26,15 @@ provide('u-form-field', {
       <label
         v-if="label"
         :for="fieldId"
-        class="block text-sm font-medium text-toned"
+        class="block text-[13px] text-toned"
       >
         {{ label }}
         <span v-if="required" class="text-error">*</span>
       </label>
-      <span v-if="hint" class="text-xs text-muted">{{ hint }}</span>
+      <span v-if="hint" class="font-mono text-[11px] text-dimmed">{{ hint }}</span>
     </div>
     <slot />
-    <p v-if="description && !error" class="text-xs text-muted">
+    <p v-if="description && !error" class="text-xs text-dimmed">
       {{ description }}
     </p>
     <p v-if="error" class="text-xs text-error">

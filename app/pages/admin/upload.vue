@@ -406,16 +406,16 @@ function formatSpeed(bytesPerSecond: number): string {
 const previewChips = computed(() => {
   const chips: { icon: string, text: string }[] = []
   if (form.width > 0 && form.height > 0) {
-    chips.push({ icon: 'tabler:aspect-ratio', text: `${form.width} × ${form.height}` })
+    chips.push({ icon: 'jannchie:aspect-ratio', text: `${form.width} × ${form.height}` })
   }
   if (captureTimeDisplay.value) {
-    chips.push({ icon: 'tabler:calendar-time', text: captureTimeDisplay.value })
+    chips.push({ icon: 'jannchie:calendar-clock', text: captureTimeDisplay.value })
   }
   if (selectedFile.value) {
-    chips.push({ icon: 'tabler:file-type-jpg', text: formatFileSize(selectedFile.value.size) })
+    chips.push({ icon: 'jannchie:file-image', text: formatFileSize(selectedFile.value.size) })
   }
   if (selectedVideo.value) {
-    chips.push({ icon: 'tabler:movie', text: formatFileSize(selectedVideo.value.size) })
+    chips.push({ icon: 'jannchie:movie', text: formatFileSize(selectedVideo.value.size) })
   }
   return chips
 })
@@ -643,7 +643,9 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <!-- Wireframe anatomy: a stack of full-width bands, no gaps — every
+       rule runs edge to edge between the sidebar and the shell's side. -->
+  <div>
     <UPageHeader
       :title="t('admin.upload.title')"
     >
@@ -651,7 +653,7 @@ onBeforeUnmount(() => {
         <UButton
           size="sm"
           color="primary"
-          icon="tabler:photo-plus"
+          icon="jannchie:image-plus"
           @click="openBatchFileDialog"
         >
           {{ t('admin.upload.batch.pickFiles') }}
@@ -661,7 +663,7 @@ onBeforeUnmount(() => {
           size="sm"
           color="neutral"
           variant="ghost"
-          icon="tabler:trash"
+          icon="jannchie:trash"
           @click="clearBatchQueue"
         >
           {{ t('admin.upload.batch.clearQueue') }}
@@ -681,7 +683,7 @@ onBeforeUnmount(() => {
       v-if="batchItems.length > 0"
       panel
       :label="t('admin.upload.batch.title')"
-      icon="tabler:photo-plus"
+      icon="jannchie:image-plus"
     >
       <template #actions>
         <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(true)">
@@ -693,7 +695,7 @@ onBeforeUnmount(() => {
         <UButton
           size="xs"
           color="primary"
-          icon="tabler:upload"
+          icon="jannchie:upload"
           :loading="batchSubmitting"
           @click="submitBatchUpload"
         >
@@ -701,57 +703,60 @@ onBeforeUnmount(() => {
         </UButton>
       </template>
       <div class="space-y-4">
-        <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs">
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+        <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-xs num-tabular">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Total
-            </dt><dd class="num-tabular">
+            </dt><dd class="text-highlighted">
               {{ batchItems.length }}
             </dd>
           </div>
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Selected
-            </dt><dd class="num-tabular">
+            </dt><dd class="text-highlighted">
               {{ batchSelectedCount }}
             </dd>
           </div>
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Pending
-            </dt><dd class="num-tabular">
+            </dt><dd class="text-highlighted">
               {{ batchPendingCount }}
             </dd>
           </div>
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Uploading
-            </dt><dd class="num-tabular">
+            </dt><dd class="text-highlighted">
               {{ batchUploadingCount }}
             </dd>
           </div>
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Success
-            </dt><dd class="num-tabular text-success">
+            </dt><dd class="text-success">
               {{ batchSuccessCount }}
             </dd>
           </div>
-          <div class="flex items-center gap-1">
-            <dt class="text-muted">
+          <div class="flex items-center gap-1.5">
+            <dt class="label-caption">
               Failed
-            </dt><dd class="num-tabular text-error">
+            </dt><dd class="text-error">
               {{ batchFailedCount }}
             </dd>
           </div>
         </dl>
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <!-- Shared-edge grid like the icons site: the grid draws the top
+             and left lines, each cell only its right and bottom, so no
+             hairline is ever doubled. -->
+        <div class="grid border-t border-l border-border sm:grid-cols-2 xl:grid-cols-3">
           <div
             v-for="item in batchItems"
             :key="item.id"
-            class="space-y-2"
+            class="flex flex-col border-r border-b border-border"
           >
-            <div class="relative">
+            <div class="relative border-b border-border bg-muted">
               <img
                 :src="item.previewUrl"
                 :alt="item.file.name"
@@ -761,25 +766,25 @@ onBeforeUnmount(() => {
                 size="xs"
                 color="neutral"
                 variant="ghost"
-                icon="tabler:x"
-                class="absolute right-1 top-1 bg-default/80 backdrop-blur"
+                icon="jannchie:x"
+                class="absolute right-1.5 top-1.5 bg-default/80 backdrop-blur"
                 @click="removeBatchItem(item.id)"
               />
             </div>
-            <div class="space-y-1">
-              <label class="flex items-center gap-2 text-sm">
+            <div class="space-y-1.5 px-3 py-2.5">
+              <label class="flex items-center gap-2 text-[13px]">
                 <input
                   v-model="item.selected"
                   type="checkbox"
-                  class="h-4 w-4 accent-primary"
+                  class="h-3.5 w-3.5 accent-primary"
                 >
-                <span class="truncate font-medium">{{ item.file.name }}</span>
+                <span class="truncate font-mono text-highlighted">{{ item.file.name }}</span>
               </label>
-              <div class="flex items-center justify-between num-tabular text-[11px] text-muted">
+              <div class="flex items-center justify-between font-mono text-[11px] text-dimmed num-tabular">
                 <span>{{ item.form.width }} × {{ item.form.height }}</span>
                 <span>{{ formatFileSize(item.file.size) }}</span>
               </div>
-              <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-muted'">
+              <p class="font-mono text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-dimmed'">
                 {{ t(`admin.upload.batch.status.${item.status}`) }}
                 <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
               </p>
@@ -795,59 +800,60 @@ onBeforeUnmount(() => {
       @pick="ingestPickedFile"
     />
 
+    <!-- The editor is one band: a header row closed by a hairline, then
+         preview and metadata side by side, split by a vertical hairline
+         (stacked and split by a horizontal one below xl). -->
     <UForm
       v-if="hasSelection"
       :state="form"
-      class="space-y-4"
+      class="border-b border-border"
       @submit.prevent="submit"
     >
-      <UCard class="overflow-hidden" :ui="{ body: 'px-5 pb-5 pt-2' }">
-        <template #header>
-          <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div class="min-w-0 space-y-1">
-              <p class="label-caption">
-                {{ t('admin.upload.sections.edit.title') }}
-              </p>
-              <p class="truncate font-mono text-sm text-highlighted">
-                {{ displayFileName }}
-              </p>
-              <div
-                v-if="previewChips.length > 0"
-                class="flex flex-wrap items-center gap-x-4 gap-y-1 num-tabular text-[11px] text-muted"
-              >
-                <span
-                  v-for="chip in previewChips"
-                  :key="`${chip.icon}-${chip.text}`"
-                  class="inline-flex items-center gap-1.5"
-                >
-                  <Icon :name="chip.icon" class="h-3.5 w-3.5" />
-                  <span>{{ chip.text }}</span>
-                </span>
-              </div>
-            </div>
-            <div class="flex shrink-0 flex-wrap items-center gap-2">
-              <UButton
-                variant="ghost"
-                color="neutral"
-                type="button"
-                @click="clearSelectedFile"
-              >
-                {{ t('common.actions.cancel') }}
-              </UButton>
-              <UButton
-                color="primary"
-                type="submit"
-                :loading="submitting"
-                :disabled="!selectedFile"
-                icon="tabler:device-floppy"
-              >
-                {{ t('admin.upload.actions.save') }}
-              </UButton>
-            </div>
+      <div class="wire-band flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0 space-y-1">
+          <p class="label-caption">
+            {{ t('admin.upload.sections.edit.title') }}
+          </p>
+          <p class="truncate font-mono text-[13px] text-highlighted">
+            {{ displayFileName }}
+          </p>
+          <div
+            v-if="previewChips.length > 0"
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-dimmed num-tabular"
+          >
+            <span
+              v-for="chip in previewChips"
+              :key="`${chip.icon}-${chip.text}`"
+              class="inline-flex items-center gap-1.5"
+            >
+              <Icon :name="chip.icon" class="h-3.5 w-3.5" />
+              <span>{{ chip.text }}</span>
+            </span>
           </div>
-        </template>
+        </div>
+        <div class="flex shrink-0 flex-wrap items-center gap-1.5">
+          <UButton
+            variant="ghost"
+            color="neutral"
+            type="button"
+            @click="clearSelectedFile"
+          >
+            {{ t('common.actions.cancel') }}
+          </UButton>
+          <UButton
+            color="primary"
+            type="submit"
+            :loading="submitting"
+            :disabled="!selectedFile"
+            icon="jannchie:save"
+          >
+            {{ t('admin.upload.actions.save') }}
+          </UButton>
+        </div>
+      </div>
 
-        <div class="grid gap-6 xl:grid-cols-[minmax(360px,520px)_1fr]">
+      <div class="grid divide-y divide-border xl:grid-cols-[minmax(360px,520px)_1fr] xl:divide-x xl:divide-y-0">
+        <div class="min-w-0 px-4 py-6 sm:px-8 sm:py-7">
           <AdminUploadPreviewCard
             :preview-max-height="previewMaxHeight"
             :aspect-ratio-style="aspectRatioStyle"
@@ -879,14 +885,16 @@ onBeforeUnmount(() => {
             @frame-input="handleFrameInput"
             @capture-live-frame="captureLiveFrame"
           />
+        </div>
 
+        <div class="min-w-0 px-4 py-6 sm:px-8 sm:py-7">
           <AdminUploadMetadataCard
             v-model:form="formModel"
             v-model:capture-time-local="captureTimeLocal"
             :selected-file="selectedFile"
           />
         </div>
-      </UCard>
+      </div>
     </UForm>
   </div>
 </template>

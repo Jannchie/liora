@@ -333,53 +333,56 @@ async function renderHistogram(): Promise<void> {
 </script>
 
 <template>
-  <div class="rounded-lg border border-default/20 bg-elevated/80">
-    <div class="flex items-center justify-between border-b border-default/10 px-3 py-2 text-xs font-medium text-muted">
-      <div class="flex items-center gap-2">
-        <Icon name="tabler:chart-line" class="h-4 w-4" />
+  <!--
+    A section of the viewer's info column: caption, then the plot on a dark
+    well (the curves are drawn for a dark ground, like a camera's screen),
+    then the tonal split as three cells sharing hairlines.
+  -->
+  <section class="border-b border-border">
+    <div class="space-y-3 px-5 py-4">
+      <p class="label-caption flex items-center gap-1.5 text-dimmed">
+        <Icon name="jannchie:chart-line" class="h-3.5 w-3.5" />
         <span>{{ t('gallery.histogram.title') }}</span>
-      </div>
-    </div>
-    <div class="space-y-3 p-3">
-      <div class="relative h-36 w-full overflow-hidden rounded-md bg-default/60 ring-1 ring-default/10">
+      </p>
+      <div class="relative h-36 w-full overflow-hidden rounded-md border border-border bg-[#0e0e11]">
         <canvas ref="histogramCanvasRef" class="absolute inset-0 h-full w-full" />
         <div
           v-if="!histogram"
-          class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-muted"
+          class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-white/60"
         >
-          <Icon name="tabler:loader-2" class="h-4 w-4" />
+          <Icon name="jannchie:loader" class="h-4 w-4 animate-spin" />
           <span>{{ t('gallery.histogram.pending') }}</span>
         </div>
       </div>
-      <div v-if="histogramSummary" class="grid grid-cols-3 gap-2 text-xs">
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-muted">
-            <span>{{ t('gallery.histogram.shadows') }}</span>
-            <span class="font-semibold text-highlighted">{{ histogramSummary.shadows }}%</span>
-          </div>
-          <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-            <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.shadows}%` }" />
-          </div>
+    </div>
+    <div v-if="histogramSummary" class="grid grid-cols-3 divide-x divide-border border-t border-border">
+      <div class="space-y-2 px-3 py-3">
+        <div class="flex items-baseline justify-between gap-2">
+          <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.shadows') }}</span>
+          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.shadows }}%</span>
         </div>
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-muted">
-            <span>{{ t('gallery.histogram.midtones') }}</span>
-            <span class="font-semibold text-highlighted">{{ histogramSummary.midtones }}%</span>
-          </div>
-          <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-            <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.midtones}%` }" />
-          </div>
+        <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
+          <div class="h-full bg-primary" :style="{ width: `${histogramSummary.shadows}%` }" />
         </div>
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-muted">
-            <span>{{ t('gallery.histogram.highlights') }}</span>
-            <span class="font-semibold text-highlighted">{{ histogramSummary.highlights }}%</span>
-          </div>
-          <div class="h-px w-full overflow-hidden rounded-full bg-default/40">
-            <div class="h-full rounded-full bg-primary-500" :style="{ width: `${histogramSummary.highlights}%` }" />
-          </div>
+      </div>
+      <div class="space-y-2 px-3 py-3">
+        <div class="flex items-baseline justify-between gap-2">
+          <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.midtones') }}</span>
+          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.midtones }}%</span>
+        </div>
+        <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
+          <div class="h-full bg-primary" :style="{ width: `${histogramSummary.midtones}%` }" />
+        </div>
+      </div>
+      <div class="space-y-2 px-3 py-3">
+        <div class="flex items-baseline justify-between gap-2">
+          <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.highlights') }}</span>
+          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.highlights }}%</span>
+        </div>
+        <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
+          <div class="h-full bg-primary" :style="{ width: `${histogramSummary.highlights}%` }" />
         </div>
       </div>
     </div>
-  </div>
+  </section>
 </template>

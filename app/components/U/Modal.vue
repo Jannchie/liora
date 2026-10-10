@@ -96,13 +96,13 @@ const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
 }
 
 const contentClass = computed(() => {
-  // No ring: the overlay shadow and the dimmed backdrop already lift the
-  // dialog off the page, and an outline on top of both reads as a seam.
+  // Overlays are the one place elevation is allowed; the strong hairline
+  // keeps the dialog's edge crisp against a dark backdrop too.
   const base = 'relative bg-panel text-foreground shadow-overlay'
   if (props.fullscreen) {
     return `${base} h-full w-full overflow-hidden`
   }
-  return `${base} w-full rounded-xl ${sizeWidth[props.size]} ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
+  return `${base} w-full rounded-[10px] border border-border-strong ${sizeWidth[props.size]} ${props.scrollable ? 'max-h-[90vh] overflow-auto' : ''}`
 })
 </script>
 
@@ -118,7 +118,7 @@ const contentClass = computed(() => {
     >
       <div v-if="open">
         <div
-          class="fixed inset-0 z-[70] bg-black/40 backdrop-blur-sm"
+          class="fixed inset-0 z-[70] bg-black/35 backdrop-blur-[2px]"
           :class="ui?.overlay"
           @click="close"
         />
@@ -139,26 +139,26 @@ const contentClass = computed(() => {
               :class="[contentClass, ui?.content]"
               @click.stop
             >
-              <header v-if="title || description" class="flex items-start justify-between gap-3 px-5 pb-2 pt-5">
+              <header v-if="title || description" class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
                 <div class="space-y-1">
-                  <h3 v-if="title" class="text-base font-semibold text-highlighted">
+                  <h3 v-if="title" class="text-[15px] font-semibold tracking-[-0.01em] text-highlighted">
                     {{ title }}
                   </h3>
-                  <p v-if="description" class="text-xs text-muted">
+                  <p v-if="description" class="text-xs text-dimmed">
                     {{ description }}
                   </p>
                 </div>
                 <button
                   v-if="closable"
                   type="button"
-                  class="rounded-md p-1 text-muted outline-none transition hover:bg-overlay-hover hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+                  class="rounded-md p-1 text-muted outline-none transition hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
                   aria-label="Close"
                   @click="close"
                 >
-                  <Icon name="tabler:x" class="h-4 w-4" />
+                  <Icon name="jannchie:x" class="h-4 w-4" />
                 </button>
               </header>
-              <div class="px-5 pb-5 pt-3">
+              <div class="px-5 py-5">
                 <slot />
               </div>
             </div>

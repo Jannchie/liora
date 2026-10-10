@@ -67,22 +67,22 @@ const displayLabel = computed(() => selectedOption.value?.label ?? '')
 const sizeClass = computed(() => {
   switch (props.size) {
     case 'sm': {
-      return 'h-8 text-sm px-2.5'
+      return 'h-7 text-[13px] px-2.5'
     }
     case 'lg': {
       return 'h-11 text-base px-3.5'
     }
     default: {
-      return 'h-9 text-sm px-3'
+      return 'h-8 text-[13px] px-2.5'
     }
   }
 })
 
 const variantClass = computed(() => {
   if (props.variant === 'outline') {
-    return 'bg-default border border-border hover:border-border-strong'
+    return 'bg-transparent border border-border-strong hover:border-fg-subtle'
   }
-  return 'bg-muted border border-transparent hover:bg-elevated'
+  return 'bg-default border border-border-strong hover:border-fg-subtle'
 })
 
 const isOpen = ref(false)
@@ -305,8 +305,8 @@ onBeforeUnmount(() => {
       <span v-if="displayLabel" class="truncate text-foreground">{{ displayLabel }}</span>
       <span v-else class="truncate text-fg-dimmed">{{ placeholder }}</span>
       <Icon
-        name="tabler:chevron-down"
-        class="h-4 w-4 shrink-0 text-muted"
+        name="jannchie:chevron-down"
+        class="h-3.5 w-3.5 shrink-0 text-dimmed transition-transform"
         :class="isOpen ? 'rotate-180' : ''"
       />
     </button>
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="popoverRef"
         role="listbox"
-        class="z-[9999] flex flex-col overflow-y-auto rounded-lg bg-panel py-1 shadow-lg"
+        class="z-[9999] flex flex-col gap-px overflow-y-auto rounded-lg border border-border-strong bg-panel p-1 shadow-md"
         :style="popoverStyle"
         @mousedown.prevent
       >
@@ -326,10 +326,10 @@ onBeforeUnmount(() => {
           role="option"
           data-option
           :aria-selected="option.value === modelValue"
-          class="flex items-center justify-between gap-2 px-3 py-1.5 text-left text-sm outline-none"
+          class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none"
           :class="[
             idx === activeIndex ? 'bg-muted' : '',
-            option.value === modelValue ? 'text-primary' : 'text-foreground',
+            option.value === modelValue ? 'text-highlighted' : 'text-muted',
           ]"
           @mouseenter="activeIndex = idx"
           @click="selectIndex(idx)"
@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
           <span class="truncate">{{ option.label }}</span>
           <Icon
             v-if="option.value === modelValue"
-            name="tabler:check"
+            name="jannchie:check"
             class="h-3.5 w-3.5 shrink-0"
           />
         </button>

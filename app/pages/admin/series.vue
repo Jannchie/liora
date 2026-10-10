@@ -404,71 +404,67 @@ watch(filesError, (value) => {
 </script>
 
 <template>
-  <div class="space-y-8">
+  <div>
     <UPageHeader
       :title="t('admin.series.title')"
       :description="t('admin.series.seoDescription')"
     >
       <template #actions>
-        <UButton color="primary" size="sm" icon="tabler:plus" @click="createModalOpen = true">
+        <UButton color="primary" size="sm" icon="jannchie:plus" @click="createModalOpen = true">
           {{ t('admin.series.create.action') }}
         </UButton>
       </template>
     </UPageHeader>
 
-    <div v-if="isLoading" class="py-10 text-center text-sm text-muted">
+    <div v-if="isLoading" class="wire-band py-16 text-center text-[13px] text-dimmed">
       {{ t('common.loading') }}
     </div>
 
-    <div v-else class="grid gap-x-10 gap-y-10 lg:grid-cols-[260px_1fr]">
-      <!-- LEFT · MASTER LIST -->
-      <aside class="lg:pr-4">
-        <div class="flex items-baseline justify-between pb-3">
-          <p class="label-caption">
-            {{ t('admin.series.listTitle') }}
+    <!-- Master/detail: the list column's right hairline is the only divider
+         between the two panes, so they sit flush with no gutter. -->
+    <div v-else class="grid lg:grid-cols-[260px_minmax(0,1fr)]">
+      <!-- LEFT · MASTER LIST — sticky and self-scrolling like the admin
+           sidebar, so a long series list never drags the detail along. -->
+      <aside class="border-border max-lg:border-b lg:sticky lg:top-[var(--admin-header-h)] lg:h-[calc(100vh-var(--admin-header-h))] lg:self-start lg:overflow-y-auto lg:border-r">
+        <div class="px-2.5 pb-10 pt-5">
+          <p class="label-caption px-2.5 pb-2.5">
+            {{ t('admin.series.listTitle') }} · <span class="num-tabular">{{ seriesList.length }}</span>
           </p>
-          <span class="num-tabular text-[11px] text-muted">{{ seriesList.length }}</span>
-        </div>
-        <div class="-mx-3 max-h-[calc(100vh-260px)] overflow-auto">
-          <button
-            v-for="item in seriesList"
-            :key="item.id"
-            type="button"
-            class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors"
-            :class="item.id === selectedSeriesId
-              ? 'chip-raised'
-              : 'text-muted hover:bg-overlay-hover'"
-            @click="selectSeries(item)"
-          >
-            <div class="h-9 w-12 shrink-0 overflow-hidden bg-muted">
-              <img
-                v-if="item.cover?.imageUrl"
-                :src="item.cover.imageUrl"
-                :alt="item.title"
-                loading="lazy"
-                class="h-full w-full object-cover"
-              >
-            </div>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-sm font-medium text-highlighted">
-                {{ item.title }}
-              </p>
-              <p class="truncate font-mono text-[11px] text-muted">
-                /{{ item.slug }} · {{ item.fileCount }}
-              </p>
-            </div>
-          </button>
-          <p v-if="seriesList.length === 0" class="px-3 py-6 text-center text-xs text-muted">
+          <div class="flex flex-col gap-px">
+            <button
+              v-for="item in seriesList"
+              :key="item.id"
+              type="button"
+              class="group flex w-full items-center gap-2.5 rounded-md px-2.5 py-[5px] text-left text-[13.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
+              :class="item.id === selectedSeriesId
+                ? 'bg-muted text-highlighted'
+                : 'text-muted hover:bg-muted hover:text-fg-highlighted'"
+              @click="selectSeries(item)"
+            >
+              <div class="h-6 w-8 shrink-0 overflow-hidden bg-sunken">
+                <img
+                  v-if="item.cover?.imageUrl"
+                  :src="item.cover.imageUrl"
+                  :alt="item.title"
+                  loading="lazy"
+                  class="h-full w-full object-cover"
+                >
+              </div>
+              <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
+              <span class="num-tabular shrink-0 font-mono text-xs text-dimmed">{{ item.fileCount }}</span>
+            </button>
+          </div>
+          <p v-if="seriesList.length === 0" class="px-2.5 py-6 text-center text-[13px] text-dimmed">
             —
           </p>
         </div>
       </aside>
 
-      <!-- RIGHT · DETAIL -->
-      <section v-if="selectedSeries" class="space-y-10">
+      <!-- RIGHT · DETAIL — a stack of bands, each closed by its own hairline. -->
+      <section v-if="selectedSeries" class="min-w-0">
         <!-- HERO -->
-        <header class="flex flex-col gap-6 sm:flex-row sm:items-start">
-          <div class="aspect-[4/3] w-full max-w-[260px] shrink-0 overflow-hidden bg-muted">
+        <header class="wire-band flex flex-col gap-6 sm:flex-row sm:items-start">
+          <div class="aspect-[4/3] w-full max-w-[220px] shrink-0 overflow-hidden bg-sunken">
             <img
               v-if="selectedSeries.cover?.imageUrl"
               :src="selectedSeries.cover.imageUrl"
@@ -476,30 +472,30 @@ watch(filesError, (value) => {
               loading="lazy"
               class="h-full w-full object-cover"
             >
-            <div v-else class="flex h-full w-full items-center justify-center text-muted">
-              <Icon name="tabler:photo-off" class="h-8 w-8" />
+            <div v-else class="flex h-full w-full items-center justify-center text-dimmed">
+              <Icon name="jannchie:image-off" class="h-6 w-6" />
             </div>
           </div>
-          <div class="flex min-w-0 flex-1 flex-col gap-3">
-            <div class="space-y-1">
+          <div class="flex min-w-0 flex-1 flex-col gap-3 self-stretch">
+            <div class="space-y-1.5">
               <p class="label-caption">
                 {{ t('admin.series.edit.title') }}
               </p>
-              <h2 class="break-words text-3xl font-semibold leading-tight text-highlighted">
+              <h2 class="break-words text-xl font-semibold leading-tight tracking-[-0.01em] text-highlighted">
                 {{ selectedSeries.title }}
               </h2>
-              <p class="font-mono text-xs text-muted">
+              <p class="font-mono text-xs text-dimmed">
                 /{{ selectedSeriesSlug || selectedSeries.slug }} · {{ formatCountLabel(selectedSeries.fileCount) }}
               </p>
             </div>
-            <p v-if="selectedSeries.description" class="max-w-2xl text-sm text-toned">
+            <p v-if="selectedSeries.description" class="max-w-2xl text-[13px] leading-relaxed text-dimmed">
               {{ selectedSeries.description }}
             </p>
-            <div class="mt-auto flex items-center gap-2 pt-2">
-              <UButton color="primary" size="sm" :loading="saving" icon="tabler:device-floppy" @click="saveSeries">
+            <div class="mt-auto flex items-center gap-1.5 pt-2">
+              <UButton color="primary" size="sm" :loading="saving" icon="jannchie:save" @click="saveSeries">
                 {{ t('common.actions.save') }}
               </UButton>
-              <UButton color="neutral" variant="ghost" size="sm" :loading="deleting" icon="tabler:trash" class="hover:text-error" @click="deleteSeries">
+              <UButton color="neutral" variant="ghost" size="sm" :loading="deleting" icon="jannchie:trash" class="hover:text-error" @click="deleteSeries">
                 {{ t('common.actions.delete') }}
               </UButton>
             </div>
@@ -510,7 +506,7 @@ watch(filesError, (value) => {
         <USection
           panel
           label="Metadata"
-          icon="tabler:edit"
+          icon="jannchie:edit"
         >
           <div class="grid gap-x-6 gap-y-3 sm:grid-cols-2">
             <UFormField :label="t('admin.series.form.title')">
@@ -539,46 +535,49 @@ watch(filesError, (value) => {
         <USection
           panel
           label="Files"
-          icon="tabler:photo-edit"
+          icon="jannchie:image-edit"
         >
           <template #actions>
-            <UButton color="primary" variant="ghost" size="sm" :loading="syncingOrder" icon="tabler:sort-ascending" @click="saveOrder">
+            <UButton color="neutral" variant="ghost" size="sm" :loading="syncingOrder" icon="jannchie:sort-ascending" @click="saveOrder">
               {{ t('admin.series.files.saveOrder') }}
             </UButton>
           </template>
 
-          <div class="space-y-4">
+          <div class="space-y-3">
             <UInput
               v-model="addQuery"
               class="w-full"
               :placeholder="t('admin.series.files.searchPlaceholder')"
-              icon="tabler:search"
+              icon="jannchie:search"
             />
 
-            <div class="grid gap-x-8 gap-y-6 lg:grid-cols-2">
+            <!-- One frame split by a single vertical hairline; rows are
+                 ruled instead of floating in sunken wells. -->
+            <div class="grid overflow-hidden rounded-lg border border-border divide-border max-lg:divide-y lg:grid-cols-2 lg:divide-x">
               <!-- CANDIDATES -->
-              <div class="space-y-2">
-                <div class="flex items-baseline justify-between pb-1">
+              <div class="min-w-0">
+                <div class="flex items-center justify-between border-b border-border px-3 py-2">
                   <p class="label-caption">
                     Candidates
                   </p>
-                  <span class="num-tabular text-[11px] text-muted">{{ filteredCandidates.length }}</span>
+                  <span class="num-tabular font-mono text-xs text-dimmed">{{ filteredCandidates.length }}</span>
                 </div>
-                <p v-if="filteredCandidates.length === 0" class="surface-sunken py-6 text-center text-xs text-muted">
+                <p v-if="filteredCandidates.length === 0" class="py-10 text-center text-[13px] text-dimmed">
                   {{ t('admin.series.files.noCandidate') }}
                 </p>
                 <div
                   v-else
                   v-bind="candidatesContainerProps"
-                  class="surface-sunken h-[28rem] px-2"
+                  class="h-[28rem]"
                 >
                   <div v-bind="candidatesWrapperProps">
                     <div
                       v-for="entry in virtualCandidates"
                       :key="entry.data.id"
-                      class="flex h-14 items-center gap-3 rounded-lg px-2 transition-colors hover:bg-overlay-hover"
+                      class="flex h-14 items-center gap-3 border-border px-3 transition-colors hover:bg-muted"
+                      :class="entry.index === filteredCandidates.length - 1 ? '' : 'border-b'"
                     >
-                      <div class="h-10 w-14 shrink-0 overflow-hidden bg-elevated">
+                      <div class="h-10 w-14 shrink-0 overflow-hidden bg-sunken">
                         <img
                           v-if="entry.data.imageUrl"
                           :src="resolveThumbnailSrc(entry.data.imageUrl)"
@@ -591,46 +590,47 @@ watch(filesError, (value) => {
                         >
                       </div>
                       <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm text-highlighted">
+                        <p class="truncate text-[13px] text-highlighted">
                           {{ entry.data.title || entry.data.originalName || `#${entry.data.id}` }}
                         </p>
-                        <p class="font-mono text-[11px] text-muted">
+                        <p class="font-mono text-xs text-dimmed">
                           #{{ entry.data.id }}
                         </p>
                       </div>
-                      <UButton size="xs" variant="ghost" color="primary" icon="tabler:plus" class="shrink-0" :aria-label="t('common.actions.add')" @click="addFile(entry.data.id)" />
+                      <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:plus" class="shrink-0" :aria-label="t('common.actions.add')" @click="addFile(entry.data.id)" />
                     </div>
                   </div>
                 </div>
               </div>
 
               <!-- IN SERIES (ORDERED) -->
-              <div class="space-y-2">
-                <div class="flex items-baseline justify-between pb-1">
+              <div class="min-w-0">
+                <div class="flex items-center justify-between border-b border-border px-3 py-2">
                   <p class="label-caption">
                     In series
                   </p>
-                  <span class="num-tabular text-[11px] text-muted">{{ selectedFileIds.length }}</span>
+                  <span class="num-tabular font-mono text-xs text-dimmed">{{ selectedFileIds.length }}</span>
                 </div>
-                <p v-if="detailLoading" class="surface-sunken py-6 text-center text-xs text-muted">
+                <p v-if="detailLoading" class="py-10 text-center text-[13px] text-dimmed">
                   {{ t('common.loading') }}
                 </p>
-                <p v-else-if="selectedFileIds.length === 0" class="surface-sunken py-6 text-center text-xs text-muted">
+                <p v-else-if="selectedFileIds.length === 0" class="py-10 text-center text-[13px] text-dimmed">
                   {{ t('admin.series.files.empty') }}
                 </p>
                 <div
                   v-else
                   v-bind="inSeriesContainerProps"
-                  class="surface-sunken h-[28rem] px-2"
+                  class="h-[28rem]"
                 >
                   <div v-bind="inSeriesWrapperProps">
                     <div
                       v-for="entry in virtualInSeries"
                       :key="entry.data.id"
-                      class="flex h-14 items-center gap-3 rounded-lg px-2 transition-colors hover:bg-overlay-hover"
+                      class="flex h-14 items-center gap-3 border-border px-3 transition-colors hover:bg-muted"
+                      :class="entry.index === selectedFileIds.length - 1 ? '' : 'border-b'"
                     >
-                      <span class="w-6 shrink-0 text-center num-tabular text-[11px] text-muted">{{ entry.index + 1 }}</span>
-                      <div class="h-10 w-14 shrink-0 overflow-hidden bg-elevated">
+                      <span class="num-tabular w-6 shrink-0 text-center font-mono text-xs text-dimmed">{{ entry.index + 1 }}</span>
+                      <div class="h-10 w-14 shrink-0 overflow-hidden bg-sunken">
                         <img
                           v-if="entry.data.file?.imageUrl"
                           :src="resolveThumbnailSrc(entry.data.file.imageUrl)"
@@ -643,17 +643,17 @@ watch(filesError, (value) => {
                         >
                       </div>
                       <div class="min-w-0 flex-1">
-                        <p class="truncate text-sm text-highlighted">
+                        <p class="truncate text-[13px] text-highlighted">
                           {{ entry.data.file?.title || entry.data.file?.originalName || `#${entry.data.id}` }}
                         </p>
-                        <p class="font-mono text-[11px] text-muted">
+                        <p class="font-mono text-xs text-dimmed">
                           #{{ entry.data.id }}
                         </p>
                       </div>
                       <div class="flex shrink-0 items-center gap-0.5">
-                        <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-up" :disabled="entry.index === 0" @click="moveFile(entry.data.id, -1)" />
-                        <UButton size="xs" variant="ghost" color="neutral" icon="tabler:arrow-down" :disabled="entry.index === selectedFileIds.length - 1" @click="moveFile(entry.data.id, 1)" />
-                        <UButton size="xs" variant="ghost" color="error" icon="tabler:x" @click="removeFile(entry.data.id)" />
+                        <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:arrow-up" :disabled="entry.index === 0" @click="moveFile(entry.data.id, -1)" />
+                        <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:arrow-down" :disabled="entry.index === selectedFileIds.length - 1" @click="moveFile(entry.data.id, 1)" />
+                        <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:x" class="hover:text-error" @click="removeFile(entry.data.id)" />
                       </div>
                     </div>
                   </div>
@@ -664,11 +664,8 @@ watch(filesError, (value) => {
         </USection>
       </section>
 
-      <section v-else class="flex items-center justify-center py-20 text-sm text-muted">
-        <div class="space-y-2 text-center">
-          <Icon name="tabler:stack-3" class="mx-auto h-8 w-8 text-muted" />
-          <p>—</p>
-        </div>
+      <section v-else class="flex min-h-[40vh] items-center justify-center text-[13px] text-dimmed">
+        —
       </section>
     </div>
 
@@ -688,14 +685,16 @@ watch(filesError, (value) => {
         <UFormField :label="t('admin.series.form.description')">
           <UTextarea v-model="createForm.description" class="w-full" :rows="3" :placeholder="t('admin.series.form.descriptionPlaceholder')" />
         </UFormField>
-        <div class="flex justify-end gap-2 pt-2">
-          <UButton variant="ghost" color="neutral" @click="createModalOpen = false">
-            {{ t('common.actions.cancel') }}
-          </UButton>
-          <UButton color="primary" :loading="creating" icon="tabler:plus" @click="createSeries">
-            {{ t('admin.series.create.action') }}
-          </UButton>
-        </div>
+      </div>
+      <!-- Footer bleeds to the modal edges so its top hairline spans the
+           full width, mirroring the header's bottom rule. -->
+      <div class="-mx-5 -mb-5 mt-5 flex justify-end gap-2 border-t border-border px-5 py-3">
+        <UButton variant="ghost" color="neutral" @click="createModalOpen = false">
+          {{ t('common.actions.cancel') }}
+        </UButton>
+        <UButton color="primary" :loading="creating" icon="jannchie:plus" @click="createSeries">
+          {{ t('admin.series.create.action') }}
+        </UButton>
       </div>
     </UModal>
   </div>

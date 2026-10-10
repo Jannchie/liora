@@ -34,26 +34,26 @@ const attrs = useAttrs()
 
 const sizeClass = computed(() => {
   switch (props.size) {
-    case 'sm': { return 'h-8 text-sm'
+    case 'sm': { return 'h-7 text-[13px]'
     }
     case 'lg': { return 'h-11 text-base'
     }
-    default: { return 'h-9 text-sm'
+    default: { return 'h-8 text-[13px]'
     }
   }
 })
 
 const padClass = computed(() => {
-  const pl = props.icon ? 'pl-9' : 'pl-3'
-  const pr = props.trailingIcon ? 'pr-9' : 'pr-3'
+  const pl = props.icon ? 'pl-8' : 'pl-2.5'
+  const pr = props.trailingIcon ? 'pr-8' : 'pr-2.5'
   return `${pl} ${pr}`
 })
 
 const variantClass = computed(() => {
   if (props.variant === 'outline') {
-    return 'bg-default border border-border hover:border-border-strong focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
+    return 'bg-transparent border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
   }
-  return 'bg-muted border border-transparent hover:bg-elevated focus-within:bg-default focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
+  return 'bg-default border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
 })
 
 function onInput(event: Event): void {
@@ -72,7 +72,7 @@ function onInput(event: Event): void {
       attrs.class,
     ]"
   >
-    <Icon v-if="icon" :name="icon" class="absolute left-3 h-4 w-4 text-muted pointer-events-none" />
+    <Icon v-if="icon" :name="icon" class="absolute left-2.5 h-4 w-4 text-muted pointer-events-none" />
     <input
       :id="id"
       :type="type"
@@ -87,10 +87,10 @@ function onInput(event: Event): void {
       :required="required"
       :aria-invalid="invalid || undefined"
       v-bind="{ ...attrs, class: undefined }"
-      class="w-full bg-transparent outline-none placeholder:text-fg-dimmed"
+      class="w-full bg-transparent outline-none placeholder:text-fg-subtle"
       :class="[sizeClass, padClass]"
       @input="onInput"
     >
-    <Icon v-if="trailingIcon" :name="trailingIcon" class="absolute right-3 h-4 w-4 text-muted pointer-events-none" />
+    <Icon v-if="trailingIcon" :name="trailingIcon" class="absolute right-2.5 h-4 w-4 text-muted pointer-events-none" />
   </div>
 </template>

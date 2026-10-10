@@ -16,22 +16,24 @@ const safePercent = computed<number | null>(() => {
 </script>
 
 <template>
+  <!-- Sits on the photo, so it keeps the dark translucent overlay bar; the
+       percentage is mono and the progress is a 2px track. -->
   <div
     v-if="visible && label"
-    class="pointer-events-none absolute bottom-4 right-4 z-40 min-w-40 max-w-[320px] rounded-md border border-white/10 bg-black/80 px-3.5 py-3 text-xs text-white backdrop-blur-sm ring-1 ring-white/5"
+    class="pointer-events-none absolute bottom-4 right-4 z-40 min-w-40 max-w-[320px] rounded-md border border-white/15 bg-black/75 px-3.5 py-3 text-[13px] text-white backdrop-blur-sm"
   >
     <div class="flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <Icon name="tabler:download" class="h-4 w-4 text-white/70" />
-        <span class="font-semibold">{{ label }}</span>
+      <div class="flex min-w-0 items-center gap-2">
+        <Icon name="jannchie:download" class="h-4 w-4 shrink-0 text-white/70" />
+        <span class="truncate font-medium">{{ label }}</span>
       </div>
-      <span v-if="safePercent !== null" class="text-xs font-semibold text-white/80">
+      <span v-if="safePercent !== null" class="font-mono text-xs text-white/80">
         {{ safePercent }}%
       </span>
     </div>
-    <div v-if="safePercent !== null" class="mt-2 h-px rounded-full bg-white/20">
+    <div v-if="safePercent !== null" class="mt-2.5 h-0.5 bg-white/20">
       <div
-        class="h-full rounded-full bg-white/70"
+        class="h-full bg-white"
         :style="{ width: `${safePercent}%` }"
       />
     </div>

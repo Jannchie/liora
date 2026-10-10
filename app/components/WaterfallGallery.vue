@@ -817,7 +817,7 @@ const socialLinks = computed<SocialLink[]>(() => {
     }
   }
 
-  appendLink('Homepage', social.homepage, 'tabler:home')
+  appendLink('Homepage', social.homepage, 'jannchie:home')
   appendLink('GitHub', social.github, 'tabler:brand-github')
   appendLink('X', social.twitter, 'tabler:brand-x')
   appendLink('Instagram', social.instagram, 'tabler:brand-instagram')
@@ -1610,26 +1610,26 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   const entries: MetadataEntry[] = []
   const title = toDisplayText(displayTitle)
   if (title) {
-    entries.push({ label: metadataLabels.value.title, value: title, icon: 'tabler:typography' })
+    entries.push({ label: metadataLabels.value.title, value: title, icon: 'jannchie:typography' })
   }
   const description = toDisplayText(file.description)
   if (description) {
-    entries.push({ label: metadataLabels.value.description, value: description, icon: 'tabler:file-text' })
+    entries.push({ label: metadataLabels.value.description, value: description, icon: 'jannchie:file-text' })
   }
   const fanworkTitle = toDisplayText(metadata.fanworkTitle || file.fanworkTitle)
   if (fanworkTitle) {
-    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'tabler:palette' })
+    entries.push({ label: metadataLabels.value.work, value: fanworkTitle, icon: 'jannchie:palette' })
   }
   if (metadata.characters.length > 0) {
     entries.push({
       label: metadataLabels.value.characters,
       value: metadata.characters.join(characterSeparator.value),
-      icon: 'tabler:users',
+      icon: 'jannchie:users',
     })
   }
   const locationName = toDisplayText(metadata.locationName || file.location)
   if (locationName) {
-    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'tabler:map-pin' })
+    entries.push({ label: metadataLabels.value.location, value: locationName, icon: 'jannchie:map-pin' })
   }
   const { camera, lens } = dedupeCameraLens(metadata.cameraModel || file.cameraModel, metadata.lensModel)
   if (camera) {
@@ -1637,29 +1637,29 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.camera,
       value: model ?? camera,
-      icon: 'tabler:camera',
+      icon: 'jannchie:camera',
       valueIcon: brandIcon ?? undefined,
       valueIconLabel: brandLabel ?? undefined,
     })
   }
   if (lens) {
-    entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'tabler:aperture' })
+    entries.push({ label: metadataLabels.value.lens, value: lens, icon: 'jannchie:aperture' })
   }
   const captureTime = formatDisplayDateTime(metadata.captureTime)
   if (captureTime) {
-    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'tabler:clock' })
+    entries.push({ label: metadataLabels.value.captureTime, value: captureTime, icon: 'jannchie:clock' })
   }
   const colorSpace = toDisplayText(metadata.colorSpace)
   if (colorSpace) {
-    entries.push({ label: metadataLabels.value.colorSpace, value: colorSpace, icon: 'tabler:palette' })
+    entries.push({ label: metadataLabels.value.colorSpace, value: colorSpace, icon: 'jannchie:palette' })
   }
   const resolution = formatResolutionValue(metadata.resolutionX, metadata.resolutionY, metadata.resolutionUnit)
   if (resolution) {
-    entries.push({ label: metadataLabels.value.resolution, value: resolution, icon: 'tabler:crop' })
+    entries.push({ label: metadataLabels.value.resolution, value: resolution, icon: 'jannchie:crop' })
   }
   const software = toDisplayText(metadata.software)
   if (software) {
-    entries.push({ label: metadataLabels.value.software, value: software, icon: 'tabler:app-window' })
+    entries.push({ label: metadataLabels.value.software, value: software, icon: 'jannchie:window' })
   }
   return entries
 })
@@ -1682,7 +1682,7 @@ const focusEntry = computed<MetadataEntry | null>(() => {
     key: 'focus',
     label: metadataLabels.value.focus,
     value: focusValue,
-    icon: 'tabler:focus-2',
+    icon: 'jannchie:focus',
   }
 })
 
@@ -1712,7 +1712,7 @@ const cropEntry = computed<MetadataEntry | null>(() => {
     key: 'crop',
     label: metadataLabels.value.crop,
     value: cropParts.join(' · '),
-    icon: 'tabler:crop',
+    icon: 'jannchie:crop',
   }
 })
 
@@ -1744,7 +1744,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.aperture'),
       value: aperture,
-      icon: 'tabler:aperture',
+      icon: 'jannchie:aperture',
     })
   }
   const shutterSpeed = toDisplayText(metadata.shutterSpeed)
@@ -1752,7 +1752,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.shutterSpeed'),
       value: shutterSpeed,
-      icon: 'tabler:hourglass',
+      icon: 'jannchie:hourglass',
     })
   }
   const iso = toDisplayText(metadata.iso)
@@ -1760,7 +1760,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.iso'),
       value: iso,
-      icon: 'tabler:circle-letter-i',
+      icon: 'jannchie:letter-i-circle',
     })
   }
   const focalLength = toDisplayText(metadata.focalLength)
@@ -1768,7 +1768,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: t('gallery.metadata.focalLength'),
       value: focalLength,
-      icon: 'tabler:ruler',
+      icon: 'jannchie:ruler',
     })
   }
   const exposureBias = toDisplayText(metadata.exposureBias)
@@ -1776,7 +1776,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureBias,
       value: exposureBias,
-      icon: 'tabler:brightness-2',
+      icon: 'jannchie:brightness',
     })
   }
   const exposureProgram = toDisplayText(metadata.exposureProgram)
@@ -1784,7 +1784,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureProgram,
       value: translateExposureProgram(exposureProgram) ?? exposureProgram,
-      icon: 'tabler:list-details',
+      icon: 'jannchie:list',
     })
   }
   const exposureMode = toDisplayText(metadata.exposureMode)
@@ -1792,7 +1792,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.exposureMode,
       value: translateExposureMode(exposureMode) ?? exposureMode,
-      icon: 'tabler:adjustments',
+      icon: 'jannchie:sliders',
     })
   }
   const meteringMode = toDisplayText(metadata.meteringMode)
@@ -1800,7 +1800,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.meteringMode,
       value: translateMeteringMode(meteringMode) ?? meteringMode,
-      icon: 'tabler:crosshair',
+      icon: 'jannchie:target',
     })
   }
   const whiteBalance = toDisplayText(metadata.whiteBalance)
@@ -1808,7 +1808,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.whiteBalance,
       value: translateWhiteBalance(whiteBalance) ?? whiteBalance,
-      icon: 'tabler:color-filter',
+      icon: 'jannchie:color-filter',
     })
   }
   const flash = toDisplayText(metadata.flash)
@@ -1816,7 +1816,7 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
     entries.push({
       label: metadataLabels.value.flash,
       value: translateFlash(flash) ?? flash,
-      icon: 'tabler:bolt',
+      icon: 'jannchie:zap',
     })
   }
   return entries
@@ -1839,16 +1839,16 @@ const overlayStats = computed<OverlayStat[]>(() => {
   }
   const stats: OverlayStat[] = []
   const resolution = `${file.width} × ${file.height}`
-  stats.push({ label: resolution, icon: 'tabler:crop' })
+  stats.push({ label: resolution, icon: 'jannchie:crop' })
   const sizeLabel = formatBytes(file.fileSize ?? null)
-  stats.push({ label: sizeLabel, icon: 'tabler:database' })
+  stats.push({ label: sizeLabel, icon: 'jannchie:database' })
   const uploadedAt = formatDisplayDateTime(file.createdAt)
   if (uploadedAt) {
-    stats.push({ label: uploadedAt, icon: 'tabler:upload' })
+    stats.push({ label: uploadedAt, icon: 'jannchie:upload' })
   }
   const depthMapUrl = typeof file.metadata.depthMapUrl === 'string' ? file.metadata.depthMapUrl.trim() : ''
   if (depthMapUrl && currentLocale) {
-    stats.push({ label: t('gallery.badges.depthMap'), icon: 'tabler:stack-2' })
+    stats.push({ label: t('gallery.badges.depthMap'), icon: 'jannchie:layers' })
   }
   return stats
 })
@@ -2832,9 +2832,9 @@ function startOverlayImageLoad(
             />
             <span
               v-if="entry.metadata.livePhotoVideoUrl"
-              class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-default/80 px-2 py-1 text-[11px] font-medium text-highlighted ring-1 ring-default/60"
+              class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 font-mono text-[11px] tracking-[0.06em] text-white uppercase ring-1 ring-white/10 backdrop-blur"
             >
-              <Icon name="tabler:live-photo" class="h-4 w-4 text-primary" />
+              <Icon name="jannchie:live-photo" class="h-3.5 w-3.5" />
               <span>{{ t('gallery.livePhoto.badge') }}</span>
             </span>
           </button>
@@ -2904,14 +2904,14 @@ function startOverlayImageLoad(
     </template>
     <div
       v-else
-      class="flex items-center justify-center text-sm text-muted"
+      class="flex items-center justify-center text-[13px] text-dimmed"
       :style="{ height: 'calc(100dvh - 256px)' }"
       aria-live="polite"
       aria-busy="true"
     >
       <div class="flex flex-col items-center gap-2">
-        <Icon name="tabler:loader-2" class="animate-spin" size="xl" />
-        <span class="text-sm text-muted">
+        <Icon name="jannchie:loader" class="h-5 w-5 animate-spin" />
+        <span class="text-[13px] text-dimmed">
           {{ t('home.loading') }}
         </span>
       </div>

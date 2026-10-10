@@ -40,52 +40,59 @@ function goSeries(): void {
 </script>
 
 <template>
-  <div class="min-h-screen w-full bg-bg text-default">
-    <section class="mx-auto flex w-full max-w-6xl flex-col px-3 py-16 md:px-4 md:py-24">
-      <p class="label-caption">
-        {{ t('error.eyebrow') }}
-      </p>
+  <!--
+    A single wireframe box in the middle of the page ground: caption row,
+    the status code as the one loud element, the two facts worth knowing
+    as hairline key/value rows, and an action row closing it off.
+  -->
+  <div class="flex min-h-screen w-full items-center justify-center bg-bg px-4 py-16 text-default">
+    <section class="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-default">
+      <header class="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+        <p class="label-caption">
+          {{ t('error.eyebrow') }}
+        </p>
+        <Icon name="jannchie:aperture" class="h-4 w-4 text-dimmed" />
+      </header>
 
-      <!-- The status code is the one loud element; everything else stays quiet. -->
-      <p class="font-title num-tabular mt-6 text-6xl leading-none text-highlighted md:text-7xl">
-        {{ statusCode }}
-      </p>
+      <div class="px-5 pb-6 pt-7 sm:px-7">
+        <p class="font-mono text-6xl leading-none tracking-[-0.02em] text-highlighted">
+          {{ statusCode }}
+        </p>
+        <h1 class="mt-5 text-lg font-semibold tracking-[-0.01em] text-highlighted">
+          {{ title }}
+        </h1>
+        <p class="mt-1.5 text-[13px] leading-relaxed text-dimmed">
+          {{ description }}
+        </p>
+      </div>
 
-      <h1 class="mt-6 text-2xl font-semibold tracking-tight text-highlighted md:text-3xl">
-        {{ title }}
-      </h1>
-      <p class="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-        {{ description }}
-      </p>
-
-      <!-- The two facts worth knowing, set like a wall label. -->
-      <dl class="mt-10 max-w-xl border-t border-border">
-        <div class="flex items-baseline gap-4 border-b border-border-muted py-2.5">
-          <dt class="label-caption-sm w-16 shrink-0">
+      <dl class="border-t border-border">
+        <div class="flex items-baseline gap-4 border-b border-border px-5 py-2.5 sm:px-7">
+          <dt class="label-caption w-16 shrink-0">
             {{ t('error.statusLabel') }}
           </dt>
-          <dd class="num-tabular text-xs text-toned">
+          <dd class="font-mono text-xs text-toned">
             {{ statusCode }}
           </dd>
         </div>
-        <div class="flex items-baseline gap-4 border-b border-border-muted py-2.5">
-          <dt class="label-caption-sm w-16 shrink-0">
+        <div class="flex items-baseline gap-4 px-5 py-2.5 sm:px-7">
+          <dt class="label-caption w-16 shrink-0">
             {{ t('error.pathLabel') }}
           </dt>
-          <dd class="truncate font-mono text-xs text-toned">
+          <dd class="min-w-0 truncate font-mono text-xs text-toned">
             {{ path }}
           </dd>
         </div>
       </dl>
 
-      <div class="mt-8 flex flex-wrap gap-3">
+      <footer class="flex flex-wrap justify-end gap-2 border-t border-border px-5 py-3">
+        <UButton color="neutral" variant="ghost" @click="goSeries">
+          {{ t('error.actions.series') }}
+        </UButton>
         <UButton color="primary" @click="goHome">
           {{ t('error.actions.home') }}
         </UButton>
-        <UButton color="neutral" variant="soft" @click="goSeries">
-          {{ t('error.actions.series') }}
-        </UButton>
-      </div>
+      </footer>
     </section>
   </div>
 </template>

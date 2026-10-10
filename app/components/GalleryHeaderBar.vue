@@ -20,76 +20,94 @@ const { t } = useI18n()
 
 <template>
   <!--
-    The header reads as a quiet museum wall label: one hairline strip, the
-    site name a notch above caption weight, every control ghosted. Nothing
-    here should compete with the photographs below it.
+    The public header is the admin header's sibling: one 56px row of
+    cells sharing edges inside the shell. The brand cell is ruled on its
+    right, social links take the middle, and each utility sits in its own
+    cell opened by a left hairline. Every control is ghosted so nothing
+    competes with the photographs below.
   -->
   <header
     v-if="showHeaderInfo"
-    class="sticky inset-x-0 top-0 z-30 w-full border-b border-border-muted/60 bg-default/95 backdrop-blur-sm"
+    class="wire-bar sticky top-0 z-30 border-b border-border"
   >
-    <div class="mx-auto flex w-full items-center justify-between gap-3 px-4 py-2.5 md:max-w-500">
-      <div class="flex min-w-0 items-center gap-2.5">
-        <h1 class="min-w-0 leading-none">
-          <NuxtLink
-            to="/"
-            :aria-label="t('series.common.backHome')"
-            class="inline-flex max-w-full items-center truncate text-sm font-medium leading-none text-highlighted outline-none transition-colors hover:text-primary focus-visible:shadow-[var(--ring-focus)]"
-          >
-            {{ title }}
-          </NuxtLink>
-        </h1>
-        <div v-if="socialLinks.length > 0" class="flex shrink-0 items-center gap-0.5">
-          <UButton
-            v-for="link in socialLinks"
-            :key="link.label"
-            :href="link.url"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="ghost"
-            color="neutral"
-            square
-            size="xs"
-            class="text-dimmed hover:text-fg-muted"
-            :icon="link.icon"
-            :aria-label="link.label"
-          />
-        </div>
-      </div>
-      <div class="flex shrink-0 items-center gap-1">
-        <UButton
-          v-if="isAuthenticated"
-          to="/admin"
-          color="neutral"
-          variant="ghost"
-          size="sm"
-          icon="tabler:shield-check"
-          class="shrink-0 text-muted"
+    <div class="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto]">
+      <h1 class="flex min-w-0 max-w-[60vw] border-r border-border lg:min-w-[220px] lg:max-w-none">
+        <NuxtLink
+          to="/"
+          :aria-label="t('series.common.backHome')"
+          class="flex min-w-0 items-center gap-2.5 px-4 text-[14px] font-semibold tracking-[-0.01em] text-highlighted outline-none focus-visible:shadow-[var(--ring-focus)] sm:px-5"
         >
-          {{ t('admin.nav.label') }}
-        </UButton>
-        <UThemeToggle />
-        <LanguageSwitcher />
+          <Icon name="jannchie:aperture" class="h-5 w-5 shrink-0" />
+          <span class="truncate">{{ title }}</span>
+        </NuxtLink>
+      </h1>
+
+      <div class="flex min-w-0 items-center gap-0.5 overflow-x-auto px-2 [scrollbar-width:none] sm:px-3">
+        <UButton
+          v-for="link in socialLinks"
+          :key="link.label"
+          :href="link.url"
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="ghost"
+          color="neutral"
+          square
+          size="sm"
+          class="shrink-0"
+          :icon="link.icon"
+          :aria-label="link.label"
+          :title="link.label"
+        />
+      </div>
+
+      <div class="flex items-stretch">
+        <div v-if="isAuthenticated" class="flex items-center border-l border-border px-2 sm:px-3">
+          <UButton
+            to="/admin"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            icon="jannchie:shield-check"
+            class="shrink-0"
+            :aria-label="t('admin.nav.label')"
+          >
+            <span class="max-sm:hidden">{{ t('admin.nav.label') }}</span>
+          </UButton>
+        </div>
+        <div class="flex items-center border-l border-border px-2 sm:px-3">
+          <UThemeToggle />
+        </div>
+        <div class="flex items-center border-l border-border px-2 sm:px-3">
+          <LanguageSwitcher />
+        </div>
       </div>
     </div>
   </header>
+  <!--
+    Site info lives in the waterfall instead: the bar keeps only the
+    utility cells, right-aligned, on the same hairline grid.
+  -->
   <div
     v-else
-    class="border-b border-border-muted/60 bg-default"
+    class="flex h-11 items-stretch justify-end border-b border-border"
   >
-    <div class="mx-auto flex items-center justify-end gap-1 px-4 py-2 md:max-w-500">
+    <div v-if="isAuthenticated" class="flex items-center border-l border-border px-2 sm:px-3">
       <UButton
-        v-if="isAuthenticated"
         to="/admin"
         color="neutral"
         variant="ghost"
         size="sm"
-        class="shrink-0 text-muted"
-        icon="tabler:shield-check"
+        icon="jannchie:shield-check"
+        class="shrink-0"
+        :aria-label="t('admin.nav.label')"
       >
-        {{ t('admin.nav.label') }}
+        <span class="max-sm:hidden">{{ t('admin.nav.label') }}</span>
       </UButton>
+    </div>
+    <div class="flex items-center border-l border-border px-2 sm:px-3">
       <UThemeToggle />
+    </div>
+    <div class="flex items-center border-l border-border px-2 sm:px-3">
       <LanguageSwitcher />
     </div>
   </div>
