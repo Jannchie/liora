@@ -1,3 +1,11 @@
+## v0.44.1
+
+[v0.44.0...v0.44.1](https://github.com/Jannchie/liora/compare/v0.44.0...v0.44.1)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: draw tone curves as the editors' monotone spline in a square plot - By [Jannchie](mailto:jannchie@gmail.com) in [8bd4c11](https://github.com/Jannchie/liora/commit/8bd4c11)
+
 ## v0.44.0
 
 [v0.43.0...v0.44.0](https://github.com/Jannchie/liora/compare/v0.43.0...v0.44.0)
