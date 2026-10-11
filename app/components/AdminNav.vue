@@ -1,12 +1,11 @@
 <script setup lang="ts">
 /*
- * Admin header — the icons site's grid header. One 56px row (plus its
- * hairline) of cells that share edges: the brand cell is exactly as wide
- * as the sidebar, so its right rule runs straight down into the
- * sidebar's; the breadcrumb takes the middle; the utilities sit in their
- * own cells on the right, each opened by a left rule.
+ * Admin header — one compact 48px row (plus its hairline), no inner
+ * rules: brand, breadcrumb, then the utilities grouped on the right. On
+ * `lg` the brand slot is as wide as the sidebar, so the breadcrumb starts
+ * on the content column's edge.
  *
- * Below `lg` the sidebar is gone, so a second 44px row carries the
+ * Below `lg` the sidebar is gone, so a second 40px row carries the
  * destinations as a scrolling strip of pressed-state buttons.
  */
 import { ref } from 'vue'
@@ -35,17 +34,21 @@ async function handleLogout(): Promise<void> {
 
 <template>
   <header class="wire-bar sticky top-0 z-30 border-b border-border">
-    <div class="grid h-14 grid-cols-[auto_minmax(0,1fr)_auto] lg:grid-cols-[220px_minmax(0,1fr)_auto]">
+    <div class="grid h-12 grid-cols-[auto_minmax(0,1fr)_auto] items-center lg:grid-cols-[220px_minmax(0,1fr)_auto]">
       <NuxtLink
         to="/admin"
-        class="flex items-center gap-2.5 whitespace-nowrap border-r border-border px-4 font-semibold tracking-[-0.01em] text-highlighted outline-none sm:px-5"
+        class="flex h-full items-center gap-2 whitespace-nowrap px-4 text-[14px] font-semibold tracking-[-0.01em] text-highlighted outline-none sm:px-5"
       >
-        <Icon name="jannchie:aperture" class="h-5 w-5 shrink-0" />
-        <span class="max-sm:hidden">Liora</span>
-        <span class="font-mono text-xs font-normal text-dimmed max-sm:hidden">v{{ version }}</span>
+        <Icon name="jannchie:aperture" class="h-[18px] w-[18px] shrink-0" />
+        <!-- Name and version share a baseline; the pair is then centred on
+             the icon with the rest of the row. -->
+        <span class="flex items-baseline gap-2 max-sm:hidden">
+          <span>Liora</span>
+          <span class="font-mono text-[11px] font-normal text-dimmed">v{{ version }}</span>
+        </span>
       </NuxtLink>
 
-      <div class="flex min-w-0 items-center gap-2 px-4 font-mono text-[12.5px] sm:px-5">
+      <div class="flex min-w-0 items-center gap-2 px-2 font-mono text-xs sm:px-5">
         <span class="shrink-0 uppercase tracking-[0.06em] text-dimmed">{{ t('admin.nav.label') }}</span>
         <template v-if="current">
           <span class="text-subtle">/</span>
@@ -53,38 +56,32 @@ async function handleLogout(): Promise<void> {
         </template>
       </div>
 
-      <div class="flex items-stretch">
-        <div class="flex items-center border-l border-border px-2 sm:px-3">
-          <UThemeToggle />
-        </div>
-        <div class="hidden items-center border-l border-border px-3 sm:flex">
-          <LanguageSwitcher />
-        </div>
-        <div class="flex items-center border-l border-border px-2 sm:px-3">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            :loading="loggingOut"
-            icon="jannchie:logout"
-            size="sm"
-            :square="true"
-            :aria-label="t('admin.nav.logout')"
-            :title="t('admin.nav.logout')"
-            @click="handleLogout"
-          />
-        </div>
+      <div class="flex items-center gap-1 px-2 sm:px-3">
+        <UThemeToggle />
+        <LanguageSwitcher class="max-sm:hidden" />
+        <UButton
+          variant="ghost"
+          color="neutral"
+          :loading="loggingOut"
+          icon="jannchie:logout"
+          size="sm"
+          :square="true"
+          :aria-label="t('admin.nav.logout')"
+          :title="t('admin.nav.logout')"
+          @click="handleLogout"
+        />
       </div>
     </div>
 
     <nav
-      class="flex h-11 items-center gap-0.5 overflow-x-auto border-t border-border px-2 [scrollbar-width:none] lg:hidden"
+      class="flex h-10 items-center gap-0.5 overflow-x-auto border-t border-border px-2 [scrollbar-width:none] lg:hidden"
       :aria-label="t('admin.nav.label')"
     >
       <NuxtLink
         v-for="item in items"
         :key="item.to"
         :to="item.to"
-        class="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[13px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
+        class="inline-flex h-7 shrink-0 items-center gap-1.5 rounded-md px-2.5 text-[13px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
         :class="isActive(item.to) ? 'chip-raised' : 'text-muted hover:text-fg-highlighted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >

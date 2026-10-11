@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { useAttrs } from 'vue'
+import { useFormFieldContext } from '~/composables/useFormFieldContext'
 
 defineOptions({ inheritAttrs: false })
 
@@ -22,13 +23,7 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
-
-const variantClass = computed(() => {
-  if (props.variant === 'outline') {
-    return 'bg-transparent border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
-  }
-  return 'bg-default border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
-})
+const field = useFormFieldContext(props)
 
 function onInput(event: Event): void {
   emit('update:modelValue', (event.target as HTMLTextAreaElement).value)
@@ -37,24 +32,23 @@ function onInput(event: Event): void {
 
 <template>
   <div
-    class="rounded-md transition-colors duration-150"
-    :class="[
-      variantClass,
-      invalid ? 'border-error focus-within:border-error focus-within:shadow-[var(--ring-focus-error)]' : '',
-      disabled ? 'opacity-60' : '',
-      attrs.class,
-    ]"
+    class="field-shell"
+    :class="attrs.class"
+    :data-variant="variant"
+    :data-invalid="field.invalid.value || undefined"
+    :data-disabled="disabled || undefined"
+    :data-readonly="readonly || undefined"
   >
     <textarea
-      :id="id"
+      :id="field.id.value"
       :value="modelValue ?? ''"
       :placeholder="placeholder"
       :rows="rows"
       :disabled="disabled"
       :readonly="readonly"
-      :aria-invalid="invalid || undefined"
+      :aria-invalid="field.invalid.value || undefined"
       v-bind="{ ...attrs, class: undefined }"
-      class="block w-full resize-y bg-transparent px-2.5 py-2 text-[13px] leading-relaxed outline-none placeholder:text-fg-subtle"
+      class="block w-full resize-y bg-transparent px-3 py-2 text-[13px] leading-relaxed outline-none disabled:cursor-not-allowed"
       @input="onInput"
     />
   </div>

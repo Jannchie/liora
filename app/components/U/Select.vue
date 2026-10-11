@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useAttrs, watch } from 'vue'
+import { useFormFieldContext } from '~/composables/useFormFieldContext'
 
 type Primitive = string | number | boolean | null | undefined
 
@@ -15,9 +16,10 @@ const props = withDefaults(defineProps<{
   optionAttribute?: string
   placeholder?: string
   disabled?: boolean
-  variant?: 'soft' | 'outline'
+  variant?: 'soft' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   invalid?: boolean
+  id?: string
 }>(), {
   variant: 'soft',
   size: 'md',
@@ -31,6 +33,7 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
+const field = useFormFieldContext(props)
 
 interface NormalizedOption {
   value: Primitive
@@ -67,22 +70,15 @@ const displayLabel = computed(() => selectedOption.value?.label ?? '')
 const sizeClass = computed(() => {
   switch (props.size) {
     case 'sm': {
-      return 'h-7 text-[13px] px-2.5'
+      return 'h-7 text-[13px] pl-3 pr-2'
     }
     case 'lg': {
-      return 'h-11 text-base px-3.5'
+      return 'h-10 text-sm pl-3.5 pr-2.5'
     }
     default: {
-      return 'h-8 text-[13px] px-2.5'
+      return 'h-8 text-[13px] pl-3 pr-2'
     }
   }
-})
-
-const variantClass = computed(() => {
-  if (props.variant === 'outline') {
-    return 'bg-transparent border border-border-strong hover:border-fg-subtle'
-  }
-  return 'bg-default border border-border-strong hover:border-fg-subtle'
 })
 
 const isOpen = ref(false)
@@ -281,23 +277,22 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="relative inline-flex items-stretch rounded-md transition-colors duration-150"
-    :class="[
-      variantClass,
-      invalid ? 'border-error shadow-[var(--ring-focus-error)]' : '',
-      disabled ? 'pointer-events-none opacity-60' : '',
-      isOpen ? 'border-primary shadow-[var(--ring-focus)]' : '',
-      (attrs.class as string | undefined),
-    ]"
+    class="field-shell inline-flex items-stretch"
+    :class="attrs.class"
+    :data-variant="variant"
+    :data-open="isOpen || undefined"
+    :data-invalid="field.invalid.value || undefined"
+    :data-disabled="disabled || undefined"
   >
     <button
+      :id="field.id.value"
       ref="triggerRef"
       type="button"
       :disabled="disabled"
       aria-haspopup="listbox"
       :aria-expanded="isOpen"
       v-bind="{ ...attrs, class: undefined }"
-      class="flex w-full items-center justify-between gap-2 bg-transparent text-left outline-none"
+      class="flex w-full items-center justify-between gap-2 bg-transparent text-left outline-none disabled:cursor-not-allowed"
       :class="sizeClass"
       @click="isOpen ? close() : void open()"
       @keydown="onTriggerKeydown"
@@ -306,7 +301,7 @@ onBeforeUnmount(() => {
       <span v-else class="truncate text-fg-dimmed">{{ placeholder }}</span>
       <Icon
         name="jannchie:chevron-down"
-        class="h-3.5 w-3.5 shrink-0 text-dimmed transition-transform"
+        class="h-4 w-4 shrink-0 text-dimmed transition-transform duration-150"
         :class="isOpen ? 'rotate-180' : ''"
       />
     </button>
@@ -315,7 +310,7 @@ onBeforeUnmount(() => {
         v-if="isOpen"
         ref="popoverRef"
         role="listbox"
-        class="z-[9999] flex flex-col gap-px overflow-y-auto rounded-lg border border-border-strong bg-panel p-1 shadow-md"
+        class="field-popover z-[9999] flex flex-col gap-px overflow-y-auto p-1"
         :style="popoverStyle"
         @mousedown.prevent
       >
@@ -326,11 +321,8 @@ onBeforeUnmount(() => {
           role="option"
           data-option
           :aria-selected="option.value === modelValue"
-          class="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-left text-[13px] outline-none"
-          :class="[
-            idx === activeIndex ? 'bg-muted' : '',
-            option.value === modelValue ? 'text-highlighted' : 'text-muted',
-          ]"
+          class="field-option justify-between"
+          :data-active="idx === activeIndex || undefined"
           @mouseenter="activeIndex = idx"
           @click="selectIndex(idx)"
         >
@@ -338,10 +330,10 @@ onBeforeUnmount(() => {
           <Icon
             v-if="option.value === modelValue"
             name="jannchie:check"
-            class="h-3.5 w-3.5 shrink-0"
+            class="h-3.5 w-3.5 shrink-0 text-highlighted"
           />
         </button>
-        <p v-if="normalized.length === 0" class="px-3 py-2 text-xs text-muted">
+        <p v-if="normalized.length === 0" class="px-2 py-2 text-xs text-dimmed">
           —
         </p>
       </div>

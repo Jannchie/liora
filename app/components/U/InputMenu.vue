@@ -138,17 +138,18 @@ onBeforeUnmount(() => {
     <button
       type="button"
       :disabled="disabled"
-      class="flex w-full min-h-8 cursor-text items-center gap-2 rounded-md border border-border-strong bg-default px-2.5 py-1 text-left text-[13px] transition-colors hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]"
-      :class="open ? '!border-primary shadow-[var(--ring-focus)]' : ''"
+      class="field-shell flex min-h-8 w-full cursor-text items-center gap-2 px-3 py-1 text-left text-[13px] outline-none"
+      :data-open="open || undefined"
+      :data-disabled="disabled || undefined"
       @click="openMenu"
     >
-      <Icon v-if="icon" :name="icon" class="h-4 w-4 shrink-0 text-muted" />
+      <Icon v-if="icon" :name="icon" class="h-4 w-4 shrink-0 text-dimmed" />
       <div class="flex min-w-0 flex-1 flex-wrap items-center gap-1">
         <template v-if="multiple">
           <span
             v-for="item in selectedItems"
             :key="String(readField(item, valueKey))"
-            class="inline-flex items-center gap-1 rounded-sm bg-muted px-1.5 py-0.5 text-xs text-highlighted shadow-[inset_0_0_0_1px_var(--color-border-strong)]"
+            class="inline-flex items-center gap-1 rounded-sm bg-default py-0.5 pl-1.5 pr-1 text-xs text-highlighted shadow-[inset_0_0_0_1px_var(--color-border-strong)]"
           >
             {{ readField(item, labelKey) }}
             <button
@@ -163,17 +164,17 @@ onBeforeUnmount(() => {
         <template v-else-if="selectedItems.length > 0">
           <span class="truncate text-foreground">{{ readField(selectedItems[0]!, labelKey) }}</span>
         </template>
-        <span v-if="selectedItems.length === 0 && !open" class="text-fg-dimmed">{{ placeholder }}</span>
+        <span v-if="selectedItems.length === 0 && !open" class="text-subtle">{{ placeholder }}</span>
       </div>
       <Icon
         v-if="loading"
         name="jannchie:loader"
-        class="h-4 w-4 shrink-0 animate-spin text-muted"
+        class="h-4 w-4 shrink-0 animate-spin text-dimmed"
       />
       <Icon
         v-else
         name="jannchie:chevron-down"
-        class="h-4 w-4 shrink-0 text-muted transition-transform"
+        class="h-4 w-4 shrink-0 text-dimmed transition-transform duration-150"
         :class="open ? 'rotate-180' : ''"
       />
     </button>
@@ -188,25 +189,26 @@ onBeforeUnmount(() => {
     >
       <div
         v-if="open"
-        class="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-lg border border-border-strong bg-panel shadow-md"
+        class="field-popover absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden"
       >
-        <div class="p-2 pb-1">
+        <div class="flex items-center gap-2 border-b border-border px-3">
+          <Icon name="jannchie:search" class="h-3.5 w-3.5 shrink-0 text-dimmed" />
           <input
             ref="inputEl"
             v-model="query"
             type="text"
             :placeholder="placeholder"
-            class="w-full rounded-md border border-border-strong bg-transparent px-2 py-1.5 text-[13px] outline-none placeholder:text-fg-subtle focus:border-primary"
+            class="h-9 w-full bg-transparent text-[13px] outline-none placeholder:text-fg-subtle"
             @keydown.escape="open = false"
           >
         </div>
-        <div class="max-h-60 overflow-auto py-1">
+        <div class="flex max-h-60 flex-col gap-px overflow-auto p-1">
           <button
             v-for="item in filteredItems"
             :key="String(readField(item, valueKey))"
             type="button"
-            class="flex w-full items-start gap-2 px-3 py-1.5 text-left text-[13px] transition-colors hover:bg-muted"
-            :class="isSelected(item) ? 'text-highlighted' : 'text-muted'"
+            class="field-option items-start"
+            :aria-selected="isSelected(item)"
             @click="toggleItem(item)"
           >
             <Icon
@@ -221,7 +223,7 @@ onBeforeUnmount(() => {
               </slot>
             </span>
           </button>
-          <p v-if="filteredItems.length === 0" class="px-3 py-2 text-xs text-muted">
+          <p v-if="filteredItems.length === 0" class="px-2 py-2 text-xs text-dimmed">
             {{ loading ? '…' : '—' }}
           </p>
         </div>

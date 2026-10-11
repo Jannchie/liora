@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useAttrs } from 'vue'
+import { useFormFieldContext } from '~/composables/useFormFieldContext'
 
 defineOptions({ inheritAttrs: false })
 
@@ -31,12 +32,13 @@ const emit = defineEmits<{
 }>()
 
 const attrs = useAttrs()
+const field = useFormFieldContext(props)
 
 const sizeClass = computed(() => {
   switch (props.size) {
     case 'sm': { return 'h-7 text-[13px]'
     }
-    case 'lg': { return 'h-11 text-base'
+    case 'lg': { return 'h-10 text-sm'
     }
     default: { return 'h-8 text-[13px]'
     }
@@ -44,16 +46,9 @@ const sizeClass = computed(() => {
 })
 
 const padClass = computed(() => {
-  const pl = props.icon ? 'pl-8' : 'pl-2.5'
-  const pr = props.trailingIcon ? 'pr-8' : 'pr-2.5'
+  const pl = props.icon ? 'pl-8' : 'pl-3'
+  const pr = props.trailingIcon ? 'pr-8' : 'pr-3'
   return `${pl} ${pr}`
-})
-
-const variantClass = computed(() => {
-  if (props.variant === 'outline') {
-    return 'bg-transparent border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
-  }
-  return 'bg-default border border-border-strong hover:border-fg-subtle focus-within:border-primary focus-within:shadow-[var(--ring-focus)]'
 })
 
 function onInput(event: Event): void {
@@ -64,17 +59,16 @@ function onInput(event: Event): void {
 
 <template>
   <div
-    class="relative inline-flex items-center rounded-md transition-colors duration-150"
-    :class="[
-      variantClass,
-      invalid ? 'border-error focus-within:border-error focus-within:shadow-[var(--ring-focus-error)]' : '',
-      disabled ? 'opacity-60 cursor-not-allowed' : '',
-      attrs.class,
-    ]"
+    class="field-shell group/field inline-flex items-center"
+    :class="attrs.class"
+    :data-variant="variant"
+    :data-invalid="field.invalid.value || undefined"
+    :data-disabled="disabled || undefined"
+    :data-readonly="readonly || undefined"
   >
-    <Icon v-if="icon" :name="icon" class="absolute left-2.5 h-4 w-4 text-muted pointer-events-none" />
+    <Icon v-if="icon" :name="icon" class="pointer-events-none absolute left-2.5 h-4 w-4 text-dimmed transition-colors group-focus-within/field:text-highlighted" />
     <input
-      :id="id"
+      :id="field.id.value"
       :type="type"
       :value="modelValue ?? ''"
       :placeholder="placeholder"
@@ -85,12 +79,12 @@ function onInput(event: Event): void {
       :min="min"
       :max="max"
       :required="required"
-      :aria-invalid="invalid || undefined"
+      :aria-invalid="field.invalid.value || undefined"
       v-bind="{ ...attrs, class: undefined }"
-      class="w-full bg-transparent outline-none placeholder:text-fg-subtle"
+      class="w-full min-w-0 bg-transparent outline-none disabled:cursor-not-allowed"
       :class="[sizeClass, padClass]"
       @input="onInput"
     >
-    <Icon v-if="trailingIcon" :name="trailingIcon" class="absolute right-2.5 h-4 w-4 text-muted pointer-events-none" />
+    <Icon v-if="trailingIcon" :name="trailingIcon" class="pointer-events-none absolute right-2.5 h-4 w-4 text-dimmed" />
   </div>
 </template>

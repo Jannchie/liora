@@ -58,13 +58,13 @@ const model = computed({
 </script>
 
 <template>
-  <!-- Lives in a header utility cell: the small outline select, no fill of
-       its own, so the frosted bar shows through like the other cells. -->
+  <!-- Sits among the header's ghost buttons: no fill or line at rest, so
+       the frosted bar shows through; hover / open behave like a field. -->
   <USelect
     v-model="model"
     :items="options"
     size="sm"
-    variant="outline"
+    variant="ghost"
     class="min-w-0"
     :aria-label="t('common.actions.switchLanguage')"
   />

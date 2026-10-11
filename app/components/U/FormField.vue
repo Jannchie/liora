@@ -21,24 +21,25 @@ provide('u-form-field', {
 </script>
 
 <template>
-  <div class="space-y-1.5">
-    <div v-if="label || hint" class="flex items-center justify-between gap-2">
+  <div class="flex flex-col gap-1.5">
+    <div v-if="label || hint" class="flex items-baseline justify-between gap-2">
       <label
         v-if="label"
         :for="fieldId"
-        class="block text-[13px] text-toned"
+        class="text-xs font-medium text-muted"
       >
         {{ label }}
-        <span v-if="required" class="text-error">*</span>
+        <span v-if="required" class="text-error" aria-hidden="true">*</span>
       </label>
       <span v-if="hint" class="font-mono text-[11px] text-dimmed">{{ hint }}</span>
     </div>
     <slot />
-    <p v-if="description && !error" class="text-xs text-dimmed">
-      {{ description }}
+    <p v-if="error" class="flex items-start gap-1 text-xs leading-snug text-error" role="alert">
+      <Icon name="jannchie:alert-circle" class="mt-px h-3.5 w-3.5 shrink-0" />
+      <span>{{ error }}</span>
     </p>
-    <p v-if="error" class="text-xs text-error">
-      {{ error }}
+    <p v-else-if="description" class="text-xs leading-snug text-dimmed">
+      {{ description }}
     </p>
   </div>
 </template>

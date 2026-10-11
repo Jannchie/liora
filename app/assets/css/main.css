@@ -360,6 +360,14 @@ html.disable-transitions *::after {
     text-transform: uppercase;
     color: var(--color-fg-dimmed);
   }
+  /* An icon leading a caption: the caption is mono, so CJK labels fall
+     back to a font whose ink sits ~1px above the line box's centre, and a
+     box-centred icon reads low. Lift it to the ink. */
+  .label-caption > .iconify,
+  .label-caption-sm > .iconify {
+    flex-shrink: 0;
+    translate: 0 -1px;
+  }
   .num-tabular {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum' 1;
@@ -428,6 +436,117 @@ html.disable-transitions *::after {
     backdrop-filter: blur(14px) saturate(1.4);
     -webkit-backdrop-filter: blur(14px) saturate(1.4);
   }
+
+  /* ---------- form fields ----------
+     One shell for every text-like control (Input, Textarea, Select,
+     InputMenu) so they read as one family. At rest a field is a soft
+     well — a translucent neutral fill with no visible line, so a form
+     reads as quiet grey slots instead of a grid of boxes. Hover deepens
+     the fill; focus (or an open menu) lifts it onto the surface with an
+     ink hairline and the focus ring. Built on the overlay tokens, so the
+     same field works on the page, on a panel and inside a sunken well.
+     State comes from data attributes, not modifier classes, so callers'
+     own classes never fight the state rules. */
+  .field-shell {
+    position: relative;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background-color: var(--color-overlay-hover);
+    color: var(--color-fg);
+    transition:
+      background-color 150ms ease-out,
+      border-color 150ms ease-out,
+      box-shadow 150ms ease-out;
+  }
+  .field-shell:hover {
+    background-color: var(--color-overlay-active);
+  }
+  .field-shell:focus-within,
+  .field-shell[data-open] {
+    background-color: var(--color-default);
+    border-color: var(--color-primary);
+    box-shadow: var(--ring-focus);
+  }
+  .field-shell[data-variant='outline'] {
+    background-color: transparent;
+    border-color: var(--color-border-strong);
+  }
+  .field-shell[data-variant='outline']:hover {
+    border-color: var(--color-fg-subtle);
+  }
+  .field-shell[data-variant='outline']:focus-within,
+  .field-shell[data-variant='outline'][data-open] {
+    border-color: var(--color-primary);
+  }
+  /* Ghost: chrome-level controls (header language switch). Invisible at
+     rest, the same hover wash as a ghost button. */
+  .field-shell[data-variant='ghost'] {
+    background-color: transparent;
+  }
+  .field-shell[data-variant='ghost']:hover {
+    background-color: var(--color-overlay-hover);
+  }
+  .field-shell[data-invalid] {
+    background-color: color-mix(in srgb, var(--color-error) 6%, transparent);
+    border-color: color-mix(in srgb, var(--color-error) 55%, transparent);
+  }
+  .field-shell[data-invalid]:focus-within,
+  .field-shell[data-invalid][data-open] {
+    background-color: var(--color-default);
+    border-color: var(--color-error);
+    box-shadow: var(--ring-focus-error);
+  }
+  .field-shell[data-disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .field-shell[data-disabled]:hover {
+    background-color: var(--color-overlay-hover);
+  }
+  .field-shell[data-readonly] {
+    background-color: transparent;
+    border-color: var(--color-border);
+    box-shadow: none;
+  }
+  .field-shell ::placeholder {
+    color: var(--color-fg-subtle);
+    opacity: 1;
+  }
+
+  /* Floating list under a Select / InputMenu: the panel surface, a
+     hairline, and the one soft shadow the UI allows — it is the only
+     thing that genuinely floats over content. */
+  .field-popover {
+    background-color: var(--color-panel);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow:
+      0 1px 2px rgb(0 0 0 / 0.04),
+      0 12px 32px -12px rgb(0 0 0 / 0.22);
+  }
+  .field-option {
+    display: flex;
+    width: 100%;
+    min-height: 32px;
+    align-items: center;
+    gap: 8px;
+    border-radius: var(--radius-md);
+    padding: 6px 8px;
+    text-align: left;
+    font-size: 13px;
+    color: var(--color-fg-muted);
+    outline: none;
+    transition: background-color 100ms ease-out, color 100ms ease-out;
+  }
+  .field-option:hover,
+  .field-option[data-active] {
+    background-color: var(--color-overlay-hover);
+    color: var(--color-fg-highlighted);
+  }
+  .field-option[aria-selected='true'] {
+    color: var(--color-fg-highlighted);
+    font-weight: 500;
+  }
 }
 
 html, body {
@@ -492,6 +611,13 @@ html {
     width: 0;
     height: 0;
   }
+}
+
+/* Native checkboxes, radios and sliders take the ink accent. */
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  accent-color: var(--color-primary);
 }
 
 html.light { color-scheme: light; }
