@@ -1,3 +1,21 @@
+## v0.44.0
+
+[v0.43.0...v0.44.0](https://github.com/Jannchie/liora/compare/v0.43.0...v0.44.0)
+
+### :sparkles: Features
+
+- **llr**: first-class support for LLR export metadata - By [Jannchie](mailto:jannchie@gmail.com) in [f17e90b](https://github.com/Jannchie/liora/commit/f17e90b)
+- **gallery**: draw the histogram the way LLR does - By [Jannchie](mailto:jannchie@gmail.com) in [425f8c5](https://github.com/Jannchie/liora/commit/425f8c5)
+- **admin**: drop media anywhere to upload, onto one click-anywhere picker - By [Jannchie](mailto:jannchie@gmail.com) in [9d1a16e](https://github.com/Jannchie/liora/commit/9d1a16e)
+
+### :adhesive_bandage: Fixes
+
+- **admin**: highlight the sidebar entry on the first click - By [Jannchie](mailto:jannchie@gmail.com) in [4c4facb](https://github.com/Jannchie/liora/commit/4c4facb)
+
+### :lipstick: Styles
+
+- **ui**: one field shell for every input, and flatter, shorter headers - By [Jannchie](mailto:jannchie@gmail.com) in [ef9c529](https://github.com/Jannchie/liora/commit/ef9c529)
+
 ## v0.43.0
 
 [v0.42.0...v0.43.0](https://github.com/Jannchie/liora/compare/v0.42.0...v0.43.0)
