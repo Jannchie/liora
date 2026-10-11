@@ -2,7 +2,7 @@
 import { computed, reactive, ref } from 'vue'
 
 interface BackfillCommand {
-  key: 'arthash' | 'exif' | 'histogram' | 'orientation' | 'series'
+  key: 'arthash' | 'exif' | 'recipe' | 'histogram' | 'orientation' | 'series'
   endpoint: string
   icon: string
 }
@@ -29,6 +29,7 @@ useSeoMeta({
 const commands = computed<BackfillCommand[]>(() => [
   { key: 'arthash', endpoint: '/api/files/backfill-arthash', icon: 'jannchie:hash' },
   { key: 'exif', endpoint: '/api/files/backfill-exif', icon: 'jannchie:camera' },
+  { key: 'recipe', endpoint: '/api/files/backfill-recipe', icon: 'jannchie:sliders' },
   { key: 'histogram', endpoint: '/api/files/backfill-histogram', icon: 'jannchie:chart-bar' },
   { key: 'orientation', endpoint: '/api/files/backfill-orientation', icon: 'jannchie:aspect-ratio' },
   { key: 'series', endpoint: '/api/files/backfill-series', icon: 'jannchie:layers' },

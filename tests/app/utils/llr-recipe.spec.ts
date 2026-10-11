@@ -1,5 +1,26 @@
 import { describe, expect, it } from 'vitest'
-import { parseLlrRecipeView } from '../../../app/utils/llr-recipe'
+import { parseLlrRecipeView as parseWith } from '../../../app/utils/llr-recipe'
+import en from '../../../i18n/locales/en.json'
+
+// The English catalogue stands in for vue-i18n: a dotted key, `{name}` params.
+function translate(key: string, params: Record<string, unknown> = {}): string {
+  let message: unknown = en
+  for (const part of key.split('.')) {
+    message = (message as Record<string, unknown> | undefined)?.[part]
+  }
+  if (typeof message !== 'string') {
+    throw new TypeError(`missing message ${key}`)
+  }
+  return message.replaceAll(/\{(\w+)\}/g, (_, name: string) => String(params[name]))
+}
+
+function parseLlrRecipeView(value: string | undefined) {
+  return parseWith(value, translate)
+}
+
+function fact(view: ReturnType<typeof parseLlrRecipeView>, key: string): string | undefined {
+  return view?.facts.find(entry => entry.key === key)?.value
+}
 
 // Shape mirrors the `llr:Settings` blob LLR embeds on export.
 function buildSettings(overrides: Record<string, unknown> = {}): string {
@@ -132,34 +153,34 @@ describe('app/utils/llr-recipe', () => {
     const view = parseLlrRecipeView(buildSettings({
       curve: { parametric: { lights: 12, shadowSplit: 25, midtoneSplit: 60 } },
     }))
-    const parametric = view?.groups.find(group => group.key === 'parametric-curve')
+    const parametric = view?.groups.find(group => group.key === 'curve')
     // shadowSplit 25 is the default; lights and the moved midtoneSplit remain.
     expect(parametric?.items.map(item => item.key)).toEqual(['lights', 'midtoneSplit'])
+    expect(parametric?.label).toBe('Parametric Curve')
   })
 
   it('describes denoise and profile only when they carry information', () => {
-    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } }))?.denoise).toBeUndefined()
+    expect(fact(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } })), 'denoise')).toBeUndefined()
     const view = parseLlrRecipeView(buildSettings({
       denoise: { enabled: true, model: 'wavelet', amount: 80 },
       dcp: 'Sony ILCE-7RM5 Camera Standard',
       aspect: '16:9',
       version: '1',
     }))
-    expect(view?.denoise).toBe('wavelet · 80%')
-    // `dcp` is the camera style; `profile` is the rendering pipeline. They
-    // used to be read from the same field, which hid the profile entirely.
-    expect(view?.dcp).toBe('Sony ILCE-7RM5 Camera Standard')
-    expect(view?.aspect).toBe('16:9')
+    expect(fact(view, 'denoise')).toBe('wavelet · 80%')
+    // `dcp` is the camera style; `profile` is the rendering pipeline.
+    expect(fact(view, 'dcp')).toBe('Sony ILCE-7RM5 Camera Standard')
+    expect(fact(view, 'aspect')).toBe('16:9')
     expect(view?.version).toBe('1')
   })
 
   it('treats the untouched "orig" aspect as no framing choice', () => {
-    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } }))?.aspect).toBeUndefined()
+    expect(fact(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } })), 'aspect')).toBeUndefined()
+    expect(fact(parseLlrRecipeView(buildSettings({ aspect: 'custom:7:5' })), 'aspect')).toBe('7:5')
   })
 
   // A recipe whose global sliders all sit at their defaults is not an empty
-  // recipe: the work can live entirely in a mask, as it does on the frames
-  // this was written against.
+  // recipe: the work can live entirely in a mask.
   it('reads a recipe whose only edit is a mask', () => {
     const view = parseLlrRecipeView(buildSettings({
       masks: [{
@@ -181,9 +202,41 @@ describe('app/utils/llr-recipe', () => {
     expect(mask.name).toBe('Subject shadows')
     expect(mask.disabled).toBe(false)
     // The leading component has nothing to combine with, so it carries no operator.
-    expect(mask.components).toEqual(['Radial', '∩ Luminance 0–45'])
+    expect(mask.components).toEqual(['Radial gradient · feather 100%', '∩ Luminance range 0–45'])
     expect(mask.items.map(item => item.label)).toEqual(['Exposure', 'Shadows'])
     expect(mask.items[0]?.value).toBeCloseTo(0.22)
+  })
+
+  it('describes every mask component type', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      masks: [{
+        id: 'm',
+        enabled: true,
+        invert: false,
+        components: [
+          { op: 'add', invert: false, type: 'ai', kind: 'sky' },
+          { op: 'subtract', invert: false, type: 'brush', strokes: 3 },
+          { op: 'intersect', invert: false, type: 'depth', lo: 10, hi: 60, featherLo: 5, featherHi: 5 },
+          { op: 'add', invert: true, type: 'color', hue: Math.PI / 2, hueWidth: Math.PI / 18, chromaLo: 0, chromaHi: 1 },
+        ],
+        adjust: { exposure: -0.4 },
+      }],
+    }))
+    expect(view?.masks[0]?.components).toEqual([
+      'Sky (AI)',
+      '− Brush · 3 strokes',
+      '∩ Depth range 10–60',
+      '+ Color range 90° ± 10° · inverted',
+    ])
+  })
+
+  it('shows a mask colour cast as a hue with its strength', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      masks: [{ id: 'm', enabled: true, invert: false, components: [{ op: 'add', type: 'linear' }], adjust: { tintHue: -150, tintSat: 30, moire: 40 } }],
+    }))
+    const items = view?.masks[0]?.items ?? []
+    expect(items.map(item => item.key)).toEqual(['moire', 'tintHue', 'tintSat'])
+    expect(items[1]).toMatchObject({ value: 210, track: 'hue' })
   })
 
   it('skips masks that select nothing and adjust nothing', () => {
@@ -207,7 +260,7 @@ describe('app/utils/llr-recipe', () => {
     const mask = view!.masks[0]!
     expect(mask.disabled).toBe(true)
     expect(mask.inverted).toBe(true)
-    expect(mask.components).toEqual(['Linear (inverted)'])
+    expect(mask.components).toEqual(['Linear gradient · inverted'])
   })
 
   it('reads the creative look, its style and dro', () => {
@@ -217,13 +270,13 @@ describe('app/utils/llr-recipe', () => {
       dro: 1,
       droLevel: 70,
     }))
-    expect(view?.lookStyle).toBe('FL')
-    expect(view?.dro).toBe('Lv70')
-    expect(view?.lookItems.map(item => item.label)).toEqual([
+    expect(fact(view, 'lookStyle')).toBe('FL')
+    expect(fact(view, 'dro')).toBe('Lv70')
+    expect(view?.groups.find(group => group.key === 'look')?.items.map(item => item.label)).toEqual([
       'Contrast',
       'Highlights',
       'Shadows',
-      'White',
+      'Whites',
       'Saturation',
       'Clarity',
     ])
@@ -232,11 +285,11 @@ describe('app/utils/llr-recipe', () => {
   // Strength zero is off whatever level is selected — the same way LLR's own
   // worker resolves the two fields.
   it('reports dro off when the strength is zero', () => {
-    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 0, droLevel: 70 }))?.dro).toBe('off')
+    expect(fact(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 0, droLevel: 70 })), 'dro')).toBe('Off')
   })
 
   it('reports dro auto when no level is chosen', () => {
-    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 1, droLevel: -1 }))?.dro).toBe('auto 1')
+    expect(fact(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, dro: 1, droLevel: -1 })), 'dro')).toBe('Auto 1')
   })
 
   it('describes the current denoiser block', () => {
@@ -244,30 +297,91 @@ describe('app/utils/llr-recipe', () => {
       denoise: { enabled: true, auto: true, amount: 100, edge: 100, chroma: 50 },
     }))
     // edge moved off 50, chroma did not.
-    expect(view?.denoise).toBe('auto · 100% · edge 100')
+    expect(fact(view, 'denoise')).toBe('auto · 100% · edge 100')
   })
 
   it('reports geometry only for the parts that moved', () => {
-    expect(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } }))?.geometry).toBeUndefined()
+    expect(fact(parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 } })), 'geometry')).toBeUndefined()
     const view = parseLlrRecipeView(buildSettings({
-      crop: { cx: 0.5, cy: 0.56, w: 0.88, h: 0.88, angle: 1.5, flipH: true, flipV: false, orientation: 0, xf: { vertical: 0, horizontal: 0, aspect: 0, scale: 105, offsetX: 0, offsetY: 0 } },
+      crop: { cx: 0.5, cy: 0.56, w: 0.88, h: 0.88, angle: 1.5, flipH: true, flipV: false, orientation: 90, xf: { vertical: 0, horizontal: 0, aspect: 0, scale: 105, offsetX: 0, offsetY: 0 } },
     }))
-    expect(view?.geometry).toBe('crop 88% × 88% · rotate 1.5° · flip H · scale 105')
+    // `orientation` is stored in degrees, not quarter turns.
+    expect(fact(view, 'geometry')).toBe('crop 88% × 88% · straighten 1.5° · rotate 90° · flip horizontal')
+    expect(fact(view, 'transform')).toBe('scale 105%')
   })
 
-  it('reports bypassed modules and camera-match toggles', () => {
+  it('reads the effects panels, skipping one whose amount is zero', () => {
     const view = parseLlrRecipeView(buildSettings({
-      bypass: ['clarity', 'dehaze'],
+      recipe: {
+        sharpAmount: 40,
+        sharpRadius: 1.2,
+        sharpDetail: 25,
+        grainAmount: 0,
+        grainSize: 60,
+        vigAmount: -20,
+        vigFeather: 70,
+        defringePurple: 15,
+      },
+    }))
+    expect(view?.groups.map(group => group.key)).toEqual(['sharpen', 'defringe', 'vignette'])
+    expect(view?.groups[0]?.items.map(item => item.key)).toEqual(['sharpAmount', 'sharpRadius'])
+    expect(view?.groups[0]?.label).toBe('Sharpening')
+  })
+
+  it('reads relight as a group with one row per light', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      relight: {
+        lights: [{ kind: 'spot', ev: 1.5, lift: 0.2, color: '#ffffff' }, { ev: -0.5 }],
+        ambient: -0.5,
+        wrap: 0.3,
+        falloff: 1,
+        shadows: 0.8,
+      },
+    }))
+    const relight = view?.groups.find(group => group.key === 'relight')
+    expect(relight?.items.map(item => item.label)).toEqual(['Existing light', 'Spot 1', 'Lamp 2'])
+  })
+
+  it('counts erase strokes by kind, compacted or not', () => {
+    expect(fact(parseLlrRecipeView(buildSettings({ erase: { fill: 2, heal: 1 } })), 'erase')).toBe('Erase ×2 · Heal ×1')
+    expect(fact(parseLlrRecipeView(buildSettings({ erase: [{ id: 'a', points: [] }, { id: 'b', points: [], mode: 'heal' }] })), 'erase')).toBe('Erase ×1 · Heal ×1')
+  })
+
+  it('marks bypassed panels where they are shown', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      recipe: { clarity: 20, exposure: 0.5 },
+      curve: { rgb: [{ x: 0, y: 0 }, { x: 0.5, y: 0.6 }, { x: 1, y: 1 }] },
+      masks: [{ id: 'm', enabled: true, invert: false, components: [{ op: 'add', type: 'linear' }], adjust: { exposure: 1 } }],
+      lookStyle: 'FL',
+      bypass: ['presence', 'curve', 'masks', 'look'],
+    }))
+    expect(view?.groups.find(group => group.key === 'presence')?.bypassed).toBe(true)
+    expect(view?.groups.find(group => group.key === 'tone')?.bypassed).toBeUndefined()
+    expect(view?.toneCurveBypassed).toBe(true)
+    expect(view?.masksBypassed).toBe(true)
+    expect(view?.facts.find(entry => entry.key === 'lookStyle')?.bypassed).toBe(true)
+  })
+
+  it('reports camera-match toggles', () => {
+    const view = parseLlrRecipeView(buildSettings({
       sonyAdvancedColour: true,
       sonyCameraMatch: false,
     }))
-    expect(view?.bypass).toEqual(['clarity', 'dehaze'])
     expect(view?.toggles).toEqual(['Advanced colour', 'Camera match off'])
   })
 
   it('reads the rendering profile separately from the camera style', () => {
     const view = parseLlrRecipeView(buildSettings({ recipe: { exposure: 1 }, profile: 'sony', dcp: 'FL' }))
-    expect(view?.profile).toBe('sony')
-    expect(view?.dcp).toBe('FL')
+    expect(fact(view, 'profile')).toBe('Sony engine')
+    expect(fact(view, 'dcp')).toBe('FL')
+  })
+
+  it('draws grading hues and the white balance on their own scales', () => {
+    const view = parseLlrRecipeView(buildSettings({
+      recipe: { temperature: 5200 },
+      grading: { shH: 30, shS: 20 },
+    }))
+    expect(view?.groups.find(group => group.key === 'color')?.items[0]?.track).toBe('temperature')
+    expect(view?.groups.find(group => group.key === 'grading')?.items[0]).toMatchObject({ key: 'sh-hue', track: 'hue', label: 'Shadows Hue' })
   })
 })

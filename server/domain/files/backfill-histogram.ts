@@ -1,42 +1,17 @@
 import type { HistogramData } from '../../../app/types/file'
+import type { BackfillSummary } from './backfill-io'
 import { eq } from 'drizzle-orm'
 import { db, files } from '../../utils/db'
 import { computeHistogram } from '../../utils/histogram'
 import { logger } from '../../utils/logger'
+import { fetchImageBuffer, parseMetadataObject } from './backfill-io'
 
 interface ParsedMetadata {
   histogram?: HistogramData | null
   [key: string]: unknown
 }
 
-function parseMetadata(raw: string): ParsedMetadata | null {
-  try {
-    const value = JSON.parse(raw)
-    if (value && typeof value === 'object') {
-      return value as ParsedMetadata
-    }
-    return {}
-  }
-  catch (error) {
-    logger.warn('Failed to parse metadata, skipping entry:', { error })
-    return null
-  }
-}
-
-async function fetchImageBuffer(url: string): Promise<Buffer> {
-  const response = await fetch(url)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`)
-  }
-  const arrayBuffer = await response.arrayBuffer()
-  return Buffer.from(arrayBuffer)
-}
-
-export interface HistogramBackfillSummary {
-  total: number
-  updated: number
-  skipped: number
-}
+export type HistogramBackfillSummary = BackfillSummary
 
 export async function backfillHistogram(): Promise<HistogramBackfillSummary> {
   const rows = await db
@@ -47,7 +22,7 @@ export async function backfillHistogram(): Promise<HistogramBackfillSummary> {
   let skipped = 0
 
   for (const file of rows) {
-    const metadata = parseMetadata(file.metadata)
+    const metadata = parseMetadataObject(file.metadata) as ParsedMetadata | null
     if (!metadata) {
       skipped += 1
       continue

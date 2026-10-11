@@ -4,6 +4,7 @@ import type {
   RecipeAdjustmentGroup,
   RecipeAdjustmentItem,
   RecipeCurvePoint,
+  RecipeFact,
 } from '~/types/gallery'
 import {
   asObject,
@@ -16,113 +17,176 @@ import {
 } from './recipe-fields'
 
 // Pure parsing of the `llrRecipe` metadata field — the `llr:Settings` JSON blob
-// LLR (~/llr) embeds on export — into a view model. Grouping, slider ranges and
-// neutral defaults mirror LLR's own editor UI rather than Lightroom's, so the
-// panel shows the recipe the way it was authored.
+// LLR (~/llr) embeds on export, compacted on upload (server/utils/llr-metadata)
+// — into a view model. Grouping, slider ranges, neutral defaults and wording
+// mirror LLR's own editor (apps/web/src/App.vue, i18n.ts) rather than
+// Lightroom's, so the panel shows the recipe the way it was authored.
 //
 // A recipe is more than its global sliders. A frame can sit at every default
-// and still carry three named masks, a Creative Look and a DRO level — reading
-// only the sliders showed such a recipe as empty. Everything the blob stores is
-// surfaced here: masks with their selections, the look and its tweaks, DRO, the
-// denoiser's settings, geometry, and any bypassed modules.
+// and still carry three named masks, a Creative Look, a relight rig and a DRO
+// level — everything the blob stores is surfaced: the slider panels (effects
+// included), masks with their selections, the look, relight, erase, denoise,
+// geometry, and which panels were switched off in the editor.
+//
+// Labels come from `translate`, called with keys under `gallery.llr` (and a few
+// under `gallery.metadata`), so the parser stays free of the i18n runtime.
 
-const HSL_COLORS = ['Red', 'Orange', 'Yellow', 'Green', 'Aqua', 'Blue', 'Purple', 'Magenta'] as const
+export type LlrTranslate = (key: string, params?: Record<string, unknown>) => string
 
-// `defaultValue` is the neutral setting LLR itself ships (apps/web/src/App.vue
+const HSL_COLORS = ['red', 'orange', 'yellow', 'green', 'aqua', 'blue', 'purple', 'magenta'] as const
+
+// `defaultValue` is the neutral setting LLR itself ships (App.vue
 // `defaultRecipe`); a slider sitting there is not an edit and is not shown.
 interface LlrSliderSpec {
   key: string
-  label: string
   min: number
   max: number
   digits?: number
   defaultValue?: number
   zeroCentered?: boolean
   unit?: string
+  track?: RecipeAdjustmentItem['track']
 }
 
-const SLIDER_GROUPS: { key: string, label: string, items: LlrSliderSpec[] }[] = [
+// LLR's slider groups, in the editor's order. The group key is LLR's own panel
+// key, which is also what its `bypass` list names.
+const SLIDER_GROUPS: { key: string, items: LlrSliderSpec[] }[] = [
   {
     key: 'tone',
-    label: 'Tone',
     items: [
-      { key: 'exposure', label: 'Exposure', min: -5, max: 5, digits: 2 },
-      { key: 'contrast', label: 'Contrast', min: -100, max: 100, digits: 0 },
-      { key: 'highlights', label: 'Highlights', min: -100, max: 100, digits: 0 },
-      { key: 'shadows', label: 'Shadows', min: -100, max: 100, digits: 0 },
-      { key: 'whites', label: 'Whites', min: -100, max: 100, digits: 0 },
-      { key: 'blacks', label: 'Blacks', min: -100, max: 100, digits: 0 },
+      { key: 'exposure', min: -5, max: 5, digits: 2 },
+      { key: 'contrast', min: -100, max: 100 },
+      { key: 'highlights', min: -100, max: 100 },
+      { key: 'shadows', min: -100, max: 100 },
+      { key: 'whites', min: -100, max: 100 },
+      { key: 'blacks', min: -100, max: 100 },
     ],
   },
   {
     key: 'presence',
-    label: 'Presence',
     items: [
-      { key: 'clarity', label: 'Clarity', min: -100, max: 100, digits: 0 },
-      { key: 'dehaze', label: 'Dehaze', min: -100, max: 100, digits: 0 },
+      { key: 'clarity', min: -100, max: 100 },
+      { key: 'dehaze', min: -100, max: 100 },
     ],
   },
   {
     key: 'color',
-    label: 'Color',
     items: [
-      { key: 'temperature', label: 'Temp', min: 2000, max: 12_000, digits: 0, defaultValue: 6500, zeroCentered: false, unit: 'K' },
-      { key: 'tint', label: 'Tint', min: -100, max: 100, digits: 0 },
-      { key: 'vibrance', label: 'Vibrance', min: -100, max: 100, digits: 0 },
-      { key: 'saturation', label: 'Saturation', min: -100, max: 100, digits: 0 },
+      { key: 'temperature', min: 2000, max: 12_000, defaultValue: 6500, zeroCentered: false, unit: 'K', track: 'temperature' },
+      { key: 'tint', min: -100, max: 100 },
+      { key: 'vibrance', min: -100, max: 100 },
+      { key: 'saturation', min: -100, max: 100 },
     ],
   },
   {
     key: 'lens',
-    label: 'Lens Corrections',
     items: [
-      { key: 'lensDistortion', label: 'Distortion', min: 0, max: 100, digits: 0, defaultValue: 100, zeroCentered: false, unit: '%' },
-      { key: 'lensVignetting', label: 'Vignetting', min: 0, max: 100, digits: 0, zeroCentered: false, unit: '%' },
+      { key: 'lensDistortion', min: 0, max: 100, defaultValue: 100, zeroCentered: false, unit: '%' },
+      { key: 'lensVignetting', min: 0, max: 100, zeroCentered: false, unit: '%' },
     ],
   },
   {
-    // Older recipes carried the wavelet denoiser's two sliders in `recipe`;
-    // current ones use the `denoise` block instead, so these are usually absent.
-    key: 'detail',
-    label: 'Detail',
+    // Older recipes carried the wavelet denoiser's two sliders here; current
+    // ones use the `denoise` block instead, so these are usually absent.
+    key: 'noise',
     items: [
-      { key: 'nrLuminance', label: 'Luminance NR', min: 0, max: 100, digits: 0, zeroCentered: false },
-      { key: 'nrDetail', label: 'NR Detail', min: 0, max: 100, digits: 0, defaultValue: 50, zeroCentered: false },
+      { key: 'nrLuminance', min: 0, max: 100, zeroCentered: false },
+      { key: 'nrDetail', min: 0, max: 100, defaultValue: 50, zeroCentered: false },
+    ],
+  },
+  {
+    key: 'sharpen',
+    items: [
+      { key: 'sharpAmount', min: 0, max: 150, zeroCentered: false },
+      { key: 'sharpRadius', min: 0.5, max: 3, digits: 1, defaultValue: 1, zeroCentered: false },
+      { key: 'sharpDetail', min: 0, max: 100, defaultValue: 25, zeroCentered: false },
+      { key: 'sharpMasking', min: 0, max: 100, zeroCentered: false },
+    ],
+  },
+  {
+    key: 'defringe',
+    items: [
+      { key: 'defringePurple', min: 0, max: 100, zeroCentered: false },
+      { key: 'defringeGreen', min: 0, max: 100, zeroCentered: false },
+    ],
+  },
+  {
+    // The focus point (`blurFocusX/Y`) is a position on the source frame,
+    // not a setting a viewer can read anything from.
+    key: 'lensBlur',
+    items: [
+      { key: 'blurAmount', min: 0, max: 100, zeroCentered: false },
+      { key: 'blurRange', min: 0, max: 100, defaultValue: 20, zeroCentered: false },
+    ],
+  },
+  {
+    key: 'fog',
+    items: [
+      { key: 'fogAmount', min: -100, max: 100 },
+      { key: 'fogStart', min: 0, max: 100, defaultValue: 30, zeroCentered: false },
+    ],
+  },
+  {
+    key: 'vignette',
+    items: [
+      { key: 'vigAmount', min: -100, max: 100 },
+      { key: 'vigMidpoint', min: 0, max: 100, defaultValue: 50, zeroCentered: false },
+      { key: 'vigFeather', min: 0, max: 100, defaultValue: 50, zeroCentered: false },
+      { key: 'vigRoundness', min: -100, max: 100 },
+    ],
+  },
+  {
+    key: 'grain',
+    items: [
+      { key: 'grainAmount', min: 0, max: 100, zeroCentered: false },
+      { key: 'grainSize', min: 0, max: 100, defaultValue: 25, zeroCentered: false },
+      { key: 'grainRoughness', min: 0, max: 100, defaultValue: 50, zeroCentered: false },
     ],
   },
 ]
+
+// A group's secondary sliders (radius, midpoint, size…) shape an effect that is
+// not there while its amount is zero; LLR's renderer skips the whole pass.
+const GROUP_AMOUNT_KEYS: Record<string, string> = {
+  sharpen: 'sharpAmount',
+  lensBlur: 'blurAmount',
+  fog: 'fogAmount',
+  vignette: 'vigAmount',
+  grain: 'grainAmount',
+}
 
 // Sony's Creative Look tweaks, in the order and on the scale of Imaging Edge
 // Edit's own panel. `fade` and `clarity` have no negative side — the engine
 // clamps them at zero.
 const LOOK_SPECS: LlrSliderSpec[] = [
-  { key: 'contrast', label: 'Contrast', min: -100, max: 100, digits: 0 },
-  { key: 'highlights', label: 'Highlights', min: -100, max: 100, digits: 0 },
-  { key: 'shadows', label: 'Shadows', min: -100, max: 100, digits: 0 },
-  { key: 'white', label: 'White', min: -100, max: 100, digits: 0 },
-  { key: 'black', label: 'Black', min: -100, max: 100, digits: 0 },
-  { key: 'fade', label: 'Fade', min: 0, max: 100, digits: 0, zeroCentered: false },
-  { key: 'hue', label: 'Hue', min: -100, max: 100, digits: 0 },
-  { key: 'saturation', label: 'Saturation', min: -100, max: 100, digits: 0 },
-  { key: 'clarity', label: 'Clarity', min: 0, max: 100, digits: 0, zeroCentered: false },
+  { key: 'contrast', min: -100, max: 100 },
+  { key: 'highlights', min: -100, max: 100 },
+  { key: 'shadows', min: -100, max: 100 },
+  { key: 'white', min: -100, max: 100 },
+  { key: 'black', min: -100, max: 100 },
+  { key: 'fade', min: 0, max: 100, zeroCentered: false },
+  { key: 'hue', min: -100, max: 100 },
+  { key: 'saturation', min: -100, max: 100 },
+  { key: 'clarity', min: 0, max: 100, zeroCentered: false },
 ]
 
 // A mask's local sliders. Exposure is in EV; temperature is ±100 ↦ ±4000K and
 // hue ±100 ↦ ±0.5rad on the engine side, but the panel shows the stored units
 // the way LLR's own mask panel does. `contrast` and `blacks` are stored but not
-// applied by the renderer, so they are left out.
+// applied by the renderer, so they are left out; the colour cast (`tintHue`,
+// `tintSat`) is handled on its own below.
 const MASK_ADJUST_SPECS: LlrSliderSpec[] = [
-  { key: 'exposure', label: 'Exposure', min: -5, max: 5, digits: 2 },
-  { key: 'temperature', label: 'Temp', min: -100, max: 100, digits: 0 },
-  { key: 'tint', label: 'Tint', min: -100, max: 100, digits: 0 },
-  { key: 'saturation', label: 'Saturation', min: -100, max: 100, digits: 0 },
-  { key: 'vibrance', label: 'Vibrance', min: -100, max: 100, digits: 0 },
-  { key: 'highlights', label: 'Highlights', min: -100, max: 100, digits: 0 },
-  { key: 'shadows', label: 'Shadows', min: -100, max: 100, digits: 0 },
-  { key: 'clarity', label: 'Clarity', min: -100, max: 100, digits: 0 },
-  { key: 'dehaze', label: 'Dehaze', min: -100, max: 100, digits: 0 },
-  { key: 'hue', label: 'Hue', min: -100, max: 100, digits: 0 },
-  { key: 'tintSat', label: 'Color Sat', min: 0, max: 100, digits: 0, zeroCentered: false },
+  { key: 'exposure', min: -5, max: 5, digits: 2 },
+  { key: 'temperature', min: -100, max: 100 },
+  { key: 'tint', min: -100, max: 100 },
+  { key: 'saturation', min: -100, max: 100 },
+  { key: 'vibrance', min: -100, max: 100 },
+  { key: 'highlights', min: -100, max: 100 },
+  { key: 'shadows', min: -100, max: 100 },
+  { key: 'clarity', min: -100, max: 100 },
+  { key: 'dehaze', min: -100, max: 100 },
+  { key: 'hue', min: -100, max: 100 },
+  { key: 'moire', min: 0, max: 100, zeroCentered: false },
 ]
 
 const MASK_OP_SYMBOLS: Record<string, string> = {
@@ -132,20 +196,24 @@ const MASK_OP_SYMBOLS: Record<string, string> = {
 }
 
 const PARAMETRIC_SPECS: LlrSliderSpec[] = [
-  { key: 'highlights', label: 'Highlights', min: -100, max: 100, digits: 0 },
-  { key: 'lights', label: 'Lights', min: -100, max: 100, digits: 0 },
-  { key: 'darks', label: 'Darks', min: -100, max: 100, digits: 0 },
-  { key: 'shadows', label: 'Shadows', min: -100, max: 100, digits: 0 },
-  { key: 'shadowSplit', label: 'Shadow Split', min: 0, max: 100, digits: 0, zeroCentered: false, defaultValue: 25 },
-  { key: 'midtoneSplit', label: 'Midtone Split', min: 0, max: 100, digits: 0, zeroCentered: false, defaultValue: 50 },
-  { key: 'highlightSplit', label: 'Highlight Split', min: 0, max: 100, digits: 0, zeroCentered: false, defaultValue: 75 },
+  { key: 'highlights', min: -100, max: 100 },
+  { key: 'lights', min: -100, max: 100 },
+  { key: 'darks', min: -100, max: 100 },
+  { key: 'shadows', min: -100, max: 100 },
+  { key: 'shadowSplit', min: 0, max: 100, zeroCentered: false, defaultValue: 25 },
+  { key: 'midtoneSplit', min: 0, max: 100, zeroCentered: false, defaultValue: 50 },
+  { key: 'highlightSplit', min: 0, max: 100, zeroCentered: false, defaultValue: 75 },
 ]
 
-const GRADING_TONES = [
-  { prefix: 'sh', label: 'Shadows' },
-  { prefix: 'md', label: 'Midtones' },
-  { prefix: 'hl', label: 'Highlights' },
-] as const
+// Relight's rig-wide settings; LLR's defaults (relight.ts `defaultRelight`).
+const RELIGHT_SPECS: LlrSliderSpec[] = [
+  { key: 'ambient', min: -5, max: 1, digits: 2, unit: ' EV' },
+  { key: 'wrap', min: 0, max: 1, digits: 2, defaultValue: 0.3, zeroCentered: false },
+  { key: 'falloff', min: 0, max: 1, digits: 2, defaultValue: 1, zeroCentered: false },
+  { key: 'shadows', min: 0, max: 1, digits: 2, defaultValue: 0.8, zeroCentered: false },
+]
+
+const GRADING_TONES = ['sh', 'md', 'hl'] as const
 
 // LLR stores grading hue signed around the primary; its own XMP writer folds
 // the same value to 0–360 for display, so the panel matches that.
@@ -153,24 +221,35 @@ function toHue360(value: number): number {
   return ((Math.round(value) % 360) + 360) % 360
 }
 
-function buildSliderGroups(recipe: Record<string, unknown>): RecipeAdjustmentGroup[] {
-  const groups: RecipeAdjustmentGroup[] = []
-  for (const group of SLIDER_GROUPS) {
-    const items = group.items
-      .map(spec => createRecipeItem({ ...spec, source: recipe[spec.key] }))
-      .filter((item): item is RecipeAdjustmentItem => item !== null)
-    if (items.length > 0) {
-      groups.push({ key: group.key, label: group.label, items })
-    }
-  }
-  return groups
+function present<T>(value: T | null | undefined): value is T {
+  return value !== null && value !== undefined
 }
 
-function buildHslItems(payload: Record<string, unknown>): RecipeAdjustmentItem[] {
+/** The moved sliders of `specs`, each labelled `${labelPrefix}.${key}`. */
+function buildItems(
+  source: Record<string, unknown>,
+  specs: LlrSliderSpec[],
+  t: LlrTranslate,
+  labelPrefix: string,
+): RecipeAdjustmentItem[] {
+  return specs
+    .map((spec) => {
+      const item = createRecipeItem({ ...spec, digits: spec.digits ?? 0, label: t(`${labelPrefix}.${spec.key}`), source: source[spec.key] })
+      return item && spec.track ? { ...item, track: spec.track } : item
+    })
+    .filter(present)
+}
+
+/** A hue on LLR's signed scale, shown as a 0–360° position on a hue wheel. */
+function hueItem(key: string, label: string, raw: number): RecipeAdjustmentItem {
+  return { key, label, value: toHue360(raw), min: 0, max: 360, digits: 0, zeroCentered: false, unit: '°', track: 'hue' }
+}
+
+function buildHslItems(payload: Record<string, unknown>, t: LlrTranslate): RecipeAdjustmentItem[] {
   const channels = [
-    { source: payload.hslHue, suffix: 'hue', label: 'Hue' },
-    { source: payload.hslSat, suffix: 'saturation', label: 'Sat' },
-    { source: payload.hslLum, suffix: 'luminance', label: 'Lum' },
+    { source: payload.hslHue, suffix: 'hue' },
+    { source: payload.hslSat, suffix: 'saturation' },
+    { source: payload.hslLum, suffix: 'luminance' },
   ] as const
   const items: RecipeAdjustmentItem[] = []
   // Grouped by colour rather than by channel so the eight bands read together,
@@ -181,8 +260,8 @@ function buildHslItems(payload: Record<string, unknown>): RecipeAdjustmentItem[]
         continue
       }
       const item = createRecipeItem({
-        key: `${color.toLowerCase()}-${channel.suffix}`,
-        label: `${color} ${channel.label}`,
+        key: `${color}-${channel.suffix}`,
+        label: t(`gallery.llr.hsl.${channel.suffix}`, { color: t(`gallery.llr.hsl.${color}`) }),
         source: channel.source[index],
         min: -100,
         max: 100,
@@ -196,14 +275,15 @@ function buildHslItems(payload: Record<string, unknown>): RecipeAdjustmentItem[]
   return items
 }
 
-function buildGradingItems(grading: Record<string, unknown>): RecipeAdjustmentItem[] {
+function buildGradingItems(grading: Record<string, unknown>, t: LlrTranslate): RecipeAdjustmentItem[] {
   const items: RecipeAdjustmentItem[] = []
   for (const tone of GRADING_TONES) {
+    const toneLabel = t(`gallery.llr.grading.${tone}`)
     // A hue with no saturation tints nothing, so it is not an edit worth showing.
     const saturation = createRecipeItem({
-      key: `${tone.prefix}-saturation`,
-      label: `${tone.label} Sat`,
-      source: grading[`${tone.prefix}S`],
+      key: `${tone}-saturation`,
+      label: t('gallery.llr.grading.saturation', { tone: toneLabel }),
+      source: grading[`${tone}S`],
       min: 0,
       max: 100,
       digits: 0,
@@ -212,23 +292,15 @@ function buildGradingItems(grading: Record<string, unknown>): RecipeAdjustmentIt
     if (!saturation) {
       continue
     }
-    const hue = parseRecipeNumber(grading[`${tone.prefix}H`])
+    const hue = parseRecipeNumber(grading[`${tone}H`])
     if (hue !== null) {
-      items.push({
-        key: `${tone.prefix}-hue`,
-        label: `${tone.label} Hue`,
-        value: toHue360(hue),
-        min: 0,
-        max: 360,
-        digits: 0,
-        zeroCentered: false,
-      })
+      items.push(hueItem(`${tone}-hue`, t('gallery.llr.grading.hue', { tone: toneLabel }), hue))
     }
     items.push(saturation)
   }
   const blend = createRecipeItem({
     key: 'grading-blend',
-    label: 'Blend',
+    label: t('gallery.llr.grading.blend'),
     source: grading.blend,
     min: 0,
     max: 100,
@@ -238,13 +310,13 @@ function buildGradingItems(grading: Record<string, unknown>): RecipeAdjustmentIt
   })
   const balance = createRecipeItem({
     key: 'grading-balance',
-    label: 'Balance',
+    label: t('gallery.llr.grading.balance'),
     source: grading.balance,
     min: -100,
     max: 100,
     digits: 0,
   })
-  items.push(...[blend, balance].filter((item): item is RecipeAdjustmentItem => item !== null))
+  items.push(...[blend, balance].filter(present))
   return items
 }
 
@@ -287,13 +359,7 @@ function buildToneCurve(curve: Record<string, unknown>): LlrRecipeView['toneCurv
   return hasCurve ? toneCurve : undefined
 }
 
-function buildParametricItems(parametric: Record<string, unknown>): RecipeAdjustmentItem[] {
-  return PARAMETRIC_SPECS
-    .map(spec => createRecipeItem({ ...spec, source: parametric[spec.key] }))
-    .filter((item): item is RecipeAdjustmentItem => item !== null)
-}
-
-function describeDenoise(denoise: Record<string, unknown>): string | undefined {
+function describeDenoise(denoise: Record<string, unknown>, t: LlrTranslate): string | undefined {
   if (denoise.enabled !== true) {
     return undefined
   }
@@ -305,7 +371,7 @@ function describeDenoise(denoise: Record<string, unknown>): string | undefined {
     parts.push(model)
   }
   else if (denoise.auto === true) {
-    parts.push('auto')
+    parts.push(t('gallery.llr.denoise.auto'))
   }
   const amount = parseRecipeNumber(denoise.amount)
   if (amount !== null) {
@@ -313,13 +379,13 @@ function describeDenoise(denoise: Record<string, unknown>): string | undefined {
   }
   const edge = parseRecipeNumber(denoise.edge)
   if (edge !== null && !isNearlyEqual(edge, 50)) {
-    parts.push(`edge ${Math.round(edge)}`)
+    parts.push(t('gallery.llr.denoise.edge', { n: Math.round(edge) }))
   }
   const chroma = parseRecipeNumber(denoise.chroma)
   if (chroma !== null && !isNearlyEqual(chroma, 50)) {
-    parts.push(`chroma ${Math.round(chroma)}`)
+    parts.push(t('gallery.llr.denoise.chroma', { n: Math.round(chroma) }))
   }
-  return parts.length > 0 ? parts.join(' · ') : 'on'
+  return parts.length > 0 ? parts.join(' · ') : t('gallery.llr.denoise.on')
 }
 
 /**
@@ -327,25 +393,21 @@ function describeDenoise(denoise: Record<string, unknown>): string | undefined {
  * preset. A strength of zero is off whatever the level says; -1 is the
  * camera's own auto curve.
  */
-function describeDro(payload: Record<string, unknown>): string | undefined {
+function describeDro(payload: Record<string, unknown>, t: LlrTranslate): string | undefined {
   const strength = parseRecipeNumber(payload.dro)
   const level = parseRecipeNumber(payload.droLevel)
   if (strength === null && level === null) {
     return undefined
   }
   if (strength !== null && strength <= 0) {
-    return 'off'
+    return t('gallery.llr.dro.off')
   }
   if (level === null || level < 0) {
-    return strength === null ? 'auto' : `auto ${Math.round(strength)}`
+    return strength === null
+      ? t('gallery.llr.dro.auto')
+      : t('gallery.llr.dro.autoStrength', { n: Math.round(strength) })
   }
-  return `Lv${Math.round(level)}`
-}
-
-function buildLookItems(look: Record<string, unknown>): RecipeAdjustmentItem[] {
-  return LOOK_SPECS
-    .map(spec => createRecipeItem({ ...spec, source: look[spec.key] }))
-    .filter((item): item is RecipeAdjustmentItem => item !== null)
+  return t('gallery.llr.dro.level', { n: Math.round(level) })
 }
 
 function describeRange(from: unknown, to: unknown): string {
@@ -354,7 +416,52 @@ function describeRange(from: unknown, to: unknown): string {
   return lo === null || hi === null ? '' : ` ${Math.round(lo)}–${Math.round(hi)}`
 }
 
-function describeMaskComponent(source: unknown, index: number): string | null {
+function radiansToDegrees(value: number): number {
+  return (value * 180) / Math.PI
+}
+
+function describeMaskSelection(component: Record<string, unknown>, type: string, t: LlrTranslate): string {
+  switch (type) {
+    case 'luminance':
+    case 'depth': {
+      return `${t(`gallery.llr.mask.type.${type}`)}${describeRange(component.lo, component.hi)}`
+    }
+    case 'color': {
+      // Stored as an Oklab hue centre and half-width, both in radians.
+      const hue = parseRecipeNumber(component.hue)
+      const width = parseRecipeNumber(component.hueWidth)
+      const centre = hue === null ? '' : ` ${toHue360(radiansToDegrees(hue))}°`
+      const spread = width === null ? '' : ` ± ${Math.round(radiansToDegrees(width))}°`
+      return `${t('gallery.llr.mask.type.color')}${centre}${spread}`
+    }
+    case 'radial': {
+      const feather = parseRecipeNumber(component.feather)
+      const label = t('gallery.llr.mask.type.radial')
+      return feather === null ? label : `${label} · ${t('gallery.llr.mask.feather', { n: Math.round(feather * 100) })}`
+    }
+    case 'brush': {
+      // Stored strokes are compacted to their count on upload; an uncompacted
+      // blob still carries the list.
+      const strokes = Array.isArray(component.strokes) ? component.strokes.length : parseRecipeNumber(component.strokes)
+      const label = t('gallery.llr.mask.type.brush')
+      return strokes ? `${label} · ${t('gallery.llr.mask.strokes', { n: strokes })}` : label
+    }
+    case 'ai': {
+      const kind = parseRecipeText(component.kind)
+      return kind && ['subject', 'sky', 'person'].includes(kind)
+        ? t(`gallery.llr.mask.ai.${kind}`)
+        : t('gallery.llr.mask.type.ai')
+    }
+    case 'linear': {
+      return t('gallery.llr.mask.type.linear')
+    }
+    default: {
+      return type
+    }
+  }
+}
+
+function describeMaskComponent(source: unknown, index: number, t: LlrTranslate): string | null {
   const component = asObject(source)
   if (!component) {
     return null
@@ -365,46 +472,45 @@ function describeMaskComponent(source: unknown, index: number): string | null {
   }
   // The first component has nothing to combine with, so its operator is noise.
   const op = index === 0 ? '' : `${MASK_OP_SYMBOLS[parseRecipeText(component.op) ?? 'add'] ?? '+'} `
-  const inverted = component.invert === true ? ' (inverted)' : ''
-
-  switch (type) {
-    case 'luminance': {
-      return `${op}Luminance${describeRange(component.lo, component.hi)}${inverted}`
-    }
-    case 'color': {
-      // Stored as an Oklab hue centre in radians.
-      const hue = parseRecipeNumber(component.hue)
-      const degrees = hue === null ? '' : ` ${Math.round(((hue * 180) / Math.PI + 360) % 360)}°`
-      return `${op}Color${degrees}${inverted}`
-    }
-    case 'linear': {
-      return `${op}Linear${inverted}`
-    }
-    case 'radial': {
-      return `${op}Radial${inverted}`
-    }
-    default: {
-      return `${op}${type}${inverted}`
-    }
-  }
+  const inverted = component.invert === true ? ` · ${t('gallery.llr.mask.inverted')}` : ''
+  return `${op}${describeMaskSelection(component, type, t)}${inverted}`
 }
 
-function buildMask(source: unknown, index: number): LlrMaskView | null {
+function buildMaskItems(adjust: Record<string, unknown>, t: LlrTranslate): RecipeAdjustmentItem[] {
+  const items = buildItems(adjust, MASK_ADJUST_SPECS, t, 'gallery.llr.slider')
+  // The colour cast is one control in LLR: a hue and how strongly it tints.
+  // Without strength the hue does nothing, so it only shows alongside it.
+  const strength = createRecipeItem({
+    key: 'tintSat',
+    label: t('gallery.llr.slider.tintSat'),
+    source: adjust.tintSat,
+    min: 0,
+    max: 100,
+    digits: 0,
+    zeroCentered: false,
+  })
+  if (strength) {
+    const hue = parseRecipeNumber(adjust.tintHue)
+    if (hue !== null) {
+      items.push(hueItem('tintHue', t('gallery.llr.slider.tintHue'), hue))
+    }
+    items.push(strength)
+  }
+  return items
+}
+
+function buildMask(source: unknown, index: number, t: LlrTranslate): LlrMaskView | null {
   const mask = asObject(source)
   if (!mask) {
     return null
   }
   const adjust = asObject(mask.adjust)
-  const items = adjust
-    ? MASK_ADJUST_SPECS
-        .map(spec => createRecipeItem({ ...spec, source: adjust[spec.key] }))
-        .filter((item): item is RecipeAdjustmentItem => item !== null)
-    : []
+  const items = adjust ? buildMaskItems(adjust, t) : []
 
   const components = Array.isArray(mask.components)
     ? mask.components
-        .map((component, componentIndex) => describeMaskComponent(component, componentIndex))
-        .filter((entry): entry is string => entry !== null)
+        .map((component, componentIndex) => describeMaskComponent(component, componentIndex, t))
+        .filter(present)
     : []
 
   // A mask with no selection and no deltas describes nothing.
@@ -422,87 +528,140 @@ function buildMask(source: unknown, index: number): LlrMaskView | null {
   }
 }
 
-function buildMasks(source: unknown): LlrMaskView[] {
+function buildMasks(source: unknown, t: LlrTranslate): LlrMaskView[] {
   if (!Array.isArray(source)) {
     return []
   }
   return source
-    .map((mask, index) => buildMask(mask, index))
-    .filter((mask): mask is LlrMaskView => mask !== null)
+    .map((mask, index) => buildMask(mask, index, t))
+    .filter(present)
 }
 
 /**
- * Crop, rotation, flips and perspective as one line — only the parts that
- * moved. The crop box is stored normalized, so a full-frame box is `w`/`h` of
- * 1 and no offset.
+ * Crop, straighten, rotation, flips and perspective as one line — only the
+ * parts that moved. The crop box is stored normalized, so a full-frame box is
+ * `w`/`h` of 1; `orientation` is a quarter turn in degrees (0/90/180/270).
  */
-function describeGeometry(crop: Record<string, unknown>): string | undefined {
+function describeGeometry(crop: Record<string, unknown>, t: LlrTranslate): string | undefined {
   const parts: string[] = []
 
   const width = parseRecipeNumber(crop.w)
   const height = parseRecipeNumber(crop.h)
   if (width !== null && height !== null && (!isNearlyEqual(width, 1) || !isNearlyEqual(height, 1))) {
-    parts.push(`crop ${Math.round(width * 100)}% × ${Math.round(height * 100)}%`)
+    parts.push(t('gallery.llr.geometry.crop', { w: Math.round(width * 100), h: Math.round(height * 100) }))
   }
 
   const angle = parseRecipeNumber(crop.angle)
   if (angle !== null && !isNearlyEqual(angle, 0)) {
-    parts.push(`rotate ${angle.toFixed(1)}°`)
+    parts.push(t('gallery.llr.geometry.rotate', { n: angle.toFixed(1) }))
   }
 
   const orientation = parseRecipeNumber(crop.orientation)
-  if (orientation !== null && orientation !== 0) {
-    parts.push(`orientation ${Math.round(orientation) * 90}°`)
+  if (orientation !== null && Math.round(orientation) % 360 !== 0) {
+    parts.push(t('gallery.llr.geometry.orientation', { n: Math.round(orientation) % 360 }))
   }
 
-  const flips = [crop.flipH === true ? 'H' : null, crop.flipV === true ? 'V' : null].filter(Boolean)
-  if (flips.length > 0) {
-    parts.push(`flip ${flips.join('+')}`)
+  if (crop.flipH === true) {
+    parts.push(t('gallery.llr.geometry.flipH'))
   }
-
-  const transform = asObject(crop.xf)
-  if (transform) {
-    const perspective: { key: string, label: string, neutral: number }[] = [
-      { key: 'vertical', label: 'vertical', neutral: 0 },
-      { key: 'horizontal', label: 'horizontal', neutral: 0 },
-      { key: 'aspect', label: 'aspect', neutral: 0 },
-      { key: 'scale', label: 'scale', neutral: 100 },
-      { key: 'offsetX', label: 'offset X', neutral: 0 },
-      { key: 'offsetY', label: 'offset Y', neutral: 0 },
-    ]
-    for (const entry of perspective) {
-      const value = parseRecipeNumber(transform[entry.key])
-      if (value !== null && !isNearlyEqual(value, entry.neutral)) {
-        parts.push(`${entry.label} ${Math.round(value)}`)
-      }
-    }
+  if (crop.flipV === true) {
+    parts.push(t('gallery.llr.geometry.flipV'))
   }
 
   return parts.length > 0 ? parts.join(' · ') : undefined
 }
 
-function buildBypass(source: unknown): string[] {
-  if (!Array.isArray(source)) {
+function describeTransform(transform: Record<string, unknown>, t: LlrTranslate): string | undefined {
+  const perspective: { key: string, neutral: number }[] = [
+    { key: 'vertical', neutral: 0 },
+    { key: 'horizontal', neutral: 0 },
+    { key: 'aspect', neutral: 0 },
+    { key: 'scale', neutral: 100 },
+    { key: 'offsetX', neutral: 0 },
+    { key: 'offsetY', neutral: 0 },
+  ]
+  const parts: string[] = []
+  for (const entry of perspective) {
+    const value = parseRecipeNumber(transform[entry.key])
+    if (value !== null && !isNearlyEqual(value, entry.neutral)) {
+      parts.push(t(`gallery.llr.geometry.xf.${entry.key}`, { n: Math.round(value) }))
+    }
+  }
+  return parts.length > 0 ? parts.join(' · ') : undefined
+}
+
+/** Erase strokes by kind: generative fill and the heal brush. */
+function describeErase(source: unknown, t: LlrTranslate): string | undefined {
+  let fill = 0
+  let heal = 0
+  if (Array.isArray(source)) {
+    for (const stroke of source) {
+      if (asObject(stroke)?.mode === 'heal') {
+        heal += 1
+      }
+      else {
+        fill += 1
+      }
+    }
+  }
+  else {
+    const counts = asObject(source)
+    fill = parseRecipeNumber(counts?.fill) ?? 0
+    heal = parseRecipeNumber(counts?.heal) ?? 0
+  }
+  const parts = [
+    fill > 0 ? t('gallery.llr.erase.fill', { n: fill }) : null,
+    heal > 0 ? t('gallery.llr.erase.heal', { n: heal }) : null,
+  ].filter(present)
+  return parts.length > 0 ? parts.join(' · ') : undefined
+}
+
+/**
+ * The relight rig as a slider group: the rig-wide settings that moved, then
+ * one row per light at its intensity — a light is an edit whatever its value.
+ */
+function buildRelightItems(relight: Record<string, unknown>, t: LlrTranslate): RecipeAdjustmentItem[] {
+  const lights = Array.isArray(relight.lights) ? relight.lights.map(asObject).filter(present) : []
+  if (lights.length === 0) {
     return []
   }
-  return source
-    .map(entry => parseRecipeText(entry))
-    .filter((entry): entry is string => entry !== undefined)
+  const items = buildItems(relight, RELIGHT_SPECS, t, 'gallery.llr.relight')
+  for (const [index, light] of lights.entries()) {
+    const kind = parseRecipeText(light.kind) ?? 'point'
+    const ev = parseRecipeNumber(light.ev) ?? 0
+    items.push({
+      key: `light-${index}`,
+      label: `${['point', 'spot', 'sun'].includes(kind) ? t(`gallery.llr.relight.kind.${kind}`) : kind} ${index + 1}`,
+      value: ev,
+      min: -4,
+      max: 6,
+      digits: 1,
+      unit: ' EV',
+    })
+  }
+  return items
 }
 
 /** Camera-matching switches, reported only when moved off their default. */
-function buildToggles(payload: Record<string, unknown>): string[] {
+function buildToggles(payload: Record<string, unknown>, t: LlrTranslate): string[] {
   const toggles: string[] = []
   if (payload.sonyAdvancedColour === true) {
-    toggles.push('Advanced colour')
+    toggles.push(t('gallery.llr.toggle.advancedColour'))
   }
   if (payload.sonyCameraMatch === false) {
-    toggles.push('Camera match off')
+    toggles.push(t('gallery.llr.toggle.cameraMatchOff'))
   }
   return toggles
 }
 
-export function parseLlrRecipeView(value: string | undefined): LlrRecipeView | null {
+function buildBypass(source: unknown): Set<string> {
+  if (!Array.isArray(source)) {
+    return new Set()
+  }
+  return new Set(source.map(entry => parseRecipeText(entry)).filter(present))
+}
+
+export function parseLlrRecipeView(value: string | undefined, t: LlrTranslate): LlrRecipeView | null {
   const text = toDisplayText(value)
   if (!text) {
     return null
@@ -519,83 +678,96 @@ export function parseLlrRecipeView(value: string | undefined): LlrRecipeView | n
     return null
   }
 
+  // Bypassed panels stay in the recipe (LLR keeps their values for a
+  // before/after) but leave the render, so they are shown struck out.
+  const bypass = buildBypass(payload.bypass)
+
   const groups: RecipeAdjustmentGroup[] = []
-  const recipe = asObject(payload.recipe)
-  if (recipe) {
-    groups.push(...buildSliderGroups(recipe))
-  }
-
-  const hslItems = buildHslItems(payload)
-  if (hslItems.length > 0) {
-    groups.push({ key: 'hsl', label: 'Color Mixer', items: hslItems })
-  }
-
-  const grading = asObject(payload.grading)
-  if (grading) {
-    const items = buildGradingItems(grading)
+  const pushGroup = (key: string, items: RecipeAdjustmentItem[], labelKey: string = key): void => {
     if (items.length > 0) {
-      groups.push({ key: 'grading', label: 'Color Grading', items })
+      groups.push({ key, label: t(`gallery.llr.group.${labelKey}`), items, bypassed: bypass.has(key) || undefined })
     }
   }
+
+  const recipe = asObject(payload.recipe)
+  if (recipe) {
+    for (const group of SLIDER_GROUPS) {
+      const amountKey = GROUP_AMOUNT_KEYS[group.key]
+      if (!amountKey || !isNearlyEqual(parseRecipeNumber(recipe[amountKey]) ?? 0, 0)) {
+        pushGroup(group.key, buildItems(recipe, group.items, t, 'gallery.llr.slider'))
+      }
+    }
+  }
+
+  pushGroup('hsl', buildHslItems(payload, t))
+
+  const grading = asObject(payload.grading)
+  pushGroup('grading', grading ? buildGradingItems(grading, t) : [])
 
   const curve = asObject(payload.curve)
   const toneCurve = curve ? buildToneCurve(curve) : undefined
   const parametric = curve ? asObject(curve.parametric) : null
-  if (parametric) {
-    const items = buildParametricItems(parametric)
-    if (items.length > 0) {
-      groups.push({ key: 'parametric-curve', label: 'Parametric Curve', items })
+  pushGroup('curve', parametric ? buildItems(parametric, PARAMETRIC_SPECS, t, 'gallery.llr.parametric') : [], 'parametric')
+
+  // The Creative Look's tweaks drive Sony's own stages rather than the Tone
+  // panel's sliders, so they are a group of their own.
+  const lookObject = asObject(payload.look)
+  pushGroup('look', lookObject ? buildItems(lookObject, LOOK_SPECS, t, 'gallery.llr.look') : [])
+
+  const relightObject = asObject(payload.relight)
+  pushGroup('relight', relightObject ? buildRelightItems(relightObject, t) : [])
+
+  const facts: RecipeFact[] = []
+  const pushFact = (key: string, label: string, factValue: string | undefined, bypassKey?: string): void => {
+    if (factValue) {
+      facts.push({ key, label, value: factValue, bypassed: bypassKey ? bypass.has(bypassKey) : undefined })
     }
   }
 
-  const version = parseRecipeText(payload.version)
   // `profile` is the rendering pipeline (sony / standard); `dcp` is the camera
-  // style baked into it. They are different things and were previously
-  // conflated, which hid the profile whenever a style was absent.
+  // style baked into it. They are different things.
   const profile = parseRecipeText(payload.profile)
-  const dcp = parseRecipeText(payload.dcp)
+  pushFact(
+    'profile',
+    t('gallery.metadata.llrProfile'),
+    profile && ['sony', 'standard'].includes(profile) ? t(`gallery.llr.profile.${profile}`) : profile,
+  )
+  pushFact('dcp', t('gallery.metadata.llrStyle'), parseRecipeText(payload.dcp))
+  pushFact('lookStyle', t('gallery.metadata.llrLook'), parseRecipeText(payload.lookStyle), 'look')
+  pushFact('dro', 'DRO', describeDro(payload, t), 'look')
   const denoiseObject = asObject(payload.denoise)
-  const denoise = denoiseObject ? describeDenoise(denoiseObject) : undefined
+  pushFact('denoise', t('gallery.metadata.llrDenoise'), denoiseObject ? describeDenoise(denoiseObject, t) : undefined)
   const aspect = parseRecipeText(payload.aspect)
-  const namedAspect = aspect && aspect !== 'orig' ? aspect : undefined
-
-  const lookObject = asObject(payload.look)
-  const lookItems = lookObject ? buildLookItems(lookObject) : []
-  const lookStyle = parseRecipeText(payload.lookStyle)
-  const dro = describeDro(payload)
-
+  // `orig` and `free` are the two unconstrained modes; only a ratio says
+  // something about the framing.
+  pushFact('aspect', t('gallery.metadata.llrAspect'), aspect && aspect !== 'orig' && aspect !== 'free' ? aspect.replace(/^custom:/, '') : undefined)
   const cropObject = asObject(payload.crop)
-  const geometry = cropObject ? describeGeometry(cropObject) : undefined
+  pushFact('geometry', t('gallery.metadata.llrGeometry'), cropObject ? describeGeometry(cropObject, t) : undefined)
+  const transform = cropObject ? asObject(cropObject.xf) : null
+  pushFact('transform', t('gallery.llr.group.transform'), transform ? describeTransform(transform, t) : undefined, 'transform')
+  pushFact('erase', t('gallery.metadata.llrErase'), describeErase(payload.erase, t))
 
-  const masks = buildMasks(payload.masks)
-  const bypass = buildBypass(payload.bypass)
-  const toggles = buildToggles(payload)
+  const masks = buildMasks(payload.masks, t)
+  const toggles = buildToggles(payload, t)
 
   const hasContent = groups.length > 0
     || masks.length > 0
-    || lookItems.length > 0
-    || bypass.length > 0
+    || facts.length > 0
     || toggles.length > 0
-    || Boolean(toneCurve || profile || dcp || lookStyle || dro || denoise || namedAspect || geometry)
+    || Boolean(toneCurve)
 
   if (!hasContent) {
     return null
   }
 
   return {
-    version,
-    profile,
-    dcp,
-    lookStyle,
-    lookItems,
-    dro,
-    denoise,
-    aspect: namedAspect,
-    geometry,
-    bypass,
+    version: parseRecipeText(payload.version),
+    facts,
     toggles,
     toneCurve,
+    toneCurveBypassed: Boolean(toneCurve) && bypass.has('curve'),
     groups,
     masks,
+    masksBypassed: masks.length > 0 && bypass.has('masks'),
   }
 }

@@ -55,12 +55,24 @@ export interface RecipeAdjustmentItem {
   digits?: number
   unit?: string
   zeroCentered?: boolean
+  /** Draw the track as the quantity's own scale: a hue wheel or a Kelvin ramp. */
+  track?: 'hue' | 'temperature'
 }
 
 export interface RecipeAdjustmentGroup {
   key: string
   label: string
   items: RecipeAdjustmentItem[]
+  /** Switched off in the editor: the values are kept but not rendered. */
+  bypassed?: boolean
+}
+
+/** One non-slider setting of a recipe (profile, DRO, geometry…), as a key / value row. */
+export interface RecipeFact {
+  key: string
+  label: string
+  value: string
+  bypassed?: boolean
 }
 
 export interface RecipeCurvePoint {
@@ -104,28 +116,17 @@ export interface LlrMaskView {
 }
 
 export interface LlrRecipeView {
+  /** `llr:Version`, the export schema version. */
   version?: string
-  /** Rendering profile (`sony`, `standard`, …). */
-  profile?: string
-  /** DCP / Creative Look style baked into the profile. */
-  dcp?: string
-  /** Sony Creative Look style code, when overridden from as-shot. */
-  lookStyle?: string
-  /** Creative Look tweaks, on Imaging Edge Edit's own panel scale. */
-  lookItems: RecipeAdjustmentItem[]
-  /** Resolved DRO state: off / auto / a level. */
-  dro?: string
-  denoise?: string
-  aspect?: string
-  /** Crop, rotation, flips and perspective, when any of them moved. */
-  geometry?: string
-  /** Modules explicitly bypassed in the editor. */
-  bypass: string[]
+  /** Profile, camera style, look, DRO, denoise, framing, erase — whatever is set. */
+  facts: RecipeFact[]
   /** Camera-matching toggles that are not at their default. */
   toggles: string[]
   toneCurve?: RecipeToneCurve
+  toneCurveBypassed: boolean
   groups: RecipeAdjustmentGroup[]
   masks: LlrMaskView[]
+  masksBypassed: boolean
 }
 
 export interface SocialLink {

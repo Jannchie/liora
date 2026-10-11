@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { LightroomRecipeView, LlrRecipeView, MetadataEntry, RecipeAdjustmentGroup } from '~/types/gallery'
+import type { LightroomRecipeView, LlrRecipeView, MetadataEntry } from '~/types/gallery'
 import { computed, defineAsyncComponent } from 'vue'
 
 const props = defineProps<{
@@ -74,6 +74,12 @@ const halfWidthExposureEntries = computed<MetadataEntry[]>(() => {
     .filter(entry => isMetadataEntry(entry))
 })
 
+// Both exposure rows share one column count, so the second row's dividers
+// fall on the first row's instead of splitting it differently.
+const exposureColumns = computed<number>(() =>
+  Math.max(mainExposureEntries.value.length, halfWidthExposureEntries.value.length, 1),
+)
+
 const secondaryExposureEntries = computed<MetadataEntry[]>(() => {
   const primaryLabels = new Set(Object.values(primaryExposureLabels.value))
   return exposureEntries.value.filter(entry => !primaryLabels.has(entry.label))
@@ -131,40 +137,15 @@ const lightroomBadges = computed<string[]>(() => {
   ].filter((badge): badge is string => badge !== null)
 })
 
+// Only the export's schema version and the camera-matching switches are
+// badges; the rest of the recipe's settings read as key / value rows.
 const llrBadges = computed<string[]>(() => {
   const recipe = llrRecipe.value
   if (!recipe) {
     return []
   }
-  return [
-    recipe.version ? `v${recipe.version}` : null,
-    recipe.profile ? `${t('gallery.metadata.llrProfile')}: ${recipe.profile}` : null,
-    recipe.dcp ? `${t('gallery.metadata.llrStyle')}: ${recipe.dcp}` : null,
-    recipe.lookStyle ? `${t('gallery.metadata.llrLook')}: ${recipe.lookStyle}` : null,
-    recipe.dro ? `DRO ${recipe.dro}` : null,
-    recipe.denoise ? `${t('gallery.metadata.llrDenoise')}: ${recipe.denoise}` : null,
-    recipe.aspect ? `${t('gallery.metadata.llrAspect')}: ${recipe.aspect}` : null,
-    recipe.geometry ? `${t('gallery.metadata.llrGeometry')}: ${recipe.geometry}` : null,
-    ...recipe.toggles,
-    ...recipe.bypass.map(module => `${t('gallery.metadata.llrBypass')}: ${module}`),
-  ].filter((badge): badge is string => badge !== null)
-})
-
-// The Creative Look's tweaks are a group of their own: they drive Sony's own
-// stages rather than the Tone panel's sliders, so they do not belong among the
-// global adjustments.
-const llrGroups = computed<RecipeAdjustmentGroup[]>(() => {
-  const recipe = llrRecipe.value
-  if (!recipe) {
-    return []
-  }
-  if (recipe.lookItems.length === 0) {
-    return recipe.groups
-  }
-  return [
-    ...recipe.groups,
-    { key: 'look', label: t('gallery.metadata.llrLookGroup'), items: recipe.lookItems },
-  ]
+  return [recipe.version ? `v${recipe.version}` : null, ...recipe.toggles]
+    .filter((badge): badge is string => badge !== null)
 })
 
 const totalEntryCount = computed<number>(() => {
@@ -180,71 +161,72 @@ const totalEntryCount = computed<number>(() => {
 <template>
   <!--
     Sections of the viewer's info column, stacked edge to edge and closed by
-    one hairline each: the exposure triangle as a strip of cells (like the
-    icons site's size scales), then key/value rows, then the recipes.
+    one hairline each. Exposure is a strip of cells on one shared column
+    grid, with the shooting modes as pills under it; the rest of the EXIF is
+    a key / value list — label column on the left, value on the right — so
+    a dozen fields read as one table instead of a dozen blocks.
     Numbers (exposure values, dates, sizes) are set in mono.
   -->
   <div class="text-[13px] text-default">
     <template v-if="hasMetadata">
       <section
-        v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0"
+        v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0 || secondaryExposureEntries.length > 0"
         class="border-b border-border"
       >
-        <p class="label-caption flex items-center gap-1.5 px-5 pt-4 pb-3 text-dimmed">
+        <p class="label-caption flex items-center gap-1.5 px-5 pb-3 pt-4">
           <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
           <span>{{ t('gallery.metadata.exposure') }}</span>
         </p>
-        <div
-          v-if="mainExposureEntries.length > 0"
-          class="grid divide-x divide-border border-t border-border"
-          :style="{ gridTemplateColumns: `repeat(${mainExposureEntries.length}, minmax(0, 1fr))` }"
-        >
+        <template v-for="(row, rowIndex) in [mainExposureEntries, halfWidthExposureEntries]" :key="rowIndex">
           <div
-            v-for="item in mainExposureEntries"
+            v-if="row.length > 0"
+            class="grid divide-x divide-border border-t border-border"
+            :style="{ gridTemplateColumns: `repeat(${exposureColumns}, minmax(0, 1fr))` }"
+          >
+            <div
+              v-for="item in row"
+              :key="item.label"
+              class="flex min-w-0 flex-col gap-1.5 px-4 py-3"
+              :aria-label="`${item.label}: ${item.value}`"
+            >
+              <span class="label-caption-sm flex items-center gap-1">
+                <Icon :name="item.icon" class="h-3 w-3" />
+                <span class="truncate">{{ item.label }}</span>
+              </span>
+              <span class="num-tabular truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
+            </div>
+          </div>
+        </template>
+        <div
+          v-if="secondaryExposureEntries.length > 0"
+          class="flex flex-wrap gap-1 border-t border-border px-4 py-3"
+        >
+          <span
+            v-for="item in secondaryExposureEntries"
             :key="item.label"
-            class="flex min-w-0 flex-col gap-1.5 px-3 py-3"
+            class="inline-flex items-center gap-1.5 rounded-full bg-muted px-2 py-px text-xs leading-5 text-dimmed"
             :aria-label="`${item.label}: ${item.value}`"
           >
-            <span class="label-caption-sm flex items-center gap-1 text-dimmed">
-              <Icon :name="item.icon" class="h-3 w-3 shrink-0" />
-              <span class="truncate">{{ item.label }}</span>
-            </span>
-            <span class="truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
-          </div>
-        </div>
-        <div
-          v-if="halfWidthExposureEntries.length > 0"
-          class="grid divide-x divide-border border-t border-border"
-          :style="{ gridTemplateColumns: `repeat(${halfWidthExposureEntries.length}, minmax(0, 1fr))` }"
-        >
-          <div
-            v-for="item in halfWidthExposureEntries"
-            :key="item.label"
-            class="flex min-w-0 flex-col gap-1.5 px-3 py-3"
-            :aria-label="`${item.label}: ${item.value}`"
-          >
-            <span class="label-caption-sm flex items-center gap-1 text-dimmed">
-              <Icon :name="item.icon" class="h-3 w-3 shrink-0" />
-              <span class="truncate">{{ item.label }}</span>
-            </span>
-            <span class="truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
-          </div>
+            <span>{{ item.label }}</span>
+            <span class="text-highlighted">{{ item.value }}</span>
+          </span>
         </div>
       </section>
       <section
         v-if="focusEntry || cropEntry || showCameraLookCard || metadataEntries.length > 0"
-        class="border-b border-border"
+        class="border-b border-border pb-3"
       >
-        <p class="label-caption flex items-center gap-1.5 px-5 pt-4 pb-3 text-dimmed">
+        <p class="label-caption flex items-center gap-1.5 px-5 pb-2 pt-4">
           <Icon name="jannchie:info" class="h-3.5 w-3.5" />
-          <span>{{ t('gallery.metadata.section') }} · <span class="font-mono">{{ totalEntryCount }}</span></span>
+          <span>{{ t('gallery.metadata.section') }}</span>
+          <span class="num-tabular text-subtle">{{ totalEntryCount }}</span>
         </p>
-        <div class="divide-y divide-border border-t border-border">
+        <div class="flex flex-col">
           <!-- The focus row keeps the viewfinder green: it drives the AF box drawn on the photo. -->
           <button
             v-if="focusEntry"
             type="button"
-            class="grid w-full gap-1 px-5 py-2.5 text-left outline-none transition-colors hover:bg-focus-point-soft focus-visible:bg-focus-point-soft"
+            class="meta-row w-full text-left outline-none transition-colors hover:bg-focus-point-soft focus-visible:bg-focus-point-soft"
             :class="focusIndicatorActive ? 'bg-focus-point-soft shadow-[inset_2px_0_0_var(--color-focus-point)]' : undefined"
             @mouseenter="handleFocusHover(true)"
             @mouseleave="handleFocusHover(false)"
@@ -252,49 +234,54 @@ const totalEntryCount = computed<number>(() => {
             @blur="handleFocusHover(false)"
             @click="handleFocusToggle"
           >
-            <span class="label-caption-sm flex items-center gap-1.5" :class="focusIndicatorActive ? 'text-focus-point' : 'text-dimmed'">
+            <span class="meta-key" :class="focusIndicatorActive ? 'text-focus-point' : undefined">
               <Icon :name="focusEntry.icon" class="h-3.5 w-3.5" />
               <span>{{ focusEntry.label }}</span>
             </span>
-            <span class="font-mono text-xs leading-relaxed whitespace-pre-line text-highlighted">{{ focusEntry.value }}</span>
+            <span class="meta-value whitespace-pre-line font-mono text-xs">
+              {{ focusEntry.value }}
+            </span>
           </button>
-          <div v-if="cropEntry" class="grid gap-1 px-5 py-2.5">
-            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+          <div v-if="cropEntry" class="meta-row">
+            <span class="meta-key">
               <Icon :name="cropEntry.icon" class="h-3.5 w-3.5" />
               <span>{{ cropEntry.label }}</span>
             </span>
-            <span class="font-mono text-xs leading-relaxed whitespace-pre-line text-highlighted">{{ cropEntry.value }}</span>
+            <span class="meta-value num-tabular whitespace-pre-line font-mono text-xs">
+              {{ cropEntry.value }}
+            </span>
           </div>
-          <div v-if="showCameraLookCard && cameraLook" class="grid gap-1 px-5 py-2.5">
-            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+          <div v-if="showCameraLookCard && cameraLook" class="meta-row">
+            <span class="meta-key">
               <Icon name="jannchie:camera" class="h-3.5 w-3.5" />
               <span>{{ t('gallery.metadata.cameraLook') }}</span>
             </span>
-            <span class="leading-snug text-highlighted">{{ cameraLook }}</span>
+            <span class="meta-value">
+              {{ cameraLook }}
+            </span>
           </div>
           <div
             v-for="item in metadataEntries"
             :key="item.key ?? item.label"
-            class="grid gap-1 px-5 py-2.5"
+            class="meta-row"
           >
-            <span class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+            <span class="meta-key">
               <Icon :name="item.icon" class="h-3.5 w-3.5" />
               <span>{{ item.label }}</span>
             </span>
-            <span
-              v-if="item.valueIcon"
-              class="flex items-center gap-2 leading-snug text-highlighted"
-            >
-              <BrandIcon :name="item.valueIcon" class="h-[1em] text-highlighted" />
+            <span v-if="item.valueIcon" class="meta-value flex items-center gap-2">
+              <BrandIcon :name="item.valueIcon" class="h-[0.95em] shrink-0 text-highlighted" />
               <span v-if="item.valueIconLabel" class="sr-only">{{ item.valueIconLabel }}</span>
-              <span>{{ item.value }}</span>
+              <span class="min-w-0">{{ item.value }}</span>
             </span>
             <!-- Capture time and pixel size are numbers: mono, like the exposure strip. -->
             <span
               v-else
-              class="leading-snug whitespace-pre-line text-highlighted"
-              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'font-mono text-xs' : undefined"
-            >{{ item.value }}</span>
+              class="meta-value whitespace-pre-line"
+              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'num-tabular font-mono text-xs' : undefined"
+            >
+              {{ item.value }}
+            </span>
           </div>
         </div>
       </section>
@@ -302,9 +289,12 @@ const totalEntryCount = computed<number>(() => {
         v-if="llrRecipe"
         :title="t('gallery.metadata.llr')"
         :badges="llrBadges"
+        :facts="llrRecipe.facts"
         :tone-curve="llrRecipe.toneCurve"
-        :groups="llrGroups"
+        :tone-curve-bypassed="llrRecipe.toneCurveBypassed"
+        :groups="llrRecipe.groups"
         :masks="llrRecipe.masks"
+        :masks-bypassed="llrRecipe.masksBypassed"
       />
       <WaterfallRecipeCard
         v-if="lightroomRecipe"
@@ -313,23 +303,6 @@ const totalEntryCount = computed<number>(() => {
         :tone-curve="lightroomRecipe.toneCurve"
         :groups="lightroomRecipe.groups"
       />
-      <section v-if="secondaryExposureEntries.length > 0" class="space-y-3 border-b border-border px-5 py-4">
-        <p class="label-caption flex items-center gap-1.5 text-dimmed">
-          <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
-          <span>{{ t('gallery.metadata.exposure') }}</span>
-        </p>
-        <div class="flex flex-wrap gap-1">
-          <span
-            v-for="item in secondaryExposureEntries"
-            :key="item.label"
-            class="inline-flex items-center gap-1 rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
-            :aria-label="`${item.label}: ${item.value}`"
-          >
-            <span>{{ item.label }}</span>
-            <span class="font-mono text-highlighted">{{ item.value }}</span>
-          </span>
-        </div>
-      </section>
     </template>
     <div v-else class="border-b border-border px-5 py-8 text-center text-[13px] text-dimmed">
       {{ t('gallery.metadata.empty') }}

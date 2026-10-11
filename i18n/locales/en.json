@@ -118,7 +118,6 @@
       "peak": "Peak"
     },
     "metadata": {
-      "title": "Title",
       "description": "Description",
       "work": "Work",
       "characters": "Characters",
@@ -160,11 +159,10 @@
       "llrProfile": "Profile",
       "llrStyle": "DCP style",
       "llrLook": "Creative Look",
-      "llrLookGroup": "Creative Look",
       "llrDenoise": "Denoise",
       "llrAspect": "Aspect",
       "llrGeometry": "Geometry",
-      "llrBypass": "Bypassed",
+      "llrErase": "Erase",
       "llrMaskFallback": "Mask {index}",
       "llrMaskInverted": "Inverted",
       "llrMaskDisabled": "Disabled",
@@ -196,7 +194,179 @@
       "shareUnsupported": "Sharing to Photos is not supported on this device.",
       "shareFailed": "Live Photo sharing failed."
     },
-    "totalWorks": "Total works"
+    "totalWorks": "Total works",
+    "llr": {
+      "group": {
+        "tone": "Tone",
+        "presence": "Presence",
+        "color": "Color",
+        "lens": "Lens Corrections",
+        "noise": "Noise Reduction",
+        "sharpen": "Sharpening",
+        "defringe": "Defringe",
+        "lensBlur": "Lens Blur",
+        "fog": "Atmosphere",
+        "vignette": "Post-Crop Vignette",
+        "grain": "Grain",
+        "hsl": "HSL / Color",
+        "grading": "Color Grading",
+        "parametric": "Parametric Curve",
+        "look": "Creative Look",
+        "relight": "Relight",
+        "transform": "Transform"
+      },
+      "slider": {
+        "exposure": "Exposure",
+        "contrast": "Contrast",
+        "highlights": "Highlights",
+        "shadows": "Shadows",
+        "whites": "Whites",
+        "blacks": "Blacks",
+        "clarity": "Clarity",
+        "dehaze": "Dehaze",
+        "temperature": "Temp",
+        "tint": "Tint",
+        "vibrance": "Vibrance",
+        "saturation": "Saturation",
+        "lensDistortion": "Distortion",
+        "lensVignetting": "Vignetting",
+        "nrLuminance": "Luminance",
+        "nrDetail": "Detail",
+        "sharpAmount": "Amount",
+        "sharpRadius": "Radius",
+        "sharpDetail": "Detail",
+        "sharpMasking": "Masking",
+        "defringePurple": "Purple Amount",
+        "defringeGreen": "Green Amount",
+        "blurAmount": "Blur Amount",
+        "blurRange": "Focal Range",
+        "fogAmount": "Haze",
+        "fogStart": "Starts At",
+        "vigAmount": "Amount",
+        "vigMidpoint": "Midpoint",
+        "vigFeather": "Feather",
+        "vigRoundness": "Roundness",
+        "grainAmount": "Amount",
+        "grainSize": "Size",
+        "grainRoughness": "Roughness",
+        "hue": "Hue",
+        "tintHue": "Cast",
+        "tintSat": "Strength",
+        "moire": "Moiré"
+      },
+      "look": {
+        "contrast": "Contrast",
+        "highlights": "Highlights",
+        "shadows": "Shadows",
+        "white": "Whites",
+        "black": "Blacks",
+        "fade": "Fade",
+        "hue": "Hue",
+        "saturation": "Saturation",
+        "clarity": "Clarity"
+      },
+      "hsl": {
+        "red": "Red",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "aqua": "Aqua",
+        "blue": "Blue",
+        "purple": "Purple",
+        "magenta": "Magenta",
+        "hue": "{color} Hue",
+        "saturation": "{color} Sat",
+        "luminance": "{color} Lum"
+      },
+      "grading": {
+        "sh": "Shadows",
+        "md": "Midtones",
+        "hl": "Highlights",
+        "hue": "{tone} Hue",
+        "saturation": "{tone} Sat",
+        "blend": "Blend",
+        "balance": "Balance"
+      },
+      "parametric": {
+        "highlights": "Highlights",
+        "lights": "Lights",
+        "darks": "Darks",
+        "shadows": "Shadows",
+        "shadowSplit": "Shadow Split",
+        "midtoneSplit": "Midtone Split",
+        "highlightSplit": "Highlight Split"
+      },
+      "relight": {
+        "ambient": "Existing light",
+        "wrap": "Softness",
+        "falloff": "Distance falloff",
+        "shadows": "Shadows",
+        "kind": {
+          "point": "Lamp",
+          "spot": "Spot",
+          "sun": "Sun"
+        }
+      },
+      "mask": {
+        "type": {
+          "luminance": "Luminance range",
+          "color": "Color range",
+          "linear": "Linear gradient",
+          "radial": "Radial gradient",
+          "depth": "Depth range",
+          "brush": "Brush",
+          "ai": "AI"
+        },
+        "ai": {
+          "subject": "Subject (AI)",
+          "sky": "Sky (AI)",
+          "person": "People (AI)"
+        },
+        "inverted": "inverted",
+        "strokes": "{n} strokes",
+        "feather": "feather {n}%"
+      },
+      "denoise": {
+        "auto": "auto",
+        "edge": "edge {n}",
+        "chroma": "chroma {n}",
+        "on": "on"
+      },
+      "dro": {
+        "off": "Off",
+        "auto": "Auto",
+        "autoStrength": "Auto {n}",
+        "level": "Lv{n}"
+      },
+      "geometry": {
+        "crop": "crop {w}% × {h}%",
+        "rotate": "straighten {n}°",
+        "orientation": "rotate {n}°",
+        "flipH": "flip horizontal",
+        "flipV": "flip vertical",
+        "xf": {
+          "vertical": "vertical {n}",
+          "horizontal": "horizontal {n}",
+          "aspect": "aspect {n}",
+          "scale": "scale {n}%",
+          "offsetX": "X offset {n}",
+          "offsetY": "Y offset {n}"
+        }
+      },
+      "toggle": {
+        "advancedColour": "Advanced colour",
+        "cameraMatchOff": "Camera match off"
+      },
+      "erase": {
+        "fill": "Erase ×{n}",
+        "heal": "Heal ×{n}"
+      },
+      "profile": {
+        "sony": "Sony engine",
+        "standard": "Standard"
+      },
+      "bypassed": "Off"
+    }
   },
   "admin": {
     "nav": {
@@ -230,6 +400,10 @@
     "upload": {
       "seoTitle": "Upload | Liora",
       "seoDescription": "Upload works and fill metadata in the admin panel.",
+      "globalDrop": {
+        "title": "Drop to upload",
+        "hint": "Files open on the upload page; several photos go to the batch queue"
+      },
       "toast": {
         "selectImage": "Please choose an image first",
         "selectVideo": "Please choose a video first",
@@ -511,10 +685,6 @@
           "fired": "Fired",
           "autoFired": "Auto (fired)"
         }
-      },
-      "globalDrop": {
-        "title": "Drop to upload",
-        "hint": "Files open on the upload page; several photos go to the batch queue"
       }
     },
     "files": {

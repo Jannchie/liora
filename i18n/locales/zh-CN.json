@@ -118,7 +118,6 @@
       "peak": "峰值"
     },
     "metadata": {
-      "title": "标题",
       "description": "描述",
       "work": "作品",
       "characters": "角色",
@@ -160,11 +159,10 @@
       "llrProfile": "渲染配置",
       "llrStyle": "DCP 风格",
       "llrLook": "创意外观",
-      "llrLookGroup": "创意外观",
       "llrDenoise": "降噪",
       "llrAspect": "裁切比例",
       "llrGeometry": "几何",
-      "llrBypass": "已旁路",
+      "llrErase": "消除",
       "llrMaskFallback": "蒙版 {index}",
       "llrMaskInverted": "反相",
       "llrMaskDisabled": "已停用",
@@ -196,7 +194,179 @@
       "shareUnsupported": "当前设备不支持直接分享至照片。",
       "shareFailed": "实况照片分享失败。"
     },
-    "totalWorks": "作品总数"
+    "totalWorks": "作品总数",
+    "llr": {
+      "group": {
+        "tone": "影调",
+        "presence": "偏好",
+        "color": "颜色",
+        "lens": "镜头校正",
+        "noise": "减少杂色",
+        "sharpen": "锐化",
+        "defringe": "去边",
+        "lensBlur": "镜头模糊",
+        "fog": "空气感",
+        "vignette": "裁剪后暗角",
+        "grain": "颗粒",
+        "hsl": "HSL / 颜色",
+        "grading": "颜色分级",
+        "parametric": "参数曲线",
+        "look": "创意外观",
+        "relight": "补光",
+        "transform": "几何变换"
+      },
+      "slider": {
+        "exposure": "曝光",
+        "contrast": "对比度",
+        "highlights": "高光",
+        "shadows": "阴影",
+        "whites": "白色色阶",
+        "blacks": "黑色色阶",
+        "clarity": "清晰度",
+        "dehaze": "去朦胧",
+        "temperature": "色温",
+        "tint": "色调",
+        "vibrance": "自然饱和度",
+        "saturation": "饱和度",
+        "lensDistortion": "扭曲度",
+        "lensVignetting": "晕影",
+        "nrLuminance": "明亮度",
+        "nrDetail": "细节",
+        "sharpAmount": "数量",
+        "sharpRadius": "半径",
+        "sharpDetail": "细节",
+        "sharpMasking": "蒙版",
+        "defringePurple": "紫色数量",
+        "defringeGreen": "绿色数量",
+        "blurAmount": "模糊量",
+        "blurRange": "焦点范围",
+        "fogAmount": "雾",
+        "fogStart": "起始距离",
+        "vigAmount": "数量",
+        "vigMidpoint": "中点",
+        "vigFeather": "羽化",
+        "vigRoundness": "圆度",
+        "grainAmount": "数量",
+        "grainSize": "大小",
+        "grainRoughness": "粗糙度",
+        "hue": "色相",
+        "tintHue": "色偏",
+        "tintSat": "色偏强度",
+        "moire": "去摩尔纹"
+      },
+      "look": {
+        "contrast": "对比度",
+        "highlights": "高光",
+        "shadows": "阴影",
+        "white": "白色",
+        "black": "黑色",
+        "fade": "褪色",
+        "hue": "色相",
+        "saturation": "饱和度",
+        "clarity": "清晰"
+      },
+      "hsl": {
+        "red": "红色",
+        "orange": "橙色",
+        "yellow": "黄色",
+        "green": "绿色",
+        "aqua": "浅绿色",
+        "blue": "蓝色",
+        "purple": "紫色",
+        "magenta": "洋红",
+        "hue": "{color}色相",
+        "saturation": "{color}饱和度",
+        "luminance": "{color}明亮度"
+      },
+      "grading": {
+        "sh": "阴影",
+        "md": "中间调",
+        "hl": "高光",
+        "hue": "{tone}色相",
+        "saturation": "{tone}饱和度",
+        "blend": "混合",
+        "balance": "平衡"
+      },
+      "parametric": {
+        "highlights": "高光",
+        "lights": "亮色调",
+        "darks": "暗色调",
+        "shadows": "阴影",
+        "shadowSplit": "阴影分割",
+        "midtoneSplit": "中间调分割",
+        "highlightSplit": "高光分割"
+      },
+      "relight": {
+        "ambient": "原有光线",
+        "wrap": "柔和度",
+        "falloff": "距离衰减",
+        "shadows": "阴影",
+        "kind": {
+          "point": "灯泡",
+          "spot": "聚光灯",
+          "sun": "太阳光"
+        }
+      },
+      "mask": {
+        "type": {
+          "luminance": "明亮度范围",
+          "color": "颜色范围",
+          "linear": "线性渐变",
+          "radial": "径向渐变",
+          "depth": "深度范围",
+          "brush": "画笔",
+          "ai": "AI"
+        },
+        "ai": {
+          "subject": "主体（AI）",
+          "sky": "天空（AI）",
+          "person": "人物（AI）"
+        },
+        "inverted": "反相",
+        "strokes": "{n} 笔",
+        "feather": "羽化 {n}%"
+      },
+      "denoise": {
+        "auto": "自动",
+        "edge": "边缘 {n}",
+        "chroma": "色度 {n}",
+        "on": "开启"
+      },
+      "dro": {
+        "off": "关",
+        "auto": "自动",
+        "autoStrength": "自动 {n}",
+        "level": "Lv{n}"
+      },
+      "geometry": {
+        "crop": "裁剪 {w}% × {h}%",
+        "rotate": "拉直 {n}°",
+        "orientation": "旋转 {n}°",
+        "flipH": "水平翻转",
+        "flipV": "垂直翻转",
+        "xf": {
+          "vertical": "垂直 {n}",
+          "horizontal": "水平 {n}",
+          "aspect": "宽高 {n}",
+          "scale": "缩放 {n}%",
+          "offsetX": "X 偏移 {n}",
+          "offsetY": "Y 偏移 {n}"
+        }
+      },
+      "toggle": {
+        "advancedColour": "高级色彩复制",
+        "cameraMatchOff": "未贴近机内直出"
+      },
+      "erase": {
+        "fill": "消除 ×{n}",
+        "heal": "修复 ×{n}"
+      },
+      "profile": {
+        "sony": "索尼引擎",
+        "standard": "标准"
+      },
+      "bypassed": "已停用"
+    }
   },
   "admin": {
     "nav": {
@@ -230,6 +400,10 @@
     "upload": {
       "seoTitle": "作品上传 | Liora",
       "seoDescription": "在后台上传作品并填写元数据。",
+      "globalDrop": {
+        "title": "松开以上传",
+        "hint": "照片和视频会在上传页打开；多张照片会进入批量队列"
+      },
       "toast": {
         "selectImage": "请先选择图片文件",
         "selectVideo": "请先选择视频文件",
@@ -511,10 +685,6 @@
           "fired": "已触发",
           "autoFired": "自动（已触发）"
         }
-      },
-      "globalDrop": {
-        "title": "松开以上传",
-        "hint": "照片和视频会在上传页打开；多张照片会进入批量队列"
       }
     },
     "files": {

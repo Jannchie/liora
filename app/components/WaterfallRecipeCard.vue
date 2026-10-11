@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import type { CSSProperties } from 'vue'
-import type { LlrMaskView, RecipeAdjustmentGroup, RecipeAdjustmentItem, RecipeCurvePoint, RecipeToneCurve } from '~/types/gallery'
+import type { LlrMaskView, RecipeAdjustmentGroup, RecipeCurvePoint, RecipeFact, RecipeToneCurve } from '~/types/gallery'
 import { computed } from 'vue'
 
-// Renders one editor's recipe: badge row, tone curve, then the slider groups.
-// Shared by the Lightroom (`crs:*`) and LLR (`llr:*`) sections — the two differ
-// only in which badges they supply, so the drawing lives here once.
+// Renders one editor's recipe: badge row, settings, tone curve, masks, then
+// the slider groups. Shared by the Lightroom (`crs:*`) and LLR (`llr:*`)
+// sections — LLR supplies more of it (facts, masks, bypassed panels), so the
+// drawing lives here once.
 const props = withDefaults(defineProps<{
   title: string
   badges?: string[]
+  /** Non-slider settings, as key / value rows. */
+  facts?: RecipeFact[]
   toneCurve?: RecipeToneCurve | null
+  toneCurveBypassed?: boolean
   groups: RecipeAdjustmentGroup[]
   /** Local adjustments, each with its own selection. */
   masks?: LlrMaskView[]
+  masksBypassed?: boolean
 }>(), {
+  badges: () => [],
+  facts: () => [],
   masks: () => [],
 })
 
@@ -40,61 +46,15 @@ const toneCurveChannels = computed<ToneCurveChannel[]>(() => {
   return candidates.filter(channel => channel.points.length >= 2)
 })
 
+// Only a named curve (Lightroom's "Medium Contrast", …) says anything beyond
+// the plot itself.
 const toneCurveName = computed<string | null>(() => {
-  const named = props.toneCurve?.name
-  if (named && named.trim().length > 0) {
-    return named
-  }
-  return toneCurveChannels.value.length > 0 ? 'Custom' : null
+  const named = props.toneCurve?.name?.trim()
+  return named && named.length > 0 ? named : null
 })
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
-}
-
-function isZeroCentered(item: RecipeAdjustmentItem): boolean {
-  if (item.zeroCentered !== undefined) {
-    return item.zeroCentered
-  }
-  return item.min < 0 && item.max > 0
-}
-
-function buildSliderFillStyle(item: RecipeAdjustmentItem): CSSProperties {
-  const span = item.max - item.min
-  if (!Number.isFinite(span) || span <= 0) {
-    return { left: '0%', width: '0%' }
-  }
-  const clamped = clamp(item.value, item.min, item.max)
-  if (isZeroCentered(item)) {
-    const zeroPoint = ((0 - item.min) / span) * 100
-    const valuePoint = ((clamped - item.min) / span) * 100
-    const left = Math.min(zeroPoint, valuePoint)
-    const width = Math.abs(valuePoint - zeroPoint)
-    return {
-      left: `${left.toFixed(4)}%`,
-      width: `${width.toFixed(4)}%`,
-    }
-  }
-  const valuePoint = ((clamped - item.min) / span) * 100
-  return {
-    left: '0%',
-    width: `${valuePoint.toFixed(4)}%`,
-  }
-}
-
-function formatAdjustmentValue(item: RecipeAdjustmentItem): string {
-  const digits = item.digits ?? 0
-  const rounded = Number(item.value.toFixed(digits))
-  const sign = isZeroCentered(item) && rounded > 0 ? '+' : ''
-  const suffix = item.unit ?? ''
-  return `${sign}${rounded.toFixed(digits)}${suffix}`
-}
-
-function sliderFillClass(item: RecipeAdjustmentItem): string {
-  if (isZeroCentered(item) && item.value < 0) {
-    return 'bg-primary/55'
-  }
-  return 'bg-primary'
 }
 
 function buildToneCurvePath(points: RecipeCurvePoint[]): string {
@@ -114,79 +74,96 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
 
 <template>
   <!--
-    One section of the viewer's info column. The head carries the caption,
-    the badges as hairline pills and the tone curve; masks and slider groups
-    follow as sub-blocks split by full-width hairlines rather than nested cards.
+    One section of the viewer's info column. The head carries the caption and
+    the badges; settings follow as key / value rows, then the tone curve, the
+    masks and the slider groups as sub-blocks split by full-width hairlines
+    rather than nested cards. A panel switched off in the editor keeps its
+    values but is dimmed and tagged, the way the editor shows it.
   -->
   <section class="border-b border-border">
-    <div class="space-y-3 px-5 py-4">
+    <div class="space-y-3 px-5 pb-3 pt-4">
       <p class="label-caption flex items-center gap-1.5 text-dimmed">
         <Icon name="jannchie:sliders" class="h-3.5 w-3.5" />
         <span>{{ title }}</span>
       </p>
-      <div v-if="(badges?.length ?? 0) > 0 || toneCurveName" class="flex flex-wrap gap-1">
+      <div v-if="badges.length > 0" class="flex flex-wrap gap-1">
         <span
-          v-for="badge in badges ?? []"
+          v-for="badge in badges"
           :key="badge"
-          class="inline-flex items-center rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
+          class="inline-flex items-center rounded-full bg-muted px-2 py-px text-xs leading-5 text-highlighted"
         >
           {{ badge }}
         </span>
-        <span
-          v-if="toneCurveName"
-          class="inline-flex items-center rounded-full border border-border-strong px-[7px] py-px text-xs leading-[18px] text-muted"
-        >
-          {{ `Curve ${toneCurveName}` }}
-        </span>
       </div>
-      <div v-if="toneCurveChannels.length > 0" class="space-y-2">
-        <div class="label-caption-sm flex items-center justify-between text-dimmed">
-          <span>{{ t('gallery.metadata.toneCurve') }}</span>
-          <span v-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
-        </div>
-        <svg
-          viewBox="0 0 255 255"
-          class="h-28 w-full rounded-md border border-border bg-muted"
-          role="img"
-          :aria-label="t('gallery.metadata.toneCurve')"
+    </div>
+    <dl v-if="facts.length > 0" class="pb-2 [--meta-row-py:0.25rem]">
+      <div
+        v-for="fact in facts"
+        :key="fact.key"
+        class="meta-row"
+        :class="fact.bypassed ? 'opacity-50' : undefined"
+      >
+        <dt class="meta-key">
+          <span class="truncate">{{ fact.label }}</span>
+        </dt>
+        <dd class="meta-value flex items-start justify-between gap-2 text-xs">
+          <span class="min-w-0" :class="fact.bypassed ? 'line-through' : undefined">{{ fact.value }}</span>
+          <span v-if="fact.bypassed" class="recipe-off">{{ t('gallery.llr.bypassed') }}</span>
+        </dd>
+      </div>
+    </dl>
+    <div v-if="toneCurveChannels.length > 0" class="space-y-2 border-t border-border px-5 py-3" :class="toneCurveBypassed ? 'opacity-50' : undefined">
+      <div class="label-caption-sm flex items-center justify-between text-dimmed">
+        <span>{{ t('gallery.metadata.toneCurve') }}</span>
+        <span v-if="toneCurveBypassed" class="recipe-off">{{ t('gallery.llr.bypassed') }}</span>
+        <span v-else-if="toneCurveName" class="text-highlighted">{{ toneCurveName }}</span>
+      </div>
+      <svg
+        viewBox="0 0 255 255"
+        class="h-28 w-full rounded-md border border-border bg-muted"
+        role="img"
+        :aria-label="t('gallery.metadata.toneCurve')"
+      >
+        <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
+        <path
+          v-for="channel in toneCurveChannels"
+          :key="channel.key"
+          :d="buildToneCurvePath(channel.points)"
+          :stroke="channel.color"
+          stroke-width="2"
+          fill="none"
+        />
+      </svg>
+      <div class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
+        <span
+          v-for="channel in toneCurveChannels"
+          :key="`${channel.key}-legend`"
+          class="inline-flex items-center gap-1.5"
         >
-          <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
-          <path
-            v-for="channel in toneCurveChannels"
-            :key="channel.key"
-            :d="buildToneCurvePath(channel.points)"
-            :stroke="channel.color"
-            stroke-width="2"
-            fill="none"
-          />
-        </svg>
-        <div class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
-          <span
-            v-for="channel in toneCurveChannels"
-            :key="`${channel.key}-legend`"
-            class="inline-flex items-center gap-1.5"
-          >
-            <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
-            <span>{{ channel.label }}</span>
-          </span>
-        </div>
+          <span class="h-1.5 w-1.5 rounded-full" :style="{ backgroundColor: channel.color }" />
+          <span>{{ channel.label }}</span>
+        </span>
       </div>
     </div>
     <div
       v-for="(mask, maskIndex) in masks"
       :key="mask.key"
       class="space-y-2 border-t border-border px-5 py-3"
+      :class="mask.disabled || masksBypassed ? 'opacity-50' : undefined"
     >
       <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-        <p class="label-caption-sm flex items-center gap-1.5 text-dimmed">
+        <p class="label-caption-sm flex min-w-0 items-center gap-1.5 text-dimmed">
           <Icon name="jannchie:fill-mask" class="h-3.5 w-3.5" />
-          <span class="text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
+          <span class="truncate text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
         </p>
-        <span v-if="mask.disabled || mask.inverted" class="flex gap-1">
-          <span v-if="mask.inverted" class="rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted">
+        <span v-if="mask.disabled || mask.inverted || masksBypassed" class="flex gap-1">
+          <span v-if="mask.inverted" class="recipe-tag">
             {{ t('gallery.metadata.llrMaskInverted') }}
           </span>
-          <span v-if="mask.disabled" class="rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted">
+          <span v-if="masksBypassed" class="recipe-off">
+            {{ t('gallery.llr.bypassed') }}
+          </span>
+          <span v-else-if="mask.disabled" class="recipe-tag">
             {{ t('gallery.metadata.llrMaskDisabled') }}
           </span>
         </span>
@@ -195,66 +172,61 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
         <span
           v-for="(component, componentIndex) in mask.components"
           :key="`${mask.key}-c${componentIndex}`"
-          class="inline-flex items-center rounded-full border border-border-strong px-1.5 text-[11px] leading-4 text-muted"
+          class="recipe-tag"
         >
           {{ component }}
         </span>
       </p>
       <div v-if="mask.items.length > 0" class="space-y-2">
-        <div
+        <RecipeSliderRow
           v-for="item in mask.items"
           :key="`${mask.key}-${item.key}`"
-          class="grid gap-1"
-        >
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-foreground">{{ item.label }}</span>
-            <span class="font-mono text-highlighted">{{ formatAdjustmentValue(item) }}</span>
-          </div>
-          <div class="relative h-0.5 bg-border-strong">
-            <div
-              v-if="isZeroCentered(item)"
-              class="pointer-events-none absolute -top-0.5 -bottom-0.5 left-1/2 w-px -translate-x-1/2 bg-fg-dimmed"
-            />
-            <div
-              class="absolute bottom-0 top-0"
-              :class="sliderFillClass(item)"
-              :style="buildSliderFillStyle(item)"
-            />
-          </div>
-        </div>
+          :item="item"
+        />
       </div>
     </div>
     <div
       v-for="group in groups"
       :key="group.key"
       class="space-y-2 border-t border-border px-5 py-3"
+      :class="group.bypassed ? 'opacity-50' : undefined"
     >
-      <p class="label-caption-sm text-dimmed">
-        {{ group.label }}
-      </p>
+      <div class="flex items-center justify-between gap-2">
+        <p class="label-caption-sm text-dimmed">
+          {{ group.label }}
+        </p>
+        <span v-if="group.bypassed" class="recipe-off">{{ t('gallery.llr.bypassed') }}</span>
+      </div>
       <div class="space-y-2">
-        <div
+        <RecipeSliderRow
           v-for="item in group.items"
           :key="item.key"
-          class="grid gap-1"
-        >
-          <div class="flex items-center justify-between text-xs">
-            <span class="text-foreground">{{ item.label }}</span>
-            <span class="font-mono text-highlighted">{{ formatAdjustmentValue(item) }}</span>
-          </div>
-          <div class="relative h-0.5 bg-border-strong">
-            <div
-              v-if="isZeroCentered(item)"
-              class="pointer-events-none absolute -top-0.5 -bottom-0.5 left-1/2 w-px -translate-x-1/2 bg-fg-dimmed"
-            />
-            <div
-              class="absolute bottom-0 top-0"
-              :class="sliderFillClass(item)"
-              :style="buildSliderFillStyle(item)"
-            />
-          </div>
-        </div>
+          :item="item"
+        />
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.recipe-tag,
+.recipe-off {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0 0.375rem;
+  font-size: 11px;
+  line-height: 1rem;
+}
+
+.recipe-tag {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-fg-muted);
+}
+
+.recipe-off {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+</style>

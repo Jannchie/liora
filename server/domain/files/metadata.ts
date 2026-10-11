@@ -48,7 +48,7 @@ const LENGTH_LIMITS = {
   perspectiveUpright: { max: 32, label: 'Perspective upright' },
   uprightTransform: { max: 256, label: 'Upright transform' },
   lightroomRecipe: { max: 16_000, label: 'Lightroom recipe' },
-  llrRecipe: { max: 16_000, label: 'LLR recipe' },
+  llrRecipe: { max: 32_000, label: 'LLR recipe' },
   notes: { max: 4000, label: 'Notes' },
   originalName: { max: 512, label: 'Original filename' },
 } as const
@@ -59,7 +59,10 @@ export const normalizeText = (value: string | undefined): string => value?.trim(
 // editor recipe carrying a dense tone curve can outgrow its column. Dropping
 // the offending field keeps the upload alive; validateLengths would otherwise
 // reject the whole request over metadata the uploader never typed.
-export function clampExtractedMetadata<T extends Record<string, unknown>>(extracted: T): T {
+export function clampExtractedMetadata<T extends Record<string, unknown>>(extracted: T | null): T | null {
+  if (!extracted) {
+    return null
+  }
   const clamped: Record<string, unknown> = { ...extracted }
   for (const [key, value] of Object.entries(clamped)) {
     const limit = LENGTH_LIMITS[key as keyof typeof LENGTH_LIMITS]

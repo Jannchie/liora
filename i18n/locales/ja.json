@@ -118,7 +118,6 @@
       "peak": "ピーク"
     },
     "metadata": {
-      "title": "タイトル",
       "description": "説明",
       "work": "作品",
       "characters": "キャラクター",
@@ -160,11 +159,10 @@
       "llrProfile": "プロファイル",
       "llrStyle": "DCP スタイル",
       "llrLook": "クリエイティブルック",
-      "llrLookGroup": "クリエイティブルック",
       "llrDenoise": "ノイズ低減",
       "llrAspect": "アスペクト比",
       "llrGeometry": "ジオメトリ",
-      "llrBypass": "バイパス",
+      "llrErase": "消去",
       "llrMaskFallback": "マスク {index}",
       "llrMaskInverted": "反転",
       "llrMaskDisabled": "無効",
@@ -196,7 +194,179 @@
       "shareUnsupported": "この端末では写真への共有に対応していません。",
       "shareFailed": "Live Photo の共有に失敗しました。"
     },
-    "totalWorks": "作品数"
+    "totalWorks": "作品数",
+    "llr": {
+      "group": {
+        "tone": "トーン",
+        "presence": "外観",
+        "color": "カラー",
+        "lens": "レンズ補正",
+        "noise": "ノイズ軽減",
+        "sharpen": "シャープ",
+        "defringe": "フリンジ除去",
+        "lensBlur": "レンズぼかし",
+        "fog": "空気感",
+        "vignette": "切り抜き後の周辺光量補正",
+        "grain": "粒子",
+        "hsl": "HSL / カラー",
+        "grading": "カラーグレーディング",
+        "parametric": "パラメトリックカーブ",
+        "look": "クリエイティブルック",
+        "relight": "リライト",
+        "transform": "変形"
+      },
+      "slider": {
+        "exposure": "露光量",
+        "contrast": "コントラスト",
+        "highlights": "ハイライト",
+        "shadows": "シャドウ",
+        "whites": "白レベル",
+        "blacks": "黒レベル",
+        "clarity": "明瞭度",
+        "dehaze": "かすみの除去",
+        "temperature": "色温度",
+        "tint": "色かぶり補正",
+        "vibrance": "自然な彩度",
+        "saturation": "彩度",
+        "lensDistortion": "歪曲収差",
+        "lensVignetting": "周辺光量",
+        "nrLuminance": "輝度",
+        "nrDetail": "ディテール",
+        "sharpAmount": "適用量",
+        "sharpRadius": "半径",
+        "sharpDetail": "ディテール",
+        "sharpMasking": "マスク",
+        "defringePurple": "パープル適用量",
+        "defringeGreen": "グリーン適用量",
+        "blurAmount": "ぼかし量",
+        "blurRange": "焦点範囲",
+        "fogAmount": "かすみ",
+        "fogStart": "開始距離",
+        "vigAmount": "適用量",
+        "vigMidpoint": "中心点",
+        "vigFeather": "ぼかし",
+        "vigRoundness": "丸み",
+        "grainAmount": "適用量",
+        "grainSize": "サイズ",
+        "grainRoughness": "粗さ",
+        "hue": "色相",
+        "tintHue": "キャスト",
+        "tintSat": "キャスト強度",
+        "moire": "モアレ"
+      },
+      "look": {
+        "contrast": "コントラスト",
+        "highlights": "ハイライト",
+        "shadows": "シャドウ",
+        "white": "白",
+        "black": "黒",
+        "fade": "フェード",
+        "hue": "色相",
+        "saturation": "彩度",
+        "clarity": "明瞭度"
+      },
+      "hsl": {
+        "red": "レッド",
+        "orange": "オレンジ",
+        "yellow": "イエロー",
+        "green": "グリーン",
+        "aqua": "アクア",
+        "blue": "ブルー",
+        "purple": "パープル",
+        "magenta": "マゼンタ",
+        "hue": "{color} 色相",
+        "saturation": "{color} 彩度",
+        "luminance": "{color} 輝度"
+      },
+      "grading": {
+        "sh": "シャドウ",
+        "md": "中間調",
+        "hl": "ハイライト",
+        "hue": "{tone} 色相",
+        "saturation": "{tone} 彩度",
+        "blend": "ブレンド",
+        "balance": "バランス"
+      },
+      "parametric": {
+        "highlights": "ハイライト",
+        "lights": "ライト",
+        "darks": "ダーク",
+        "shadows": "シャドウ",
+        "shadowSplit": "シャドウ分割",
+        "midtoneSplit": "中間調分割",
+        "highlightSplit": "ハイライト分割"
+      },
+      "relight": {
+        "ambient": "既存の光",
+        "wrap": "柔らかさ",
+        "falloff": "距離減衰",
+        "shadows": "シャドウ",
+        "kind": {
+          "point": "ランプ",
+          "spot": "スポット",
+          "sun": "太陽光"
+        }
+      },
+      "mask": {
+        "type": {
+          "luminance": "輝度範囲",
+          "color": "カラー範囲",
+          "linear": "線形グラデーション",
+          "radial": "円形グラデーション",
+          "depth": "深度範囲",
+          "brush": "ブラシ",
+          "ai": "AI"
+        },
+        "ai": {
+          "subject": "被写体（AI）",
+          "sky": "空（AI）",
+          "person": "人物（AI）"
+        },
+        "inverted": "反転",
+        "strokes": "{n} ストローク",
+        "feather": "ぼかし {n}%"
+      },
+      "denoise": {
+        "auto": "自動",
+        "edge": "エッジ {n}",
+        "chroma": "色度 {n}",
+        "on": "オン"
+      },
+      "dro": {
+        "off": "オフ",
+        "auto": "オート",
+        "autoStrength": "オート {n}",
+        "level": "Lv{n}"
+      },
+      "geometry": {
+        "crop": "切り抜き {w}% × {h}%",
+        "rotate": "角度補正 {n}°",
+        "orientation": "回転 {n}°",
+        "flipH": "左右反転",
+        "flipV": "上下反転",
+        "xf": {
+          "vertical": "垂直方向 {n}",
+          "horizontal": "水平方向 {n}",
+          "aspect": "縦横比 {n}",
+          "scale": "拡大・縮小 {n}%",
+          "offsetX": "X オフセット {n}",
+          "offsetY": "Y オフセット {n}"
+        }
+      },
+      "toggle": {
+        "advancedColour": "アドバンスト色再現",
+        "cameraMatchOff": "カメラ一致オフ"
+      },
+      "erase": {
+        "fill": "消去 ×{n}",
+        "heal": "修復 ×{n}"
+      },
+      "profile": {
+        "sony": "ソニーエンジン",
+        "standard": "標準"
+      },
+      "bypassed": "オフ"
+    }
   },
   "admin": {
     "nav": {
@@ -230,6 +400,10 @@
     "upload": {
       "seoTitle": "アップロード | Liora",
       "seoDescription": "管理画面で作品をアップロードしメタデータを入力します。",
+      "globalDrop": {
+        "title": "ドロップしてアップロード",
+        "hint": "アップロード画面で開きます。複数の写真は一括キューに追加されます"
+      },
       "toast": {
         "selectImage": "先に画像を選択してください",
         "selectVideo": "先に動画を選択してください",
@@ -511,10 +685,6 @@
           "fired": "発光",
           "autoFired": "自動（発光）"
         }
-      },
-      "globalDrop": {
-        "title": "ドロップしてアップロード",
-        "hint": "アップロード画面で開きます。複数の写真は一括キューに追加されます"
       }
     },
     "files": {

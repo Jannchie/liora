@@ -5,7 +5,7 @@ import { basename } from 'node:path'
 import { eq } from 'drizzle-orm'
 import { db, files } from '../../utils/db'
 import { joinCharacters } from '../../utils/file-mapper'
-import { extractFocusMetadataFromBuffer } from '../../utils/focus-metadata'
+import { applyFocusMetadata, extractFocusMetadataFromBuffer } from '../../utils/focus-metadata'
 import { computeHistogram } from '../../utils/histogram'
 import { logger } from '../../utils/logger'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, uploadBufferToS3 } from '../../utils/s3'
@@ -38,28 +38,6 @@ interface DirectUploadJobPayload {
   fields: Record<string, string>
   storageConfig: S3Config
   uploadId: string
-}
-
-function applyFocusMetadata(metadata: FileMetadata, focusMetadata: Awaited<ReturnType<typeof extractFocusMetadataFromBuffer>>): void {
-  metadata.focusDistance = focusMetadata.focusDistance
-  metadata.focusFrameSize = focusMetadata.focusFrameSize
-  metadata.focusLocation = focusMetadata.focusLocation
-  metadata.focusMode = focusMetadata.focusMode
-  metadata.focusPosition = focusMetadata.focusPosition
-  metadata.hasCrop = focusMetadata.hasCrop
-  metadata.cropLeft = focusMetadata.cropLeft
-  metadata.cropTop = focusMetadata.cropTop
-  metadata.cropRight = focusMetadata.cropRight
-  metadata.cropBottom = focusMetadata.cropBottom
-  metadata.cropAngle = focusMetadata.cropAngle
-  metadata.perspectiveHorizontal = focusMetadata.perspectiveHorizontal
-  metadata.perspectiveVertical = focusMetadata.perspectiveVertical
-  metadata.perspectiveRotate = focusMetadata.perspectiveRotate
-  metadata.perspectiveScale = focusMetadata.perspectiveScale
-  metadata.perspectiveUpright = focusMetadata.perspectiveUpright
-  metadata.uprightTransform = focusMetadata.uprightTransform
-  metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
-  metadata.llrRecipe = focusMetadata.llrRecipe ?? metadata.llrRecipe
 }
 
 async function runMetadataPostProcessing(

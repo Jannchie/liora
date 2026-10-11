@@ -547,6 +547,36 @@ html.disable-transitions *::after {
     color: var(--color-fg-highlighted);
     font-weight: 500;
   }
+
+  /* The info column's key / value rows (EXIF, recipe settings): a fixed
+     label column so every value starts on the same left edge, and the label
+     sits on the value's first line. A list sets `--meta-row-py` to pack
+     tighter. */
+  .meta-row {
+    display: grid;
+    grid-template-columns: 5.75rem minmax(0, 1fr);
+    column-gap: 0.75rem;
+    align-items: start;
+    padding: var(--meta-row-py, 0.4375rem) 1.25rem;
+  }
+  .meta-key {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 12px;
+    line-height: 1.25rem;
+    color: var(--color-fg-dimmed);
+  }
+  .meta-key > .iconify {
+    flex-shrink: 0;
+  }
+  .meta-value {
+    min-width: 0;
+    line-height: 1.25rem;
+    color: var(--color-fg-highlighted);
+    overflow-wrap: anywhere;
+  }
 }
 
 html, body {

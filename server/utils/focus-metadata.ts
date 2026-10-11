@@ -3,30 +3,45 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { extname, join } from 'node:path'
 import { exiftool } from 'exiftool-vendored'
+import { buildLlrRecipeFromTags, isLlrExport, LLR_READ_ARGS } from './llr-metadata'
 import { logger } from './logger'
 
-type FocusMetadata = Pick<
-  FileMetadata,
-  | 'focusDistance'
-  | 'focusFrameSize'
-  | 'focusLocation'
-  | 'focusMode'
-  | 'focusPosition'
-  | 'hasCrop'
-  | 'cropLeft'
-  | 'cropTop'
-  | 'cropRight'
-  | 'cropBottom'
-  | 'cropAngle'
-  | 'perspectiveHorizontal'
-  | 'perspectiveVertical'
-  | 'perspectiveRotate'
-  | 'perspectiveScale'
-  | 'perspectiveUpright'
-  | 'uprightTransform'
-  | 'lightroomRecipe'
-  | 'llrRecipe'
->
+// Everything read from the image itself rather than typed in: focus, crop and
+// perspective tags, and the editing recipe. They describe one set of pixels,
+// so they are written, and on an image replacement dropped, as a whole.
+export const FOCUS_METADATA_FIELDS = [
+  'focusDistance',
+  'focusFrameSize',
+  'focusLocation',
+  'focusMode',
+  'focusPosition',
+  'hasCrop',
+  'cropLeft',
+  'cropTop',
+  'cropRight',
+  'cropBottom',
+  'cropAngle',
+  'perspectiveHorizontal',
+  'perspectiveVertical',
+  'perspectiveRotate',
+  'perspectiveScale',
+  'perspectiveUpright',
+  'uprightTransform',
+  'lightroomRecipe',
+  'llrRecipe',
+] as const satisfies readonly (keyof FileMetadata)[]
+
+export type FocusMetadata = Pick<FileMetadata, (typeof FOCUS_METADATA_FIELDS)[number]>
+
+/** Writes what was extracted over `metadata`, keeping its value where the image had none. */
+export function applyFocusMetadata(metadata: FileMetadata, focusMetadata: FocusMetadata | null): void {
+  if (!focusMetadata) {
+    return
+  }
+  for (const field of FOCUS_METADATA_FIELDS) {
+    metadata[field] = focusMetadata[field] ?? metadata[field]
+  }
+}
 
 const DEFAULT_FOCUS_METADATA_TIMEOUT_MS = 8000
 const MIN_FOCUS_METADATA_TIMEOUT_MS = 500
@@ -60,19 +75,37 @@ function disableFocusMetadataExtraction(error: unknown): void {
   logger.warn('focus metadata extraction temporarily disabled', { backoffMs: FOCUS_METADATA_BACKOFF_MS, error })
 }
 
-function readFocusTagsWithTimeout(sourcePath: string, timeoutMs: number): Promise<Record<string, unknown>> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   let timeoutId: ReturnType<typeof setTimeout> | undefined
   const timeoutPromise = new Promise<never>((_, reject) => {
     timeoutId = setTimeout(() => {
       reject(new Error(`Focus metadata extraction timed out after ${timeoutMs}ms.`))
     }, timeoutMs)
   })
-  const readPromise = exiftool.read(sourcePath) as Promise<Record<string, unknown>>
-  return Promise.race([readPromise, timeoutPromise]).finally(() => {
+  return Promise.race([promise, timeoutPromise]).finally(() => {
     if (timeoutId !== undefined) {
       clearTimeout(timeoutId)
     }
-  }) as Promise<Record<string, unknown>>
+  })
+}
+
+interface ImageTags {
+  tags: Record<string, unknown>
+  /** LLR's namespace, group-qualified, for LLR exports only (see llr-metadata.ts). */
+  llrTags: Record<string, unknown> | null
+}
+
+// One timeout covers both passes: the default flattened read, then — for an
+// LLR export only — a group-qualified read of its own namespace.
+function readImageTagsWithTimeout(sourcePath: string, timeoutMs: number): Promise<ImageTags> {
+  const read = async (): Promise<ImageTags> => {
+    const tags = await exiftool.read(sourcePath) as Record<string, unknown>
+    const llrTags = isLlrExport(tags)
+      ? await exiftool.readRaw(sourcePath, { readArgs: LLR_READ_ARGS }) as Record<string, unknown>
+      : null
+    return { tags, llrTags }
+  }
+  return withTimeout(read(), timeoutMs)
 }
 
 function normalizeMetadataText(value: unknown): string | undefined {
@@ -391,17 +424,10 @@ function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
   return hasEntries(tone as Record<string, unknown>) ? tone : null
 }
 
-// Which editor wrote the file. Only one recipe extractor runs per image: both
-// read unprefixed tags (`Exposure`, `Clarity`, …), so on an LLR export the
-// Lightroom extractor would happily assemble LLR's values interleaved with
-// whichever camera EXIF shadows them — a recipe belonging to neither editor.
-type RecipeProducer = 'llr' | 'lightroom'
-
-function resolveRecipeProducer(tags: Record<string, unknown>): RecipeProducer {
-  const software = pickFirstTagValue(tags, ['Software', 'XMPToolkit'])?.trim().toUpperCase()
-  return software === 'LLR' ? 'llr' : 'lightroom'
-}
-
+// Only one recipe extractor runs per image: the Lightroom one reads
+// unprefixed tags (`Exposure`, `Clarity`, …), so on an LLR export it would
+// happily assemble LLR's values interleaved with whichever camera EXIF shadows
+// them — a recipe belonging to neither editor.
 function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined {
   const basic: Record<string, number> = {}
   assignIfChanged(basic, 'exposure', parseTagNumber(tags, ['Exposure2012', 'Exposure']), { digits: 2 })
@@ -538,39 +564,13 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   return JSON.stringify(payload)
 }
 
-// LLR (~/llr) writes its own `llr:*` XMP schema and declares the `llr:Settings`
-// JSON blob the authoritative record. We read only that blob: exiftool flattens
-// XMP and EXIF into one namespace, so the structured `llr:Contrast` is shadowed
-// by the camera's own `Contrast` ("Normal") on Sony files.
-function buildLlrRecipe(tags: Record<string, unknown>): string | undefined {
-  const settings = pickFirstTagValue(tags, ['Settings'])
-  if (!settings) {
-    return undefined
-  }
-  let parsed: unknown
-  try {
-    parsed = JSON.parse(settings)
-  }
-  catch {
-    return undefined
-  }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    return undefined
-  }
-  const payload = parsed as Record<string, unknown>
-  if (!payload.recipe || typeof payload.recipe !== 'object') {
-    return undefined
-  }
-  const version = pickFirstTagValue(tags, ['Version'])
-  if (version && /^\d+$/.test(version.trim())) {
-    payload.version = version.trim()
-  }
-  return JSON.stringify(payload)
-}
-
-export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata> {
+/**
+ * The image-derived metadata, or `null` when the file could not be read — so
+ * a missing field means "this image has none", never "extraction failed".
+ */
+export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata | null> {
   if (Date.now() < focusMetadataDisabledUntil) {
-    return {}
+    return null
   }
 
   const timeoutMs = resolveFocusMetadataTimeoutMs()
@@ -578,9 +578,8 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
   const sourcePath = join(workspace, `source${resolveTempExtension(filename)}`)
   try {
     await writeFile(sourcePath, buffer)
-    const tags = await readFocusTagsWithTimeout(sourcePath, timeoutMs)
+    const { tags, llrTags } = await readImageTagsWithTimeout(sourcePath, timeoutMs)
     const perspectiveUpright = pickFirstTagValue(tags, ['PerspectiveUpright'])
-    const producer = resolveRecipeProducer(tags)
     return {
       focusDistance: pickFirstTagValue(tags, ['FocusDistance2', 'FocusDistance', 'SubjectDistance']),
       focusFrameSize: pickFirstTagValue(tags, ['FocusFrameSize']),
@@ -599,8 +598,8 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
       perspectiveScale: pickFirstTagValue(tags, ['PerspectiveScale']),
       perspectiveUpright,
       uprightTransform: resolveUprightTransform(tags, perspectiveUpright),
-      lightroomRecipe: producer === 'lightroom' ? buildLightroomRecipe(tags) : undefined,
-      llrRecipe: producer === 'llr' ? buildLlrRecipe(tags) : undefined,
+      lightroomRecipe: llrTags ? undefined : buildLightroomRecipe(tags),
+      llrRecipe: llrTags ? buildLlrRecipeFromTags(llrTags) : undefined,
     }
   }
   catch (error) {
@@ -608,7 +607,7 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
       disableFocusMetadataExtraction(error)
     }
     logger.warn('focus metadata extraction failed', { error })
-    return {}
+    return null
   }
   finally {
     await rm(workspace, { recursive: true, force: true })

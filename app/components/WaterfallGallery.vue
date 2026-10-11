@@ -236,7 +236,6 @@ function isOverlaySessionActive(sessionId: number): boolean {
 }
 
 const metadataLabels = computed(() => ({
-  title: t('gallery.metadata.title'),
   description: t('gallery.metadata.description'),
   work: t('gallery.metadata.work'),
   characters: t('gallery.metadata.characters'),
@@ -1606,12 +1605,9 @@ const metadataEntries = computed<MetadataEntry[]>(() => {
   if (!file) {
     return []
   }
-  const { metadata, displayTitle } = file
+  const { metadata } = file
+  // No title row: the info column's header already carries it.
   const entries: MetadataEntry[] = []
-  const title = toDisplayText(displayTitle)
-  if (title) {
-    entries.push({ label: metadataLabels.value.title, value: title, icon: 'jannchie:typography' })
-  }
   const description = toDisplayText(file.description)
   if (description) {
     entries.push({ label: metadataLabels.value.description, value: description, icon: 'jannchie:file-text' })
@@ -1729,7 +1725,7 @@ const llrRecipe = computed<LlrRecipeView | null>(() => {
   if (!file) {
     return null
   }
-  return parseLlrRecipeView(file.metadata.llrRecipe)
+  return parseLlrRecipeView(file.metadata.llrRecipe, (key, params) => t(key, params ?? {}))
 })
 
 const exposureEntries = computed<MetadataEntry[]>(() => {

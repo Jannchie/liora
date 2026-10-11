@@ -10,7 +10,7 @@ import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
 import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
 import { requireFileById } from '../../../utils/file-record'
-import { extractFocusMetadataFromBuffer } from '../../../utils/focus-metadata'
+import { applyFocusMetadata, extractFocusMetadataFromBuffer, FOCUS_METADATA_FIELDS } from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
 import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
@@ -113,25 +113,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
   }))
   const metadata = buildMetadata(fields, characters)
   const focusMetadata = clampExtractedMetadata(await extractFocusMetadataFromBuffer(file.data, file.filename))
-  metadata.focusDistance = focusMetadata.focusDistance ?? metadata.focusDistance
-  metadata.focusFrameSize = focusMetadata.focusFrameSize ?? metadata.focusFrameSize
-  metadata.focusLocation = focusMetadata.focusLocation ?? metadata.focusLocation
-  metadata.focusMode = focusMetadata.focusMode ?? metadata.focusMode
-  metadata.focusPosition = focusMetadata.focusPosition ?? metadata.focusPosition
-  metadata.hasCrop = focusMetadata.hasCrop ?? metadata.hasCrop
-  metadata.cropLeft = focusMetadata.cropLeft ?? metadata.cropLeft
-  metadata.cropTop = focusMetadata.cropTop ?? metadata.cropTop
-  metadata.cropRight = focusMetadata.cropRight ?? metadata.cropRight
-  metadata.cropBottom = focusMetadata.cropBottom ?? metadata.cropBottom
-  metadata.cropAngle = focusMetadata.cropAngle ?? metadata.cropAngle
-  metadata.perspectiveHorizontal = focusMetadata.perspectiveHorizontal ?? metadata.perspectiveHorizontal
-  metadata.perspectiveVertical = focusMetadata.perspectiveVertical ?? metadata.perspectiveVertical
-  metadata.perspectiveRotate = focusMetadata.perspectiveRotate ?? metadata.perspectiveRotate
-  metadata.perspectiveScale = focusMetadata.perspectiveScale ?? metadata.perspectiveScale
-  metadata.perspectiveUpright = focusMetadata.perspectiveUpright ?? metadata.perspectiveUpright
-  metadata.uprightTransform = focusMetadata.uprightTransform ?? metadata.uprightTransform
-  metadata.lightroomRecipe = focusMetadata.lightroomRecipe ?? metadata.lightroomRecipe
-  metadata.llrRecipe = focusMetadata.llrRecipe ?? metadata.llrRecipe
+  applyFocusMetadata(metadata, focusMetadata)
   metadata.fileSize = file.data.length
   metadata.processingStatus = 'completed'
 
@@ -165,6 +147,10 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     perceptualHash: metadata.perceptualHash ?? existingMetadata.perceptualHash,
     sha256: metadata.sha256 ?? existingMetadata.sha256,
     histogram: metadata.histogram ?? existingMetadata.histogram ?? null,
+    // Focus, crop, perspective and the recipe describe the old pixels. When
+    // the new file was read, none of them may survive the merge below, which
+    // otherwise keeps any field the new file leaves empty.
+    ...(focusMetadata ? Object.fromEntries(FOCUS_METADATA_FIELDS.map(field => [field, undefined])) : {}),
     processingStatus: metadata.processingStatus ?? existingMetadata.processingStatus ?? 'completed',
     uploadId: metadata.uploadId ?? existingMetadata.uploadId ?? '',
   }
