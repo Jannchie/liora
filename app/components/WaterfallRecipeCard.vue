@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { LlrMaskView, RecipeAdjustmentGroup, RecipeCurvePoint, RecipeFact, RecipeToneCurve } from '~/types/gallery'
 import { computed } from 'vue'
+import { sampleToneCurve } from '~/utils/tone-curve'
 
 // Renders one editor's recipe: badge row, settings, tone curve, masks, then
 // the slider groups. Shared by the Lightroom (`crs:*`) and LLR (`llr:*`)
@@ -61,7 +62,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
   if (points.length < 2) {
     return ''
   }
-  return points
+  return sampleToneCurve(points, 255)
     .map((point, index) => {
       const x = clamp(point.x, 0, 255)
       const y = 255 - clamp(point.y, 0, 255)
@@ -120,17 +121,27 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
       </div>
       <svg
         viewBox="0 0 255 255"
-        class="h-28 w-full rounded-md border border-border bg-muted"
+        class="aspect-square w-full max-w-48 rounded-md border border-border bg-muted"
         role="img"
         :aria-label="t('gallery.metadata.toneCurve')"
       >
-        <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" fill="none" />
+        <path
+          d="M63.75 0 V255 M127.5 0 V255 M191.25 0 V255 M0 63.75 H255 M0 127.5 H255 M0 191.25 H255"
+          stroke="currentColor"
+          class="text-border"
+          stroke-width="1"
+          vector-effect="non-scaling-stroke"
+          fill="none"
+        />
+        <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" fill="none" />
         <path
           v-for="channel in toneCurveChannels"
           :key="channel.key"
           :d="buildToneCurvePath(channel.points)"
           :stroke="channel.color"
-          stroke-width="2"
+          stroke-width="1.5"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
           fill="none"
         />
       </svg>
