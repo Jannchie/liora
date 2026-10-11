@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAdminUploadForm } from '~/composables/useAdminUploadForm'
 import { useExifExtraction } from '~/composables/useExifExtraction'
 import { useLivePhotoFrame } from '~/composables/useLivePhotoFrame'
+import { usePendingUpload } from '~/composables/usePendingUpload'
 import { useUploadProcessingPoll } from '~/composables/useUploadProcessingPoll'
 import { useUploadTransport } from '~/composables/useUploadTransport'
 import { createEmptyMediaFormState } from '~/utils/media-form'
@@ -374,6 +375,7 @@ onMounted(() => {
     void handlePaste(event)
   }
   target.addEventListener('paste', pasteListener)
+  takePendingFiles()
 })
 
 function formatFileSize(bytes: number): string {
@@ -545,6 +547,13 @@ async function buildBatchItem(file: File): Promise<BatchUploadItem> {
 async function handleBatchFilesPicked(event: Event): Promise<void> {
   const target = event.target as HTMLInputElement | null
   const files = target?.files ? [...target.files] : []
+  await addBatchFiles(files)
+  if (target) {
+    target.value = ''
+  }
+}
+
+async function addBatchFiles(files: File[]): Promise<void> {
   if (files.length === 0) {
     return
   }
@@ -565,10 +574,29 @@ async function handleBatchFilesPicked(event: Event): Promise<void> {
       toast.add({ title: toastMessages.value.sizeFailed, description: message, color: 'error' })
     }
   }
-  if (target) {
-    target.value = ''
+}
+
+/*
+ * Files dropped elsewhere in the app (see AdminGlobalDrop). One file goes
+ * through the regular picker path; several go to the batch queue.
+ */
+const pendingUpload = usePendingUpload()
+
+function takePendingFiles(): void {
+  const files = pendingUpload.take()
+  if (files.length === 1) {
+    ingestPickedFile(files[0] ?? null)
+  }
+  else if (files.length > 1) {
+    void addBatchFiles(files)
   }
 }
+
+watch(pendingUpload.pendingFiles, (files) => {
+  if (files.length > 0) {
+    takePendingFiles()
+  }
+})
 
 function setAllBatchSelected(checked: boolean): void {
   batchItems.value = batchItems.value.map(item => ({

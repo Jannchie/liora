@@ -511,6 +511,10 @@
           "fired": "Fired",
           "autoFired": "Auto (fired)"
         }
+      },
+      "globalDrop": {
+        "title": "Drop to upload",
+        "hint": "Files open on the upload page; several photos go to the batch queue"
       }
     },
     "files": {

@@ -27,9 +27,18 @@ function handleFile(file: File | null): void {
 </script>
 
 <template>
-  <!-- A page band of its own: caption row, then the dropzone. No card —
-       the band's bottom hairline is the only frame. -->
-  <section class="wire-band space-y-4">
+  <!-- A page band of its own, and the band *is* the dropzone: caption,
+       hint and drop prompt are one click / drop target. The band's bottom
+       hairline is the only frame. -->
+  <UFileUpload
+    :ref="setFileUploadRef"
+    :model-value="null"
+    accept="image/*,video/*"
+    :label="t('admin.upload.sections.upload.dropHint')"
+    :description="t('admin.upload.sections.upload.supported')"
+    class="wire-band w-full"
+    @update:model-value="handleFile"
+  >
     <header class="space-y-1">
       <p class="label-caption flex items-center gap-2">
         <Icon name="jannchie:upload" class="h-3.5 w-3.5" />
@@ -39,14 +48,5 @@ function handleFile(file: File | null): void {
         {{ t('admin.upload.sections.upload.autoRouteHint') }}
       </p>
     </header>
-    <UFileUpload
-      :ref="setFileUploadRef"
-      :model-value="null"
-      accept="image/*,video/*"
-      :label="t('admin.upload.sections.upload.dropHint')"
-      :description="t('admin.upload.sections.upload.supported')"
-      class="w-full"
-      @update:model-value="handleFile"
-    />
-  </section>
+  </UFileUpload>
 </template>

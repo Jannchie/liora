@@ -393,6 +393,7 @@ onBeforeUnmount(() => {
 <template>
   <!-- Same shell as the gallery layout: ruled chrome, full-bleed photos. -->
   <div class="min-h-screen w-full bg-bg">
+    <AdminGlobalDrop :enabled="isAuthenticated" />
     <div class="mx-auto min-h-screen w-full max-w-500 border-x border-border bg-default">
       <GalleryHeaderBar
         :title="pageHeaderTitle"

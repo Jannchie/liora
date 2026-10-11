@@ -71,38 +71,47 @@ defineExpose({ inputRef, clear })
 </script>
 
 <template>
+  <!-- The whole surface is the hit area: no dashed frame, just a fill that
+       answers hover and an inset primary hairline while a file is dragged
+       over. Callers can fill the default slot to make their own chrome
+       (captions, hints) part of the same target. -->
   <div
-    class="group relative flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-6 py-14 text-center outline-none transition-colors duration-150 focus-visible:shadow-[var(--ring-focus)] sm:py-16"
+    class="group relative flex cursor-pointer flex-col outline-none transition-colors duration-150 focus-visible:shadow-[var(--ring-focus)]"
     :class="[
       isDragging
-        ? 'border-primary bg-muted'
-        : 'border-border-strong hover:border-fg-subtle hover:bg-muted',
-      disabled ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer',
+        ? 'bg-muted shadow-[inset_0_0_0_1px_var(--color-primary)]'
+        : 'hover:bg-muted',
+      disabled ? 'pointer-events-none opacity-60' : '',
     ]"
     role="button"
     tabindex="0"
+    data-dropzone
+    :aria-disabled="disabled || undefined"
     @click="pick"
     @keydown.enter.space.prevent="pick"
     @drop="onDrop"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
   >
-    <span
-      class="flex h-11 w-11 items-center justify-center rounded-md border border-border-strong text-highlighted transition-colors"
-      :class="isDragging ? 'bg-default' : ''"
-    >
-      <Icon name="jannchie:cloud-upload" class="h-6 w-6" />
-    </span>
-    <div class="space-y-1">
-      <p v-if="label" class="text-[13px] font-medium text-highlighted">
-        {{ label }}
-      </p>
-      <p v-if="description" class="text-xs text-dimmed">
-        {{ description }}
-      </p>
-      <p v-if="modelValue" class="font-mono text-xs text-highlighted">
-        {{ modelValue.name }}
-      </p>
+    <slot />
+    <div class="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center sm:py-14">
+      <span
+        class="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-highlighted transition-colors duration-150 group-hover:bg-accented"
+        :class="isDragging ? 'bg-accented text-primary' : ''"
+      >
+        <Icon name="jannchie:cloud-upload" class="h-6 w-6 transition-transform duration-150 group-hover:-translate-y-0.5" />
+      </span>
+      <div class="space-y-1">
+        <p v-if="label" class="text-[13px] font-medium text-highlighted">
+          {{ label }}
+        </p>
+        <p v-if="description" class="text-xs text-dimmed">
+          {{ description }}
+        </p>
+        <p v-if="modelValue" class="font-mono text-xs text-highlighted">
+          {{ modelValue.name }}
+        </p>
+      </div>
     </div>
     <input
       ref="inputRef"

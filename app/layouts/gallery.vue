@@ -423,6 +423,7 @@ defineOgImage('LioraCard', {
     the photographs carry the colour.
   -->
   <div class="font-prose min-h-screen w-full bg-bg">
+    <AdminGlobalDrop :enabled="isAuthenticated" />
     <div class="mx-auto min-h-screen w-full max-w-500 border-x border-border bg-default">
       <GalleryHeaderBar
         :title="pageTitle"

@@ -12,7 +12,7 @@
 </script>
 
 <template>
-  <div class="min-h-screen bg-bg [--admin-header-h:57px] max-lg:[--admin-header-h:101px]">
+  <div class="min-h-screen bg-bg [--admin-header-h:49px] max-lg:[--admin-header-h:90px]">
     <div class="wire-shell">
       <AdminNav />
       <div class="lg:grid lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -22,5 +22,6 @@
         </main>
       </div>
     </div>
+    <AdminGlobalDrop enabled />
   </div>
 </template>
