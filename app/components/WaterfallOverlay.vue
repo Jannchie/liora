@@ -777,11 +777,11 @@ function handleFocusToggle(): void {
               <WaterfallHistogramPanel :histogram="histogram" />
             </template>
             <template #fallback>
-              <section class="space-y-3 border-b border-border px-5 py-4" aria-hidden="true">
-                <p class="label-caption text-dimmed">
+              <section class="border-b border-border" aria-hidden="true">
+                <p class="label-caption px-5 pb-3 pt-4">
                   {{ t('gallery.histogram.title') }}
                 </p>
-                <div class="h-36 w-full animate-pulse rounded-md bg-muted" />
+                <div class="h-20 w-full animate-pulse border-t border-border bg-muted" />
               </section>
             </template>
           </Suspense>
