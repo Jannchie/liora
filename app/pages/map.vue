@@ -336,7 +336,7 @@ usePageSeo({
                 :src="thumb(point.imageUrl, 320)"
                 alt=""
                 loading="lazy"
-                class="aspect-[4/3] w-full rounded-md bg-muted object-cover group-hover:outline-2 group-hover:outline-[var(--mapette-accent)] group-focus-visible:outline-2 group-focus-visible:outline-[var(--mapette-accent)]"
+                class="aspect-[4/3] w-full rounded-md bg-muted object-cover -outline-offset-2 group-hover:outline-2 group-hover:outline-[var(--mapette-accent)] group-focus-visible:outline-2 group-focus-visible:outline-[var(--mapette-accent)]"
               >
               <span class="line-clamp-1 text-xs text-toned">{{ photoTitle(point) }}</span>
               <span v-if="point.captureTime" class="num-tabular -mt-1 text-[11px] text-dimmed">{{ formatDate(point.captureTime) }}</span>

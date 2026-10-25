@@ -179,8 +179,11 @@ function clusterPoints(features: { properties?: Record<string, unknown> | null }
   background: var(--mapette-hover);
 }
 
+/* Drawn inside the thumbnail: outside, the popover's scroll box and sticky
+   head clip it. */
 .photo-cluster-grid button:hover img,
 .photo-cluster-grid button:focus-visible img {
   outline: 2px solid var(--mapette-accent);
+  outline-offset: -2px;
 }
 </style>
