@@ -642,6 +642,9 @@
         "notes": {
           "label": "備考（任意）",
           "placeholder": "ストーリーやパラメーター、キーワードを追記"
+        },
+        "locationMap": {
+          "hint": "地図をクリックして撮影地を設定します。地名は自動で入力されます。"
         }
       },
       "actions": {
@@ -902,6 +905,17 @@
         "titleLabel": "タイトル：",
         "createdAtLabel": "作成日時：",
         "confirm": "削除を確定"
+      },
+      "filter": {
+        "label": "絞り込み",
+        "all": "すべて",
+        "missingLocation": "撮影地なし"
+      },
+      "locationQueue": {
+        "remaining": "撮影地未設定があと {count} 枚",
+        "skip": "スキップ",
+        "saveNext": "保存して次へ",
+        "done": "すべての写真に撮影地が設定されました"
       }
     },
     "site": {

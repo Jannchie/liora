@@ -642,6 +642,9 @@
         "notes": {
           "label": "备注（可留空）",
           "placeholder": "补充故事、参数或灵感关键词"
+        },
+        "locationMap": {
+          "hint": "点击地图设置拍摄地点，会自动填写地名。"
         }
       },
       "actions": {
@@ -902,6 +905,17 @@
         "titleLabel": "标题：",
         "createdAtLabel": "创建时间：",
         "confirm": "确认删除"
+      },
+      "filter": {
+        "label": "筛选",
+        "all": "全部",
+        "missingLocation": "未标注地点"
+      },
+      "locationQueue": {
+        "remaining": "还剩 {count} 张未标注",
+        "skip": "跳过",
+        "saveNext": "保存并下一张",
+        "done": "所有照片都已标注地点"
       }
     },
     "site": {

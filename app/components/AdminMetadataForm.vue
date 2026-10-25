@@ -30,7 +30,13 @@ const {
   whiteBalanceOptions,
   flashOptions,
 } = useExposureOptions()
-const { geocodeQuery, geocoding, geocodeResults, searchLocation, applyGeocodeResult } = useLocationSearch(form.value)
+const { geocodeQuery, geocoding, geocodeResults, searchLocation, reverseGeocode, applyGeocodeResult } = useLocationSearch(form.value)
+
+function pickLocation([longitude, latitude]: [number, number]): void {
+  form.value.latitude = latitude
+  form.value.longitude = longitude
+  void reverseGeocode()
+}
 const classifyingGenre = ref(false)
 const selectMenuUi = {
   content: 'z-[90]',
@@ -268,6 +274,7 @@ watch(
           </div>
         </div>
       </div>
+      <AdminLocationPicker :latitude="form.latitude" :longitude="form.longitude" @pick="pickLocation" />
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-3">
         <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
           <UInput v-model.number="form.latitude" class="w-full num-tabular" type="number" step="0.000001" placeholder="39.9087" />

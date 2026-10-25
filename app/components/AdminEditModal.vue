@@ -15,10 +15,14 @@ const props = defineProps<{
     file?: File | null
     imageUrl?: string | null
   }
+  /** Photos left after this one when editing a queue; null outside a queue. */
+  queueRemaining?: number | null
 }>()
 
 const emit = defineEmits<{
   (event: 'submit'): void
+  (event: 'submitNext'): void
+  (event: 'skip'): void
   (event: 'close'): void
   (event: 'generateDepth'): void
   (event: 'recomposed', value: FileResponse): void
@@ -180,6 +184,8 @@ const recomposeOpen = ref(false)
 function handleRecomposeSaved(updated: FileResponse): void {
   emit('recomposed', updated)
 }
+
+const isQueue = computed(() => typeof props.queueRemaining === 'number')
 
 function handleSubmit(): void {
   emit('submit')
@@ -490,19 +496,41 @@ watch(
               />
             </div>
           </UForm>
-          <footer class="wire-bar sticky bottom-0 z-10 flex justify-end gap-2 border-t border-border px-4 py-3 sm:px-8">
-            <UButton variant="ghost" color="neutral" @click="handleClose">
-              {{ t('common.actions.cancel') }}
-            </UButton>
-            <UButton
-              color="primary"
-              type="button"
-              :loading="loading"
-              icon="jannchie:save"
-              @click="handleSubmit"
-            >
-              {{ t('common.actions.save') }}
-            </UButton>
+          <footer class="wire-bar sticky bottom-0 z-10 flex items-center justify-end gap-2 border-t border-border px-4 py-3 sm:px-8">
+            <template v-if="isQueue">
+              <span class="num-tabular mr-auto text-xs text-dimmed">
+                {{ t('admin.files.locationQueue.remaining', { count: queueRemaining ?? 0 }) }}
+              </span>
+              <UButton variant="ghost" color="neutral" :disabled="loading" @click="emit('skip')">
+                {{ t('admin.files.locationQueue.skip') }}
+              </UButton>
+              <UButton variant="outline" color="neutral" type="button" :loading="loading" @click="handleSubmit">
+                {{ t('common.actions.save') }}
+              </UButton>
+              <UButton
+                color="primary"
+                type="button"
+                :loading="loading"
+                icon="jannchie:chevron-right"
+                @click="emit('submitNext')"
+              >
+                {{ t('admin.files.locationQueue.saveNext') }}
+              </UButton>
+            </template>
+            <template v-else>
+              <UButton variant="ghost" color="neutral" @click="handleClose">
+                {{ t('common.actions.cancel') }}
+              </UButton>
+              <UButton
+                color="primary"
+                type="button"
+                :loading="loading"
+                icon="jannchie:save"
+                @click="handleSubmit"
+              >
+                {{ t('common.actions.save') }}
+              </UButton>
+            </template>
           </footer>
         </div>
       </div>

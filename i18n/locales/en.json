@@ -642,6 +642,9 @@
         "notes": {
           "label": "Notes (optional)",
           "placeholder": "Add story, parameters, or keywords"
+        },
+        "locationMap": {
+          "hint": "Click the map to set where it was taken; the place name fills in automatically."
         }
       },
       "actions": {
@@ -902,6 +905,17 @@
         "titleLabel": "Title: ",
         "createdAtLabel": "Created at: ",
         "confirm": "Confirm delete"
+      },
+      "filter": {
+        "label": "Filter",
+        "all": "All",
+        "missingLocation": "No location"
+      },
+      "locationQueue": {
+        "remaining": "{count} left without a location",
+        "skip": "Skip",
+        "saveNext": "Save and next",
+        "done": "Every photo has a location now"
       }
     },
     "site": {

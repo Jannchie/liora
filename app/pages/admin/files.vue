@@ -7,6 +7,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import { useDepthMapUpload } from '~/composables/useDepthMapUpload'
 import { useFileEditApi } from '~/composables/useFileEditApi'
 import { toIsoWithOffset } from '~/utils/datetime'
+import { readCoordinate } from '~/utils/exif-format'
 import { createEmptyMediaFormState, fillMediaFormStateFromFile, resetMediaFormState } from '~/utils/media-form'
 
 const { t, locale } = useI18n()
@@ -77,7 +78,24 @@ type SortDirection = 'asc' | 'desc'
 const sortKey = ref<SortKey>('createdAt')
 const sortDirection = ref<SortDirection>('desc')
 
-const totalFiles = computed(() => files.value.length)
+function hasLocation(file: FileResponse): boolean {
+  return readCoordinate(file.metadata.latitude) !== null && readCoordinate(file.metadata.longitude) !== null
+}
+
+/** "missing-location" narrows the list to photos still to be placed on the map. */
+type FileFilter = 'all' | 'missing-location'
+const fileFilter = ref<FileFilter>('all')
+const missingLocationCount = computed(() => files.value.filter(file => !hasLocation(file)).length)
+const filteredFiles = computed<FileResponse[]>(() => (
+  fileFilter.value === 'missing-location' ? files.value.filter(file => !hasLocation(file)) : files.value
+))
+
+function setFileFilter(next: FileFilter): void {
+  fileFilter.value = next
+  page.value = 1
+}
+
+const totalFiles = computed(() => filteredFiles.value.length)
 const pageCount = computed(() => Math.max(1, Math.ceil(totalFiles.value / pageSize.value)))
 const sortedFiles = computed<FileResponse[]>(() => {
   const direction = sortDirection.value === 'asc' ? 1 : -1
@@ -87,12 +105,12 @@ const sortedFiles = computed<FileResponse[]>(() => {
     const comparison = compareValues(aValue, bValue)
     return comparison * direction
   }
-  const sortableArray = files.value as FileResponse[] & { toSorted?: typeof Array.prototype.toSorted }
+  const sortableArray = filteredFiles.value as FileResponse[] & { toSorted?: typeof Array.prototype.toSorted }
   if (typeof sortableArray.toSorted === 'function') {
     return sortableArray.toSorted(compare)
   }
   const result: FileResponse[] = []
-  for (const item of files.value) {
+  for (const item of filteredFiles.value) {
     const insertIndex = result.findIndex(existing => compare(item, existing) < 0)
     if (insertIndex === -1) {
       result.push(item)
@@ -575,9 +593,59 @@ function closeEdit(): void {
   resetEditForm()
 }
 
-async function saveEdit(): Promise<void> {
-  if (!editingFile.value) {
+/*
+ * Tagging locations one by one: while the list shows only unplaced photos,
+ * the edit modal walks through them in table order. The next one is chosen
+ * before saving, since a saved photo with a location leaves the list.
+ */
+const locationQueueActive = computed(() => fileFilter.value === 'missing-location')
+
+function resolveNextMissingLocation(currentId: number): FileResponse | null {
+  const queue = sortedFiles.value.filter(file => !hasLocation(file))
+  const index = queue.findIndex(file => file.id === currentId)
+  const after = index === -1 ? queue : [...queue.slice(index + 1), ...queue.slice(0, index)]
+  return after.find(file => file.id !== currentId) ?? null
+}
+
+const locationQueueRemaining = computed<number | null>(() => {
+  const current = editingFile.value
+  if (!locationQueueActive.value || !current) {
+    return null
+  }
+  return missingLocationCount.value - (hasLocation(current) ? 0 : 1)
+})
+
+function openNextInLocationQueue(currentId: number): void {
+  const next = resolveNextMissingLocation(currentId)
+  if (!next) {
+    closeEdit()
+    toast.add({ title: t('admin.files.locationQueue.done'), color: 'primary' })
     return
+  }
+  replaceFile.value = null
+  openEdit(next)
+}
+
+async function saveEditAndNext(): Promise<void> {
+  const current = editingFile.value
+  if (!current) {
+    return
+  }
+  const saved = await saveEdit({ keepOpen: true })
+  if (saved) {
+    openNextInLocationQueue(current.id)
+  }
+}
+
+function skipInLocationQueue(): void {
+  if (editingFile.value) {
+    openNextInLocationQueue(editingFile.value.id)
+  }
+}
+
+async function saveEdit(options: { keepOpen?: boolean } = {}): Promise<boolean> {
+  if (!editingFile.value) {
+    return false
   }
   updating.value = true
   try {
@@ -592,11 +660,15 @@ async function saveEdit(): Promise<void> {
     filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
     editingFile.value = updated
     toast.add({ title: toastMessages.value.updateSuccess, description: toastMessages.value.updateSuccessDescription, color: 'primary' })
-    closeEdit()
+    if (!options.keepOpen) {
+      closeEdit()
+    }
+    return true
   }
   catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.updateFailedFallback
     toast.add({ title: toastMessages.value.updateFailed, description: message, color: 'error' })
+    return false
   }
   finally {
     updating.value = false
@@ -901,7 +973,31 @@ watch(fetchError, (value) => {
           <Icon name="jannchie:table" class="h-3.5 w-3.5" />
           <span>{{ t('admin.files.section.title') }}</span>
         </span>
-        <span class="num-tabular text-xs text-dimmed">{{ recordCountText }}</span>
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-1" role="group" :aria-label="t('admin.files.filter.label')">
+            <UButton
+              size="xs"
+              color="neutral"
+              :variant="fileFilter === 'all' ? 'soft' : 'ghost'"
+              :aria-pressed="fileFilter === 'all'"
+              @click="setFileFilter('all')"
+            >
+              {{ t('admin.files.filter.all') }}
+            </UButton>
+            <UButton
+              size="xs"
+              color="neutral"
+              :variant="fileFilter === 'missing-location' ? 'soft' : 'ghost'"
+              icon="jannchie:map-pin-search"
+              :aria-pressed="fileFilter === 'missing-location'"
+              @click="setFileFilter('missing-location')"
+            >
+              {{ t('admin.files.filter.missingLocation') }}
+              <span class="num-tabular text-dimmed">{{ missingLocationCount }}</span>
+            </UButton>
+          </div>
+          <span class="num-tabular text-xs text-dimmed">{{ recordCountText }}</span>
+        </div>
       </header>
       <!-- Selection strip: a neutral sunken bar, not a coloured banner. -->
       <div
@@ -1105,7 +1201,10 @@ watch(fetchError, (value) => {
       :enable-depth-action="true"
       :depth-processing="editingFile ? depthProcessing[editingFile.id] : false"
       :classify-source="{ imageUrl: editingFile?.imageUrl || '' }"
-      @submit="saveEdit"
+      :queue-remaining="locationQueueRemaining"
+      @submit="saveEdit()"
+      @submit-next="saveEditAndNext"
+      @skip="skipInLocationQueue"
       @close="closeEdit"
       @generate-depth="handleGenerateDepthFromEdit"
       @recomposed="handleRecomposed"

@@ -93,11 +93,45 @@ export function useLocationSearch(form: MediaFormState) {
     }
   }
 
+  /**
+   * Names the place at the form's coordinates, whatever names it already
+   * has: after picking a point on the map the old names describe somewhere
+   * else.
+   */
+  const reverseGeocode = async (): Promise<void> => {
+    const coordinates = getFormCoordinates()
+    if (!coordinates) {
+      return
+    }
+    geocoding.value = true
+    geocodeResults.value = []
+    try {
+      const response = await $fetch<{ results?: GeocodeResult[] }>('/api/geocode/reverse', {
+        params: { lat: coordinates.latitude, lon: coordinates.longitude },
+      })
+      const [firstResult] = response.results ?? []
+      if (firstResult) {
+        applyGeocodeResult(firstResult)
+      }
+      else {
+        toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
+      }
+    }
+    catch (error) {
+      const description = error instanceof Error ? error.message : toastMessages.value.geocodeFailedFallback
+      toast.add({ title: toastMessages.value.geocodeFailedTitle, description, color: 'error' })
+    }
+    finally {
+      geocoding.value = false
+    }
+  }
+
   return {
     geocodeQuery,
     geocodeResults,
     geocoding,
     searchLocation,
+    reverseGeocode,
     applyGeocodeResult,
   }
 }
