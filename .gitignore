@@ -36,3 +36,6 @@ docker-compose.dev.yml
 
 # stray screenshots dropped in the repo root
 /*.png
+
+# Local Claude Code preview config
+.claude/launch.json
