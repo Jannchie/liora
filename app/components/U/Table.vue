@@ -60,7 +60,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
           <th
             v-for="column in columns"
             :key="column.id ?? column.accessorKey"
-            class="border-b border-border px-3 py-2 text-left font-mono text-[11px] font-normal uppercase tracking-[0.06em] text-dimmed"
+            class="border-b border-border px-3 py-2 text-left text-[11px] font-normal uppercase tracking-[0.06em] text-dimmed"
             :class="ui?.th"
           >
             <slot :name="headerSlotName(column)" :column="(column as Column<Row>)">

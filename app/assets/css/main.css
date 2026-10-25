@@ -46,8 +46,11 @@
  * the ink plus an inset hairline, never a brand colour. Status colours
  * appear only on text and thin fills.
  *
- * Typography: Inter for UI, Berkeley Mono for labels, counts and data —
- * small uppercase mono captions are the system's signature.
+ * Typography: Inter for UI, labels and data — small uppercase tracked
+ * captions are the system's signature. Changing numbers (counts, sizes,
+ * percentages, dates) stay in Inter with tabular figures (`.num-tabular`)
+ * so their width holds steady. Berkeley Mono is reserved for text that
+ * must align per character: code, CSS, IDs, file names, paths, slugs.
  *
  * Elevation is reserved for overlays (modal, dropdown, toast).
  */
@@ -340,10 +343,10 @@ html.disable-transitions *::after {
 
   /* ---------- chrome primitives ---------- */
 
-  /* Caption label — the wireframe's signature: small uppercase mono,
+  /* Caption label — the wireframe's signature: small uppercase sans,
      tracked out, muted. Eyebrows, section labels, metadata keys. */
   .label-caption {
-    font-family: var(--stack-mono);
+    font-family: var(--stack-sans);
     font-size: 11.5px;
     line-height: 1.4;
     font-weight: 400;
@@ -352,7 +355,7 @@ html.disable-transitions *::after {
     color: var(--color-fg-dimmed);
   }
   .label-caption-sm {
-    font-family: var(--stack-mono);
+    font-family: var(--stack-sans);
     font-size: 10.5px;
     line-height: 1.4;
     font-weight: 400;
@@ -360,9 +363,9 @@ html.disable-transitions *::after {
     text-transform: uppercase;
     color: var(--color-fg-dimmed);
   }
-  /* An icon leading a caption: the caption is mono, so CJK labels fall
-     back to a font whose ink sits ~1px above the line box's centre, and a
-     box-centred icon reads low. Lift it to the ink. */
+  /* An icon leading a caption: CJK labels fall back to a font whose ink
+     sits ~1px above the line box's centre, and a box-centred icon reads
+     low. Lift it to the ink. */
   .label-caption > .iconify,
   .label-caption-sm > .iconify {
     flex-shrink: 0;

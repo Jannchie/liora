@@ -62,7 +62,7 @@ const formattedValue = computed<string>(() => {
   <div class="grid gap-1">
     <div class="flex items-center justify-between gap-3 text-xs">
       <span class="min-w-0 truncate text-default">{{ item.label }}</span>
-      <span class="num-tabular inline-flex shrink-0 items-center gap-1.5 font-mono text-highlighted">
+      <span class="num-tabular inline-flex shrink-0 items-center gap-1.5 text-highlighted">
         <span
           v-if="markerColor"
           class="size-2 rounded-full"

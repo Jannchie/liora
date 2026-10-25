@@ -266,7 +266,7 @@ async function handleSave(): Promise<void> {
                     color="neutral"
                     variant="ghost"
                     :aria-pressed="activeAspectKey === preset.key"
-                    :class="preset.key.includes(':') ? 'font-mono' : ''"
+                    :class="preset.key.includes(':') ? 'tabular-nums' : ''"
                     @click="selectAspect(preset)"
                   >
                     {{ preset.label }}
@@ -323,7 +323,7 @@ async function handleSave(): Promise<void> {
                     class="recompose-slider"
                     @input="editor.setStraighten(Number(($event.target as HTMLInputElement).value))"
                   >
-                  <span class="w-14 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.straighten.toFixed(1) }}°</span>
+                  <span class="w-14 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.straighten.toFixed(1) }}°</span>
                 </div>
               </USection>
             </div>
@@ -343,7 +343,7 @@ async function handleSave(): Promise<void> {
                       class="recompose-slider"
                       @input="editor.setStretch('x', Number(($event.target as HTMLInputElement).value))"
                     >
-                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.stretchX.toFixed(2) }}×</span>
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.stretchX.toFixed(2) }}×</span>
                   </div>
                   <div class="flex items-center gap-3">
                     <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.stretch.y') }}</span>
@@ -357,7 +357,7 @@ async function handleSave(): Promise<void> {
                       class="recompose-slider"
                       @input="editor.setStretch('y', Number(($event.target as HTMLInputElement).value))"
                     >
-                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.stretchY.toFixed(2) }}×</span>
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.stretchY.toFixed(2) }}×</span>
                   </div>
                 </div>
               </USection>
@@ -378,7 +378,7 @@ async function handleSave(): Promise<void> {
                       class="recompose-slider"
                       @input="editor.setPerspective('h', Number(($event.target as HTMLInputElement).value))"
                     >
-                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveH.toFixed(2) }}</span>
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveH.toFixed(2) }}</span>
                   </div>
                   <div class="flex items-center gap-3">
                     <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.perspective.v') }}</span>
@@ -392,7 +392,7 @@ async function handleSave(): Promise<void> {
                       class="recompose-slider"
                       @input="editor.setPerspective('v', Number(($event.target as HTMLInputElement).value))"
                     >
-                    <span class="w-12 shrink-0 text-right font-mono text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveV.toFixed(2) }}</span>
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveV.toFixed(2) }}</span>
                   </div>
                 </div>
               </USection>
@@ -404,7 +404,7 @@ async function handleSave(): Promise<void> {
                 <dt class="label-caption">
                   {{ t('admin.files.recompose.framedSize') }}
                 </dt>
-                <dd class="font-mono text-xs tabular-nums text-highlighted">
+                <dd class="text-xs tabular-nums text-highlighted">
                   {{ editor.framedDims.width }} × {{ editor.framedDims.height }}
                 </dd>
               </dl>

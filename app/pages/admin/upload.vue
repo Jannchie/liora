@@ -731,7 +731,7 @@ onBeforeUnmount(() => {
         </UButton>
       </template>
       <div class="space-y-4">
-        <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 font-mono text-xs num-tabular">
+        <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs num-tabular">
           <div class="flex items-center gap-1.5">
             <dt class="label-caption">
               Total
@@ -808,11 +808,11 @@ onBeforeUnmount(() => {
                 >
                 <span class="truncate font-mono text-highlighted">{{ item.file.name }}</span>
               </label>
-              <div class="flex items-center justify-between font-mono text-[11px] text-dimmed num-tabular">
+              <div class="flex items-center justify-between text-[11px] text-dimmed num-tabular">
                 <span>{{ item.form.width }} × {{ item.form.height }}</span>
                 <span>{{ formatFileSize(item.file.size) }}</span>
               </div>
-              <p class="font-mono text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-dimmed'">
+              <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-dimmed'">
                 {{ t(`admin.upload.batch.status.${item.status}`) }}
                 <span v-if="item.errorMessage"> · {{ item.errorMessage }}</span>
               </p>
@@ -847,7 +847,7 @@ onBeforeUnmount(() => {
           </p>
           <div
             v-if="previewChips.length > 0"
-            class="flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[11px] text-dimmed num-tabular"
+            class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-dimmed num-tabular"
           >
             <span
               v-for="chip in previewChips"

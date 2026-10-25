@@ -883,7 +883,7 @@ watch(fetchError, (value) => {
           :style="{ width: `${batchProgressPercent}%` }"
         />
       </div>
-      <div class="num-tabular flex flex-wrap items-center justify-between gap-2 font-mono text-xs text-dimmed">
+      <div class="num-tabular flex flex-wrap items-center justify-between gap-2 text-xs text-dimmed">
         <span>{{ batchProgressLabel }}</span>
         <span>{{ batchProgressSummary }}</span>
       </div>
@@ -901,14 +901,14 @@ watch(fetchError, (value) => {
           <Icon name="jannchie:table" class="h-3.5 w-3.5" />
           <span>{{ t('admin.files.section.title') }}</span>
         </span>
-        <span class="num-tabular font-mono text-xs text-dimmed">{{ recordCountText }}</span>
+        <span class="num-tabular text-xs text-dimmed">{{ recordCountText }}</span>
       </header>
       <!-- Selection strip: a neutral sunken bar, not a coloured banner. -->
       <div
         v-if="selectedCount > 0"
         class="flex flex-wrap items-center gap-2 border-b border-border bg-muted px-4 py-2 sm:px-8"
       >
-        <span class="num-tabular mr-2 font-mono text-xs text-highlighted">
+        <span class="num-tabular mr-2 text-xs text-highlighted">
           {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
         </span>
         <UButton
@@ -1052,12 +1052,12 @@ watch(fetchError, (value) => {
           </div>
         </template>
         <template #captureTime-cell="{ row }">
-          <span class="num-tabular whitespace-nowrap font-mono text-xs text-muted">
+          <span class="num-tabular whitespace-nowrap text-xs text-muted">
             {{ formatDateTime(row.original.metadata.captureTime || row.original.createdAt) || unknownLabel }}
           </span>
         </template>
         <template #createdAt-cell="{ row }">
-          <span class="num-tabular whitespace-nowrap font-mono text-xs text-dimmed">
+          <span class="num-tabular whitespace-nowrap text-xs text-dimmed">
             {{ formatDateTime(row.original.createdAt) }}
           </span>
         </template>
@@ -1087,7 +1087,7 @@ watch(fetchError, (value) => {
       </UTable>
       <!-- The last row's hairline is the pager strip's top edge. -->
       <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <div class="num-tabular font-mono text-xs text-dimmed">
+        <div class="num-tabular text-xs text-dimmed">
           {{ paginationText }}
         </div>
         <UPagination v-model:page="page" :items-per-page="pageSize" :total="totalFiles" />
@@ -1134,7 +1134,7 @@ watch(fetchError, (value) => {
           <dt class="label-caption">
             {{ t('admin.files.delete.createdAtLabel') }}
           </dt>
-          <dd class="num-tabular font-mono text-xs text-toned">
+          <dd class="num-tabular text-xs text-toned">
             {{ deleteTarget ? formatDateTime(deleteTarget.createdAt) : '' }}
           </dd>
         </div>

@@ -132,7 +132,7 @@ onBeforeUnmount(() => {
       <div class="space-y-2 px-3 py-3">
         <div class="flex items-baseline justify-between gap-2">
           <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.shadows') }}</span>
-          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.shadows }}%</span>
+          <span class="num-tabular text-xs text-highlighted">{{ histogramSummary.shadows }}%</span>
         </div>
         <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
           <div class="h-full bg-primary" :style="{ width: `${histogramSummary.shadows}%` }" />
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
       <div class="space-y-2 px-3 py-3">
         <div class="flex items-baseline justify-between gap-2">
           <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.midtones') }}</span>
-          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.midtones }}%</span>
+          <span class="num-tabular text-xs text-highlighted">{{ histogramSummary.midtones }}%</span>
         </div>
         <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
           <div class="h-full bg-primary" :style="{ width: `${histogramSummary.midtones}%` }" />
@@ -150,7 +150,7 @@ onBeforeUnmount(() => {
       <div class="space-y-2 px-3 py-3">
         <div class="flex items-baseline justify-between gap-2">
           <span class="label-caption-sm truncate text-dimmed">{{ t('gallery.histogram.highlights') }}</span>
-          <span class="font-mono text-xs text-highlighted">{{ histogramSummary.highlights }}%</span>
+          <span class="num-tabular text-xs text-highlighted">{{ histogramSummary.highlights }}%</span>
         </div>
         <div class="h-0.5 w-full overflow-hidden rounded-[1px] bg-border-strong">
           <div class="h-full bg-primary" :style="{ width: `${histogramSummary.highlights}%` }" />

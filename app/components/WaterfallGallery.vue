@@ -2828,7 +2828,7 @@ function startOverlayImageLoad(
             />
             <span
               v-if="entry.metadata.livePhotoVideoUrl"
-              class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 font-mono text-[11px] tracking-[0.06em] text-white uppercase ring-1 ring-white/10 backdrop-blur"
+              class="absolute left-2 top-2 inline-flex items-center gap-1 rounded-md bg-black/55 px-1.5 py-0.5 text-[11px] tracking-[0.06em] text-white uppercase ring-1 ring-white/10 backdrop-blur"
             >
               <Icon name="jannchie:live-photo" class="h-3.5 w-3.5" />
               <span>{{ t('gallery.livePhoto.badge') }}</span>

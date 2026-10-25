@@ -63,7 +63,7 @@ const { t } = useI18n()
     <div class="border-t border-border">
       <div class="flex items-baseline justify-between gap-3 px-4 py-2.5">
         <span class="label-caption">{{ t('gallery.totalWorks') }}</span>
-        <span class="font-mono text-[13px] text-highlighted">
+        <span class="num-tabular text-[13px] text-highlighted">
           {{ photoCount }}
         </span>
       </div>

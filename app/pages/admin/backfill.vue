@@ -128,7 +128,7 @@ async function run(command: BackfillCommand): Promise<void> {
         </div>
 
         <div class="mt-auto flex items-center justify-between gap-4 pl-7">
-          <p class="num-tabular min-w-0 font-mono text-xs" :class="results[command.key] ? 'text-toned' : 'text-subtle'">
+          <p class="num-tabular min-w-0 text-xs" :class="results[command.key] ? 'text-toned' : 'text-subtle'">
             <template v-if="results[command.key]">
               {{ results[command.key] }}
             </template>

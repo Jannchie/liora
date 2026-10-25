@@ -436,7 +436,7 @@ defineOgImage('LioraCard', {
           <h2 class="flex items-baseline gap-2.5 text-lg font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
             {{ t('series.list.title') }}
             <small
-              class="font-mono text-[13px] font-normal text-dimmed"
+              class="num-tabular text-[13px] font-normal text-dimmed"
               :title="t('series.list.totalSeries', { count: seriesList.length })"
             >{{ seriesList.length }}</small>
           </h2>
@@ -477,7 +477,7 @@ defineOgImage('LioraCard', {
         <div
           v-show="showLoadMoreSentinel"
           ref="loadMoreSentinel"
-          class="flex min-h-12 items-center justify-center gap-2 py-6 font-mono text-xs text-dimmed"
+          class="flex min-h-12 items-center justify-center gap-2 py-6 text-xs text-dimmed"
           aria-live="polite"
         >
           <template v-if="isLoadingMore">

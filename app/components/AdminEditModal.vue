@@ -377,8 +377,8 @@ watch(
                   class="h-auto max-h-[70vh] w-auto max-w-full object-contain"
                 >
               </div>
-              <dl class="num-tabular flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-3 font-mono text-xs sm:px-6">
-                <dd class="min-w-0 truncate text-highlighted">
+              <dl class="num-tabular flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-3 text-xs sm:px-6">
+                <dd class="min-w-0 truncate font-mono text-highlighted">
                   {{ replaceFileName || file.originalName || file.title || t('common.labels.untitled') }}
                 </dd>
                 <dd v-if="replaceFile" class="text-dimmed">
@@ -393,7 +393,7 @@ watch(
                   <p class="label-caption">
                     {{ t('admin.files.depthMap.label') }}
                   </p>
-                  <p v-if="depthMapWidth && depthMapHeight" class="num-tabular font-mono text-xs text-dimmed">
+                  <p v-if="depthMapWidth && depthMapHeight" class="num-tabular text-xs text-dimmed">
                     {{ depthMapWidth }} × {{ depthMapHeight }}
                   </p>
                 </div>
@@ -460,8 +460,8 @@ watch(
                           <p class="truncate text-[13px] text-highlighted">
                             {{ item.label }}
                           </p>
-                          <p class="truncate font-mono text-[11px] text-dimmed">
-                            /{{ item.slug }} · {{ t('series.list.count', { count: item.fileCount }) }}
+                          <p class="truncate text-[11px] text-dimmed">
+                            <span class="font-mono">/{{ item.slug }}</span> · <span class="num-tabular">{{ t('series.list.count', { count: item.fileCount }) }}</span>
                           </p>
                         </div>
                       </template>

@@ -44,11 +44,11 @@ async function handleLogout(): Promise<void> {
              the icon with the rest of the row. -->
         <span class="flex items-baseline gap-2 max-sm:hidden">
           <span>Liora</span>
-          <span class="font-mono text-[11px] font-normal text-dimmed">v{{ version }}</span>
+          <span class="num-tabular text-[11px] font-normal text-dimmed">v{{ version }}</span>
         </span>
       </NuxtLink>
 
-      <div class="flex min-w-0 items-center gap-2 px-2 font-mono text-xs sm:px-5">
+      <div class="flex min-w-0 items-center gap-2 px-2 text-xs sm:px-5">
         <span class="shrink-0 uppercase tracking-[0.06em] text-dimmed">{{ t('admin.nav.label') }}</span>
         <template v-if="current">
           <span class="text-subtle">/</span>

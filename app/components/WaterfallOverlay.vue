@@ -685,7 +685,7 @@ function handleFocusToggle(): void {
           >
             <div
               v-if="overlayZoomIndicatorVisible"
-              class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/60 px-2.5 py-1 font-mono text-xs text-white ring-1 ring-white/10 backdrop-blur"
+              class="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 rounded-md bg-black/60 px-2.5 py-1 num-tabular text-xs text-white ring-1 ring-white/10 backdrop-blur"
             >
               {{ overlayZoomLabel }}
             </div>
@@ -702,7 +702,7 @@ function handleFocusToggle(): void {
               <h3 :id="`overlay-title-${file.id}`" class="font-title text-base font-semibold leading-snug tracking-[-0.01em] text-highlighted">
                 {{ file.displayTitle }}
               </h3>
-              <div v-if="overlayStats.length > 0" class="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
+              <div v-if="overlayStats.length > 0" class="flex flex-wrap items-center gap-x-3 gap-y-1 num-tabular text-xs text-dimmed">
                 <span
                   v-for="stat in overlayStats"
                   :key="`${stat.icon}-${stat.label}`"

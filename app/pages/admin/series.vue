@@ -451,7 +451,7 @@ watch(filesError, (value) => {
                 >
               </div>
               <span class="min-w-0 flex-1 truncate">{{ item.title }}</span>
-              <span class="num-tabular shrink-0 font-mono text-xs text-dimmed">{{ item.fileCount }}</span>
+              <span class="num-tabular shrink-0 text-xs text-dimmed">{{ item.fileCount }}</span>
             </button>
           </div>
           <p v-if="seriesList.length === 0" class="px-2.5 py-6 text-center text-[13px] text-dimmed">
@@ -484,8 +484,8 @@ watch(filesError, (value) => {
               <h2 class="break-words text-xl font-semibold leading-tight tracking-[-0.01em] text-highlighted">
                 {{ selectedSeries.title }}
               </h2>
-              <p class="font-mono text-xs text-dimmed">
-                /{{ selectedSeriesSlug || selectedSeries.slug }} · {{ formatCountLabel(selectedSeries.fileCount) }}
+              <p class="text-xs text-dimmed">
+                <span class="font-mono">/{{ selectedSeriesSlug || selectedSeries.slug }}</span> · <span class="num-tabular">{{ formatCountLabel(selectedSeries.fileCount) }}</span>
               </p>
             </div>
             <p v-if="selectedSeries.description" class="max-w-2xl text-[13px] leading-relaxed text-dimmed">
@@ -560,7 +560,7 @@ watch(filesError, (value) => {
                   <p class="label-caption">
                     Candidates
                   </p>
-                  <span class="num-tabular font-mono text-xs text-dimmed">{{ filteredCandidates.length }}</span>
+                  <span class="num-tabular text-xs text-dimmed">{{ filteredCandidates.length }}</span>
                 </div>
                 <p v-if="filteredCandidates.length === 0" class="py-10 text-center text-[13px] text-dimmed">
                   {{ t('admin.series.files.noCandidate') }}
@@ -609,7 +609,7 @@ watch(filesError, (value) => {
                   <p class="label-caption">
                     In series
                   </p>
-                  <span class="num-tabular font-mono text-xs text-dimmed">{{ selectedFileIds.length }}</span>
+                  <span class="num-tabular text-xs text-dimmed">{{ selectedFileIds.length }}</span>
                 </div>
                 <p v-if="detailLoading" class="py-10 text-center text-[13px] text-dimmed">
                   {{ t('common.loading') }}
@@ -629,7 +629,7 @@ watch(filesError, (value) => {
                       class="flex h-14 items-center gap-3 border-border px-3 transition-colors hover:bg-muted"
                       :class="entry.index === selectedFileIds.length - 1 ? '' : 'border-b'"
                     >
-                      <span class="num-tabular w-6 shrink-0 text-center font-mono text-xs text-dimmed">{{ entry.index + 1 }}</span>
+                      <span class="num-tabular w-6 shrink-0 text-center text-xs text-dimmed">{{ entry.index + 1 }}</span>
                       <div class="h-10 w-14 shrink-0 overflow-hidden bg-sunken">
                         <img
                           v-if="entry.data.file?.imageUrl"

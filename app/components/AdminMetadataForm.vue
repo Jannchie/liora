@@ -203,10 +203,10 @@ watch(
         </div>
         <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
           <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')">
-            <UInput v-model.number="form.width" class="w-full font-mono" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
+            <UInput v-model.number="form.width" class="w-full num-tabular" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
           </UFormField>
           <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')">
-            <UInput v-model.number="form.height" class="w-full font-mono" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
+            <UInput v-model.number="form.height" class="w-full num-tabular" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
           </UFormField>
         </div>
       </div>
@@ -261,7 +261,7 @@ watch(
                   {{ result.placeName }}
                 </p>
               </div>
-              <span class="shrink-0 font-mono text-xs text-muted">
+              <span class="shrink-0 text-xs text-muted">
                 {{ t('admin.upload.fields.locationSearch.apply') }} →
               </span>
             </button>
@@ -270,10 +270,10 @@ watch(
       </div>
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-3">
         <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
-          <UInput v-model.number="form.latitude" class="w-full font-mono" type="number" step="0.000001" placeholder="39.9087" />
+          <UInput v-model.number="form.latitude" class="w-full num-tabular" type="number" step="0.000001" placeholder="39.9087" />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.longitude.label')" name="longitude">
-          <UInput v-model.number="form.longitude" class="w-full font-mono" type="number" step="0.000001" placeholder="116.3975" />
+          <UInput v-model.number="form.longitude" class="w-full num-tabular" type="number" step="0.000001" placeholder="116.3975" />
         </UFormField>
         <UFormField :label="t('admin.files.form.locationReverse.actionShort')">
           <UButton
@@ -317,7 +317,7 @@ watch(
             <Icon :name="highlight.icon" class="h-3.5 w-3.5 shrink-0" />
             <span class="truncate">{{ highlight.label }}</span>
           </div>
-          <p class="num-tabular truncate font-mono text-lg text-highlighted">
+          <p class="num-tabular truncate text-lg text-highlighted">
             {{ highlight.value }}
           </p>
         </div>

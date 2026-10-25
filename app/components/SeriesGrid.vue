@@ -172,7 +172,7 @@ onMounted(() => {
               :class="isUncategorized(item) ? 'text-muted' : 'text-highlighted'"
             >{{ resolveTitle(item) }}</span>
             <small
-              class="shrink-0 font-mono text-xs font-normal text-dimmed"
+              class="shrink-0 num-tabular text-xs font-normal text-dimmed"
               :title="t('series.list.count', { count: item.fileCount })"
             >{{ item.fileCount }}</small>
           </h3>
@@ -184,7 +184,7 @@ onMounted(() => {
           </p>
           <p
             v-if="formatDate(item.updatedAt)"
-            class="mt-auto pt-3 font-mono text-[11.5px] text-subtle"
+            class="mt-auto pt-3 num-tabular text-[11.5px] text-subtle"
           >
             {{ formatDate(item.updatedAt) }}
           </p>

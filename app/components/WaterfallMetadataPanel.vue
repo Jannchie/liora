@@ -193,7 +193,7 @@ const totalEntryCount = computed<number>(() => {
                 <Icon :name="item.icon" class="h-3 w-3" />
                 <span class="truncate">{{ item.label }}</span>
               </span>
-              <span class="num-tabular truncate font-mono text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
+              <span class="num-tabular truncate text-[15px] leading-tight text-highlighted">{{ item.value }}</span>
             </div>
           </div>
         </template>
@@ -238,7 +238,7 @@ const totalEntryCount = computed<number>(() => {
               <Icon :name="focusEntry.icon" class="h-3.5 w-3.5" />
               <span>{{ focusEntry.label }}</span>
             </span>
-            <span class="meta-value whitespace-pre-line font-mono text-xs">
+            <span class="meta-value whitespace-pre-line num-tabular text-xs">
               {{ focusEntry.value }}
             </span>
           </button>
@@ -247,7 +247,7 @@ const totalEntryCount = computed<number>(() => {
               <Icon :name="cropEntry.icon" class="h-3.5 w-3.5" />
               <span>{{ cropEntry.label }}</span>
             </span>
-            <span class="meta-value num-tabular whitespace-pre-line font-mono text-xs">
+            <span class="meta-value num-tabular whitespace-pre-line text-xs">
               {{ cropEntry.value }}
             </span>
           </div>
@@ -274,11 +274,11 @@ const totalEntryCount = computed<number>(() => {
               <span v-if="item.valueIconLabel" class="sr-only">{{ item.valueIconLabel }}</span>
               <span class="min-w-0">{{ item.value }}</span>
             </span>
-            <!-- Capture time and pixel size are numbers: mono, like the exposure strip. -->
+            <!-- Capture time and pixel size are numbers: tabular figures, like the exposure strip. -->
             <span
               v-else
               class="meta-value whitespace-pre-line"
-              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'num-tabular font-mono text-xs' : undefined"
+              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'num-tabular text-xs' : undefined"
             >
               {{ item.value }}
             </span>

@@ -47,7 +47,7 @@ function go(target: number): void {
   emit('update:page', target)
 }
 
-const btnBase = 'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 font-mono text-[12.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
+const btnBase = 'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 num-tabular text-[12.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
 </script>
 
 <template>

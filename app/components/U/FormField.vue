@@ -31,7 +31,7 @@ provide('u-form-field', {
         {{ label }}
         <span v-if="required" class="text-error" aria-hidden="true">*</span>
       </label>
-      <span v-if="hint" class="font-mono text-[11px] text-dimmed">{{ hint }}</span>
+      <span v-if="hint" class="text-[11px] text-dimmed">{{ hint }}</span>
     </div>
     <slot />
     <p v-if="error" class="flex items-start gap-1 text-xs leading-snug text-error" role="alert">

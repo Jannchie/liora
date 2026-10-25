@@ -55,7 +55,7 @@ function goSeries(): void {
       </header>
 
       <div class="px-5 pb-6 pt-7 sm:px-7">
-        <p class="font-mono text-6xl leading-none tracking-[-0.02em] text-highlighted">
+        <p class="num-tabular text-6xl leading-none tracking-[-0.02em] text-highlighted">
           {{ statusCode }}
         </p>
         <h1 class="mt-5 text-lg font-semibold tracking-[-0.01em] text-highlighted">
@@ -71,7 +71,7 @@ function goSeries(): void {
           <dt class="label-caption w-16 shrink-0">
             {{ t('error.statusLabel') }}
           </dt>
-          <dd class="font-mono text-xs text-toned">
+          <dd class="num-tabular text-xs text-toned">
             {{ statusCode }}
           </dd>
         </div>

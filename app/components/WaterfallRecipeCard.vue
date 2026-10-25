@@ -145,7 +145,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
           fill="none"
         />
       </svg>
-      <div class="flex flex-wrap gap-x-3 gap-y-1 font-mono text-xs text-dimmed">
+      <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-dimmed">
         <span
           v-for="channel in toneCurveChannels"
           :key="`${channel.key}-legend`"

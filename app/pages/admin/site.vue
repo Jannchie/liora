@@ -181,7 +181,7 @@ function handleReset(): void {
       :description="t('admin.site.seoDescription')"
     >
       <template #actions>
-        <span class="mr-1.5 hidden self-center font-mono text-xs text-dimmed sm:inline-flex sm:items-center sm:gap-1.5">
+        <span class="mr-1.5 hidden self-center num-tabular text-xs text-dimmed sm:inline-flex sm:items-center sm:gap-1.5">
           <Icon name="jannchie:clock" class="h-3.5 w-3.5" />
           {{ lastUpdated }}
         </span>

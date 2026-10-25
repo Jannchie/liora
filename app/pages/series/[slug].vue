@@ -419,7 +419,7 @@ onBeforeUnmount(() => {
           <h1 class="mt-2 flex items-baseline gap-2.5 text-xl font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
             {{ displaySeriesTitle }}
             <small
-              class="font-mono text-[13px] font-normal text-dimmed"
+              class="num-tabular text-[13px] font-normal text-dimmed"
               :title="t('series.list.count', { count: seriesDetail?.fileCount ?? files.length })"
             >{{ seriesDetail?.fileCount ?? files.length }}</small>
           </h1>
@@ -455,7 +455,7 @@ onBeforeUnmount(() => {
       <div
         v-show="showLoadMoreSentinel"
         ref="loadMoreSentinel"
-        class="flex min-h-12 items-center justify-center gap-2 py-6 font-mono text-xs text-dimmed"
+        class="flex min-h-12 items-center justify-center gap-2 py-6 text-xs text-dimmed"
         aria-live="polite"
       >
         <template v-if="isLoadingMore">

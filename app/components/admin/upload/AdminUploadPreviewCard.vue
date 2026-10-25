@@ -121,7 +121,7 @@ const { t } = useI18n()
         @loadedmetadata="emit('videoMetadataLoaded')"
         @error="emit('videoError')"
       />
-      <div class="flex items-center gap-3 font-mono text-[11px] num-tabular">
+      <div class="flex items-center gap-3 text-[11px] num-tabular">
         <span class="text-highlighted">{{ props.liveFrameTimeLabel }}</span>
         <input
           type="range"
@@ -164,7 +164,7 @@ const { t } = useI18n()
           :style="{ width: `${props.uploadProgressPercent}%` }"
         />
       </div>
-      <div class="flex flex-wrap items-center justify-between gap-2 font-mono text-[11px] text-dimmed num-tabular">
+      <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-dimmed num-tabular">
         <span>
           <span class="text-highlighted">{{ props.uploadedBytesText }}</span>
           <span v-if="props.uploadTotalBytes"> / {{ props.uploadTotalText }}</span>
