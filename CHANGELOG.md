@@ -1,3 +1,15 @@
+## v0.45.0
+
+[v0.44.1...v0.45.0](https://github.com/jannchie/liora/compare/v0.44.1...v0.45.0)
+
+### :sparkles: Features
+
+- **gallery**: add a map view of geotagged photos built on mapette - By [Jianqi Pan](mailto:jannchie@gmail.com) in [4cdbdcf](https://github.com/jannchie/liora/commit/4cdbdcf)
+
+### :lipstick: Styles
+
+- **ui**: set changing numbers in the body font with tabular figures instead of monospace - By [Jianqi Pan](mailto:jannchie@gmail.com) in [96cf240](https://github.com/jannchie/liora/commit/96cf240)
+
 ## v0.44.1
 
 [v0.44.0...v0.44.1](https://github.com/Jannchie/liora/compare/v0.44.0...v0.44.1)
