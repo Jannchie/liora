@@ -182,8 +182,7 @@
       "alt": "{location} の地図プレビュー",
       "coordinates": "座標: {value}",
       "defaultLabel": "位置",
-      "zoomIn": "拡大",
-      "zoomOut": "縮小"
+      "openInMapView": "マップで見る"
     },
     "livePhoto": {
       "badge": "Live",
@@ -1154,5 +1153,19 @@
       "home": "写真へ戻る",
       "series": "シリーズを見る"
     }
+  },
+  "mapView": {
+    "title": "マップ",
+    "description": "撮影地から写真を探す。",
+    "backToGallery": "ギャラリーに戻る",
+    "back": "戻る",
+    "photoCount": "{count} 枚の写真",
+    "inView": "表示範囲に {count} 枚",
+    "inViewTruncated": "表示範囲に {count} 枚（新しい {shown} 枚を表示）",
+    "empty": "位置情報付きの写真はまだありません。",
+    "emptyHere": "このエリアに写真はありません。地図を動かすか縮小してください。",
+    "openPhoto": "写真を見る",
+    "showOnMap": "地図で表示",
+    "directions": "経路"
   }
 }

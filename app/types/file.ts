@@ -230,6 +230,20 @@ export interface FileSummary {
   recompose?: RecomposeParams
 }
 
+/** One geotagged photo on the map view: just enough for pins, lists and the panel header. */
+export interface PhotoLocation {
+  id: number
+  latitude: number
+  longitude: number
+  imageUrl: string
+  width: number
+  height: number
+  title: string
+  /** Place name (reverse-geocoded name, else the free-form location). */
+  place: string
+  captureTime: string
+}
+
 export interface FileSeriesRef {
   id: number
   slug: string

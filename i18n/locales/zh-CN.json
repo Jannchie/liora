@@ -182,8 +182,7 @@
       "alt": "{location} 的地图预览",
       "coordinates": "坐标：{value}",
       "defaultLabel": "位置",
-      "zoomIn": "放大",
-      "zoomOut": "缩小"
+      "openInMapView": "在地图视角中查看"
     },
     "livePhoto": {
       "badge": "实况",
@@ -1154,5 +1153,19 @@
       "home": "返回照片",
       "series": "浏览系列"
     }
+  },
+  "mapView": {
+    "title": "地图",
+    "description": "在地图上按拍摄地点浏览照片。",
+    "backToGallery": "返回图库",
+    "back": "返回",
+    "photoCount": "{count} 张照片",
+    "inView": "视野内 {count} 张",
+    "inViewTruncated": "视野内 {count} 张，显示最新的 {shown} 张",
+    "empty": "还没有带位置信息的照片。",
+    "emptyHere": "这片区域没有照片，拖动或缩小地图看看。",
+    "openPhoto": "查看大图",
+    "showOnMap": "在地图上定位",
+    "directions": "导航"
   }
 }

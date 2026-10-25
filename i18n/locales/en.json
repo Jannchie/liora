@@ -182,8 +182,7 @@
       "alt": "Map preview for {location}",
       "coordinates": "Coordinates: {value}",
       "defaultLabel": "Location",
-      "zoomIn": "Zoom in",
-      "zoomOut": "Zoom out"
+      "openInMapView": "Open in map view"
     },
     "livePhoto": {
       "badge": "Live",
@@ -1154,5 +1153,19 @@
       "home": "Go to photos",
       "series": "Browse series"
     }
+  },
+  "mapView": {
+    "title": "Map",
+    "description": "Browse photos by where they were taken.",
+    "backToGallery": "Back to gallery",
+    "back": "Back",
+    "photoCount": "{count} photo | {count} photos",
+    "inView": "{count} photo in view | {count} photos in view",
+    "inViewTruncated": "{count} photos in view, showing the newest {shown}",
+    "empty": "No photos with a location yet.",
+    "emptyHere": "No photos here. Pan or zoom out to find some.",
+    "openPhoto": "View photo",
+    "showOnMap": "Locate on map",
+    "directions": "Directions"
   }
 }

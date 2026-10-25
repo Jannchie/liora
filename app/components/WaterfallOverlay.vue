@@ -785,7 +785,7 @@ function handleFocusToggle(): void {
               </section>
             </template>
           </Suspense>
-          <WaterfallLocationMap v-if="location" :location="location" />
+          <WaterfallLocationMap v-if="location" :location="location" :photo-id="file.id" />
           <WaterfallMetadataPanel
             :metadata-entries="metadataEntries"
             :focus-entry="focusEntry"

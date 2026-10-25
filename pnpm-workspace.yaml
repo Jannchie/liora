@@ -1,6 +1,9 @@
 shellEmulator: true
 
 trustPolicy: no-downgrade
+# Only guard fresh releases: old versions hand-published without provenance
+# (semver 6.3.1, chokidar 4.0.3, …) are not takeovers.
+trustPolicyIgnoreAfter: 43200
 
 overrides:
   '@vercel/nft': ^0.27.4

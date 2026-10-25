@@ -285,6 +285,10 @@ export default defineNuxtConfig({
       project: 'liora',
     },
   },
+  build: {
+    // @mapette/vue ships .vue sources: the server bundle must compile them too.
+    transpile: ['@mapette/vue'],
+  },
   vite: {
     plugins: [tailwindcss()],
     worker: {

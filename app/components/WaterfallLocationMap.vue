@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { Map as MaplibreMap, Marker } from 'maplibre-gl'
 import type { FileLocation } from '~/types/gallery'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { LocationMarker, MapControls, MapView } from '@mapette/vue'
+import { computed } from 'vue'
+import { toMapLocale } from '~/utils/photo-map'
 
 const props = defineProps<{
   location: FileLocation
+  /** Links the card to this photo on the map view. */
+  photoId?: number
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const latitudeText = computed(() => props.location.latitude.toFixed(5))
 const longitudeText = computed(() => props.location.longitude.toFixed(5))
@@ -41,118 +44,9 @@ const externalUrl = computed(() => {
   return `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=15/${lat}/${lon}`
 })
 
-/*
- * CARTO free basemaps (mapcn-style look): vector tiles, no API key.
- * positron for light mode, dark-matter for dark mode — swapped at runtime
- * by watching the resolved theme class on <html>.
- */
-const MAP_STYLES = {
-  light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-  dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
-} as const
-
-const DEFAULT_ZOOM = 13
-
-const mapContainer = ref<HTMLDivElement | null>(null)
-const mapReady = ref(false)
-
-let map: MaplibreMap | null = null
-let marker: Marker | null = null
-let themeObserver: MutationObserver | null = null
-
-function resolveTheme(): 'light' | 'dark' {
-  return document.documentElement.classList.contains('dark') ? 'dark' : 'light'
-}
-
-/*
- * Built imperatively instead of in the template: maplibre's Marker adopts the
- * element into the map's DOM, and moving a Vue-managed node breaks the next
- * patch (insertBefore on a detached anchor). bg-primary follows the theme via
- * CSS variables, so no rebuild is needed on theme switch.
- */
-function createMarkerElement(): HTMLDivElement {
-  const root = document.createElement('div')
-  root.className = 'relative flex h-3.5 w-3.5'
-  root.setAttribute('aria-hidden', 'true')
-  const ping = document.createElement('span')
-  ping.className = 'absolute inline-flex h-full w-full rounded-full bg-primary opacity-60 motion-safe:animate-ping'
-  const dot = document.createElement('span')
-  dot.className = 'relative inline-flex h-3.5 w-3.5 rounded-full bg-primary shadow-md ring-2 ring-white/90'
-  root.append(ping, dot)
-  return root
-}
-
-onMounted(async () => {
-  const [maplibre] = await Promise.all([
-    import('maplibre-gl'),
-    import('maplibre-gl/dist/maplibre-gl.css'),
-  ])
-  if (!mapContainer.value) {
-    return
-  }
-
-  let theme = resolveTheme()
-  map = new maplibre.Map({
-    container: mapContainer.value,
-    style: MAP_STYLES[theme],
-    center: [props.location.longitude, props.location.latitude],
-    zoom: DEFAULT_ZOOM,
-    dragRotate: false,
-    pitchWithRotate: false,
-    touchPitch: false,
-    attributionControl: false,
-  })
-  map.touchZoomRotate.disableRotation()
-  // Bottom-left so it doesn't collide with the custom zoom controls.
-  map.addControl(new maplibre.AttributionControl({ compact: true }), 'bottom-left')
-
-  marker = new maplibre.Marker({ element: createMarkerElement() })
-    .setLngLat([props.location.longitude, props.location.latitude])
-    .addTo(map)
-
-  map.once('load', () => {
-    mapReady.value = true
-    // Compact attribution starts expanded (set by _updateCompact on load) and
-    // covers half the small map; collapse it to the ⓘ toggle — the full text
-    // stays one click away.
-    const attrib = mapContainer.value?.querySelector('details.maplibregl-ctrl-attrib')
-    attrib?.classList.remove('maplibregl-compact-show')
-    attrib?.removeAttribute('open')
-  })
-
-  themeObserver = new MutationObserver(() => {
-    const next = resolveTheme()
-    if (next !== theme && map) {
-      theme = next
-      map.setStyle(MAP_STYLES[next])
-    }
-  })
-  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-})
-
-watch(
-  () => [props.location.longitude, props.location.latitude] as const,
-  ([lon, lat]) => {
-    marker?.setLngLat([lon, lat])
-    map?.jumpTo({ center: [lon, lat], zoom: DEFAULT_ZOOM })
-  },
-)
-
-onBeforeUnmount(() => {
-  themeObserver?.disconnect()
-  themeObserver = null
-  marker?.remove()
-  marker = null
-  map?.remove()
-  map = null
-})
-
-function zoomBy(delta: number): void {
-  if (!map) {
-    return
-  }
-  map.zoomTo(map.getZoom() + delta, { duration: 250 })
-}
+const mapLocale = computed(() => toMapLocale(locale.value))
+const center = computed<[number, number]>(() => [props.location.longitude, props.location.latitude])
+const mapViewUrl = computed(() => (props.photoId ? `/map?photo=${props.photoId}` : null))
 </script>
 
 <template>
@@ -171,68 +65,33 @@ function zoomBy(delta: number): void {
           {{ formattedCoordinates }}
         </p>
       </div>
-      <a
-        :href="externalUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
-        :title="t('gallery.map.openExternal')"
-        :aria-label="t('gallery.map.openExternal')"
-      >
-        <Icon name="jannchie:external-link" class="h-4 w-4 shrink-0" />
-      </a>
-    </div>
-    <div class="relative overflow-hidden rounded-md border border-border bg-muted">
-      <div
-        ref="mapContainer"
-        role="img"
-        :aria-label="altText"
-        class="h-45 w-full transition-opacity duration-300"
-        :class="mapReady ? 'opacity-100' : 'opacity-0'"
-      />
-      <div
-        v-if="mapReady"
-        class="absolute right-2 bottom-2 z-10 flex flex-col overflow-hidden rounded-md border border-border-strong bg-default/90 backdrop-blur-sm"
-      >
-        <button
-          type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
-          :aria-label="t('gallery.map.zoomIn')"
-          @click="zoomBy(1)"
+      <div class="flex shrink-0 items-center gap-0.5">
+        <NuxtLink
+          v-if="mapViewUrl"
+          :to="mapViewUrl"
+          class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          :title="t('gallery.map.openInMapView')"
+          :aria-label="t('gallery.map.openInMapView')"
         >
-          <Icon name="jannchie:plus" class="h-3.5 w-3.5 shrink-0" />
-        </button>
-        <div class="h-px bg-border-strong" />
-        <button
-          type="button"
-          class="inline-flex h-7 w-7 items-center justify-center text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
-          :aria-label="t('gallery.map.zoomOut')"
-          @click="zoomBy(-1)"
+          <Icon name="jannchie:map-search" class="h-4 w-4 shrink-0" />
+        </NuxtLink>
+        <a
+          :href="externalUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted outline-none transition-colors duration-150 ease-out hover:bg-muted hover:text-fg-highlighted focus-visible:shadow-[var(--ring-focus)]"
+          :title="t('gallery.map.openExternal')"
+          :aria-label="t('gallery.map.openExternal')"
         >
-          <Icon name="jannchie:minus" class="h-3.5 w-3.5 shrink-0" />
-        </button>
+          <Icon name="jannchie:external-link" class="h-4 w-4 shrink-0" />
+        </a>
       </div>
+    </div>
+    <div class="h-45 overflow-hidden rounded-md border border-border bg-muted" role="region" :aria-label="altText">
+      <MapView preset="compact" :center="center" :zoom="13" :locale="mapLocale">
+        <LocationMarker :lng-lat="center" pulse />
+        <MapControls :locate="false" />
+      </MapView>
     </div>
   </section>
 </template>
-
-<style scoped>
-/* The default maplibre attribution inherits the page font size and dwarfs
- * the 180px map; shrink both the expanded text and the ⓘ toggle. */
-:deep(.maplibregl-ctrl-attrib) {
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-:deep(.maplibregl-ctrl-attrib.maplibregl-compact) {
-  min-height: 20px;
-}
-
-:deep(.maplibregl-ctrl-attrib-button) {
-  width: 20px;
-  height: 20px;
-  background-size: 14px;
-  background-position: center;
-  background-repeat: no-repeat;
-}
-</style>

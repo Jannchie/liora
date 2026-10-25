@@ -61,6 +61,17 @@ const { t } = useI18n()
 
       <div class="flex shrink-0 items-center gap-1">
         <UButton
+          to="/map"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          icon="jannchie:map-pin"
+          class="shrink-0"
+          :aria-label="t('mapView.title')"
+        >
+          <span class="max-sm:hidden">{{ t('mapView.title') }}</span>
+        </UButton>
+        <UButton
           v-if="isAuthenticated"
           to="/admin"
           color="neutral"
@@ -85,6 +96,17 @@ const { t } = useI18n()
     v-else
     class="flex h-10 items-center justify-end gap-1 border-b border-border px-2 sm:px-3"
   >
+    <UButton
+      to="/map"
+      color="neutral"
+      variant="ghost"
+      size="sm"
+      icon="jannchie:map-pin"
+      class="shrink-0"
+      :aria-label="t('mapView.title')"
+    >
+      <span class="max-sm:hidden">{{ t('mapView.title') }}</span>
+    </UButton>
     <UButton
       v-if="isAuthenticated"
       to="/admin"
