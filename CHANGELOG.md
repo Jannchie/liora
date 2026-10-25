@@ -1,3 +1,11 @@
+## v0.46.0
+
+[v0.45.1...v0.46.0](https://github.com/jannchie/liora/compare/v0.45.1...v0.46.0)
+
+### :sparkles: Features
+
+- **admin**: filter photos without a location and tag them one by one - By [Jianqi Pan](mailto:jannchie@gmail.com) in [12c130c](https://github.com/jannchie/liora/commit/12c130c)
+
 ## v0.45.1
 
 [v0.45.0...v0.45.1](https://github.com/jannchie/liora/compare/v0.45.0...v0.45.1)
