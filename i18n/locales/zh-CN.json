@@ -1073,6 +1073,10 @@
           "title": "补齐 EXIF 元数据",
           "description": "从原图读取 EXIF / GPS 并填充到已有作品。"
         },
+        "recipe": {
+          "title": "补齐修图配方",
+          "description": "从所有作品的原图重新读取 LLR / Lightroom 配方。"
+        },
         "histogram": {
           "title": "补齐直方图",
           "description": "为缺少直方图的作品重新计算。"

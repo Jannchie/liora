@@ -1,3 +1,15 @@
+## v0.45.1
+
+[v0.45.0...v0.45.1](https://github.com/jannchie/liora/compare/v0.45.0...v0.45.1)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: keep map thumbnail outlines from being clipped - By [Jianqi Pan](mailto:jannchie@gmail.com) in [7e40ba1](https://github.com/jannchie/liora/commit/7e40ba1)
+
+### :wrench: Chores
+
+- stop tracking the local .claude/launch.json - By [Jianqi Pan](mailto:jannchie@gmail.com) in [e970538](https://github.com/jannchie/liora/commit/e970538)
+
 ## v0.45.0
 
 [v0.44.1...v0.45.0](https://github.com/jannchie/liora/compare/v0.44.1...v0.45.0)

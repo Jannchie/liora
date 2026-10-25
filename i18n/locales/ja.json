@@ -1073,6 +1073,10 @@
           "title": "EXIF メタデータを補完",
           "description": "元画像から EXIF / GPS を読み取り、既存作品へ反映します。"
         },
+        "recipe": {
+          "title": "編集レシピを補完",
+          "description": "すべての作品の元画像から LLR / Lightroom のレシピを読み直します。"
+        },
         "histogram": {
           "title": "ヒストグラムを補完",
           "description": "ヒストグラムが欠けている作品を再計算します。"

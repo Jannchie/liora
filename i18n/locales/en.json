@@ -1073,6 +1073,10 @@
           "title": "Backfill EXIF metadata",
           "description": "Read EXIF / GPS from original images and fill existing works."
         },
+        "recipe": {
+          "title": "Backfill editing recipes",
+          "description": "Re-read LLR and Lightroom recipes from the original images of every work."
+        },
         "histogram": {
           "title": "Backfill histogram",
           "description": "Recalculate histograms for works that are missing them."
