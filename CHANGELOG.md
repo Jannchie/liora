@@ -1,3 +1,21 @@
+## v0.47.0
+
+[v0.46.0...v0.47.0](https://github.com/jannchie/liora/compare/v0.46.0...v0.47.0)
+
+### :sparkles: Features
+
+- **gallery**: draw the LLR parametric curve and curve control points - By [Jianqi Pan](mailto:jannchie@gmail.com) in [b82b4c3](https://github.com/jannchie/liora/commit/b82b4c3)
+- **upload**: detect live photos and allow picking several files - By [Jianqi Pan](mailto:jannchie@gmail.com) in [3d69cc1](https://github.com/jannchie/liora/commit/3d69cc1)
+
+### :adhesive_bandage: Fixes
+
+- move multi-statement template handlers into functions - By [Jianqi Pan](mailto:jannchie@gmail.com) in [2bb8806](https://github.com/jannchie/liora/commit/2bb8806)
+
+### :wrench: Chores
+
+- ignore the oxfmt reformat in git blame - By [Jianqi Pan](mailto:jannchie@gmail.com) in [a96f779](https://github.com/jannchie/liora/commit/a96f779)
+- replace eslint with oxlint and oxfmt - By [Jianqi Pan](mailto:jannchie@gmail.com) in [5ada94e](https://github.com/jannchie/liora/commit/5ada94e)
+
 ## v0.46.0
 
 [v0.45.1...v0.46.0](https://github.com/jannchie/liora/compare/v0.45.1...v0.46.0)
