@@ -1,3 +1,11 @@
+## v0.48.1
+
+[v0.48.0...v0.48.1](https://github.com/jannchie/liora/compare/v0.48.0...v0.48.1)
+
+### :adhesive_bandage: Fixes
+
+- **gallery**: open the photo's location map at city level - By [Jianqi Pan](mailto:jannchie@gmail.com) in [9ee715e](https://github.com/jannchie/liora/commit/9ee715e)
+
 ## v0.48.0
 
 [v0.47.0...v0.48.0](https://github.com/jannchie/liora/compare/v0.47.0...v0.48.0)
