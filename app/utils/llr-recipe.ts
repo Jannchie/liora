@@ -1,3 +1,4 @@
+import type { ParametricCurve } from './tone-curve'
 import type {
   LlrMaskView,
   LlrRecipeView,
@@ -15,6 +16,7 @@ import {
   parseRecipeText,
   toDisplayText,
 } from './recipe-fields'
+import { sampleParametricCurve } from './tone-curve'
 
 // Pure parsing of the `llrRecipe` metadata field — the `llr:Settings` JSON blob
 // LLR (~/llr) embeds on export, compacted on upload (server/utils/llr-metadata)
@@ -221,6 +223,27 @@ const RELIGHT_SPECS: LlrSliderSpec[] = [
   { key: 'shadows', min: 0, max: 1, digits: 2, defaultValue: 0.8, zeroCentered: false },
 ]
 
+// Look tweaks saved before LLR stored them on the panel scale (`lookScale`
+// absent) are the camera's stops; LLR converts them on load (App.vue
+// `lookStopsToPanel`) and so does the panel. The three sliders the camera
+// lacks (white, black, hue) were never stored then.
+const LOOK_PANEL_SCALE = 'panel'
+const LOOK_SATURATION_STOPS = [0, 10, 20, 25, 30, 35, 40, 45, 50, 55]
+
+function lookStopsToPanel(look: Record<string, unknown>): Record<string, number> {
+  const stops = (key: string): number => Math.trunc(parseRecipeNumber(look[key]) ?? 0)
+  const saturation = stops('saturation')
+  const ladder = LOOK_SATURATION_STOPS[Math.min(Math.abs(saturation), LOOK_SATURATION_STOPS.length - 1)]!
+  return {
+    contrast: stops('contrast') * 5,
+    highlights: stops('highlights') * 5,
+    shadows: stops('shadows') * 5,
+    fade: stops('fade') * 10,
+    saturation: saturation < 0 ? -ladder : ladder,
+    clarity: stops('clarity') * 10,
+  }
+}
+
 const GRADING_TONES = ['sh', 'md', 'hl'] as const
 
 // LLR stores grading hue signed around the primary; its own XMP writer folds
@@ -344,13 +367,37 @@ function isIdentityCurve(points: RecipeCurvePoint[]): boolean {
 }
 
 function parseCurveChannel(source: unknown): RecipeCurvePoint[] | undefined {
-  const points = parseCurvePoints(source)
+  const points = parseCurvePoints(source).toSorted((a, b) => a.x - b.x)
   if (points.length === 0 || isIdentityCurve(points)) {
     return undefined
+  }
+  // LLR's `curveToLUT` pins a curve that stops short of either end to the
+  // corner there, rather than holding it flat.
+  if (points[0]!.x > 0) {
+    points.unshift({ x: 0, y: 0 })
+  }
+  if (points.at(-1)!.x < 1) {
+    points.push({ x: 1, y: 1 })
   }
   // LLR stores curve points normalized to [0,1]; the panel plots in Lightroom's
   // 0–255 curve space.
   return points.map(point => ({ x: point.x * 255, y: point.y * 255 }))
+}
+
+/** The parametric curve's samples, or nothing while all four regions sit at zero. */
+function parseParametricCurve(source: Record<string, unknown>): RecipeCurvePoint[] | undefined {
+  const value = (key: string, fallback: number): number => parseRecipeNumber(source[key]) ?? fallback
+  const curve: ParametricCurve = {
+    shadows: value('shadows', 0),
+    darks: value('darks', 0),
+    lights: value('lights', 0),
+    highlights: value('highlights', 0),
+    shadowSplit: value('shadowSplit', 25),
+    midtoneSplit: value('midtoneSplit', 50),
+    highlightSplit: value('highlightSplit', 75),
+  }
+  const moved = [curve.shadows, curve.darks, curve.lights, curve.highlights].some(amount => !isNearlyEqual(amount, 0))
+  return moved ? sampleParametricCurve(curve, 255) : undefined
 }
 
 // LLR names the composite channel `rgb`; the rest match the view model.
@@ -370,6 +417,12 @@ function buildToneCurve(curve: Record<string, unknown>): LlrRecipeView['toneCurv
       toneCurve[channel] = points
       hasCurve = true
     }
+  }
+  const parametric = asObject(curve.parametric)
+  const parametricSamples = parametric ? parseParametricCurve(parametric) : undefined
+  if (parametricSamples) {
+    toneCurve.parametric = parametricSamples
+    hasCurve = true
   }
   return hasCurve ? toneCurve : undefined
 }
@@ -725,7 +778,9 @@ export function parseLlrRecipeView(value: string | undefined, t: LlrTranslate): 
   // The Creative Look's tweaks drive Sony's own stages rather than the Tone
   // panel's sliders, so they are a group of their own.
   const lookObject = asObject(payload.look)
-  pushGroup('look', lookObject ? buildItems(lookObject, LOOK_SPECS, t, 'gallery.llr.look') : [])
+  const look =
+    lookObject && parseRecipeText(payload.lookScale) !== LOOK_PANEL_SCALE ? lookStopsToPanel(lookObject) : lookObject
+  pushGroup('look', look ? buildItems(look, LOOK_SPECS, t, 'gallery.llr.look') : [])
 
   const relightObject = asObject(payload.relight)
   pushGroup('relight', relightObject ? buildRelightItems(relightObject, t) : [])

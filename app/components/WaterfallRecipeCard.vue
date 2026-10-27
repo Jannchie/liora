@@ -30,10 +30,12 @@ const props = withDefaults(
 const { t } = useI18n()
 
 interface ToneCurveChannel {
-  key: 'composite' | 'red' | 'green' | 'blue'
+  key: 'parametric' | 'composite' | 'red' | 'green' | 'blue'
   label: string
   color: string
-  points: RecipeCurvePoint[]
+  path: string
+  /** Control points to mark; a sampled curve (parametric) has none. */
+  handles: RecipeCurvePoint[]
 }
 
 const toneCurveChannels = computed<ToneCurveChannel[]>(() => {
@@ -41,13 +43,36 @@ const toneCurveChannels = computed<ToneCurveChannel[]>(() => {
   if (!toneCurve) {
     return []
   }
-  const candidates: ToneCurveChannel[] = [
-    { key: 'composite', label: 'RGB', color: '#9ca3af', points: toneCurve.composite ?? [] },
-    { key: 'red', label: 'R', color: '#ef4444', points: toneCurve.red ?? [] },
-    { key: 'green', label: 'G', color: '#22c55e', points: toneCurve.green ?? [] },
-    { key: 'blue', label: 'B', color: '#3b82f6', points: toneCurve.blue ?? [] },
-  ]
-  return candidates.filter(channel => channel.points.length >= 2)
+  const channels: ToneCurveChannel[] = []
+  // The parametric curve runs first in the editor's stack, so it sits under
+  // the point curves; dashed to tell it from the RGB master.
+  if (toneCurve.parametric && toneCurve.parametric.length >= 2) {
+    channels.push({
+      key: 'parametric',
+      label: t('gallery.llr.group.parametric'),
+      color: '#a78bfa',
+      path: buildPath(toneCurve.parametric),
+      handles: [],
+    })
+  }
+  const pointChannels = [
+    { key: 'composite', label: 'RGB', color: '#d1d5db', points: toneCurve.composite },
+    { key: 'red', label: 'R', color: '#ef4444', points: toneCurve.red },
+    { key: 'green', label: 'G', color: '#22c55e', points: toneCurve.green },
+    { key: 'blue', label: 'B', color: '#3b82f6', points: toneCurve.blue },
+  ] as const
+  for (const channel of pointChannels) {
+    if (channel.points && channel.points.length >= 2) {
+      channels.push({
+        key: channel.key,
+        label: channel.label,
+        color: channel.color,
+        path: buildPath(sampleToneCurve(channel.points, 255)),
+        handles: channel.points,
+      })
+    }
+  }
+  return channels
 })
 
 // Only a named curve (Lightroom's "Medium Contrast", …) says anything beyond
@@ -61,11 +86,8 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-function buildToneCurvePath(points: RecipeCurvePoint[]): string {
-  if (points.length < 2) {
-    return ''
-  }
-  return sampleToneCurve(points, 255)
+function buildPath(samples: RecipeCurvePoint[]): string {
+  return samples
     .map((point, index) => {
       const x = clamp(point.x, 0, 255)
       const y = 255 - clamp(point.y, 0, 255)
@@ -123,7 +145,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
       </div>
       <svg
         viewBox="0 0 255 255"
-        class="aspect-square w-full max-w-48 rounded-md border border-border bg-muted"
+        class="aspect-square w-full max-w-48 overflow-visible rounded-md border border-border bg-muted"
         role="img"
         :aria-label="t('gallery.metadata.toneCurve')"
       >
@@ -146,13 +168,27 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
         <path
           v-for="channel in toneCurveChannels"
           :key="channel.key"
-          :d="buildToneCurvePath(channel.points)"
+          :d="channel.path"
           :stroke="channel.color"
+          :stroke-dasharray="channel.key === 'parametric' ? '6 3' : undefined"
           stroke-width="1.5"
           stroke-linejoin="round"
           vector-effect="non-scaling-stroke"
           fill="none"
         />
+        <template v-for="channel in toneCurveChannels" :key="`${channel.key}-handles`">
+          <circle
+            v-for="(point, pointIndex) in channel.handles"
+            :key="pointIndex"
+            :cx="point.x"
+            :cy="255 - point.y"
+            r="4"
+            :fill="channel.color"
+            stroke="var(--color-muted)"
+            stroke-width="1.5"
+            vector-effect="non-scaling-stroke"
+          />
+        </template>
       </svg>
       <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-dimmed">
         <span

@@ -34,7 +34,7 @@ function splineTangents(points: RecipeCurvePoint[]): number[] {
  * The curve evaluated at `count + 1` evenly spaced inputs across
  * `[0, range]`, in the points' own units.
  */
-export function sampleToneCurve(points: RecipeCurvePoint[], range: number, count = 64): RecipeCurvePoint[] {
+export function sampleToneCurve(points: RecipeCurvePoint[], range: number, count = 128): RecipeCurvePoint[] {
   const sorted = points.toSorted((a, b) => a.x - b.x)
   if (sorted.length < 2) {
     return sorted
@@ -69,7 +69,64 @@ export function sampleToneCurve(points: RecipeCurvePoint[], range: number, count
     } else {
       y = first.y + ((last.y - first.y) * (x - first.x)) / (last.x - first.x)
     }
-    samples.push({ x, y })
+    samples.push({ x, y: Math.min(range, Math.max(0, y)) })
+  }
+  return samples
+}
+
+/** LLR's parametric (region) curve: four region amounts and three splits. */
+export interface ParametricCurve {
+  shadows: number
+  darks: number
+  lights: number
+  highlights: number
+  shadowSplit: number
+  midtoneSplit: number
+  highlightSplit: number
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
+/**
+ * The parametric curve at `count + 1` evenly spaced inputs across
+ * `[0, range]`. A port of LLR's `parametricToLUT` (rendering/curve.ts), which
+ * approximates Lightroom's region curve with Gaussian bumps centred in each
+ * region, re-anchored at both ends and forced monotone — the curve LLR itself
+ * draws and renders with.
+ */
+export function sampleParametricCurve(curve: ParametricCurve, range: number, count = 128): RecipeCurvePoint[] {
+  const splits = [curve.shadowSplit, curve.midtoneSplit, curve.highlightSplit]
+    .map(split => clamp(split / 100, 0.02, 0.98))
+    .toSorted((a, b) => a - b)
+  const [s1, s2, s3] = splits as [number, number, number]
+  const centers = [s1 * 0.5, (s1 + s2) / 2, (s2 + s3) / 2, (s3 + 1) / 2]
+  const amounts = [curve.shadows, curve.darks, curve.lights, curve.highlights].map(value => clamp(value / 100, -1, 1))
+  const sigmas = centers.map((center, index) => {
+    const previous = index > 0 ? centers[index - 1]! : 0
+    const next = index < 3 ? centers[index + 1]! : 1
+    return clamp(Math.min(center - previous, next - center) * 0.85, 0.05, 0.3)
+  })
+  // ±100 moves the output about ±0.22 at the region's peak.
+  const amplitude = 0.22
+  const displacement = (x: number): number => {
+    let total = 0
+    for (const [index, center] of centers.entries()) {
+      const z = (x - center) / sigmas[index]!
+      total += amounts[index]! * Math.exp(-0.5 * z * z)
+    }
+    return amplitude * total
+  }
+  const d0 = displacement(0)
+  const d1 = displacement(1)
+  const samples: RecipeCurvePoint[] = []
+  let floor = 0
+  for (let step = 0; step <= count; step += 1) {
+    const x = step / count
+    const y = Math.max(floor, clamp(x + displacement(x) - (d0 * (1 - x) + d1 * x), 0, 1))
+    floor = y
+    samples.push({ x: x * range, y: y * range })
   }
   return samples
 }

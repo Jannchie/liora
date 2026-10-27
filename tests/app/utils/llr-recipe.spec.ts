@@ -353,6 +353,7 @@ describe('app/utils/llr-recipe', () => {
           saturation: -10,
           clarity: 20,
         },
+        lookScale: 'panel',
         lookStyle: 'FL',
         dro: 1,
         droLevel: 70,
@@ -508,6 +509,47 @@ describe('app/utils/llr-recipe', () => {
       }),
     )
     expect(view?.toggles).toEqual(['Advanced colour', 'Camera match off'])
+  })
+
+  it('converts look tweaks saved on the camera stops to the panel scale', () => {
+    const view = parseLlrRecipeView(buildSettings({ look: { contrast: 2, fade: 1, saturation: -3, clarity: 2 } }))
+    const look = view?.groups.find(group => group.key === 'look')?.items
+    expect(look?.map(item => [item.key, item.value])).toEqual([
+      ['contrast', 10],
+      ['fade', 10],
+      ['saturation', -25],
+      ['clarity', 20],
+    ])
+  })
+
+  it('plots the parametric curve and pins short point curves to the corners', () => {
+    const view = parseLlrRecipeView(
+      buildSettings({
+        curve: {
+          rgb: [
+            { x: 0.25, y: 0.2 },
+            { x: 0.75, y: 0.8 },
+          ],
+          parametric: { shadows: 0, darks: 40, lights: 0, highlights: 0 },
+        },
+      }),
+    )
+    const composite = view?.toneCurve?.composite
+    expect(composite?.[0]).toEqual({ x: 0, y: 0 })
+    expect(composite?.at(-1)).toEqual({ x: 255, y: 255 })
+    const parametric = view?.toneCurve?.parametric ?? []
+    expect(parametric.length).toBeGreaterThan(2)
+    expect(parametric[0]?.y).toBeCloseTo(0)
+    expect(parametric.at(-1)?.y).toBeCloseTo(255)
+    // Darks +40 lifts the lower mids above the diagonal.
+    const quarter = parametric.find(point => point.x >= 255 * 0.375)!
+    expect(quarter.y).toBeGreaterThan(quarter.x)
+  })
+
+  it('shows the curve block for a parametric-only edit', () => {
+    const view = parseLlrRecipeView(buildSettings({ curve: { parametric: { highlights: -30 } } }))
+    expect(view?.toneCurve?.parametric).toBeDefined()
+    expect(view?.toneCurve?.composite).toBeUndefined()
   })
 
   it('reads the rendering profile separately from the camera style', () => {

@@ -86,6 +86,8 @@ export interface RecipeToneCurve {
   red?: RecipeCurvePoint[]
   green?: RecipeCurvePoint[]
   blue?: RecipeCurvePoint[]
+  /** The parametric (region) curve, already sampled densely — drawn as is, not through the point spline. */
+  parametric?: RecipeCurvePoint[]
 }
 
 export interface LightroomRecipeView {
