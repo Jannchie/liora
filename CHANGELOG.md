@@ -1,3 +1,11 @@
+## v0.48.0
+
+[v0.47.0...v0.48.0](https://github.com/jannchie/liora/compare/v0.47.0...v0.48.0)
+
+### :sparkles: Features
+
+- **gallery**: match 500px's waterfall gutters and column widths - By [Jianqi Pan](mailto:jannchie@gmail.com) in [f6271a9](https://github.com/jannchie/liora/commit/f6271a9)
+
 ## v0.47.0
 
 [v0.46.0...v0.47.0](https://github.com/jannchie/liora/compare/v0.46.0...v0.47.0)
