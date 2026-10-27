@@ -1,6 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import type { MediaFormState } from '~/types/admin'
 import { computed, ref } from 'vue'
+import { resolveContentType } from '~/utils/file'
 
 interface PresignedUpload {
   key: string
@@ -30,35 +31,6 @@ type RequestFetch = <T>(request: string, options?: {
   params?: Record<string, string>
   [key: string]: unknown
 }) => Promise<T>
-
-function resolveContentType(file: File, fallback: string): string {
-  if (file.type) {
-    return file.type
-  }
-  const name = file.name.toLowerCase()
-  if (name.endsWith('.jpg') || name.endsWith('.jpeg')) {
-    return 'image/jpeg'
-  }
-  if (name.endsWith('.png')) {
-    return 'image/png'
-  }
-  if (name.endsWith('.webp')) {
-    return 'image/webp'
-  }
-  if (name.endsWith('.avif')) {
-    return 'image/avif'
-  }
-  if (name.endsWith('.gif')) {
-    return 'image/gif'
-  }
-  if (name.endsWith('.mov')) {
-    return 'video/quicktime'
-  }
-  if (name.endsWith('.mp4')) {
-    return 'video/mp4'
-  }
-  return fallback
-}
 
 function updateProgress(metrics: UploadMetrics, loaded: number, offset: number, total: number): void {
   metrics.uploadBytesSent.value = Math.min(total, offset + loaded)

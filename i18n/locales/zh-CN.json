@@ -440,6 +440,7 @@
         "batchApplyDone": "已应用到选中图片。",
         "batchUploadDone": "批量上传完成。",
         "batchUploadFailed": "批量上传完成，但存在失败项。",
+        "batchVideoSkipped": "已跳过 {count} 个没有配对照片的视频，请单独打开以选择封面帧。",
         "batchSeriesRequired": "请先选择系列。",
         "batchSeriesApplied": "已为选中图片设置系列分配。",
         "batchSeriesAssignFailed": "上传后分配系列失败。"
@@ -452,7 +453,7 @@
       "batch": {
         "title": "批量队列",
         "metadataTitle": "批量元数据",
-        "pickFiles": "选择图片",
+        "pickFiles": "批量选择",
         "clearQueue": "清空队列",
         "applyMetadata": "应用到选中",
         "applySeries": "应用系列",
@@ -480,9 +481,9 @@
       "sections": {
         "upload": {
           "label": "上传照片",
-          "dropHint": "拖拽照片或视频到此或点击选择文件",
+          "dropHint": "拖拽照片或视频到此或点击选择文件（可多选）",
           "supported": "支持 JPG/PNG 等图片，MP4/MOV 等视频",
-          "autoRouteHint": "选中视频时会自动按实况照片处理并抽帧作为封面",
+          "autoRouteHint": "实况照片 / 动态照片会自动识别并一并上传视频；多选时进入批量队列",
           "mode": {
             "image": "照片",
             "live": "实况照片"

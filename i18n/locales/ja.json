@@ -440,6 +440,7 @@
         "batchApplyDone": "選択した画像に適用しました。",
         "batchUploadDone": "一括アップロードが完了しました。",
         "batchUploadFailed": "一括アップロードは完了しましたが失敗項目があります。",
+        "batchVideoSkipped": "対応する写真がない動画 {count} 件をスキップしました。カバーを選ぶには 1 件ずつ開いてください。",
         "batchSeriesRequired": "先にシリーズを選択してください。",
         "batchSeriesApplied": "選択画像へのシリーズ割り当てを設定しました。",
         "batchSeriesAssignFailed": "アップロード後のシリーズ割り当てに失敗しました。"
@@ -452,7 +453,7 @@
       "batch": {
         "title": "一括キュー",
         "metadataTitle": "一括メタデータ",
-        "pickFiles": "画像を選択",
+        "pickFiles": "ファイルを選択",
         "clearQueue": "キューをクリア",
         "applyMetadata": "選択に適用",
         "applySeries": "シリーズを適用",
@@ -480,9 +481,9 @@
       "sections": {
         "upload": {
           "label": "写真をアップロード",
-          "dropHint": "ここに写真や動画をドラッグするかクリックして選択",
+          "dropHint": "ここに写真や動画をドラッグするかクリックして選択（複数可）",
           "supported": "JPG/PNG などの画像、MP4/MOV などの動画に対応",
-          "autoRouteHint": "動画を選択すると自動的に Live Photo として処理され、カバーフレームが抽出されます",
+          "autoRouteHint": "Live Photo・モーションフォトは自動で検出され動画も一緒にアップロードされます。複数選択すると一括キューに入ります",
           "mode": {
             "image": "写真",
             "live": "Live Photo"

@@ -440,6 +440,7 @@
         "batchApplyDone": "Applied metadata to selected images.",
         "batchUploadDone": "Batch upload completed.",
         "batchUploadFailed": "Batch upload finished with failures.",
+        "batchVideoSkipped": "Skipped {count} video(s) without a matching photo — open them one at a time to pick a cover frame.",
         "batchSeriesRequired": "Choose a series first.",
         "batchSeriesApplied": "Series assignment has been staged for selected images.",
         "batchSeriesAssignFailed": "Failed to assign series after upload."
@@ -452,7 +453,7 @@
       "batch": {
         "title": "Batch queue",
         "metadataTitle": "Batch metadata",
-        "pickFiles": "Pick images",
+        "pickFiles": "Pick files",
         "clearQueue": "Clear queue",
         "applyMetadata": "Apply to selected",
         "applySeries": "Add series",
@@ -480,9 +481,9 @@
       "sections": {
         "upload": {
           "label": "Upload photo",
-          "dropHint": "Drag a photo or video here or click to pick a file",
+          "dropHint": "Drag photos or videos here or click to pick (multiple allowed)",
           "supported": "Images (JPG/PNG…) or videos (MP4/MOV…)",
-          "autoRouteHint": "Videos are auto-routed to the Live Photo flow with a cover frame extracted client-side",
+          "autoRouteHint": "Live / motion photos are detected and their video uploaded too; picking several files opens the batch queue",
           "mode": {
             "image": "Photo",
             "live": "Live photo"

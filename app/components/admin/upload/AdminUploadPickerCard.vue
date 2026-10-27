@@ -1,10 +1,12 @@
 <script setup lang="ts">
 /*
  * Single dropzone for both still photos and Live Photo videos.
- * The mode toggle is gone — the picker accepts image/* + video/* and the
- * parent classifies by MIME on receipt:
- *   image/* → still photo path
+ * The mode toggle is gone — the picker accepts several image/* + video/*
+ * files and the parent classifies them on receipt:
+ *   image/* → still photo path (motion photos split into still + video)
+ *   image + same-named video → live photo with its original still
  *   video/* → live photo path (cover frame extracted client-side)
+ *   several entries → batch queue
  *
  * Why: the prior toggle made users pick a mode before dropping a file
  * even though the file type itself already disambiguates. One affordance,
@@ -15,14 +17,17 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{
-  /** Fired with the picked File (or null on clear). Parent routes by type. */
-  pick: [file: File | null]
+  /** Fired with the picked files. Parent routes by type and count. */
+  pick: [files: File[]]
 }>()
 
 const { t } = useI18n()
 
-function handleFile(file: File | null): void {
-  emit('pick', file)
+// UFileUpload types its value as a single File here even with `multiple`
+// (the generic isn't inferred), so accept both shapes. The model stays
+// null: the parent owns the picked files, the dropzone only reports them.
+function handleFiles(value: File | File[] | null | undefined): void {
+  emit('pick', Array.isArray(value) ? value : value ? [value] : [])
 }
 </script>
 
@@ -34,10 +39,11 @@ function handleFile(file: File | null): void {
     :ref="setFileUploadRef"
     :model-value="null"
     accept="image/*,video/*"
+    multiple
     :label="t('admin.upload.sections.upload.dropHint')"
     :description="t('admin.upload.sections.upload.supported')"
     class="wire-band w-full"
-    @update:model-value="handleFile"
+    @update:model-value="handleFiles"
   >
     <header class="space-y-1">
       <p class="label-caption flex items-center gap-2">

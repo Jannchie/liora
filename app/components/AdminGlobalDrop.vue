@@ -7,6 +7,7 @@
  */
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { usePendingUpload } from '~/composables/usePendingUpload'
+import { isImageFile, isVideoFile } from '~/utils/file'
 
 const props = defineProps<{
   enabled: boolean
@@ -57,7 +58,7 @@ function onDrop(event: DragEvent): void {
   }
   event.preventDefault()
   const files = [...(event.dataTransfer?.files ?? [])]
-    .filter(file => file.type.startsWith('image/') || file.type.startsWith('video/'))
+    .filter(file => isImageFile(file) || isVideoFile(file))
   if (files.length === 0) {
     toast.add({ title: t('admin.upload.toast.selectImage'), color: 'error' })
     return

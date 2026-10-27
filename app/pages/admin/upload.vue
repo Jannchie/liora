@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { MediaFormState } from '~/types/admin'
+import type { LivePhotoEntry } from '~/utils/motion-photo'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAdminUploadForm } from '~/composables/useAdminUploadForm'
 import { useExifExtraction } from '~/composables/useExifExtraction'
@@ -7,7 +8,9 @@ import { useLivePhotoFrame } from '~/composables/useLivePhotoFrame'
 import { usePendingUpload } from '~/composables/usePendingUpload'
 import { useUploadProcessingPoll } from '~/composables/useUploadProcessingPoll'
 import { useUploadTransport } from '~/composables/useUploadTransport'
+import { isImageFile } from '~/utils/file'
 import { createEmptyMediaFormState } from '~/utils/media-form'
+import { resolveLivePhotoEntries } from '~/utils/motion-photo'
 
 const { t } = useI18n()
 const toast = useToast()
@@ -120,6 +123,9 @@ type BatchUploadStatus = 'pending' | 'uploading' | 'success' | 'failed'
 interface BatchUploadItem {
   id: string
   file: File
+  /** Live Photo video paired with `file`, when there is one. */
+  video: File | null
+  stillTime?: number
   previewUrl: string
   form: MediaFormState
   selected: boolean
@@ -188,34 +194,51 @@ function setUploadMode(mode: UploadMode): void {
   uploadMode.value = mode
 }
 
-/**
- * Single entry point for the unified picker. Inspects MIME and routes:
- *   image/* → still-photo path (sets uploadValue, mode=image)
- *   video/* → live-photo path (sets videoValue, mode=live)
- *
- * Anything else is rejected with a toast. Used by the dropzone, the
- * "change file" affordance on the preview, and the paste handler.
+/*
+ * The still that came with a Live Photo (motion photo or HEIC + MOV pair),
+ * handed from `ingestEntry` to the `videoValue` watcher, which applies it
+ * after the video selection has reset the form.
  */
-function ingestPickedFile(file: File | null): void {
-  if (!file) {
-    clearSelectedFile()
+let pendingLiveStill: { image: File, stillTime?: number } | null = null
+
+/**
+ * Single entry point for the unified picker, the "change file" affordance
+ * on the preview, the paste handler and global drops. Live Photos are
+ * detected first (see `resolveLivePhotoEntries`); one resulting entry opens
+ * the editor, several go to the batch queue.
+ */
+async function ingestPickedFiles(files: File[]): Promise<void> {
+  if (files.length === 0) {
     return
   }
-  if (file.type.startsWith('video/')) {
-    if (uploadMode.value !== 'live') {
-      setUploadMode('live')
-    }
-    videoValue.value = file
+  const entries = await resolveLivePhotoEntries(files)
+  if (entries.length === 0) {
+    toast.add({ title: toastMessages.value.selectImage, color: 'error' })
     return
   }
-  if (file.type.startsWith('image/')) {
-    if (uploadMode.value !== 'image') {
-      setUploadMode('image')
-    }
-    setUploadValue(file)
+  if (entries.length === 1) {
+    ingestEntry(entries[0]!)
     return
   }
-  toast.add({ title: toastMessages.value.selectImage, color: 'error' })
+  await addBatchEntries(entries)
+}
+
+/**
+ * Routes one entry into the editor:
+ *   video (with or without its still) → live-photo path (mode=live)
+ *   image only → still-photo path (mode=image)
+ */
+function ingestEntry(entry: LivePhotoEntry): void {
+  if (entry.video) {
+    setUploadMode('live')
+    pendingLiveStill = entry.image && { image: entry.image, stillTime: entry.stillTime }
+    videoValue.value = entry.video
+    return
+  }
+  if (entry.image) {
+    setUploadMode('image')
+    setUploadValue(entry.image)
+  }
 }
 
 function clearFormForNewFile(): void {
@@ -331,11 +354,16 @@ watch(selectedFile, (file, previous) => {
   void handleSelectedFileChange(file)
 })
 
-watch(videoValue, (file, previous) => {
+watch(videoValue, async (file, previous) => {
   if (file === previous) {
     return
   }
-  void handleVideoSelected(file)
+  const still = pendingLiveStill
+  pendingLiveStill = null
+  await handleVideoSelected(file, still ? { time: still.stillTime } : undefined)
+  if (file && still) {
+    setUploadValue(still.image)
+  }
 })
 
 function openFileDialog(): void {
@@ -347,7 +375,7 @@ function extractClipboardImage(event: ClipboardEvent): File | null {
   if (!data) {
     return null
   }
-  const fileFromFiles = [...data.files].find(file => file.type.startsWith('image/'))
+  const fileFromFiles = [...data.files].find(isImageFile)
   if (fileFromFiles) {
     return fileFromFiles
   }
@@ -363,7 +391,7 @@ async function handlePaste(event: ClipboardEvent): Promise<void> {
     return
   }
   event.preventDefault()
-  ingestPickedFile(file)
+  await ingestPickedFiles([file])
 }
 
 onMounted(() => {
@@ -515,7 +543,8 @@ async function readImageSize(file: File): Promise<{ width: number, height: numbe
   })
 }
 
-async function buildBatchItem(file: File): Promise<BatchUploadItem> {
+async function buildBatchItem(entry: LivePhotoEntry & { image: File }): Promise<BatchUploadItem> {
+  const file = entry.image
   const formState = createEmptyMediaFormState()
   const { width, height, previewUrl } = await readImageSize(file)
   formState.width = width
@@ -536,6 +565,8 @@ async function buildBatchItem(file: File): Promise<BatchUploadItem> {
   return {
     id: buildBatchItemId(file),
     file,
+    video: entry.video,
+    stillTime: entry.stillTime,
     previewUrl,
     form: formState,
     selected: true,
@@ -547,26 +578,29 @@ async function buildBatchItem(file: File): Promise<BatchUploadItem> {
 async function handleBatchFilesPicked(event: Event): Promise<void> {
   const target = event.target as HTMLInputElement | null
   const files = target?.files ? [...target.files] : []
-  await addBatchFiles(files)
+  if (files.length > 0) {
+    await addBatchEntries(await resolveLivePhotoEntries(files))
+  }
   if (target) {
     target.value = ''
   }
 }
 
-async function addBatchFiles(files: File[]): Promise<void> {
-  if (files.length === 0) {
-    return
+async function addBatchEntries(entries: LivePhotoEntry[]): Promise<void> {
+  // A video without a still needs a frame picked by hand — editor only.
+  const withImage = entries.filter((entry): entry is LivePhotoEntry & { image: File } => entry.image !== null)
+  const skippedVideos = entries.length - withImage.length
+  if (skippedVideos > 0) {
+    toast.add({ title: t('admin.upload.toast.batchVideoSkipped', { count: skippedVideos }), color: 'warning' })
   }
-
-  const imageFiles = files.filter(file => file.type.startsWith('image/'))
-  if (imageFiles.length === 0) {
+  if (withImage.length === 0) {
     toast.add({ title: toastMessages.value.batchSelectFiles, color: 'warning' })
     return
   }
 
-  for (const file of imageFiles) {
+  for (const entry of withImage) {
     try {
-      const item = await buildBatchItem(file)
+      const item = await buildBatchItem(entry)
       batchItems.value.push(item)
     }
     catch (error) {
@@ -583,13 +617,7 @@ async function addBatchFiles(files: File[]): Promise<void> {
 const pendingUpload = usePendingUpload()
 
 function takePendingFiles(): void {
-  const files = pendingUpload.take()
-  if (files.length === 1) {
-    ingestPickedFile(files[0] ?? null)
-  }
-  else if (files.length > 1) {
-    void addBatchFiles(files)
-  }
+  void ingestPickedFiles(pendingUpload.take())
 }
 
 watch(pendingUpload.pendingFiles, (files) => {
@@ -633,10 +661,10 @@ async function submitBatchUpload(): Promise<void> {
     try {
       await sendFileWithProgress({
         imageFile: item.file,
-        videoFile: null,
+        videoFile: item.video,
         form: item.form,
-        isLiveMode: false,
-        liveFrameTime: 0,
+        isLiveMode: Boolean(item.video),
+        liveFrameTime: item.stillTime ?? 0,
         requestFetch: requestFetchForUpload,
       })
       item.status = 'success'
@@ -702,7 +730,7 @@ onBeforeUnmount(() => {
     <input
       ref="batchInputRef"
       type="file"
-      accept="image/*"
+      accept="image/*,video/*"
       multiple
       class="hidden"
       @change="handleBatchFilesPicked"
@@ -790,6 +818,12 @@ onBeforeUnmount(() => {
                 :alt="item.file.name"
                 class="aspect-[4/3] w-full object-cover"
               >
+              <span
+                v-if="item.video"
+                class="absolute left-1.5 top-1.5 bg-default/80 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-highlighted backdrop-blur"
+              >
+                LIVE
+              </span>
               <UButton
                 size="xs"
                 color="neutral"
@@ -810,7 +844,7 @@ onBeforeUnmount(() => {
               </label>
               <div class="flex items-center justify-between text-[11px] text-dimmed num-tabular">
                 <span>{{ item.form.width }} × {{ item.form.height }}</span>
-                <span>{{ formatFileSize(item.file.size) }}</span>
+                <span>{{ formatFileSize(item.file.size + (item.video?.size ?? 0)) }}</span>
               </div>
               <p class="text-[11px]" :class="item.status === 'failed' ? 'text-error' : 'text-dimmed'">
                 {{ t(`admin.upload.batch.status.${item.status}`) }}
@@ -825,7 +859,7 @@ onBeforeUnmount(() => {
     <AdminUploadPickerCard
       v-show="!hasSelection"
       :set-file-upload-ref="setFileUploadRef"
-      @pick="ingestPickedFile"
+      @pick="ingestPickedFiles"
     />
 
     <!-- The editor is one band: a header row closed by a hairline, then

@@ -1,5 +1,6 @@
 import type { Ref } from 'vue'
 import { computed, ref } from 'vue'
+import { stripExtension } from '~/utils/file'
 
 interface UseLivePhotoFrameOptions {
   videoValue: Ref<File | null>
@@ -8,6 +9,16 @@ interface UseLivePhotoFrameOptions {
   onVideoError: () => void
   onFrameError: (message: string) => void
   frameFailedFallback: () => string
+}
+
+/**
+ * The Live Photo came with its own still (motion photo, or a HEIC + MOV
+ * pair): keep that full-quality image as the cover instead of grabbing a
+ * frame once the video loads. Picking a frame still replaces it.
+ */
+export interface OriginalStill {
+  /** Seconds into the video the still was taken at; defaults to the middle. */
+  time?: number
 }
 
 function formatDuration(seconds: number): string {
@@ -30,7 +41,7 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
   liveFrameTimeLabel: Readonly<Ref<string>>
   liveFrameDurationLabel: Readonly<Ref<string>>
   clearVideoSelection: () => void
-  handleVideoSelected: (file: File | null) => Promise<void>
+  handleVideoSelected: (file: File | null, originalStill?: OriginalStill) => Promise<void>
   handleVideoMetadataLoaded: () => void
   handleVideoError: () => void
   handleFrameInput: (event: Event) => void
@@ -41,6 +52,7 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
   const liveFrameDuration = ref(0)
   const liveFramePending = ref(false)
   const videoElementRef = ref<HTMLVideoElement | null>(null)
+  let currentOriginalStill: OriginalStill | null = null
   const liveFrameTimeLabel = computed(() => formatDuration(liveFrameTime.value))
   const liveFrameDurationLabel = computed(() => formatDuration(liveFrameDuration.value))
   const setVideoElementRef = (instance: unknown): void => {
@@ -132,7 +144,7 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
       if (!blob) {
         throw new Error('Frame capture failed.')
       }
-      const baseName = selectedVideo.name.replace(/\.[^/.]+$/, '') || 'live-photo'
+      const baseName = stripExtension(selectedVideo.name) || 'live-photo'
       const frameFile = new File([blob], `${baseName}-frame.jpg`, { type: blob.type || 'image/jpeg' })
       options.setUploadValue(frameFile)
     }
@@ -145,8 +157,9 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
     }
   }
 
-  const handleVideoSelected = async (file: File | null): Promise<void> => {
+  const handleVideoSelected = async (file: File | null, originalStill?: OriginalStill): Promise<void> => {
     liveFramePending.value = false
+    currentOriginalStill = (file && originalStill) || null
     if (!file) {
       options.setUploadValue(null)
       liveFrameDuration.value = 0
@@ -174,6 +187,11 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
     }
     const duration = Number.isFinite(video.duration) ? video.duration : 0
     liveFrameDuration.value = Math.max(0, duration)
+    if (currentOriginalStill) {
+      liveFrameTime.value = normalizeFrameTime(currentOriginalStill.time ?? duration / 2)
+      video.currentTime = liveFrameTime.value
+      return
+    }
     const fallbackTime = Math.max(0, duration - 0.1)
     liveFrameTime.value = normalizeFrameTime(fallbackTime)
     void captureLiveFrame()
