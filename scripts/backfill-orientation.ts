@@ -7,12 +7,12 @@ import { closeDb } from '../server/utils/db'
 
 try {
   const summary = await backfillOrientation()
-  console.log(`Backfill complete. Fixed ${summary.updated} of ${summary.checked} checked records (${summary.total} total, ${summary.failed} failed).`)
-}
-catch (error) {
+  console.log(
+    `Backfill complete. Fixed ${summary.updated} of ${summary.checked} checked records (${summary.total} total, ${summary.failed} failed).`,
+  )
+} catch (error) {
   console.error('Backfill failed:', error)
   process.exitCode = 1
-}
-finally {
+} finally {
   await closeDb()
 }

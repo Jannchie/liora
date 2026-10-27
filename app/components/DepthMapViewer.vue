@@ -29,7 +29,9 @@ interface FocusBox {
   height: number
 }
 
-interface UniformValue<T> { value: T }
+interface UniformValue<T> {
+  value: T
+}
 interface ComposeUniforms extends Record<string, UniformValue<unknown>> {
   uImage: UniformValue<Texture | null>
   uDepth: UniformValue<Texture | null>
@@ -81,56 +83,59 @@ interface PingPong {
 
 type ThreeModule = typeof import('three')
 
-const props = withDefaults(defineProps<{
-  imageUrl: string
-  depthUrl?: string
-  placeholderUrl?: string
-  placeholderAspectRatio?: number
-  imageWidth?: number
-  imageHeight?: number
-  revealDurationMs?: number
-  directionDurationSeconds?: number
-  depthDurationSeconds?: number
-  transitionBlurSeconds?: number
-  maxBlur?: number
-  blurEasePower?: number
-  directionalDelay?: number
-  depthDelay?: number
-  depthEasePower?: number
-  depthDetail?: number
-  grain?: number
-  directionMode?: DirectionMode
-  invertDepth?: boolean
-  autoPlay?: boolean
-  /** Loading/waiting text. Errors surface regardless. */
-  showStatusOverlay?: boolean
-  focusBox?: FocusBox | null
-  /**
-   * Identity of the pictured scene. When set, an imageUrl change under the same
-   * key is treated as a quality upgrade of the current picture — textures swap
-   * silently instead of replaying the blur-out/reveal transition.
-   */
-  sceneKey?: string | number | null
-}>(), {
-  depthUrl: '',
-  placeholderUrl: '',
-  revealDurationMs: 600,
-  directionDurationSeconds: 0,
-  depthDurationSeconds: 3,
-  transitionBlurSeconds: 0.8,
-  blurEasePower: 1,
-  directionalDelay: 0.5,
-  depthDelay: 0.2,
-  depthEasePower: 1,
-  depthDetail: 1,
-  grain: 0.05,
-  directionMode: 'bottom-up',
-  invertDepth: false,
-  autoPlay: true,
-  showStatusOverlay: true,
-  focusBox: null,
-  sceneKey: null,
-})
+const props = withDefaults(
+  defineProps<{
+    imageUrl: string
+    depthUrl?: string
+    placeholderUrl?: string
+    placeholderAspectRatio?: number
+    imageWidth?: number
+    imageHeight?: number
+    revealDurationMs?: number
+    directionDurationSeconds?: number
+    depthDurationSeconds?: number
+    transitionBlurSeconds?: number
+    maxBlur?: number
+    blurEasePower?: number
+    directionalDelay?: number
+    depthDelay?: number
+    depthEasePower?: number
+    depthDetail?: number
+    grain?: number
+    directionMode?: DirectionMode
+    invertDepth?: boolean
+    autoPlay?: boolean
+    /** Loading/waiting text. Errors surface regardless. */
+    showStatusOverlay?: boolean
+    focusBox?: FocusBox | null
+    /**
+     * Identity of the pictured scene. When set, an imageUrl change under the same
+     * key is treated as a quality upgrade of the current picture — textures swap
+     * silently instead of replaying the blur-out/reveal transition.
+     */
+    sceneKey?: string | number | null
+  }>(),
+  {
+    depthUrl: '',
+    placeholderUrl: '',
+    revealDurationMs: 600,
+    directionDurationSeconds: 0,
+    depthDurationSeconds: 3,
+    transitionBlurSeconds: 0.8,
+    blurEasePower: 1,
+    directionalDelay: 0.5,
+    depthDelay: 0.2,
+    depthEasePower: 1,
+    depthDetail: 1,
+    grain: 0.05,
+    directionMode: 'bottom-up',
+    invertDepth: false,
+    autoPlay: true,
+    showStatusOverlay: true,
+    focusBox: null,
+    sceneKey: null,
+  },
+)
 
 const { t } = useI18n()
 
@@ -152,11 +157,7 @@ const placeholderUrl = computed(() => props.placeholderUrl?.trim() ?? '')
 const hasPlaceholder = computed(() => placeholderUrl.value.length > 0)
 const hasDepth = computed(() => Boolean(depthUrl.value))
 const canRender = computed(() => Boolean(imageUrl.value))
-const revealSeconds = computed(() => Math.max(
-  0.2,
-  props.depthDurationSeconds,
-  props.directionDurationSeconds,
-))
+const revealSeconds = computed(() => Math.max(0.2, props.depthDurationSeconds, props.directionDurationSeconds))
 const imageAspectRatio = computed<number | undefined>(() => {
   const width = props.imageWidth ?? 0
   const height = props.imageHeight ?? 0
@@ -289,7 +290,11 @@ let copyMesh: Mesh | null = null
 let depthBlurScene: Scene | null = null
 let depthBlurMaterial: ShaderMaterial | null = null
 let depthBlurMesh: Mesh | null = null
-let depthBlurUniforms: { uTexture: UniformValue<Texture | null>, uStep: UniformValue<Vector2>, uSigma: UniformValue<number> } | null = null
+let depthBlurUniforms: {
+  uTexture: UniformValue<Texture | null>
+  uStep: UniformValue<Vector2>
+  uSigma: UniformValue<number>
+} | null = null
 let depthBlurTargets: [WebGLRenderTarget, WebGLRenderTarget] | null = null
 let copyMaterial: ShaderMaterial | null = null
 let copyUniforms: { uTexture: UniformValue<Texture | null> } | null = null
@@ -797,8 +802,7 @@ function easeIn(t: number): number {
     const x = 3 * inv * inv * u * x1 + 3 * inv * u * u * x2 + u * u * u
     if (x < t) {
       low = u
-    }
-    else {
+    } else {
       high = u
     }
   }
@@ -819,7 +823,7 @@ function tween(
     apply(to)
     return Promise.resolve()
   }
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     tweens.push({
       from,
       to,
@@ -846,8 +850,7 @@ function stepTweens(now: number): void {
     item.apply(item.from + (item.to - item.from) * easeIn(progress))
     if (progress < 1) {
       remaining.push(item)
-    }
-    else {
+    } else {
       item.resolve()
     }
   }
@@ -882,7 +885,7 @@ function waitForPrime(frames: number): Promise<void> {
   resolvePrime()
   primeTarget = frameCount + frames
   primeDeadline = performance.now() + PRIME_TIMEOUT_MS
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     primeResolve = resolve
   })
 }
@@ -960,8 +963,7 @@ function updateMeshScale(): void {
   meshScaleY = 1
   if (imageAspect > containerAspect) {
     meshScaleY = containerAspect / imageAspect
-  }
-  else {
+  } else {
     meshScaleX = imageAspect / containerAspect
   }
 }
@@ -998,21 +1000,19 @@ function updateProjection(): void {
   // Per-sample radius, not the perceived one: the feedback loop compounds it
   // across frames, so it is several times wider than this by the time it lands.
   const maxBlur = props.maxBlur
-  displayUniforms.uMaxRadius.value
-    = typeof maxBlur === 'number' && Number.isFinite(maxBlur) && maxBlur > 0
+  displayUniforms.uMaxRadius.value =
+    typeof maxBlur === 'number' && Number.isFinite(maxBlur) && maxBlur > 0
       ? Math.min(0.2, maxBlur / (width * BLEED_SCALE))
       : DEFAULT_DISPLAY_RADIUS
 }
 
-function canvasSize(): { width: number, height: number } | null {
+function canvasSize(): { width: number; height: number } | null {
   const host = wrapperRef.value ?? canvasHost.value
   if (!host) {
     return null
   }
   const { width, height } = host.getBoundingClientRect()
-  return width > 0 && height > 0
-    ? { width: width * BLEED_SCALE, height: height * BLEED_SCALE }
-    : null
+  return width > 0 && height > 0 ? { width: width * BLEED_SCALE, height: height * BLEED_SCALE } : null
 }
 
 /**
@@ -1114,13 +1114,7 @@ async function loadTexture(url: string): Promise<Texture> {
 
 function createFallbackDepthTexture(threeModule: ThreeModule): Texture {
   const data = new Uint8Array([128])
-  const texture = new threeModule.DataTexture(
-    data,
-    1,
-    1,
-    threeModule.RedFormat,
-    threeModule.UnsignedByteType,
-  )
+  const texture = new threeModule.DataTexture(data, 1, 1, threeModule.RedFormat, threeModule.UnsignedByteType)
   texture.generateMipmaps = false
   texture.minFilter = threeModule.LinearFilter
   texture.magFilter = threeModule.LinearFilter
@@ -1137,7 +1131,7 @@ function softenDepth(source: Texture): Texture {
   if (!threeModule || !renderer || !depthBlurScene || !depthBlurUniforms || !hasDepth.value) {
     return source
   }
-  const image = source.image as { width?: number, height?: number } | null | undefined
+  const image = source.image as { width?: number; height?: number } | null | undefined
   const aspect = (image?.width ?? 1) / Math.max(1, image?.height ?? 1)
   const width = DEPTH_BLUR_WIDTH
   const height = Math.max(1, Math.round(width / aspect))
@@ -1189,7 +1183,7 @@ function applyTextures(imageTexture: Texture, depthTexture: Texture, seq: number
   composeUniforms.uImage.value = imageTexture
   composeUniforms.uDepth.value = softened
   displayUniforms.uDepth.value = softened
-  const image = imageTexture.image as { width?: number, height?: number } | null | undefined
+  const image = imageTexture.image as { width?: number; height?: number } | null | undefined
   imageSize = {
     width: image?.width ?? 1,
     height: image?.height ?? 1,
@@ -1205,9 +1199,7 @@ async function loadPair(): Promise<[Texture, Texture]> {
   }
   const [imageTexture, depthTexture] = await Promise.all([
     loadTexture(imageUrl.value),
-    hasDepth.value
-      ? loadTexture(depthUrl.value)
-      : Promise.resolve(createFallbackDepthTexture(threeModule)),
+    hasDepth.value ? loadTexture(depthUrl.value) : Promise.resolve(createFallbackDepthTexture(threeModule)),
   ])
   return [imageTexture, depthTexture]
 }
@@ -1296,8 +1288,7 @@ async function upgradeTextures(): Promise<void> {
       return
     }
     applyTextures(imageTexture, depthTexture, seq)
-  }
-  catch {
+  } catch {
     // Keep showing the current texture; the upgrade is best-effort.
   }
 }
@@ -1347,11 +1338,9 @@ async function loadTextures(): Promise<void> {
     isReady.value = true
     isLoading.value = false
     await runTransition(token)
-  }
-  catch (error) {
+  } catch (error) {
     statusMessage.value = error instanceof Error ? error.message : t('demoDepth.errors.loadFailed')
-  }
-  finally {
+  } finally {
     isLoading.value = false
   }
 }
@@ -1392,7 +1381,7 @@ function startReveal(token: number): Promise<void> {
   const duration = Math.max(200, props.revealDurationMs) * (1 - from)
   const start = performance.now()
   isRevealing.value = true
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const tick = (time: number): void => {
       if (token !== loadToken) {
         stopReveal()
@@ -1403,8 +1392,7 @@ function startReveal(token: number): Promise<void> {
       revealProgress.value = from + (1 - from) * progress
       if (progress < 1) {
         revealAnimationFrame = requestAnimationFrame(tick)
-      }
-      else {
+      } else {
         isRevealing.value = false
         revealAnimationFrame = null
         resolve()
@@ -1767,7 +1755,7 @@ watch(
 
 watch(
   () => props.autoPlay,
-  (next) => {
+  next => {
     if (!next) {
       return
     }
@@ -1786,16 +1774,13 @@ watch(
 
 <template>
   <div ref="wrapperRef" class="depth-viewer-root relative rounded-none bg-default/60" :style="wrapperStyle">
-    <div
-      v-if="hasPlaceholder"
-      class="absolute inset-0 z-0 flex items-center justify-center"
-    >
+    <div v-if="hasPlaceholder" class="absolute inset-0 z-0 flex items-center justify-center">
       <img
         :src="placeholderUrl"
         class="pointer-events-none h-full w-full select-none object-fill"
         alt=""
         aria-hidden="true"
-      >
+      />
     </div>
     <div class="absolute z-10" :style="[bleedStyle, revealMaskStyle]">
       <div ref="canvasHost" class="h-full w-full" />
@@ -1806,18 +1791,12 @@ watch(
       class="pointer-events-none absolute inset-0 z-20 h-full w-full select-none object-contain"
       alt=""
       aria-hidden="true"
-    >
-    <div
-      v-if="showOverlay"
-      class="absolute inset-0 z-30 flex items-center justify-center text-sm text-muted"
-    >
+    />
+    <div v-if="showOverlay" class="absolute inset-0 z-30 flex items-center justify-center text-sm text-muted">
       {{ overlayText }}
     </div>
     <div v-if="focusBoxStyle" class="pointer-events-none absolute inset-0 z-40">
-      <div
-        class="absolute rounded-[2px] border-2 border-focus-point"
-        :style="focusBoxStyle"
-      />
+      <div class="absolute rounded-[2px] border-2 border-focus-point" :style="focusBoxStyle" />
     </div>
   </div>
 </template>

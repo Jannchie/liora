@@ -11,7 +11,13 @@ import {
 import { mergeMetadataTextUpdates, normalizeMetadataTextUpdates } from '../../domain/files/metadata'
 import { requireAdmin } from '../../utils/auth'
 import { db, files } from '../../utils/db'
-import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../utils/file-mapper'
+import {
+  buildMetadataFallbacks,
+  ensureMetadata,
+  joinCharacters,
+  mapCharacters,
+  toFileResponse,
+} from '../../utils/file-mapper'
 import { requireFileById } from '../../utils/file-record'
 import { requirePositiveIntRouterParam } from '../../utils/route-params'
 import replaceImageHandler from './[id]/image.put'

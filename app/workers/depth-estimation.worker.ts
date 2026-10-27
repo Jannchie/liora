@@ -82,7 +82,9 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   return pipelinePromise
 }
 
-async function resolveDepthOutput(output: DepthEstimationOutput | DepthEstimationOutput[]): Promise<DepthEstimationOutput> {
+async function resolveDepthOutput(
+  output: DepthEstimationOutput | DepthEstimationOutput[],
+): Promise<DepthEstimationOutput> {
   if (Array.isArray(output)) {
     const [first] = output
     if (!first) {
@@ -93,7 +95,10 @@ async function resolveDepthOutput(output: DepthEstimationOutput | DepthEstimatio
   return output
 }
 
-async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<{ image: RawImageInstance, width: number, height: number }> {
+async function loadImageFromUrl(
+  imageUrl: string,
+  scaleFactor: number,
+): Promise<{ image: RawImageInstance; width: number; height: number }> {
   const { RawImage } = await loadTransformers()
   const response = await fetch(imageUrl)
   if (!response.ok) {
@@ -115,15 +120,14 @@ async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<
 
 async function encodeDepthBlob(depth: RawImageInstance): Promise<Blob> {
   try {
-    const webp = await depth.toBlob('image/webp', 0.92) as Blob | null
+    const webp = (await depth.toBlob('image/webp', 0.92)) as Blob | null
     if (webp && webp.size > 0 && webp.type === 'image/webp') {
       return webp
     }
-  }
-  catch {
+  } catch {
     // Fallback to PNG below.
   }
-  return await depth.toBlob('image/png') as Blob
+  return (await depth.toBlob('image/png')) as Blob
 }
 
 async function estimateDepth(imageUrl: string, scaleFactor: number): Promise<DepthEstimateResult> {
@@ -147,11 +151,11 @@ function handleMessage(event: MessageEvent<WorkerRequest>): void {
   }
   const parsedScaleFactor = parseScaleFactor(scaleFactor)
   estimateDepth(imageUrl.trim(), parsedScaleFactor)
-    .then((result) => {
+    .then(result => {
       const response: WorkerResponse = { id, ok: true, result }
       globalThis.postMessage(response)
     })
-    .catch((error) => {
+    .catch(error => {
       const message = error instanceof Error ? error.message : 'Depth estimation failed.'
       const response: WorkerResponse = { id, ok: false, error: message }
       globalThis.postMessage(response)

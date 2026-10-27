@@ -72,15 +72,10 @@ export function requireNullableNumber(value: unknown, field: string): number | n
   return parsed
 }
 
-export function normalizeOptionalCharacters(
-  value: string | string[] | undefined,
-  fallback: string[],
-): string[] {
+export function normalizeOptionalCharacters(value: string | string[] | undefined, fallback: string[]): string[] {
   if (value === undefined) {
     return fallback
   }
   const list = Array.isArray(value) ? value : value.split(/[,，\n]/)
-  return list
-    .map(item => item.trim())
-    .filter(item => item.length > 0)
+  return list.map(item => item.trim()).filter(item => item.length > 0)
 }

@@ -91,7 +91,9 @@ const hasSelection = computed<boolean>(() => Boolean(selectedFile.value || selec
 const isLiveMode = computed<boolean>(() => uploadMode.value === 'live')
 const previewUrl = ref<string>('')
 const fileUploadRef = ref<{ inputRef?: HTMLInputElement | { value?: unknown } } | null>(null)
-const aspectRatioStyle = computed(() => (form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3'))
+const aspectRatioStyle = computed(() =>
+  form.width > 0 && form.height > 0 ? `${form.width} / ${form.height}` : '4 / 3',
+)
 const captureTimeLocal = ref<string>('')
 const captureTimeDisplay = computed(() => {
   if (!captureTimeLocal.value) {
@@ -112,7 +114,9 @@ const displayFileName = computed(() => {
   }
   return selectedFileName.value
 })
-const changePrimaryLabel = computed(() => (isLiveMode.value ? t('common.actions.changeVideo') : t('common.actions.changeImage')))
+const changePrimaryLabel = computed(() =>
+  isLiveMode.value ? t('common.actions.changeVideo') : t('common.actions.changeImage'),
+)
 const uploadSpeedText = computed(() => formatSpeed(uploadSpeed.value))
 const uploadTotalText = computed(() => formatFileSize(uploadTotalBytes.value))
 const uploadedBytesText = computed(() => formatFileSize(uploadBytesSent.value))
@@ -164,7 +168,7 @@ const {
   onVideoError: () => {
     toast.add({ title: toastMessages.value.videoFailed, color: 'error' })
   },
-  onFrameError: (message) => {
+  onFrameError: message => {
     toast.add({ title: toastMessages.value.frameFailed, description: message, color: 'error' })
   },
   frameFailedFallback: () => toastMessages.value.frameFailed,
@@ -199,7 +203,7 @@ function setUploadMode(mode: UploadMode): void {
  * handed from `ingestEntry` to the `videoValue` watcher, which applies it
  * after the video selection has reset the form.
  */
-let pendingLiveStill: { image: File, stillTime?: number } | null = null
+let pendingLiveStill: { image: File; stillTime?: number } | null = null
 
 /**
  * Single entry point for the unified picker, the "change file" affordance
@@ -295,7 +299,7 @@ async function detectImageSize(file: File, token: number): Promise<void> {
   previewUrl.value = objectUrl
 
   try {
-    const size = await new Promise<{ width: number, height: number }>((resolve, reject) => {
+    const size = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       const img = new Image()
       img.addEventListener('load', () => resolve({ width: img.naturalWidth, height: img.naturalHeight }))
       img.addEventListener('error', () => reject(new Error(t('admin.upload.toast.sizeReadError'))))
@@ -309,8 +313,7 @@ async function detectImageSize(file: File, token: number): Promise<void> {
 
     form.width = size.width
     form.height = size.height
-  }
-  catch (error) {
+  } catch (error) {
     if (token !== activeMetadataToken) {
       URL.revokeObjectURL(objectUrl)
       return
@@ -434,7 +437,7 @@ function formatSpeed(bytesPerSecond: number): string {
 }
 
 const previewChips = computed(() => {
-  const chips: { icon: string, text: string }[] = []
+  const chips: { icon: string; text: string }[] = []
   if (form.width > 0 && form.height > 0) {
     chips.push({ icon: 'jannchie:aspect-ratio', text: `${form.width} × ${form.height}` })
   }
@@ -489,20 +492,17 @@ async function submit(): Promise<void> {
         processingFailedTitle: toastMessages.value.processingFailedTitle,
         processingFailedDescription: toastMessages.value.processingFailedDescription,
       })
-    }
-    else {
+    } else {
       toast.add({
         title: toastMessages.value.processingDoneTitle,
         description: toastMessages.value.processingDoneDescription,
         color: 'success',
       })
     }
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
     toast.add({ title: toastMessages.value.saveFailedTitle, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     submitting.value = false
   }
 }
@@ -524,7 +524,7 @@ function buildBatchItemId(file: File): string {
   return `${file.name}-${file.size}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
-async function readImageSize(file: File): Promise<{ width: number, height: number, previewUrl: string }> {
+async function readImageSize(file: File): Promise<{ width: number; height: number; previewUrl: string }> {
   const preview = URL.createObjectURL(file)
   return new Promise((resolve, reject) => {
     const image = new Image()
@@ -602,8 +602,7 @@ async function addBatchEntries(entries: LivePhotoEntry[]): Promise<void> {
     try {
       const item = await buildBatchItem(entry)
       batchItems.value.push(item)
-    }
-    catch (error) {
+    } catch (error) {
       const message = error instanceof Error ? error.message : toastMessages.value.sizeFailedFallback
       toast.add({ title: toastMessages.value.sizeFailed, description: message, color: 'error' })
     }
@@ -620,7 +619,7 @@ function takePendingFiles(): void {
   void ingestPickedFiles(pendingUpload.take())
 }
 
-watch(pendingUpload.pendingFiles, (files) => {
+watch(pendingUpload.pendingFiles, files => {
   if (files.length > 0) {
     takePendingFiles()
   }
@@ -668,8 +667,7 @@ async function submitBatchUpload(): Promise<void> {
         requestFetch: requestFetchForUpload,
       })
       item.status = 'success'
-    }
-    catch (error) {
+    } catch (error) {
       item.status = 'failed'
       item.errorMessage = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
     }
@@ -702,16 +700,9 @@ onBeforeUnmount(() => {
   <!-- Wireframe anatomy: a stack of full-width bands, no gaps — every
        rule runs edge to edge between the sidebar and the shell's side. -->
   <div>
-    <UPageHeader
-      :title="t('admin.upload.title')"
-    >
+    <UPageHeader :title="t('admin.upload.title')">
       <template #actions>
-        <UButton
-          size="sm"
-          color="primary"
-          icon="jannchie:image-plus"
-          @click="openBatchFileDialog"
-        >
+        <UButton size="sm" color="primary" icon="jannchie:image-plus" @click="openBatchFileDialog">
           {{ t('admin.upload.batch.pickFiles') }}
         </UButton>
         <UButton
@@ -734,13 +725,8 @@ onBeforeUnmount(() => {
       multiple
       class="hidden"
       @change="handleBatchFilesPicked"
-    >
-    <USection
-      v-if="batchItems.length > 0"
-      panel
-      :label="t('admin.upload.batch.title')"
-      icon="jannchie:image-plus"
-    >
+    />
+    <USection v-if="batchItems.length > 0" panel :label="t('admin.upload.batch.title')" icon="jannchie:image-plus">
       <template #actions>
         <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(true)">
           {{ t('admin.upload.batch.selectAll') }}
@@ -748,57 +734,45 @@ onBeforeUnmount(() => {
         <UButton size="xs" color="neutral" variant="ghost" @click="setAllBatchSelected(false)">
           {{ t('admin.upload.batch.selectNone') }}
         </UButton>
-        <UButton
-          size="xs"
-          color="primary"
-          icon="jannchie:upload"
-          :loading="batchSubmitting"
-          @click="submitBatchUpload"
-        >
+        <UButton size="xs" color="primary" icon="jannchie:upload" :loading="batchSubmitting" @click="submitBatchUpload">
           {{ t('admin.upload.batch.startUpload') }}
         </UButton>
       </template>
       <div class="space-y-4">
         <dl class="flex flex-wrap items-center gap-x-6 gap-y-1 text-xs num-tabular">
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Total
-            </dt><dd class="text-highlighted">
+            <dt class="label-caption">Total</dt>
+            <dd class="text-highlighted">
               {{ batchItems.length }}
             </dd>
           </div>
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Selected
-            </dt><dd class="text-highlighted">
+            <dt class="label-caption">Selected</dt>
+            <dd class="text-highlighted">
               {{ batchSelectedCount }}
             </dd>
           </div>
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Pending
-            </dt><dd class="text-highlighted">
+            <dt class="label-caption">Pending</dt>
+            <dd class="text-highlighted">
               {{ batchPendingCount }}
             </dd>
           </div>
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Uploading
-            </dt><dd class="text-highlighted">
+            <dt class="label-caption">Uploading</dt>
+            <dd class="text-highlighted">
               {{ batchUploadingCount }}
             </dd>
           </div>
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Success
-            </dt><dd class="text-success">
+            <dt class="label-caption">Success</dt>
+            <dd class="text-success">
               {{ batchSuccessCount }}
             </dd>
           </div>
           <div class="flex items-center gap-1.5">
-            <dt class="label-caption">
-              Failed
-            </dt><dd class="text-error">
+            <dt class="label-caption">Failed</dt>
+            <dd class="text-error">
               {{ batchFailedCount }}
             </dd>
           </div>
@@ -807,17 +781,9 @@ onBeforeUnmount(() => {
              and left lines, each cell only its right and bottom, so no
              hairline is ever doubled. -->
         <div class="grid border-t border-l border-border sm:grid-cols-2 xl:grid-cols-3">
-          <div
-            v-for="item in batchItems"
-            :key="item.id"
-            class="flex flex-col border-r border-b border-border"
-          >
+          <div v-for="item in batchItems" :key="item.id" class="flex flex-col border-r border-b border-border">
             <div class="relative border-b border-border bg-muted">
-              <img
-                :src="item.previewUrl"
-                :alt="item.file.name"
-                class="aspect-[4/3] w-full object-cover"
-              >
+              <img :src="item.previewUrl" :alt="item.file.name" class="aspect-[4/3] w-full object-cover" />
               <span
                 v-if="item.video"
                 class="absolute left-1.5 top-1.5 bg-default/80 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-highlighted backdrop-blur"
@@ -835,11 +801,7 @@ onBeforeUnmount(() => {
             </div>
             <div class="space-y-1.5 px-3 py-2.5">
               <label class="flex items-center gap-2 text-[13px]">
-                <input
-                  v-model="item.selected"
-                  type="checkbox"
-                  class="h-3.5 w-3.5 accent-primary"
-                >
+                <input v-model="item.selected" type="checkbox" class="h-3.5 w-3.5 accent-primary" />
                 <span class="truncate font-mono text-highlighted">{{ item.file.name }}</span>
               </label>
               <div class="flex items-center justify-between text-[11px] text-dimmed num-tabular">
@@ -856,21 +818,12 @@ onBeforeUnmount(() => {
       </div>
     </USection>
 
-    <AdminUploadPickerCard
-      v-show="!hasSelection"
-      :set-file-upload-ref="setFileUploadRef"
-      @pick="ingestPickedFiles"
-    />
+    <AdminUploadPickerCard v-show="!hasSelection" :set-file-upload-ref="setFileUploadRef" @pick="ingestPickedFiles" />
 
     <!-- The editor is one band: a header row closed by a hairline, then
          preview and metadata side by side, split by a vertical hairline
          (stacked and split by a horizontal one below xl). -->
-    <UForm
-      v-if="hasSelection"
-      :state="form"
-      class="border-b border-border"
-      @submit.prevent="submit"
-    >
+    <UForm v-if="hasSelection" :state="form" class="border-b border-border" @submit.prevent="submit">
       <div class="wire-band flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="min-w-0 space-y-1">
           <p class="label-caption">
@@ -894,21 +847,10 @@ onBeforeUnmount(() => {
           </div>
         </div>
         <div class="flex shrink-0 flex-wrap items-center gap-1.5">
-          <UButton
-            variant="ghost"
-            color="neutral"
-            type="button"
-            @click="clearSelectedFile"
-          >
+          <UButton variant="ghost" color="neutral" type="button" @click="clearSelectedFile">
             {{ t('common.actions.cancel') }}
           </UButton>
-          <UButton
-            color="primary"
-            type="submit"
-            :loading="submitting"
-            :disabled="!selectedFile"
-            icon="jannchie:save"
-          >
+          <UButton color="primary" type="submit" :loading="submitting" :disabled="!selectedFile" icon="jannchie:save">
             {{ t('admin.upload.actions.save') }}
           </UButton>
         </div>

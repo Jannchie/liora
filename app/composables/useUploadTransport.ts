@@ -24,13 +24,16 @@ interface UploadMetrics {
   uploadStartedAt: Ref<number | null>
 }
 
-type RequestFetch = <T>(request: string, options?: {
-  method?: string
-  body?: unknown
-  retry?: number
-  params?: Record<string, string>
-  [key: string]: unknown
-}) => Promise<T>
+type RequestFetch = <T>(
+  request: string,
+  options?: {
+    method?: string
+    body?: unknown
+    retry?: number
+    params?: Record<string, string>
+    [key: string]: unknown
+  },
+) => Promise<T>
 
 function updateProgress(metrics: UploadMetrics, loaded: number, offset: number, total: number): void {
   metrics.uploadBytesSent.value = Math.min(total, offset + loaded)
@@ -54,19 +57,18 @@ function uploadFileToPresignedUrl(
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.upload.addEventListener('progress', (event) => {
+    xhr.upload.addEventListener('progress', event => {
       if (event.lengthComputable) {
         updateProgress(metrics, event.loaded, offset, total)
       }
     })
-    // eslint-disable-next-line unicorn/prefer-add-event-listener
+    // oxlint-disable-next-line unicorn/prefer-add-event-listener
     xhr.onerror = () => reject(new Error('Upload failed'))
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         updateProgress(metrics, file.size, offset, total)
         resolve()
-      }
-      else {
+      } else {
         reject(new Error(xhr.statusText || 'Upload failed'))
       }
     })

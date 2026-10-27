@@ -41,15 +41,13 @@ export function useSiteSettingsState(): SiteSettingsState {
       error.value = null
       loaded.value = true
       return fetched
-    }
-    catch (fetchError) {
+    } catch (fetchError) {
       const fallbackError = fetchError instanceof Error ? fetchError : new Error('Failed to load site settings.')
       error.value = fallbackError
       settings.value = null
       loaded.value = true
       return null
-    }
-    finally {
+    } finally {
       loading.value = false
     }
   }

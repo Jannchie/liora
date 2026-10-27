@@ -91,7 +91,11 @@ const brandPrefixPatterns = new Map<CameraBrandRule, RegExp[]>(
 )
 
 function normalizeCameraText(value: string): string {
-  return value.toLowerCase().replaceAll(/[-_/]+/g, ' ').replaceAll(/\s+/g, ' ').trim()
+  return value
+    .toLowerCase()
+    .replaceAll(/[-_/]+/g, ' ')
+    .replaceAll(/\s+/g, ' ')
+    .trim()
 }
 
 function matchesCameraBrand(value: string, rule: CameraBrandRule): boolean {
@@ -121,9 +125,11 @@ function stripBrandPrefixes(cameraText: string, rule: CameraBrandRule): string {
   return output
 }
 
-export function resolveCameraBrand(
-  camera: string | undefined,
-): { model: string | undefined, brandIcon: BrandIconKey | null, brandLabel: string | null } {
+export function resolveCameraBrand(camera: string | undefined): {
+  model: string | undefined
+  brandIcon: BrandIconKey | null
+  brandLabel: string | null
+} {
   const cameraText = toDisplayText(camera)
   if (!cameraText) {
     return { model: undefined, brandIcon: null, brandLabel: null }
@@ -136,8 +142,6 @@ export function resolveCameraBrand(
   // With a logo the brand is already shown, so the name is stripped as far as
   // it goes; without one the first prefix is dropped and the rest kept, since
   // the remainder is all the reader has to identify the body by.
-  const model = rule.icon
-    ? stripBrandPrefixes(cameraText, rule)
-    : stripBrandPrefix(cameraText, rule)
+  const model = rule.icon ? stripBrandPrefixes(cameraText, rule) : stripBrandPrefix(cameraText, rule)
   return { model, brandIcon: rule.icon ?? null, brandLabel: rule.label }
 }

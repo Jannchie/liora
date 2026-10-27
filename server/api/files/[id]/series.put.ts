@@ -12,7 +12,7 @@ function parseSeriesIds(raw: unknown): number[] {
     throw createError({ statusCode: 400, statusMessage: 'seriesIds must be an array.' })
   }
   const ids = raw
-    .map((value) => {
+    .map(value => {
       if (typeof value === 'number') {
         return Number.isInteger(value) && value > 0 ? value : null
       }
@@ -41,16 +41,13 @@ export default defineEventHandler(async (event): Promise<{ seriesIds: number[] }
   await requireFileById(fileId)
 
   if (targetSeriesIds.length > 0) {
-    const seriesRows = await db
-      .select({ id: series.id })
-      .from(series)
-      .where(inArray(series.id, targetSeriesIds))
+    const seriesRows = await db.select({ id: series.id }).from(series).where(inArray(series.id, targetSeriesIds))
     if (seriesRows.length !== targetSeriesIds.length) {
       throw createError({ statusCode: 400, statusMessage: 'Some seriesIds do not exist.' })
     }
   }
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     const currentRows = await tx
       .select({ seriesId: seriesFiles.seriesId })
       .from(seriesFiles)
@@ -64,9 +61,7 @@ export default defineEventHandler(async (event): Promise<{ seriesIds: number[] }
     const toAdd = targetSeriesIds.filter(seriesId => !currentSet.has(seriesId))
 
     if (toRemove.length > 0) {
-      await tx
-        .delete(seriesFiles)
-        .where(and(eq(seriesFiles.fileId, fileId), inArray(seriesFiles.seriesId, toRemove)))
+      await tx.delete(seriesFiles).where(and(eq(seriesFiles.fileId, fileId), inArray(seriesFiles.seriesId, toRemove)))
 
       await tx
         .update(series)
@@ -93,7 +88,7 @@ export default defineEventHandler(async (event): Promise<{ seriesIds: number[] }
       }
 
       await tx.insert(seriesFiles).values(
-        toAdd.map((seriesId) => {
+        toAdd.map(seriesId => {
           const maxSort = maxSortMap.get(seriesId) ?? 0
           maxSortMap.set(seriesId, maxSort + 1)
           return {

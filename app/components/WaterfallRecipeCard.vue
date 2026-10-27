@@ -7,22 +7,25 @@ import { sampleToneCurve } from '~/utils/tone-curve'
 // the slider groups. Shared by the Lightroom (`crs:*`) and LLR (`llr:*`)
 // sections — LLR supplies more of it (facts, masks, bypassed panels), so the
 // drawing lives here once.
-const props = withDefaults(defineProps<{
-  title: string
-  badges?: string[]
-  /** Non-slider settings, as key / value rows. */
-  facts?: RecipeFact[]
-  toneCurve?: RecipeToneCurve | null
-  toneCurveBypassed?: boolean
-  groups: RecipeAdjustmentGroup[]
-  /** Local adjustments, each with its own selection. */
-  masks?: LlrMaskView[]
-  masksBypassed?: boolean
-}>(), {
-  badges: () => [],
-  facts: () => [],
-  masks: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    title: string
+    badges?: string[]
+    /** Non-slider settings, as key / value rows. */
+    facts?: RecipeFact[]
+    toneCurve?: RecipeToneCurve | null
+    toneCurveBypassed?: boolean
+    groups: RecipeAdjustmentGroup[]
+    /** Local adjustments, each with its own selection. */
+    masks?: LlrMaskView[]
+    masksBypassed?: boolean
+  }>(),
+  {
+    badges: () => [],
+    facts: () => [],
+    masks: () => [],
+  },
+)
 
 const { t } = useI18n()
 
@@ -98,12 +101,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
       </div>
     </div>
     <dl v-if="facts.length > 0" class="pb-2 [--meta-row-py:0.25rem]">
-      <div
-        v-for="fact in facts"
-        :key="fact.key"
-        class="meta-row"
-        :class="fact.bypassed ? 'opacity-50' : undefined"
-      >
+      <div v-for="fact in facts" :key="fact.key" class="meta-row" :class="fact.bypassed ? 'opacity-50' : undefined">
         <dt class="meta-key">
           <span class="truncate">{{ fact.label }}</span>
         </dt>
@@ -113,7 +111,11 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
         </dd>
       </div>
     </dl>
-    <div v-if="toneCurveChannels.length > 0" class="space-y-2 border-t border-border px-5 py-3" :class="toneCurveBypassed ? 'opacity-50' : undefined">
+    <div
+      v-if="toneCurveChannels.length > 0"
+      class="space-y-2 border-t border-border px-5 py-3"
+      :class="toneCurveBypassed ? 'opacity-50' : undefined"
+    >
       <div class="label-caption-sm flex items-center justify-between text-dimmed">
         <span>{{ t('gallery.metadata.toneCurve') }}</span>
         <span v-if="toneCurveBypassed" class="recipe-off">{{ t('gallery.llr.bypassed') }}</span>
@@ -133,7 +135,14 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
           vector-effect="non-scaling-stroke"
           fill="none"
         />
-        <path d="M0 255 L255 0" stroke="#6b7280" stroke-width="1" stroke-dasharray="4 4" vector-effect="non-scaling-stroke" fill="none" />
+        <path
+          d="M0 255 L255 0"
+          stroke="#6b7280"
+          stroke-width="1"
+          stroke-dasharray="4 4"
+          vector-effect="non-scaling-stroke"
+          fill="none"
+        />
         <path
           v-for="channel in toneCurveChannels"
           :key="channel.key"
@@ -165,7 +174,9 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
       <div class="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
         <p class="label-caption-sm flex min-w-0 items-center gap-1.5 text-dimmed">
           <Icon name="jannchie:fill-mask" class="h-3.5 w-3.5" />
-          <span class="truncate text-highlighted">{{ mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 }) }}</span>
+          <span class="truncate text-highlighted">{{
+            mask.name || t('gallery.metadata.llrMaskFallback', { index: maskIndex + 1 })
+          }}</span>
         </p>
         <span v-if="mask.disabled || mask.inverted || masksBypassed" class="flex gap-1">
           <span v-if="mask.inverted" class="recipe-tag">
@@ -189,11 +200,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
         </span>
       </p>
       <div v-if="mask.items.length > 0" class="space-y-2">
-        <RecipeSliderRow
-          v-for="item in mask.items"
-          :key="`${mask.key}-${item.key}`"
-          :item="item"
-        />
+        <RecipeSliderRow v-for="item in mask.items" :key="`${mask.key}-${item.key}`" :item="item" />
       </div>
     </div>
     <div
@@ -209,11 +216,7 @@ function buildToneCurvePath(points: RecipeCurvePoint[]): string {
         <span v-if="group.bypassed" class="recipe-off">{{ t('gallery.llr.bypassed') }}</span>
       </div>
       <div class="space-y-2">
-        <RecipeSliderRow
-          v-for="item in group.items"
-          :key="item.key"
-          :item="item"
-        />
+        <RecipeSliderRow v-for="item in group.items" :key="item.key" :item="item" />
       </div>
     </div>
   </section>

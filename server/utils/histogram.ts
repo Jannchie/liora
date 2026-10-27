@@ -2,6 +2,17 @@ import type { HistogramData } from '../../app/types/file'
 import sharp from 'sharp'
 import { logger } from './logger'
 
+function incrementChannel(channel: number[], value: number): void {
+  if (value < 0 || value >= channel.length) {
+    return
+  }
+  const current = channel[value]
+  if (current === undefined) {
+    return
+  }
+  channel[value] = current + 1
+}
+
 /**
  * Compute normalized RGB and luminance histograms for an image buffer.
  */
@@ -23,17 +34,6 @@ export async function computeHistogram(data: Buffer): Promise<HistogramData | nu
       green: Array.from<number>({ length: 256 }).fill(0),
       blue: Array.from<number>({ length: 256 }).fill(0),
       luminance: Array.from<number>({ length: 256 }).fill(0),
-    }
-
-    const incrementChannel = (channel: number[], value: number): void => {
-      if (value < 0 || value >= channel.length) {
-        return
-      }
-      const current = channel[value]
-      if (current === undefined) {
-        return
-      }
-      channel[value] = current + 1
     }
 
     for (let index = 0; index < raw.length; index += channels) {
@@ -59,8 +59,7 @@ export async function computeHistogram(data: Buffer): Promise<HistogramData | nu
     }
 
     return histogram
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('histogram generation failed', { error })
     return null
   }

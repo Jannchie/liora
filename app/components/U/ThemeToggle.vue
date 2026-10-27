@@ -31,8 +31,7 @@ function readStoredMode(): Mode {
     if (raw === 'light' || raw === 'dark' || raw === 'auto') {
       return raw
     }
-  }
-  catch {
+  } catch {
     /* localStorage may be inaccessible in private mode */
   }
   return 'auto'
@@ -44,11 +43,10 @@ const hasMounted = ref(false)
 onMounted(() => {
   userMode.value = readStoredMode()
   hasMounted.value = true
-  watch(userMode, (value) => {
+  watch(userMode, value => {
     try {
       globalThis.localStorage?.setItem(STORAGE_KEY, value)
-    }
-    catch {
+    } catch {
       /* ignore */
     }
   })
@@ -98,22 +96,28 @@ const cycle: Record<Mode, Mode> = {
 
 const icon = computed(() => {
   switch (userMode.value) {
-    case 'light': { return 'jannchie:sun'
+    case 'light': {
+      return 'jannchie:sun'
     }
-    case 'dark': { return 'jannchie:moon'
+    case 'dark': {
+      return 'jannchie:moon'
     }
-    default: { return 'jannchie:theme'
+    default: {
+      return 'jannchie:theme'
     }
   }
 })
 
 const label = computed(() => {
   switch (userMode.value) {
-    case 'light': { return 'Light'
+    case 'light': {
+      return 'Light'
     }
-    case 'dark': { return 'Dark'
+    case 'dark': {
+      return 'Dark'
     }
-    default: { return 'Auto'
+    default: {
+      return 'Auto'
     }
   }
 })

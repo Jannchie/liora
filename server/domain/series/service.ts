@@ -90,9 +90,7 @@ export function parseUniqueFileIds(value: unknown): number[] {
   if (!Array.isArray(value)) {
     return []
   }
-  const ids = value
-    .map(entry => parseNumericId(entry))
-    .filter((entry): entry is number => typeof entry === 'number')
+  const ids = value.map(entry => parseNumericId(entry)).filter((entry): entry is number => typeof entry === 'number')
   return [...new Set(ids)]
 }
 

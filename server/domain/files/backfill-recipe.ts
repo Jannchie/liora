@@ -31,7 +31,9 @@ export async function backfillRecipes(): Promise<BackfillSummary> {
 
     try {
       const buffer = await fetchImageBuffer(file.imageUrl)
-      const extracted = clampExtractedMetadata(await extractFocusMetadataFromBuffer(buffer, file.originalName || undefined))
+      const extracted = clampExtractedMetadata(
+        await extractFocusMetadataFromBuffer(buffer, file.originalName || undefined),
+      )
       if (!extracted) {
         skipped += 1
         continue
@@ -47,8 +49,7 @@ export async function backfillRecipes(): Promise<BackfillSummary> {
         .where(eq(files.id, file.id))
       updated += 1
       logger.info(`Updated recipe for file #${file.id}`)
-    }
-    catch (error) {
+    } catch (error) {
       logger.warn(`Failed to update recipe for file #${file.id}:`, { error })
       skipped += 1
     }

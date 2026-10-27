@@ -24,7 +24,7 @@ export function useLocationSearch(form: MediaFormState) {
     return found ?? ''
   }
 
-  const getFormCoordinates = (): { latitude: number, longitude: number } | null => {
+  const getFormCoordinates = (): { latitude: number; longitude: number } | null => {
     const latitude = readCoordinate(form.latitude)
     const longitude = readCoordinate(form.longitude)
     if (latitude === null || longitude === null) {
@@ -63,16 +63,17 @@ export function useLocationSearch(form: MediaFormState) {
     geocoding.value = true
     geocodeResults.value = []
     try {
-      const response = useReverseGeocode && coordinates
-        ? await $fetch<{ results?: GeocodeResult[] }>('/api/geocode/reverse', {
-            params: {
-              lat: coordinates.latitude,
-              lon: coordinates.longitude,
-            },
-          })
-        : await $fetch<{ results?: GeocodeResult[] }>('/api/geocode', {
-            params: { q: query, limit: 5 },
-          })
+      const response =
+        useReverseGeocode && coordinates
+          ? await $fetch<{ results?: GeocodeResult[] }>('/api/geocode/reverse', {
+              params: {
+                lat: coordinates.latitude,
+                lon: coordinates.longitude,
+              },
+            })
+          : await $fetch<{ results?: GeocodeResult[] }>('/api/geocode', {
+              params: { q: query, limit: 5 },
+            })
       geocodeResults.value = response.results ?? []
       if (geocodeResults.value.length === 0) {
         toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
@@ -83,12 +84,10 @@ export function useLocationSearch(form: MediaFormState) {
           applyGeocodeResult(firstResult)
         }
       }
-    }
-    catch (error) {
+    } catch (error) {
       const description = error instanceof Error ? error.message : toastMessages.value.geocodeFailedFallback
       toast.add({ title: toastMessages.value.geocodeFailedTitle, description, color: 'error' })
-    }
-    finally {
+    } finally {
       geocoding.value = false
     }
   }
@@ -112,16 +111,13 @@ export function useLocationSearch(form: MediaFormState) {
       const [firstResult] = response.results ?? []
       if (firstResult) {
         applyGeocodeResult(firstResult)
-      }
-      else {
+      } else {
         toast.add({ title: toastMessages.value.geocodeNoResult, color: 'warning' })
       }
-    }
-    catch (error) {
+    } catch (error) {
       const description = error instanceof Error ? error.message : toastMessages.value.geocodeFailedFallback
       toast.add({ title: toastMessages.value.geocodeFailedTitle, description, color: 'error' })
-    }
-    finally {
+    } finally {
       geocoding.value = false
     }
   }

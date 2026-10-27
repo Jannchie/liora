@@ -25,10 +25,7 @@ const { t } = useI18n()
     grouped on the right. Every control is ghosted so nothing competes
     with the photographs below.
   -->
-  <header
-    v-if="showHeaderInfo"
-    class="wire-bar sticky top-0 z-30 border-b border-border"
-  >
+  <header v-if="showHeaderInfo" class="wire-bar sticky top-0 z-30 border-b border-border">
     <div class="flex h-12 items-center gap-2 px-2 sm:px-3">
       <h1 class="flex min-w-0 max-w-[60vw] shrink-0 lg:max-w-none">
         <NuxtLink
@@ -92,10 +89,7 @@ const { t } = useI18n()
     Site info lives in the waterfall instead: the bar keeps only the
     utilities, right-aligned.
   -->
-  <div
-    v-else
-    class="flex h-10 items-center justify-end gap-1 border-b border-border px-2 sm:px-3"
-  >
+  <div v-else class="flex h-10 items-center justify-end gap-1 border-b border-border px-2 sm:px-3">
     <UButton
       to="/map"
       color="neutral"

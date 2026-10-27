@@ -37,7 +37,7 @@ describe('clipindicators', () => {
     const luminance = flat(1 / 256)
     const red = flat()
     red[128] = 0.5
-    red[255] = 0.000_01
+    red[255] = 0.00001
     expect(clipIndicators(histogram({ luminance, red }))).toEqual({ shadow: null, highlight: null })
   })
 

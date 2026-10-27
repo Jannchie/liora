@@ -33,7 +33,7 @@ export default defineEventHandler(async (event): Promise<FileResponse[] | FileSu
 
   // The histogram (4×256 floats per row) dwarfs the rest of the payload and
   // is only consumed by the overlay, which refetches the single file anyway.
-  const responses = rows.map((file) => {
+  const responses = rows.map(file => {
     const response = toFileResponse(file)
     return { ...response, metadata: { ...response.metadata, histogram: null } }
   })

@@ -49,11 +49,9 @@ export function sampleToneCurve(points: RecipeCurvePoint[], range: number, count
     let y: number
     if (x <= first.x) {
       y = first.y
-    }
-    else if (x >= last.x) {
+    } else if (x >= last.x) {
       y = last.y
-    }
-    else if (tangents) {
+    } else if (tangents) {
       while (segment < sorted.length - 2 && x > sorted[segment + 1]!.x) {
         segment += 1
       }
@@ -63,12 +61,12 @@ export function sampleToneCurve(points: RecipeCurvePoint[], range: number, count
       const h = (x - p0.x) / dx
       const h2 = h * h
       const h3 = h2 * h
-      y = p0.y * (2 * h3 - 3 * h2 + 1)
-        + p1.y * (-2 * h3 + 3 * h2)
-        + tangents[segment]! * dx * (h3 - 2 * h2 + h)
-        + tangents[segment + 1]! * dx * (h3 - h2)
-    }
-    else {
+      y =
+        p0.y * (2 * h3 - 3 * h2 + 1) +
+        p1.y * (-2 * h3 + 3 * h2) +
+        tangents[segment]! * dx * (h3 - 2 * h2 + h) +
+        tangents[segment + 1]! * dx * (h3 - h2)
+    } else {
       y = first.y + ((last.y - first.y) * (x - first.x)) / (last.x - first.x)
     }
     samples.push({ x, y })

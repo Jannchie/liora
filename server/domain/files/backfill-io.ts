@@ -14,9 +14,8 @@ export async function fetchImageBuffer(url: string): Promise<Buffer> {
 export function parseMetadataObject(raw: string): Record<string, unknown> | null {
   try {
     const value: unknown = JSON.parse(raw)
-    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {}
-  }
-  catch (error) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : {}
+  } catch (error) {
     logger.warn('Failed to parse metadata, skipping entry:', { error })
     return null
   }

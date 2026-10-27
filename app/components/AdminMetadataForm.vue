@@ -5,32 +5,31 @@ import { useExposureOptions } from '~/composables/useExposureOptions'
 import { useLocationSearch } from '~/composables/useLocationSearch'
 import { toIsoWithOffset } from '~/utils/datetime'
 
-const props = withDefaults(defineProps<{
-  form: MediaFormState
-  classifySource?: {
-    file?: File | null
-    imageUrl?: string | null
-  }
-}>(), {
-  classifySource: () => ({
-    file: null,
-    imageUrl: null,
-  }),
-})
+const props = withDefaults(
+  defineProps<{
+    form: MediaFormState
+    classifySource?: {
+      file?: File | null
+      imageUrl?: string | null
+    }
+  }>(),
+  {
+    classifySource: () => ({
+      file: null,
+      imageUrl: null,
+    }),
+  },
+)
 
 const form = toRef(props, 'form')
 const captureTimeLocal = defineModel<string>('captureTimeLocal', { required: true })
 
 const { t } = useI18n()
 const toast = useToast()
-const {
-  exposureProgramOptions,
-  exposureModeOptions,
-  meteringModeOptions,
-  whiteBalanceOptions,
-  flashOptions,
-} = useExposureOptions()
-const { geocodeQuery, geocoding, geocodeResults, searchLocation, reverseGeocode, applyGeocodeResult } = useLocationSearch(form.value)
+const { exposureProgramOptions, exposureModeOptions, meteringModeOptions, whiteBalanceOptions, flashOptions } =
+  useExposureOptions()
+const { geocodeQuery, geocoding, geocodeResults, searchLocation, reverseGeocode, applyGeocodeResult } =
+  useLocationSearch(form.value)
 
 function pickLocation([longitude, latitude]: [number, number]): void {
   form.value.latitude = latitude
@@ -122,8 +121,7 @@ async function autoClassifyGenre(): Promise<void> {
         method: 'POST',
         body,
       })
-    }
-    else {
+    } else {
       response = await $fetch<GenreClassificationPayload>('/api/files/classify', {
         method: 'POST',
         body: { imageUrl },
@@ -134,19 +132,17 @@ async function autoClassifyGenre(): Promise<void> {
     if (genre) {
       form.value.genre = genre
     }
-  }
-  catch (error) {
+  } catch (error) {
     const description = error instanceof Error ? error.message : classifyMessages.value.failedFallback
     toast.add({ title: classifyMessages.value.failedTitle, description, color: 'error' })
-  }
-  finally {
+  } finally {
     classifyingGenre.value = false
   }
 }
 
 watch(
   () => captureTimeLocal.value,
-  (value) => {
+  value => {
     if (!form.value) {
       return
     }
@@ -175,13 +171,32 @@ watch(
           <UInput v-model="form.title" class="w-full" :placeholder="t('admin.files.form.title.placeholder')" />
         </UFormField>
         <UFormField :label="t('admin.files.form.description.label')" name="description">
-          <UTextarea v-model="form.description" class="w-full" :placeholder="t('admin.files.form.description.placeholder')" :rows="3" />
+          <UTextarea
+            v-model="form.description"
+            class="w-full"
+            :placeholder="t('admin.files.form.description.placeholder')"
+            :rows="3"
+          />
         </UFormField>
         <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-          <UFormField :label="t('admin.upload.fields.captureTime.label')" name="captureTime" :description="t('admin.upload.fields.captureTime.description')">
-            <UInput v-model="captureTimeLocal" class="w-full" type="datetime-local" step="1" :placeholder="t('admin.upload.fields.captureTime.placeholder')" />
+          <UFormField
+            :label="t('admin.upload.fields.captureTime.label')"
+            name="captureTime"
+            :description="t('admin.upload.fields.captureTime.description')"
+          >
+            <UInput
+              v-model="captureTimeLocal"
+              class="w-full"
+              type="datetime-local"
+              step="1"
+              :placeholder="t('admin.upload.fields.captureTime.placeholder')"
+            />
           </UFormField>
-          <UFormField :label="t('admin.files.form.genre.label')" name="genre" :description="t('admin.files.form.genre.autoDescription')">
+          <UFormField
+            :label="t('admin.files.form.genre.label')"
+            name="genre"
+            :description="t('admin.files.form.genre.autoDescription')"
+          >
             <div class="flex gap-2">
               <USelect
                 v-model="form.genre"
@@ -208,11 +223,31 @@ watch(
           </UFormField>
         </div>
         <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-          <UFormField :label="t('admin.upload.fields.width.label')" name="width" :description="t('admin.upload.fields.width.description')">
-            <UInput v-model.number="form.width" class="w-full num-tabular" type="number" min="1" :placeholder="t('admin.upload.fields.width.placeholder')" />
+          <UFormField
+            :label="t('admin.upload.fields.width.label')"
+            name="width"
+            :description="t('admin.upload.fields.width.description')"
+          >
+            <UInput
+              v-model.number="form.width"
+              class="w-full num-tabular"
+              type="number"
+              min="1"
+              :placeholder="t('admin.upload.fields.width.placeholder')"
+            />
           </UFormField>
-          <UFormField :label="t('admin.upload.fields.height.label')" name="height" :description="t('admin.upload.fields.height.description')">
-            <UInput v-model.number="form.height" class="w-full num-tabular" type="number" min="1" :placeholder="t('admin.upload.fields.height.placeholder')" />
+          <UFormField
+            :label="t('admin.upload.fields.height.label')"
+            name="height"
+            :description="t('admin.upload.fields.height.description')"
+          >
+            <UInput
+              v-model.number="form.height"
+              class="w-full num-tabular"
+              type="number"
+              min="1"
+              :placeholder="t('admin.upload.fields.height.placeholder')"
+            />
           </UFormField>
         </div>
       </div>
@@ -267,9 +302,7 @@ watch(
                   {{ result.placeName }}
                 </p>
               </div>
-              <span class="shrink-0 text-xs text-muted">
-                {{ t('admin.upload.fields.locationSearch.apply') }} →
-              </span>
+              <span class="shrink-0 text-xs text-muted"> {{ t('admin.upload.fields.locationSearch.apply') }} → </span>
             </button>
           </div>
         </div>
@@ -277,10 +310,22 @@ watch(
       <AdminLocationPicker :latitude="form.latitude" :longitude="form.longitude" @pick="pickLocation" />
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-3">
         <UFormField :label="t('admin.upload.fields.latitude.label')" name="latitude">
-          <UInput v-model.number="form.latitude" class="w-full num-tabular" type="number" step="0.000001" placeholder="39.9087" />
+          <UInput
+            v-model.number="form.latitude"
+            class="w-full num-tabular"
+            type="number"
+            step="0.000001"
+            placeholder="39.9087"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.longitude.label')" name="longitude">
-          <UInput v-model.number="form.longitude" class="w-full num-tabular" type="number" step="0.000001" placeholder="116.3975" />
+          <UInput
+            v-model.number="form.longitude"
+            class="w-full num-tabular"
+            type="number"
+            step="0.000001"
+            placeholder="116.3975"
+          />
         </UFormField>
         <UFormField :label="t('admin.files.form.locationReverse.actionShort')">
           <UButton
@@ -298,10 +343,18 @@ watch(
       </div>
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.locationName.label')" name="locationName">
-          <UInput v-model="form.locationName" class="w-full" :placeholder="t('admin.upload.fields.locationName.placeholder')" />
+          <UInput
+            v-model="form.locationName"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.locationName.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.locationRaw.label')" name="locationRaw">
-          <UInput v-model="form.location" class="w-full" :placeholder="t('admin.upload.fields.locationRaw.placeholder')" />
+          <UInput
+            v-model="form.location"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.locationRaw.placeholder')"
+          />
         </UFormField>
       </div>
     </section>
@@ -315,11 +368,7 @@ watch(
       </div>
       <!-- Exposure triangle readout: one ruled strip, cells split by hairlines. -->
       <div class="grid grid-cols-3 divide-x divide-border rounded-lg border border-border">
-        <div
-          v-for="highlight in exposureHighlights"
-          :key="highlight.label"
-          class="min-w-0 space-y-1 px-3 py-2.5"
-        >
+        <div v-for="highlight in exposureHighlights" :key="highlight.label" class="min-w-0 space-y-1 px-3 py-2.5">
           <div class="label-caption flex min-w-0 items-center gap-1.5">
             <Icon :name="highlight.icon" class="h-3.5 w-3.5 shrink-0" />
             <span class="truncate">{{ highlight.label }}</span>
@@ -331,10 +380,18 @@ watch(
       </div>
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.cameraModel.label')" name="cameraModel">
-          <UInput v-model="form.cameraModel" class="w-full" :placeholder="t('admin.upload.fields.cameraModel.placeholder')" />
+          <UInput
+            v-model="form.cameraModel"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.cameraModel.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.lensModel.label')" name="lensModel">
-          <UInput v-model="form.lensModel" class="w-full" :placeholder="t('admin.upload.fields.lensModel.placeholder')" />
+          <UInput
+            v-model="form.lensModel"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.lensModel.placeholder')"
+          />
         </UFormField>
       </div>
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -342,16 +399,28 @@ watch(
           <UInput v-model="form.aperture" class="w-full" :placeholder="t('admin.upload.fields.aperture.placeholder')" />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.shutterSpeed.label')" name="shutterSpeed">
-          <UInput v-model="form.shutterSpeed" class="w-full" :placeholder="t('admin.upload.fields.shutterSpeed.placeholder')" />
+          <UInput
+            v-model="form.shutterSpeed"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.shutterSpeed.placeholder')"
+          />
         </UFormField>
         <UFormField name="iso" label="ISO">
           <UInput v-model="form.iso" class="w-full" placeholder="800" />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.focalLength.label')" name="focalLength">
-          <UInput v-model="form.focalLength" class="w-full" :placeholder="t('admin.upload.fields.focalLength.placeholder')" />
+          <UInput
+            v-model="form.focalLength"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.focalLength.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.exposureBias.label')" name="exposureBias">
-          <UInput v-model="form.exposureBias" class="w-full" :placeholder="t('admin.upload.fields.exposureBias.placeholder')" />
+          <UInput
+            v-model="form.exposureBias"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.exposureBias.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.exposureProgram.label')" name="exposureProgram">
           <USelect
@@ -425,16 +494,32 @@ watch(
       </div>
       <div class="grid gap-x-4 gap-y-3 sm:grid-cols-2">
         <UFormField :label="t('admin.upload.fields.colorSpace.label')" name="colorSpace">
-          <UInput v-model="form.colorSpace" class="w-full" :placeholder="t('admin.upload.fields.colorSpace.placeholder')" />
+          <UInput
+            v-model="form.colorSpace"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.colorSpace.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.resolutionUnit.label')" name="resolutionUnit">
-          <UInput v-model="form.resolutionUnit" class="w-full" :placeholder="t('admin.upload.fields.resolutionUnit.placeholder')" />
+          <UInput
+            v-model="form.resolutionUnit"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.resolutionUnit.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.resolutionX.label')" name="resolutionX">
-          <UInput v-model="form.resolutionX" class="w-full" :placeholder="t('admin.upload.fields.resolutionX.placeholder')" />
+          <UInput
+            v-model="form.resolutionX"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.resolutionX.placeholder')"
+          />
         </UFormField>
         <UFormField :label="t('admin.upload.fields.resolutionY.label')" name="resolutionY">
-          <UInput v-model="form.resolutionY" class="w-full" :placeholder="t('admin.upload.fields.resolutionY.placeholder')" />
+          <UInput
+            v-model="form.resolutionY"
+            class="w-full"
+            :placeholder="t('admin.upload.fields.resolutionY.placeholder')"
+          />
         </UFormField>
       </div>
       <UFormField :label="t('admin.upload.fields.software.label')" name="software">

@@ -11,7 +11,14 @@ import { logger } from '../../utils/logger'
 import { buildPublicUrl, downloadObjectFromS3, headObjectFromS3, uploadBufferToS3 } from '../../utils/s3'
 import { setUploadStatus } from '../../utils/upload-status'
 import { computePerceptualHash, computeSha256, generateArthash, validateImage } from './image'
-import { buildMetadata, clampExtractedMetadata, normalizeText, parseCharacters, stripLensFromCamera, validateLengths } from './metadata'
+import {
+  buildMetadata,
+  clampExtractedMetadata,
+  normalizeText,
+  parseCharacters,
+  stripLensFromCamera,
+  validateLengths,
+} from './metadata'
 import { assertMaxFileSize, buildImageKey, buildVideoKey } from './upload'
 
 interface MultipartEntry {
@@ -49,11 +56,7 @@ async function runMetadataPostProcessing(
   const nextMetadata: FileMetadata = { ...baseMetadata }
   let status: UploadStatus = 'completed'
   try {
-    const [
-      perceptualHash,
-      histogram,
-      arthash,
-    ] = await Promise.all([
+    const [perceptualHash, histogram, arthash] = await Promise.all([
       computePerceptualHash(buffer),
       computeHistogram(buffer),
       generateArthash(buffer),
@@ -67,8 +70,7 @@ async function runMetadataPostProcessing(
     if (arthash) {
       nextMetadata.arthash = arthash
     }
-  }
-  catch (error) {
+  } catch (error) {
     status = 'failed'
     logger.error('post-upload metadata processing failed', { fileId, uploadId, error })
   }
@@ -81,8 +83,7 @@ async function runMetadataPostProcessing(
       .update(files)
       .set({ metadata: JSON.stringify(nextMetadata) })
       .where(eq(files.id, fileId))
-  }
-  catch (error) {
+  } catch (error) {
     status = 'failed'
     logger.error('post-upload metadata persistence failed', { fileId, uploadId, error })
   }
@@ -162,7 +163,7 @@ async function processUploadCore(payload: {
   imageUrl: string
   livePhotoVideoUrl?: string
   uploadId: string
-}): Promise<{ fileId: number, metadata: FileMetadata }> {
+}): Promise<{ fileId: number; metadata: FileMetadata }> {
   const characters = parseCharacters(payload.fields.characters)
   const metadata = buildMetadata(payload.fields, characters)
   const normalizedTitle = normalizeText(payload.fields.title)
@@ -176,7 +177,9 @@ async function processUploadCore(payload: {
   const deduped = stripLensFromCamera(metadata.cameraModel, metadata.lensModel)
   metadata.cameraModel = deduped.cameraModel
   metadata.lensModel = deduped.lensModel
-  const focusMetadata = clampExtractedMetadata(await extractFocusMetadataFromBuffer(payload.buffer, payload.originalName))
+  const focusMetadata = clampExtractedMetadata(
+    await extractFocusMetadataFromBuffer(payload.buffer, payload.originalName),
+  )
   applyFocusMetadata(metadata, focusMetadata)
   if (payload.livePhotoVideoUrl) {
     metadata.livePhotoVideoUrl = payload.livePhotoVideoUrl
@@ -226,8 +229,7 @@ export async function processMultipartUpload(payload: MultipartUploadJobPayload)
     })
     const status = await runMetadataPostProcessing(fileId, image.data, metadata, uploadId)
     setUploadStatus(uploadId, status)
-  }
-  catch (error) {
+  } catch (error) {
     setUploadStatus(uploadId, 'failed')
     logger.error('multipart upload job failed', { uploadId, originalName: image.filename, error })
   }
@@ -278,8 +280,7 @@ export async function processDirectUpload(payload: DirectUploadJobPayload): Prom
     })
     const status = await runMetadataPostProcessing(fileId, buffer, metadata, uploadId)
     setUploadStatus(uploadId, status)
-  }
-  catch (error) {
+  } catch (error) {
     setUploadStatus(uploadId, 'failed')
     logger.error('direct upload job failed', { uploadId, imageKey, originalName, error })
   }

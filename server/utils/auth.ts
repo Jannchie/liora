@@ -89,8 +89,7 @@ function verifyToken(token: string, secret: string): SessionPayload | null {
       return null
     }
     return { username: parsed.username, issuedAt: parsed.issuedAt }
-  }
-  catch {
+  } catch {
     return null
   }
 }

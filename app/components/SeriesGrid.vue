@@ -96,12 +96,7 @@ onMounted(() => {
 
 <template>
   <div v-if="errorMessage" class="wire-band">
-    <UAlert
-      color="error"
-      variant="soft"
-      :title="t('series.list.loadFailed')"
-      :description="errorMessage"
-    >
+    <UAlert color="error" variant="soft" :title="t('series.list.loadFailed')" :description="errorMessage">
       <template #actions>
         <UButton size="sm" color="error" variant="soft" icon="jannchie:refresh" @click="emit('retry')">
           {{ t('common.actions.retry') }}
@@ -131,10 +126,7 @@ onMounted(() => {
     </div>
   </div>
 
-  <div
-    v-else-if="!hasSeries"
-    class="border-b border-border px-4 py-20 text-center text-[13px] text-dimmed"
-  >
+  <div v-else-if="!hasSeries" class="border-b border-border px-4 py-20 text-center text-[13px] text-dimmed">
     {{ resolvedEmptyText }}
   </div>
 
@@ -154,7 +146,7 @@ onMounted(() => {
               loading="lazy"
               decoding="async"
               @load="markCoverLoaded(resolveCover(item)!.id)"
-            >
+            />
             <ArthashPlaceholder
               :arthash="resolveCover(item)!.arthash"
               :loaded="isCoverLoaded(resolveCover(item)!.id)"
@@ -170,22 +162,18 @@ onMounted(() => {
             <span
               class="truncate text-[14px] font-semibold tracking-[-0.01em]"
               :class="isUncategorized(item) ? 'text-muted' : 'text-highlighted'"
-            >{{ resolveTitle(item) }}</span>
+              >{{ resolveTitle(item) }}</span
+            >
             <small
               class="shrink-0 num-tabular text-xs font-normal text-dimmed"
               :title="t('series.list.count', { count: item.fileCount })"
-            >{{ item.fileCount }}</small>
+              >{{ item.fileCount }}</small
+            >
           </h3>
-          <p
-            v-if="resolveDescription(item)"
-            class="mt-1 line-clamp-2 text-[13px] leading-relaxed text-dimmed"
-          >
+          <p v-if="resolveDescription(item)" class="mt-1 line-clamp-2 text-[13px] leading-relaxed text-dimmed">
             {{ resolveDescription(item) }}
           </p>
-          <p
-            v-if="formatDate(item.updatedAt)"
-            class="mt-auto pt-3 num-tabular text-[11.5px] text-subtle"
-          >
+          <p v-if="formatDate(item.updatedAt)" class="mt-auto pt-3 num-tabular text-[11.5px] text-subtle">
             {{ formatDate(item.updatedAt) }}
           </p>
         </div>

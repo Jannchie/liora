@@ -42,12 +42,12 @@ describe('composables/useexifextraction', () => {
   })
 
   it('puts gps into the coordinate fields and leaves the address fields alone', async () => {
-    parse.mockResolvedValue({ latitude: 35.658_581_23, longitude: 139.745_433_87 })
+    parse.mockResolvedValue({ latitude: 35.65858123, longitude: 139.74543387 })
 
     await run(form)
 
-    expect(form.latitude).toBe(35.658_581)
-    expect(form.longitude).toBe(139.745_434)
+    expect(form.latitude).toBe(35.658581)
+    expect(form.longitude).toBe(139.745434)
     // `location` is the postal address and `locationName` the place name;
     // both are filled by (reverse) geocoding, never by raw coordinates.
     expect(form.location).toBe('')
@@ -65,11 +65,11 @@ describe('composables/useexifextraction', () => {
   })
 
   it('ignores unusable coordinate values', async () => {
-    parse.mockResolvedValue({ latitude: Number.NaN, longitude: 139.745_433 })
+    parse.mockResolvedValue({ latitude: Number.NaN, longitude: 139.745433 })
 
     await run(form)
 
     expect(form.latitude).toBeNull()
-    expect(form.longitude).toBe(139.745_433)
+    expect(form.longitude).toBe(139.745433)
   })
 })

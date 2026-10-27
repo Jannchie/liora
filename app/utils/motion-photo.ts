@@ -34,7 +34,23 @@ export interface LivePhotoEntry {
   stillTime?: number
 }
 
-const MP4_BRANDS = new Set(['isom', 'iso2', 'iso4', 'iso5', 'iso6', 'mp41', 'mp42', 'avc1', 'qt  ', 'MSNV', 'mp4v', '3gp4', '3gp5', 'hvc1', 'dash'])
+const MP4_BRANDS = new Set([
+  'isom',
+  'iso2',
+  'iso4',
+  'iso5',
+  'iso6',
+  'mp41',
+  'mp42',
+  'avc1',
+  'qt  ',
+  'MSNV',
+  'mp4v',
+  '3gp4',
+  '3gp5',
+  'hvc1',
+  'dash',
+])
 const XMP_SCAN_BYTES = 512 * 1024
 const BOX_HEADER_BYTES = 16
 
@@ -54,7 +70,7 @@ function readAscii(bytes: Uint8Array, offset: number, length: number): string {
 function isBoxType(bytes: Uint8Array, offset: number): boolean {
   for (let index = offset; index < offset + 4; index += 1) {
     const byte = bytes[index]
-    if (byte === undefined || byte < 0x20 || byte > 0x7E) {
+    if (byte === undefined || byte < 0x20 || byte > 0x7e) {
       return false
     }
   }
@@ -84,8 +100,7 @@ function readBoxHeader(bytes: Uint8Array, offset: number, limit: number): Mp4Box
     }
     size = readUint64(bytes, offset + 8)
     headerSize = 16
-  }
-  else if (size === 0) {
+  } else if (size === 0) {
     size = limit - offset
   }
   if (size < headerSize || offset + size > limit) {
@@ -106,7 +121,7 @@ function readBoxes(bytes: Uint8Array, start: number, end: number): Mp4Box[] {
 }
 
 /** Validates an MP4 starting at `start` and returns where it ends. */
-function measureMp4(bytes: Uint8Array, start: number): { end: number, type: MotionPhotoLayout['videoType'] } | null {
+function measureMp4(bytes: Uint8Array, start: number): { end: number; type: MotionPhotoLayout['videoType'] } | null {
   const boxes = readBoxes(bytes, start, bytes.length)
   const first = boxes[0]
   if (first?.type !== 'ftyp' || !boxes.some(box => box.type === 'moov')) {
@@ -153,8 +168,8 @@ function xmpVideoStarts(xmp: string, length: number): number[] {
 }
 
 function readPresentationTime(xmp: string): number | undefined {
-  const micros = readXmpNumber(xmp, 'MotionPhotoPresentationTimestampUs')
-    ?? readXmpNumber(xmp, 'MicroVideoPresentationTimestampUs')
+  const micros =
+    readXmpNumber(xmp, 'MotionPhotoPresentationTimestampUs') ?? readXmpNumber(xmp, 'MicroVideoPresentationTimestampUs')
   return micros !== undefined && micros >= 0 ? micros / 1_000_000 : undefined
 }
 
@@ -232,14 +247,19 @@ function mayEmbedVideo(file: File): boolean {
 }
 
 /** Finds the embedded video, trusting XMP offsets before scanning the whole file. */
-async function locateMotionVideo(file: File): Promise<{ layout: MotionPhotoLayout, duration?: number } | null> {
+async function locateMotionVideo(file: File): Promise<{ layout: MotionPhotoLayout; duration?: number } | null> {
   const xmp = readXmp(await readBytes(file.slice(0, XMP_SCAN_BYTES)))
   for (const start of xmpVideoStarts(xmp, file.size)) {
     const tail = await readBytes(file.slice(start))
     const video = measureMp4(tail, 0)
     if (video) {
       return {
-        layout: { videoStart: start, videoEnd: start + video.end, videoType: video.type, presentationTime: readPresentationTime(xmp) },
+        layout: {
+          videoStart: start,
+          videoEnd: start + video.end,
+          videoType: video.type,
+          presentationTime: readPresentationTime(xmp),
+        },
         duration: readMp4Duration(tail, 0, video.end),
       }
     }
@@ -264,9 +284,20 @@ export async function splitMotionPhoto(file: File): Promise<LivePhotoEntry | nul
   }
   const { layout, duration } = found
   const extension = layout.videoType === 'video/quicktime' ? 'mov' : 'mp4'
-  const image = new File([file.slice(0, layout.videoStart)], file.name, { type: resolveContentType(file, 'image/jpeg'), lastModified: file.lastModified })
-  const video = new File([file.slice(layout.videoStart, layout.videoEnd)], `${stripExtension(file.name) || 'motion-photo'}.${extension}`, { type: layout.videoType, lastModified: file.lastModified })
+  const image = new File([file.slice(0, layout.videoStart)], file.name, {
+    type: resolveContentType(file, 'image/jpeg'),
+    lastModified: file.lastModified,
+  })
+  const video = new File(
+    [file.slice(layout.videoStart, layout.videoEnd)],
+    `${stripExtension(file.name) || 'motion-photo'}.${extension}`,
+    { type: layout.videoType, lastModified: file.lastModified },
+  )
   return { image, video, stillTime: layout.presentationTime ?? middleOf(duration) }
+}
+
+function pairKey(file: File): string {
+  return stripExtension(file.name).toLowerCase()
 }
 
 /**
@@ -274,7 +305,6 @@ export async function splitMotionPhoto(file: File): Promise<LivePhotoEntry | nul
  * Unpaired images and videos come back as entries of their own, in pick order.
  */
 export function pairLivePhotoFiles(files: File[]): LivePhotoEntry[] {
-  const pairKey = (file: File): string => stripExtension(file.name).toLowerCase()
   const videos = files.filter(isVideoFile)
   const videosByName = new Map(videos.map(video => [pairKey(video), video]))
   const paired = new Set<File>()
@@ -307,13 +337,11 @@ export async function resolveLivePhotoEntries(files: File[]): Promise<LivePhotoE
   const entries: LivePhotoEntry[] = []
   for (const entry of pairLivePhotoFiles(files)) {
     if (entry.image && !entry.video) {
-      entries.push(await splitMotionPhoto(entry.image).catch(() => null) ?? entry)
-    }
-    else if (entry.image && entry.video) {
+      entries.push((await splitMotionPhoto(entry.image).catch(() => null)) ?? entry)
+    } else if (entry.image && entry.video) {
       const duration = await readVideoDuration(entry.video).catch(() => null)
       entries.push({ ...entry, stillTime: middleOf(duration) })
-    }
-    else {
+    } else {
       entries.push(entry)
     }
   }

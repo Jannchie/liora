@@ -62,9 +62,7 @@ export function parseBatchFileIds(raw: unknown, fieldName = 'fileIds'): number[]
   if (!Array.isArray(raw)) {
     throw createError({ statusCode: 400, statusMessage: `${fieldName} must be an array.` })
   }
-  const normalized = raw
-    .map(value => parsePositiveInt(value))
-    .filter((value): value is number => value !== null)
+  const normalized = raw.map(value => parsePositiveInt(value)).filter((value): value is number => value !== null)
   const unique = [...new Set(normalized)]
   if (unique.length === 0) {
     throw createError({ statusCode: 400, statusMessage: `${fieldName} must contain at least one valid id.` })
@@ -80,7 +78,7 @@ export function parseBatchFieldMask(raw: unknown): BatchMetadataField[] {
     throw createError({ statusCode: 400, statusMessage: 'fieldMask must be an array.' })
   }
   const normalized = raw
-    .map((value) => {
+    .map(value => {
       if (typeof value !== 'string') {
         return null
       }
@@ -118,7 +116,10 @@ export function parseBatchMetadataPayload(raw: BatchMetadataPayload | undefined)
   const changesRaw = assertObjectPayload((raw as { changes?: unknown }).changes, 'changes')
   for (const field of fieldMask) {
     if (!hasOwn(changesRaw, field)) {
-      throw createError({ statusCode: 400, statusMessage: `changes.${field} is required when fieldMask contains ${field}.` })
+      throw createError({
+        statusCode: 400,
+        statusMessage: `changes.${field} is required when fieldMask contains ${field}.`,
+      })
     }
   }
   return {
@@ -131,8 +132,8 @@ export function parseBatchMetadataPayload(raw: BatchMetadataPayload | undefined)
 export function pickMaskedChanges(
   changes: BatchMetadataPayload['changes'],
   fieldMask: BatchMetadataField[],
-): Partial<FilePayload> & { title?: string, description?: string, genre?: string } {
-  const picked: Partial<FilePayload> & { title?: string, description?: string, genre?: string } = {}
+): Partial<FilePayload> & { title?: string; description?: string; genre?: string } {
+  const picked: Partial<FilePayload> & { title?: string; description?: string; genre?: string } = {}
   const mutablePicked = picked as Record<string, unknown>
   for (const field of fieldMask) {
     const value = changes[field]
@@ -177,15 +178,18 @@ function parseBatchUploadItem(raw: unknown, index: number): BatchUploadItemPaylo
   if (imageKey.includes('..') || imageKey.includes('\\') || imageKey.startsWith('/')) {
     throw createError({ statusCode: 400, statusMessage: `items[${index}].imageKey is invalid.` })
   }
-  const imageContentType = typeof item.imageContentType === 'string' && item.imageContentType.trim().length > 0
-    ? item.imageContentType.trim()
-    : undefined
-  const originalName = typeof item.originalName === 'string' && item.originalName.trim().length > 0
-    ? item.originalName.trim()
-    : undefined
+  const imageContentType =
+    typeof item.imageContentType === 'string' && item.imageContentType.trim().length > 0
+      ? item.imageContentType.trim()
+      : undefined
+  const originalName =
+    typeof item.originalName === 'string' && item.originalName.trim().length > 0 ? item.originalName.trim() : undefined
   let metadataOverrides: BatchUploadItemPayload['metadataOverrides']
   if (item.metadataOverrides !== undefined) {
-    metadataOverrides = assertObjectPayload(item.metadataOverrides, `items[${index}].metadataOverrides`) as BatchUploadItemPayload['metadataOverrides']
+    metadataOverrides = assertObjectPayload(
+      item.metadataOverrides,
+      `items[${index}].metadataOverrides`,
+    ) as BatchUploadItemPayload['metadataOverrides']
   }
   return {
     imageKey,
@@ -204,10 +208,16 @@ export function parseBatchUploadPayload(raw: BatchUploadPayload | undefined): {
     throw createError({ statusCode: 400, statusMessage: 'Request body is required.' })
   }
   const fieldMask = parseBatchFieldMask((raw as { fieldMask?: unknown }).fieldMask)
-  const sharedChanges = assertObjectPayload((raw as { sharedChanges?: unknown }).sharedChanges, 'sharedChanges') as BatchUploadPayload['sharedChanges']
+  const sharedChanges = assertObjectPayload(
+    (raw as { sharedChanges?: unknown }).sharedChanges,
+    'sharedChanges',
+  ) as BatchUploadPayload['sharedChanges']
   for (const field of fieldMask) {
     if (!hasOwn(sharedChanges, field)) {
-      throw createError({ statusCode: 400, statusMessage: `sharedChanges.${field} is required when fieldMask contains ${field}.` })
+      throw createError({
+        statusCode: 400,
+        statusMessage: `sharedChanges.${field} is required when fieldMask contains ${field}.`,
+      })
     }
   }
   const rawItems = (raw as { items?: unknown }).items

@@ -64,10 +64,12 @@ function shouldBackoffFocusMetadata(error: unknown): boolean {
     return false
   }
   const normalized = error.message.toLowerCase()
-  return normalized.includes('timed out')
-    || normalized.includes('enoent')
-    || normalized.includes('spawn')
-    || normalized.includes('exiftool')
+  return (
+    normalized.includes('timed out') ||
+    normalized.includes('enoent') ||
+    normalized.includes('spawn') ||
+    normalized.includes('exiftool')
+  )
 }
 
 function disableFocusMetadataExtraction(error: unknown): void {
@@ -99,9 +101,9 @@ interface ImageTags {
 // LLR export only — a group-qualified read of its own namespace.
 function readImageTagsWithTimeout(sourcePath: string, timeoutMs: number): Promise<ImageTags> {
   const read = async (): Promise<ImageTags> => {
-    const tags = await exiftool.read(sourcePath) as Record<string, unknown>
+    const tags = (await exiftool.read(sourcePath)) as Record<string, unknown>
     const llrTags = isLlrExport(tags)
-      ? await exiftool.readRaw(sourcePath, { readArgs: LLR_READ_ARGS }) as Record<string, unknown>
+      ? ((await exiftool.readRaw(sourcePath, { readArgs: LLR_READ_ARGS })) as Record<string, unknown>)
       : null
     return { tags, llrTags }
   }
@@ -167,7 +169,10 @@ function resolveUprightTransformIndex(raw: string | undefined): number | null {
   return map[normalized] ?? null
 }
 
-function resolveUprightTransform(tags: Record<string, unknown>, perspectiveUpright: string | undefined): string | undefined {
+function resolveUprightTransform(
+  tags: Record<string, unknown>,
+  perspectiveUpright: string | undefined,
+): string | undefined {
   const resolvedIndex = resolveUprightTransformIndex(perspectiveUpright)
   if (resolvedIndex !== null) {
     return pickFirstTagValue(tags, [`UprightTransform_${resolvedIndex}`])
@@ -295,9 +300,7 @@ function extractNumbers(value: unknown): number[] {
     if (!matches) {
       return []
     }
-    return matches
-      .map(Number)
-      .filter(element => Number.isFinite(element))
+    return matches.map(Number).filter(element => Number.isFinite(element))
   }
   if (Array.isArray(value)) {
     return value.flatMap(element => extractNumbers(element))
@@ -395,11 +398,14 @@ function buildToneCurvePayload(tags: Record<string, unknown>): LightroomToneCurv
   return hasEntries(payload as Record<string, unknown>) ? payload : null
 }
 
-function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
-  hue: string[]
-  saturation: string[]
-  luminance: string[]
-}): LightroomColorAdjustments | null {
+function buildColorGradingTone(
+  tags: Record<string, unknown>,
+  candidates: {
+    hue: string[]
+    saturation: string[]
+    luminance: string[]
+  },
+): LightroomColorAdjustments | null {
   const hue = parseTagNumber(tags, candidates.hue)
   const saturation = parseTagNumber(tags, candidates.saturation)
   const luminance = parseTagNumber(tags, candidates.luminance)
@@ -410,11 +416,8 @@ function buildColorGradingTone(tags: Record<string, unknown>, candidates: {
     tone.saturation = normalizedSaturation
   }
   if (
-    normalizedHue !== null
-    && (
-      !isNearlyEqual(normalizedHue, 0)
-      || (normalizedSaturation !== null && !isNearlyEqual(normalizedSaturation, 0))
-    )
+    normalizedHue !== null &&
+    (!isNearlyEqual(normalizedHue, 0) || (normalizedSaturation !== null && !isNearlyEqual(normalizedSaturation, 0)))
   ) {
     tone.hue = normalizedHue
   }
@@ -444,9 +447,8 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
 
   const whiteBalance = pickFirstTagValue(tags, ['WhiteBalance2', 'WhiteBalance'])
   const normalizedWhiteBalance = whiteBalance?.trim().toLowerCase() ?? ''
-  const hasCustomWhiteBalance = normalizedWhiteBalance.length > 0
-    && normalizedWhiteBalance !== 'as shot'
-    && normalizedWhiteBalance !== 'auto'
+  const hasCustomWhiteBalance =
+    normalizedWhiteBalance.length > 0 && normalizedWhiteBalance !== 'as shot' && normalizedWhiteBalance !== 'auto'
   const temperature = parseTagNumber(tags, ['Temperature'])
   const tint = parseTagNumber(tags, ['Tint'])
   if (temperature !== null && (hasCustomWhiteBalance || (tint !== null && !isNearlyEqual(tint, 0)))) {
@@ -469,18 +471,21 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   ] as const
   for (const color of hslColors) {
     const adjustments: LightroomColorAdjustments = {}
-    assignIfChanged(adjustments as Record<string, number>, 'hue', parseTagNumber(tags, [
-      `HueAdjustment${color.suffix}`,
-      `Hue${color.suffix}`,
-    ]))
-    assignIfChanged(adjustments as Record<string, number>, 'saturation', parseTagNumber(tags, [
-      `SaturationAdjustment${color.suffix}`,
-      `Saturation${color.suffix}`,
-    ]))
-    assignIfChanged(adjustments as Record<string, number>, 'luminance', parseTagNumber(tags, [
-      `LuminanceAdjustment${color.suffix}`,
-      `Luminance${color.suffix}`,
-    ]))
+    assignIfChanged(
+      adjustments as Record<string, number>,
+      'hue',
+      parseTagNumber(tags, [`HueAdjustment${color.suffix}`, `Hue${color.suffix}`]),
+    )
+    assignIfChanged(
+      adjustments as Record<string, number>,
+      'saturation',
+      parseTagNumber(tags, [`SaturationAdjustment${color.suffix}`, `Saturation${color.suffix}`]),
+    )
+    assignIfChanged(
+      adjustments as Record<string, number>,
+      'luminance',
+      parseTagNumber(tags, [`LuminanceAdjustment${color.suffix}`, `Luminance${color.suffix}`]),
+    )
     if (hasEntries(adjustments as Record<string, unknown>)) {
       hsl[color.key] = adjustments
     }
@@ -531,11 +536,26 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
   const calibration: Record<string, number> = {}
   assignIfChanged(calibration, 'shadowTint', parseTagNumber(tags, ['ShadowTint']), { digits: 0 })
   assignIfChanged(calibration, 'redPrimaryHue', parseTagNumber(tags, ['RedPrimaryHue', 'RedHue']), { digits: 0 })
-  assignIfChanged(calibration, 'redPrimarySaturation', parseTagNumber(tags, ['RedPrimarySaturation', 'RedSaturation']), { digits: 0 })
+  assignIfChanged(
+    calibration,
+    'redPrimarySaturation',
+    parseTagNumber(tags, ['RedPrimarySaturation', 'RedSaturation']),
+    { digits: 0 },
+  )
   assignIfChanged(calibration, 'greenPrimaryHue', parseTagNumber(tags, ['GreenPrimaryHue', 'GreenHue']), { digits: 0 })
-  assignIfChanged(calibration, 'greenPrimarySaturation', parseTagNumber(tags, ['GreenPrimarySaturation', 'GreenSaturation']), { digits: 0 })
+  assignIfChanged(
+    calibration,
+    'greenPrimarySaturation',
+    parseTagNumber(tags, ['GreenPrimarySaturation', 'GreenSaturation']),
+    { digits: 0 },
+  )
   assignIfChanged(calibration, 'bluePrimaryHue', parseTagNumber(tags, ['BluePrimaryHue', 'BlueHue']), { digits: 0 })
-  assignIfChanged(calibration, 'bluePrimarySaturation', parseTagNumber(tags, ['BluePrimarySaturation', 'BlueSaturation']), { digits: 0 })
+  assignIfChanged(
+    calibration,
+    'bluePrimarySaturation',
+    parseTagNumber(tags, ['BluePrimarySaturation', 'BlueSaturation']),
+    { digits: 0 },
+  )
 
   const hasBasic = hasEntries(basic)
   const hasHsl = hasEntries(hsl as Record<string, unknown>)
@@ -568,7 +588,10 @@ function buildLightroomRecipe(tags: Record<string, unknown>): string | undefined
  * The image-derived metadata, or `null` when the file could not be read — so
  * a missing field means "this image has none", never "extraction failed".
  */
-export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: string | undefined): Promise<FocusMetadata | null> {
+export async function extractFocusMetadataFromBuffer(
+  buffer: Buffer,
+  filename: string | undefined,
+): Promise<FocusMetadata | null> {
   if (Date.now() < focusMetadataDisabledUntil) {
     return null
   }
@@ -601,15 +624,13 @@ export async function extractFocusMetadataFromBuffer(buffer: Buffer, filename: s
       lightroomRecipe: llrTags ? undefined : buildLightroomRecipe(tags),
       llrRecipe: llrTags ? buildLlrRecipeFromTags(llrTags) : undefined,
     }
-  }
-  catch (error) {
+  } catch (error) {
     if (shouldBackoffFocusMetadata(error)) {
       disableFocusMetadataExtraction(error)
     }
     logger.warn('focus metadata extraction failed', { error })
     return null
-  }
-  finally {
+  } finally {
     await rm(workspace, { recursive: true, force: true })
   }
 }

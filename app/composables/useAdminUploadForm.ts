@@ -40,7 +40,7 @@ export function useAdminUploadForm() {
   const form = reactive<MediaFormState>(createInitialFormState())
   const formModel = computed<MediaFormState>({
     get: () => form,
-    set: (value) => {
+    set: value => {
       Object.assign(form, value)
     },
   })

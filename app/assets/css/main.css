@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tailwindcss-safe-area";
+@import 'tailwindcss';
+@import 'tailwindcss-safe-area';
 
 /* Berkeley Mono — Latin only; CJK falls through to the system mono/sans
    stack in `--stack-mono`. */
@@ -63,98 +63,98 @@
      `--stack-mono` below — outside any `--font-*` name so nuxt-og-image's
      CSS scanner skips it. The `.font-mono` / `.font-sans` utility
      overrides re-attach the full stack for browser rendering. */
-  --font-mono:    'JetBrains Mono', 'Noto Sans SC', 'Noto Sans JP', monospace;
-  --font-sans:    'Inter', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Noto Sans SC', 'Noto Sans JP', monospace;
+  --font-sans: 'Inter', 'Noto Sans SC', 'Noto Sans JP', sans-serif;
   --font-display: var(--font-display-latin);
-  --font-prose:   var(--font-display-latin);
-  --font-serif:   var(--font-title-latin);
+  --font-prose: var(--font-display-latin);
+  --font-serif: var(--font-title-latin);
 
   /* ---------- radius ----------
      Controls (button / input / select / chip) use sm/md; containers
      (card / modal / panel / dropdown) use md/lg. Photo plates opt out
      with explicit `rounded-none` — images stay square. */
-  --radius-xs:   4px;
-  --radius-sm:   4px;
-  --radius-md:   6px;
-  --radius-lg:   8px;
-  --radius-xl:   8px;
-  --radius-2xl:  10px;
-  --radius-3xl:  12px;
+  --radius-xs: 4px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 8px;
+  --radius-2xl: 10px;
+  --radius-3xl: 12px;
   --radius-full: 9999px;
 
   /* ---------- motion ---------- */
-  --transition-fast: 100ms cubic-bezier(.2, .8, .2, 1);
-  --transition-base: 150ms cubic-bezier(.2, .8, .2, 1);
-  --transition-slow: 220ms cubic-bezier(.2, .8, .2, 1);
-  --ease-out-quint:  cubic-bezier(.2, .8, .2, 1);
+  --transition-fast: 100ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-base: 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --transition-slow: 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out-quint: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* ---------- shadow ----------
      Resting surfaces carry none: a hairline does the separating. Only
      floating surfaces (dropdown, toast, modal) lift off the page. */
-  --shadow-xs:  none;
-  --shadow-sm:  none;
-  --shadow-md:  0 12px 32px rgb(0 0 0 / 0.12);
-  --shadow-lg:  0 16px 48px rgb(0 0 0 / 0.16);
-  --shadow-card:    none;
-  --shadow-xs-up:   none;
+  --shadow-xs: none;
+  --shadow-sm: none;
+  --shadow-md: 0 12px 32px rgb(0 0 0 / 0.12);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.16);
+  --shadow-card: none;
+  --shadow-xs-up: none;
   --shadow-overlay: 0 16px 48px rgb(0 0 0 / 0.18);
 
   /* ---------- semantic palette — LIGHT defaults ---------- */
 
   /* Ink primary — the accent is the text colour itself. Hover / active
      lift toward grey for press feedback. `soft` is the selection wash. */
-  --color-primary:        #0e0e11;
-  --color-primary-hover:  #2a2a31;
+  --color-primary: #0e0e11;
+  --color-primary-hover: #2a2a31;
   --color-primary-active: #3a3b43;
-  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 9%, transparent);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 9%, transparent);
   --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 14%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 5%, transparent);
   --color-primary-border: var(--color-border-strong);
-  --color-on-primary:     #ffffff;
+  --color-on-primary: #ffffff;
 
   /* Neutral surfaces: page ground, surface, sunken; then two hover fills. */
-  --color-bg:       #fbfbfc;
-  --color-default:  #ffffff;
-  --color-muted:    #f3f3f5;
+  --color-bg: #fbfbfc;
+  --color-default: #ffffff;
+  --color-muted: #f3f3f5;
   --color-elevated: #ececef;
   --color-accented: #e0e0e5;
 
   /* Hairlines: `border` is the structural line, `strong` outlines
      controls and pressed states. */
-  --color-border:        #e6e6ea;
-  --color-border-muted:  #ededf0;
+  --color-border: #e6e6ea;
+  --color-border-muted: #ededf0;
   --color-border-strong: #d4d4da;
 
   /* Chrome surfaces. In the wireframe the admin ground and its panels
      are the same surface — hairlines, not fills, do the grouping;
      `sunken` is the one step down for wells and tracks. */
   --color-chrome: #ffffff;
-  --color-panel:  #ffffff;
+  --color-panel: #ffffff;
   --color-sunken: #f3f3f5;
 
   /* Text ramp, tuned against --color-bg. Contrast is a constraint, not a
      style knob: `muted` and `dimmed` clear AA (4.5:1) at any size; `subtle`
      only clears AA-large (3:1), so it is for ≥18px or non-essential text.
      Do not fade these with an alpha suffix — /80 drops `muted` to 3.94:1. */
-  --color-fg:             #0e0e11;
+  --color-fg: #0e0e11;
   --color-fg-highlighted: #0e0e11;
-  --color-fg-toned:       #2b2c33;
-  --color-fg-muted:       #4a4b53;
-  --color-fg-dimmed:      #6e6f78;
-  --color-fg-subtle:      #8b8c95;
+  --color-fg-toned: #2b2c33;
+  --color-fg-muted: #4a4b53;
+  --color-fg-dimmed: #6e6f78;
+  --color-fg-subtle: #8b8c95;
 
   /* status */
-  --color-error:        #b91c1c;
-  --color-error-soft:   color-mix(in srgb, var(--color-error) 12%, transparent);
+  --color-error: #b91c1c;
+  --color-error-soft: color-mix(in srgb, var(--color-error) 12%, transparent);
   --color-error-soft-hover: color-mix(in srgb, var(--color-error) 20%, transparent);
-  --color-warning:      #b45309;
+  --color-warning: #b45309;
   --color-warning-soft: color-mix(in srgb, var(--color-warning) 14%, transparent);
   --color-warning-soft-hover: color-mix(in srgb, var(--color-warning) 22%, transparent);
-  --color-success:      #047857;
+  --color-success: #047857;
   --color-success-soft: color-mix(in srgb, var(--color-success) 12%, transparent);
   --color-success-soft-hover: color-mix(in srgb, var(--color-success) 20%, transparent);
-  --color-info:         #0284c7;
-  --color-info-soft:    color-mix(in srgb, var(--color-info) 12%, transparent);
+  --color-info: #0284c7;
+  --color-info-soft: color-mix(in srgb, var(--color-info) 12%, transparent);
   --color-info-soft-hover: color-mix(in srgb, var(--color-info) 20%, transparent);
 
   /* Photographic annotation — the AF point the camera reported, drawn on top
@@ -162,10 +162,10 @@
      ramp and from the theme, because it sits on the photo rather than on a
      surface, and must stay legible against any subject. Green follows the
      viewfinder convention rather than the burgundy brand. */
-  --color-focus-point:      #22c55e;
+  --color-focus-point: #22c55e;
   --color-focus-point-soft: color-mix(in srgb, var(--color-focus-point) 10%, transparent);
 
-  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
+  --ring-focus: 0 0 0 2px color-mix(in srgb, var(--color-primary) 22%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 40%, transparent);
 
   /* ---------- interaction overlays ----------
@@ -178,7 +178,7 @@
      same on the page, on a panel and inside a sunken well. Named in the
      `--color-*` namespace so Tailwind derives `bg-overlay-hover` /
      `bg-overlay-active` from it, variants included. */
-  --color-overlay-hover:  rgb(14 14 17 / 0.045);
+  --color-overlay-hover: rgb(14 14 17 / 0.045);
   --color-overlay-active: rgb(14 14 17 / 0.08);
 
   /* ---------- z scale ---------- */
@@ -193,59 +193,59 @@
  * hairlines sit a couple of notches above the ground.
  */
 .dark {
-  --color-primary:        #f2f2f4;
-  --color-primary-hover:  #d4d4da;
+  --color-primary: #f2f2f4;
+  --color-primary-hover: #d4d4da;
   --color-primary-active: #c2c3ca;
-  --color-primary-soft:   color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --color-primary-soft: color-mix(in srgb, var(--color-primary) 10%, transparent);
   --color-primary-soft-hover: color-mix(in srgb, var(--color-primary) 16%, transparent);
   --color-primary-softer: color-mix(in srgb, var(--color-primary) 6%, transparent);
   --color-primary-border: var(--color-border-strong);
-  --color-on-primary:     #09090b;
+  --color-on-primary: #09090b;
 
-  --color-bg:       #09090b;
-  --color-default:  #0e0e11;
-  --color-muted:    #141418;
+  --color-bg: #09090b;
+  --color-default: #0e0e11;
+  --color-muted: #141418;
   --color-elevated: #1a1a1f;
   --color-accented: #232329;
 
-  --color-border:        #1d1d22;
-  --color-border-muted:  #18181c;
+  --color-border: #1d1d22;
+  --color-border-muted: #18181c;
   --color-border-strong: #2a2a31;
 
   --color-chrome: #0e0e11;
-  --color-panel:  #0e0e11;
+  --color-panel: #0e0e11;
   --color-sunken: #141418;
 
-  --color-fg:             #f2f2f4;
+  --color-fg: #f2f2f4;
   --color-fg-highlighted: #ffffff;
-  --color-fg-toned:       #dcdce0;
-  --color-fg-muted:       #c2c3ca;
-  --color-fg-dimmed:      #9a9ba4;
-  --color-fg-subtle:      #6e6f78;
+  --color-fg-toned: #dcdce0;
+  --color-fg-muted: #c2c3ca;
+  --color-fg-dimmed: #9a9ba4;
+  --color-fg-subtle: #6e6f78;
 
-  --color-error:        #ef4444;
-  --color-error-soft:   color-mix(in srgb, var(--color-error) 18%, transparent);
+  --color-error: #ef4444;
+  --color-error-soft: color-mix(in srgb, var(--color-error) 18%, transparent);
   --color-error-soft-hover: color-mix(in srgb, var(--color-error) 28%, transparent);
-  --color-warning:      #f59e0b;
+  --color-warning: #f59e0b;
   --color-warning-soft: color-mix(in srgb, var(--color-warning) 18%, transparent);
   --color-warning-soft-hover: color-mix(in srgb, var(--color-warning) 28%, transparent);
-  --color-success:      #10b981;
+  --color-success: #10b981;
   --color-success-soft: color-mix(in srgb, var(--color-success) 16%, transparent);
   --color-success-soft-hover: color-mix(in srgb, var(--color-success) 26%, transparent);
-  --color-info:         #38bdf8;
-  --color-info-soft:    color-mix(in srgb, var(--color-info) 16%, transparent);
+  --color-info: #38bdf8;
+  --color-info-soft: color-mix(in srgb, var(--color-info) 16%, transparent);
   --color-info-soft-hover: color-mix(in srgb, var(--color-info) 26%, transparent);
 
-  --shadow-md:  0 12px 32px rgb(0 0 0 / 0.5);
-  --shadow-lg:  0 16px 48px rgb(0 0 0 / 0.6);
+  --shadow-md: 0 12px 32px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 48px rgb(0 0 0 / 0.6);
   --shadow-overlay: 0 16px 48px rgb(0 0 0 / 0.6);
 
-  --ring-focus:       0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent);
+  --ring-focus: 0 0 0 2px color-mix(in srgb, var(--color-primary) 30%, transparent);
   --ring-focus-error: 0 0 0 2px color-mix(in srgb, var(--color-error) 50%, transparent);
 
   /* Lighten rather than darken, and carry a little more weight — on a
      dark ground an equally-subtle wash disappears. */
-  --color-overlay-hover:  rgb(255 255 255 / 0.05);
+  --color-overlay-hover: rgb(255 255 255 / 0.05);
   --color-overlay-active: rgb(255 255 255 / 0.09);
 }
 
@@ -258,12 +258,13 @@
  * `.font-sans` utility overrides further down.
  */
 :root {
-  --stack-mono: 'Berkeley Mono', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas',
-                'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
-                'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', monospace;
-  --stack-sans: 'Inter', system-ui, -apple-system, 'Segoe UI',
-                'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC',
-                'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
+  --stack-mono:
+    'Berkeley Mono', 'JetBrains Mono', ui-monospace, 'SFMono-Regular', 'Menlo', 'Consolas', 'HarmonyOS Sans SC',
+    'PingFang SC', 'Microsoft YaHei UI', 'Noto Sans SC', 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI',
+    'Noto Sans JP', monospace;
+  --stack-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', 'HarmonyOS Sans SC', 'PingFang SC', 'Microsoft YaHei UI',
+    'Noto Sans SC', 'HarmonyOS Sans JP', 'Hiragino Sans', 'Yu Gothic UI', 'Noto Sans JP', sans-serif;
 }
 
 html.disable-transitions,
@@ -296,50 +297,130 @@ html.disable-transitions *::after {
  * renaming the palette so each name maps to one role.
  */
 @layer utilities {
-  .bg-bg            { background-color: var(--color-bg); }
-  .bg-chrome        { background-color: var(--color-chrome); }
-  .bg-panel         { background-color: var(--color-panel); }
-  .bg-sunken        { background-color: var(--color-sunken); }
-  .bg-default       { background-color: var(--color-default); }
-  .bg-muted         { background-color: var(--color-muted); }
-  .bg-elevated      { background-color: var(--color-elevated); }
-  .bg-accented      { background-color: var(--color-accented); }
-  .bg-primary       { background-color: var(--color-primary); }
-  .bg-primary-soft  { background-color: var(--color-primary-soft); }
-  .bg-primary-softer{ background-color: var(--color-primary-softer); }
-  .bg-error         { background-color: var(--color-error); }
-  .bg-error-soft    { background-color: var(--color-error-soft); }
-  .bg-warning       { background-color: var(--color-warning); }
-  .bg-warning-soft  { background-color: var(--color-warning-soft); }
-  .bg-success       { background-color: var(--color-success); }
-  .bg-success-soft  { background-color: var(--color-success-soft); }
+  .bg-bg {
+    background-color: var(--color-bg);
+  }
+  .bg-chrome {
+    background-color: var(--color-chrome);
+  }
+  .bg-panel {
+    background-color: var(--color-panel);
+  }
+  .bg-sunken {
+    background-color: var(--color-sunken);
+  }
+  .bg-default {
+    background-color: var(--color-default);
+  }
+  .bg-muted {
+    background-color: var(--color-muted);
+  }
+  .bg-elevated {
+    background-color: var(--color-elevated);
+  }
+  .bg-accented {
+    background-color: var(--color-accented);
+  }
+  .bg-primary {
+    background-color: var(--color-primary);
+  }
+  .bg-primary-soft {
+    background-color: var(--color-primary-soft);
+  }
+  .bg-primary-softer {
+    background-color: var(--color-primary-softer);
+  }
+  .bg-error {
+    background-color: var(--color-error);
+  }
+  .bg-error-soft {
+    background-color: var(--color-error-soft);
+  }
+  .bg-warning {
+    background-color: var(--color-warning);
+  }
+  .bg-warning-soft {
+    background-color: var(--color-warning-soft);
+  }
+  .bg-success {
+    background-color: var(--color-success);
+  }
+  .bg-success-soft {
+    background-color: var(--color-success-soft);
+  }
 
-  .text-default     { color: var(--color-fg); }
-  .text-foreground  { color: var(--color-fg); }
-  .text-toned       { color: var(--color-fg-toned); }
-  .text-highlighted { color: var(--color-fg-highlighted); }
-  .text-muted       { color: var(--color-fg-muted); }
-  .text-dimmed      { color: var(--color-fg-dimmed); }
-  .text-subtle      { color: var(--color-fg-subtle); }
-  .text-primary     { color: var(--color-primary); }
-  .text-error       { color: var(--color-error); }
-  .text-warning     { color: var(--color-warning); }
-  .text-success     { color: var(--color-success); }
-  .text-info        { color: var(--color-info); }
-  .text-on-primary  { color: var(--color-on-primary); }
+  .text-default {
+    color: var(--color-fg);
+  }
+  .text-foreground {
+    color: var(--color-fg);
+  }
+  .text-toned {
+    color: var(--color-fg-toned);
+  }
+  .text-highlighted {
+    color: var(--color-fg-highlighted);
+  }
+  .text-muted {
+    color: var(--color-fg-muted);
+  }
+  .text-dimmed {
+    color: var(--color-fg-dimmed);
+  }
+  .text-subtle {
+    color: var(--color-fg-subtle);
+  }
+  .text-primary {
+    color: var(--color-primary);
+  }
+  .text-error {
+    color: var(--color-error);
+  }
+  .text-warning {
+    color: var(--color-warning);
+  }
+  .text-success {
+    color: var(--color-success);
+  }
+  .text-info {
+    color: var(--color-info);
+  }
+  .text-on-primary {
+    color: var(--color-on-primary);
+  }
 
-  .border-default       { border-color: var(--color-border); }
-  .border-muted         { border-color: var(--color-border-muted); }
-  .border-strong        { border-color: var(--color-border-strong); }
-  .border-primary       { border-color: var(--color-primary); }
-  .border-primary-soft  { border-color: var(--color-primary-border); }
-  .border-error         { border-color: var(--color-error); }
+  .border-default {
+    border-color: var(--color-border);
+  }
+  .border-muted {
+    border-color: var(--color-border-muted);
+  }
+  .border-strong {
+    border-color: var(--color-border-strong);
+  }
+  .border-primary {
+    border-color: var(--color-primary);
+  }
+  .border-primary-soft {
+    border-color: var(--color-primary-border);
+  }
+  .border-error {
+    border-color: var(--color-error);
+  }
 
-  .ring-default { --tw-ring-color: var(--color-border); }
-  .ring-primary { --tw-ring-color: var(--color-primary); }
+  .ring-default {
+    --tw-ring-color: var(--color-border);
+  }
+  .ring-primary {
+    --tw-ring-color: var(--color-primary);
+  }
 
-  .focus-ring         { box-shadow: var(--ring-focus); }
-  .focus-ring-error   { box-shadow: var(--ring-focus-error); }
+  .focus-ring {
+    box-shadow: var(--ring-focus);
+  }
+  .focus-ring-error {
+    box-shadow: var(--ring-focus-error);
+  }
 
   /* ---------- chrome primitives ---------- */
 
@@ -430,7 +511,9 @@ html.disable-transitions *::after {
     border-bottom: 1px solid var(--color-border);
   }
   @media (min-width: 640px) {
-    .wire-band { padding: 28px 32px; }
+    .wire-band {
+      padding: 28px 32px;
+    }
   }
 
   /* Frosted sticky bar behind every page header. */
@@ -539,7 +622,9 @@ html.disable-transitions *::after {
     font-size: 13px;
     color: var(--color-fg-muted);
     outline: none;
-    transition: background-color 100ms ease-out, color 100ms ease-out;
+    transition:
+      background-color 100ms ease-out,
+      color 100ms ease-out;
   }
   .field-option:hover,
   .field-option[data-active] {
@@ -582,7 +667,8 @@ html.disable-transitions *::after {
   }
 }
 
-html, body {
+html,
+body {
   background-color: var(--color-bg);
   color: var(--color-fg);
   font-family: var(--stack-sans);
@@ -653,8 +739,12 @@ input[type='range'] {
   accent-color: var(--color-primary);
 }
 
-html.light { color-scheme: light; }
-html.dark  { color-scheme: dark; }
+html.light {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
 
 @layer base {
   :root {

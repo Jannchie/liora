@@ -36,9 +36,19 @@ describe('app/utils/lightroom-recipe', () => {
   })
 
   it('parses tone curve points (requiring at least two points)', () => {
-    const recipe = JSON.stringify({ toneCurve: { composite: [[0, 0], [255, 255]] } })
+    const recipe = JSON.stringify({
+      toneCurve: {
+        composite: [
+          [0, 0],
+          [255, 255],
+        ],
+      },
+    })
     const view = parseLightroomRecipeView(recipe)
-    expect(view?.toneCurve?.composite).toEqual([{ x: 0, y: 0 }, { x: 255, y: 255 }])
+    expect(view?.toneCurve?.composite).toEqual([
+      { x: 0, y: 0 },
+      { x: 255, y: 255 },
+    ])
   })
 
   it('falls back to legacy token parsing for non-json strings', () => {

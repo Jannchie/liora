@@ -1,15 +1,14 @@
 import type { RecomposeParams } from '#shared/types/recompose'
 import type { MediaFormState } from '~/types/admin'
-import type {
-  BatchActionResult,
-  BatchMetadataPayload,
-  BatchSeriesPayload,
-  FileResponse,
-} from '~/types/file'
+import type { BatchActionResult, BatchMetadataPayload, BatchSeriesPayload, FileResponse } from '~/types/file'
 import type { FileSeriesUpdatePayload } from '~/types/series'
 import { clearNuxtData, refreshNuxtData, useRequestFetch } from '#imports'
 
-function normalizeDimensions(form: MediaFormState, fallbackWidth: number, fallbackHeight: number): { width: number, height: number } {
+function normalizeDimensions(
+  form: MediaFormState,
+  fallbackWidth: number,
+  fallbackHeight: number,
+): { width: number; height: number } {
   const width = Math.max(form.width, fallbackWidth, 0)
   const height = Math.max(form.height, fallbackHeight, 0)
   return { width, height }
@@ -138,13 +137,7 @@ export function useFileEditApi() {
     fallbackHeight: number
     seriesIds: number[]
   }): Promise<FileResponse> => {
-    await updateFile(
-      params.id,
-      params.form,
-      params.replaceFile,
-      params.fallbackWidth,
-      params.fallbackHeight,
-    )
+    await updateFile(params.id, params.form, params.replaceFile, params.fallbackWidth, params.fallbackHeight)
     await updateFileSeries(params.id, [...new Set(params.seriesIds)])
     return request<FileResponse>(`/api/files/${params.id}`)
   }

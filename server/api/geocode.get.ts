@@ -2,7 +2,7 @@ import { createError, getQuery } from 'h3'
 import { geocodePlace } from '~~/server/utils/nominatim'
 import { requireAdmin } from '../utils/auth'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   requireAdmin(event)
   const { q, limit } = getQuery(event)
   const query = typeof q === 'string' ? q : ''

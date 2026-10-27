@@ -55,13 +55,13 @@ export function compactLlrSettings(payload: Record<string, unknown>): Record<str
   const compact: Record<string, unknown> = { ...payload }
 
   if (Array.isArray(compact.masks)) {
-    compact.masks = compact.masks.map((mask) => {
+    compact.masks = compact.masks.map(mask => {
       if (!isRecord(mask) || !Array.isArray(mask.components)) {
         return mask
       }
       return {
         ...mask,
-        components: mask.components.map((component) => {
+        components: mask.components.map(component => {
           if (!isRecord(component) || !Array.isArray(component.strokes)) {
             return component
           }
@@ -89,9 +89,7 @@ export function compactLlrSettings(payload: Record<string, unknown>): Record<str
     // (kind, strength, colour) says anything to a viewer.
     compact.relight = {
       ...compact.relight,
-      lights: compact.relight.lights
-        .filter(isRecord)
-        .map(({ u: _u, v: _v, id: _id, ...light }) => light),
+      lights: compact.relight.lights.filter(isRecord).map(({ u: _u, v: _v, id: _id, ...light }) => light),
     }
   }
 
@@ -106,8 +104,7 @@ function parseSettingsBlob(raw: unknown): Record<string, unknown> | undefined {
   try {
     const parsed: unknown = JSON.parse(source)
     return isRecord(parsed) ? parsed : undefined
-  }
-  catch {
+  } catch {
     return undefined
   }
 }
@@ -125,11 +122,13 @@ function numberList(value: unknown): number[] | undefined {
   return values.length === 8 && values.every(Number.isFinite) ? values : undefined
 }
 
-function curvePoints(value: unknown): { x: number, y: number }[] | undefined {
+function curvePoints(value: unknown): { x: number; y: number }[] | undefined {
   const entries = Array.isArray(value) ? value : [value]
-  const points: { x: number, y: number }[] = []
+  const points: { x: number; y: number }[] = []
   for (const entry of entries) {
-    const pair = text(entry)?.split(',').map(part => Number(part.trim()))
+    const pair = text(entry)
+      ?.split(',')
+      .map(part => Number(part.trim()))
     if (pair?.length === 2 && pair.every(Number.isFinite)) {
       points.push({ x: pair[0]!, y: pair[1]! })
     }

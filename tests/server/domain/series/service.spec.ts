@@ -31,13 +31,15 @@ describe('domain/series/service', () => {
   })
 
   it('parses reorder payloads', () => {
-    expect(parseSeriesReorderItems([
-      { fileId: 3, sortOrder: 0 },
-      { fileId: '4', sortOrder: '2' },
-      { fileId: 'x', sortOrder: 1 },
-      null,
-      'bad',
-    ])).toEqual([
+    expect(
+      parseSeriesReorderItems([
+        { fileId: 3, sortOrder: 0 },
+        { fileId: '4', sortOrder: '2' },
+        { fileId: 'x', sortOrder: 1 },
+        null,
+        'bad',
+      ]),
+    ).toEqual([
       { fileId: 3, sortOrder: 0 },
       { fileId: 4, sortOrder: 2 },
     ])

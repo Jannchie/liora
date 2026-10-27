@@ -25,7 +25,7 @@ const frameWidth = ref(0)
 let observer: ResizeObserver | null = null
 
 onMounted(() => {
-  observer = new ResizeObserver((entries) => {
+  observer = new ResizeObserver(entries => {
     const entry = entries[0]
     if (entry) {
       frameWidth.value = entry.contentRect.width
@@ -87,10 +87,7 @@ const wrapperStyle = computed<CSSProperties | null>(() => {
         style="overflow: visible"
         aria-hidden="true"
       >
-        <div
-          class="transition-opacity duration-200"
-          :style="[wrapperStyle, { opacity: revealActive ? 1 : 0 }]"
-        >
+        <div class="transition-opacity duration-200" :style="[wrapperStyle, { opacity: revealActive ? 1 : 0 }]">
           <slot name="backdrop" />
         </div>
       </div>

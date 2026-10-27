@@ -51,8 +51,7 @@ export default defineEventHandler(async (event): Promise<ReclassifySummary> => {
         await db.update(files).set({ genre }).where(eq(files.id, file.id))
         logger.info('reclassify updated', { fileId: file.id, genre })
         updated += 1
-      }
-      catch (error) {
+      } catch (error) {
         failed += 1
         logger.warn('reclassify failed', { fileId: file.id, error })
       }

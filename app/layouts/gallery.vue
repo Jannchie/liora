@@ -85,7 +85,7 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
 }
 
 function hydrateSummaryFiles(nextBatch: FileSummary[]): FileResponse[] {
-  return nextBatch.map((file) => {
+  return nextBatch.map(file => {
     summaryIds.add(file.id)
     return toFileResponseSummary(file)
   })
@@ -101,7 +101,12 @@ const { data, pending, error } = useFetch<FileSummary[]>('/api/files', {
   },
   server: false,
 })
-const { data: seriesData, pending: pendingSeries, error: seriesError, refresh: refreshSeries } = useFetch<SeriesSummary[]>('/api/series', {
+const {
+  data: seriesData,
+  pending: pendingSeries,
+  error: seriesError,
+  refresh: refreshSeries,
+} = useFetch<SeriesSummary[]>('/api/series', {
   default: () => [],
   server: false,
 })
@@ -233,8 +238,7 @@ async function ensureRouteFile(): Promise<void> {
     const file = await $fetch<FileResponse>(`/api/files/${targetId}`)
     summaryIds.delete(file.id)
     replaceFile(file)
-  }
-  catch {
+  } catch {
     // Ignore missing route data.
   }
 }
@@ -243,7 +247,7 @@ if (import.meta.client) {
   void loadSiteSettings()
   watch(
     data,
-    async (nextData) => {
+    async nextData => {
       const resolved = Array.isArray(nextData) ? nextData : []
       syncInitialFiles(resolved)
       await nextTick()
@@ -299,11 +303,9 @@ async function loadMore(): Promise<void> {
     }
     await nextTick()
     refreshLoadMoreObserver()
-  }
-  catch {
+  } catch {
     loadMoreError.value = true
-  }
-  finally {
+  } finally {
     isLoadingMore.value = false
   }
 }
@@ -317,7 +319,7 @@ function setupLoadMoreObserver(): void {
   }
   loadMoreObserver.value?.disconnect()
   loadMoreObserver.value = new IntersectionObserver(
-    (entries) => {
+    entries => {
       if (entries.some(entry => entry.isIntersecting)) {
         void loadMore()
       }
@@ -380,15 +382,12 @@ const { data: sessionState } = useFetch<SessionState>('/api/auth/session', {
 const isAuthenticated = computed(() => sessionState.value?.authenticated ?? false)
 
 if (import.meta.client) {
-  watch(
-    showSeriesLanding,
-    async (isLanding) => {
-      if (!isLanding) {
-        await nextTick()
-        refreshLoadMoreObserver()
-      }
-    },
-  )
+  watch(showSeriesLanding, async isLanding => {
+    if (!isLanding) {
+      await nextTick()
+      refreshLoadMoreObserver()
+    }
+  })
 }
 
 onMounted(() => {
@@ -433,12 +432,15 @@ defineOgImage('LioraCard', {
       />
       <section v-if="showSeriesLanding">
         <header class="border-b border-border px-4 pb-5 pt-7 sm:px-8">
-          <h2 class="flex items-baseline gap-2.5 text-lg font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
+          <h2
+            class="flex items-baseline gap-2.5 text-lg font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted"
+          >
             {{ t('series.list.title') }}
             <small
               class="num-tabular text-[13px] font-normal text-dimmed"
               :title="t('series.list.totalSeries', { count: seriesList.length })"
-            >{{ seriesList.length }}</small>
+              >{{ seriesList.length }}</small
+            >
           </h2>
           <p class="mt-1.5 max-w-xl text-[13px] leading-relaxed text-dimmed">
             {{ t('series.list.description') }}
@@ -454,12 +456,7 @@ defineOgImage('LioraCard', {
 
       <div v-else>
         <div v-if="fetchError" class="wire-band">
-          <UAlert
-            color="error"
-            variant="soft"
-            :title="alertTitle"
-            :description="alertDescription"
-          >
+          <UAlert color="error" variant="soft" :title="alertTitle" :description="alertDescription">
             <template #icon>
               <Icon name="jannchie:alert-circle" class="h-5 w-5" />
             </template>
@@ -491,7 +488,10 @@ defineOgImage('LioraCard', {
               variant="ghost"
               color="neutral"
               icon="jannchie:refresh"
-              @click="loadMoreError = false; loadMore()"
+              @click="
+                loadMoreError = false
+                loadMore()
+              "
             >
               {{ t('common.actions.retry') }}
             </UButton>

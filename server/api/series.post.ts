@@ -1,7 +1,13 @@
 import type { SeriesSummary, SeriesUpsertPayload } from '~/types/series'
 import { and, eq, ne } from 'drizzle-orm'
 import { createError, readBody } from 'h3'
-import { normalizeSeriesDescription, normalizeSeriesSlug, normalizeSeriesText, slugifySeriesTitle, toIsoString } from '../domain/series/service'
+import {
+  normalizeSeriesDescription,
+  normalizeSeriesSlug,
+  normalizeSeriesText,
+  slugifySeriesTitle,
+  toIsoString,
+} from '../domain/series/service'
 import { requireAdmin } from '../utils/auth'
 import { db, files, series } from '../utils/db'
 import { ensureSeriesSchema } from '../utils/series-schema'
@@ -39,9 +45,7 @@ async function resolveUniqueSlug(baseSlug: string, excludeId?: number): Promise<
   let index = 2
   for (;;) {
     const existing = await db.query.series.findFirst({
-      where: excludeId
-        ? and(eq(series.slug, candidate), ne(series.id, excludeId))
-        : eq(series.slug, candidate),
+      where: excludeId ? and(eq(series.slug, candidate), ne(series.id, excludeId)) : eq(series.slug, candidate),
     })
     if (!existing) {
       return candidate

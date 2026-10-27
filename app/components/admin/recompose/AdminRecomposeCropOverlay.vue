@@ -38,14 +38,14 @@ const rectStyle = computed(() => ({
   height: `${props.crop.height * props.planeHeight * props.scale}px`,
 }))
 
-const cornerHandles: Array<{ id: HandleId, class: string, cursor: string }> = [
+const cornerHandles: Array<{ id: HandleId; class: string; cursor: string }> = [
   { id: 'nw', class: 'left-0 top-0 -translate-x-1/2 -translate-y-1/2', cursor: 'nwse-resize' },
   { id: 'ne', class: 'right-0 top-0 translate-x-1/2 -translate-y-1/2', cursor: 'nesw-resize' },
   { id: 'se', class: 'bottom-0 right-0 translate-x-1/2 translate-y-1/2', cursor: 'nwse-resize' },
   { id: 'sw', class: 'bottom-0 left-0 -translate-x-1/2 translate-y-1/2', cursor: 'nesw-resize' },
 ]
 
-const edgeHandles: Array<{ id: HandleId, class: string, cursor: string }> = [
+const edgeHandles: Array<{ id: HandleId; class: string; cursor: string }> = [
   { id: 'n', class: 'left-1/2 top-0 -translate-x-1/2 -translate-y-1/2', cursor: 'ns-resize' },
   { id: 'e', class: 'right-0 top-1/2 translate-x-1/2 -translate-y-1/2', cursor: 'ew-resize' },
   { id: 's', class: 'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2', cursor: 'ns-resize' },

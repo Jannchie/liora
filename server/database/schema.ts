@@ -1,35 +1,41 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-export const files = sqliteTable('File', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  title: text('title').notNull().default(''),
-  description: text('description').notNull().default(''),
-  imageUrl: text('imageUrl').notNull(),
-  width: integer('width').notNull(),
-  height: integer('height').notNull(),
-  originalName: text('originalName').notNull().default(''),
-  fanworkTitle: text('fanworkTitle').notNull().default(''),
-  characterList: text('characterList').notNull().default(''),
-  location: text('location').notNull().default(''),
-  locationName: text('locationName').notNull().default(''),
-  latitude: real('latitude'),
-  longitude: real('longitude'),
-  cameraModel: text('cameraModel').notNull().default(''),
-  aperture: text('aperture').notNull().default(''),
-  focalLength: text('focalLength').notNull().default(''),
-  iso: text('iso').notNull().default(''),
-  shutterSpeed: text('shutterSpeed').notNull().default(''),
-  captureTime: text('captureTime').notNull().default(''),
-  metadata: text('metadata').notNull().default('{}'),
-  genre: text('genre').notNull().default(''),
-  createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-}, table => [
-  // Every gallery/series listing orders by this triple; SQLite scans the
-  // index backwards for the DESC variant.
-  index('File_capture_created_id_idx').on(table.captureTime, table.createdAt, table.id),
-  index('File_genre_idx').on(table.genre),
-])
+export const files = sqliteTable(
+  'File',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    title: text('title').notNull().default(''),
+    description: text('description').notNull().default(''),
+    imageUrl: text('imageUrl').notNull(),
+    width: integer('width').notNull(),
+    height: integer('height').notNull(),
+    originalName: text('originalName').notNull().default(''),
+    fanworkTitle: text('fanworkTitle').notNull().default(''),
+    characterList: text('characterList').notNull().default(''),
+    location: text('location').notNull().default(''),
+    locationName: text('locationName').notNull().default(''),
+    latitude: real('latitude'),
+    longitude: real('longitude'),
+    cameraModel: text('cameraModel').notNull().default(''),
+    aperture: text('aperture').notNull().default(''),
+    focalLength: text('focalLength').notNull().default(''),
+    iso: text('iso').notNull().default(''),
+    shutterSpeed: text('shutterSpeed').notNull().default(''),
+    captureTime: text('captureTime').notNull().default(''),
+    metadata: text('metadata').notNull().default('{}'),
+    genre: text('genre').notNull().default(''),
+    createdAt: text('createdAt', { mode: 'text' })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  table => [
+    // Every gallery/series listing orders by this triple; SQLite scans the
+    // index backwards for the DESC variant.
+    index('File_capture_created_id_idx').on(table.captureTime, table.createdAt, table.id),
+    index('File_genre_idx').on(table.genre),
+  ],
+)
 
 export const series = sqliteTable('Series', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -37,24 +43,34 @@ export const series = sqliteTable('Series', {
   title: text('title').notNull(),
   description: text('description').notNull().default(''),
   coverFileId: integer('coverFileId').references(() => files.id, { onDelete: 'set null' }),
-  createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text('updatedAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  createdAt: text('createdAt', { mode: 'text' })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updatedAt', { mode: 'text' })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 })
 
-export const seriesFiles = sqliteTable('SeriesFile', {
-  seriesId: integer('seriesId')
-    .notNull()
-    .references(() => series.id, { onDelete: 'cascade' }),
-  fileId: integer('fileId')
-    .notNull()
-    .references(() => files.id, { onDelete: 'cascade' }),
-  sortOrder: integer('sortOrder').notNull().default(0),
-  createdAt: text('createdAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
-}, table => [
-  primaryKey({ columns: [table.seriesId, table.fileId] }),
-  index('SeriesFile_series_sort_idx').on(table.seriesId, table.sortOrder),
-  index('SeriesFile_file_idx').on(table.fileId),
-])
+export const seriesFiles = sqliteTable(
+  'SeriesFile',
+  {
+    seriesId: integer('seriesId')
+      .notNull()
+      .references(() => series.id, { onDelete: 'cascade' }),
+    fileId: integer('fileId')
+      .notNull()
+      .references(() => files.id, { onDelete: 'cascade' }),
+    sortOrder: integer('sortOrder').notNull().default(0),
+    createdAt: text('createdAt', { mode: 'text' })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  table => [
+    primaryKey({ columns: [table.seriesId, table.fileId] }),
+    index('SeriesFile_series_sort_idx').on(table.seriesId, table.sortOrder),
+    index('SeriesFile_file_idx').on(table.fileId),
+  ],
+)
 
 export const siteSettings = sqliteTable('SiteSetting', {
   id: integer('id').primaryKey().notNull().default(1),
@@ -72,7 +88,9 @@ export const siteSettings = sqliteTable('SiteSetting', {
   socialLinkedin: text('socialLinkedin').notNull().default(''),
   infoPlacement: text('infoPlacement').notNull().default('header'),
   customCss: text('customCss').notNull().default(''),
-  updatedAt: text('updatedAt', { mode: 'text' }).notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text('updatedAt', { mode: 'text' })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 })
 
 export type FileRow = typeof files.$inferSelect

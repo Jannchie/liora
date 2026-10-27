@@ -1,26 +1,29 @@
 <script setup lang="ts" generic="T extends object">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 
-const props = withDefaults(defineProps<{
-  modelValue?: unknown
-  items?: T[]
-  multiple?: boolean
-  labelKey?: string
-  valueKey?: string
-  filterFields?: string[]
-  placeholder?: string
-  icon?: string
-  loading?: boolean
-  disabled?: boolean
-  portal?: boolean
-}>(), {
-  multiple: false,
-  labelKey: 'label',
-  valueKey: 'value',
-  items: () => [],
-  filterFields: () => ['label'],
-  icon: 'jannchie:chevron-down',
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: unknown
+    items?: T[]
+    multiple?: boolean
+    labelKey?: string
+    valueKey?: string
+    filterFields?: string[]
+    placeholder?: string
+    icon?: string
+    loading?: boolean
+    disabled?: boolean
+    portal?: boolean
+  }>(),
+  {
+    multiple: false,
+    labelKey: 'label',
+    valueKey: 'value',
+    items: () => [],
+    filterFields: () => ['label'],
+    icon: 'jannchie:chevron-down',
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: unknown]
@@ -32,7 +35,7 @@ const rootEl = ref<HTMLElement | null>(null)
 const inputEl = ref<HTMLInputElement | null>(null)
 
 function readField<R = unknown>(item: T, field: string): R | undefined {
-  return ((item as Record<string, unknown>)?.[field] as R | undefined)
+  return (item as Record<string, unknown>)?.[field] as R | undefined
 }
 
 const selectedValues = computed<unknown[]>(() => {
@@ -54,8 +57,8 @@ const filteredItems = computed<T[]>(() => {
   if (!q) {
     return props.items
   }
-  return props.items.filter((item) => {
-    return props.filterFields.some((field) => {
+  return props.items.filter(item => {
+    return props.filterFields.some(field => {
       const value = readField(item, field)
       return typeof value === 'string' && value.toLowerCase().includes(q)
     })
@@ -69,13 +72,11 @@ function toggleItem(item: T): void {
     const idx = current.indexOf(value)
     if (idx === -1) {
       current.push(value)
-    }
-    else {
+    } else {
       current.splice(idx, 1)
     }
     emit('update:modelValue', current)
-  }
-  else {
+  } else {
     emit('update:modelValue', value)
     open.value = false
   }
@@ -112,14 +113,13 @@ function onClickOutside(event: MouseEvent): void {
   }
 }
 
-watch(open, (isOpen) => {
+watch(open, isOpen => {
   if (!import.meta.client) {
     return
   }
   if (isOpen) {
     document.addEventListener('mousedown', onClickOutside)
-  }
-  else {
+  } else {
     document.removeEventListener('mousedown', onClickOutside)
     query.value = ''
   }
@@ -152,11 +152,7 @@ onBeforeUnmount(() => {
             class="inline-flex items-center gap-1 rounded-sm bg-default py-0.5 pl-1.5 pr-1 text-xs text-highlighted shadow-[inset_0_0_0_1px_var(--color-border-strong)]"
           >
             {{ readField(item, labelKey) }}
-            <button
-              type="button"
-              class="text-dimmed hover:text-fg-highlighted"
-              @click.stop="removeItem(item)"
-            >
+            <button type="button" class="text-dimmed hover:text-fg-highlighted" @click.stop="removeItem(item)">
               <Icon name="jannchie:x" class="h-3 w-3" />
             </button>
           </span>
@@ -166,11 +162,7 @@ onBeforeUnmount(() => {
         </template>
         <span v-if="selectedItems.length === 0 && !open" class="text-subtle">{{ placeholder }}</span>
       </div>
-      <Icon
-        v-if="loading"
-        name="jannchie:loader"
-        class="h-4 w-4 shrink-0 animate-spin text-dimmed"
-      />
+      <Icon v-if="loading" name="jannchie:loader" class="h-4 w-4 shrink-0 animate-spin text-dimmed" />
       <Icon
         v-else
         name="jannchie:chevron-down"
@@ -187,10 +179,7 @@ onBeforeUnmount(() => {
       leave-from-class="opacity-100"
       leave-to-class="opacity-0"
     >
-      <div
-        v-if="open"
-        class="field-popover absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden"
-      >
+      <div v-if="open" class="field-popover absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden">
         <div class="flex items-center gap-2 border-b border-border px-3">
           <Icon name="jannchie:search" class="h-3.5 w-3.5 shrink-0 text-dimmed" />
           <input
@@ -200,7 +189,7 @@ onBeforeUnmount(() => {
             :placeholder="placeholder"
             class="h-9 w-full bg-transparent text-[13px] outline-none placeholder:text-fg-subtle"
             @keydown.escape="open = false"
-          >
+          />
         </div>
         <div class="flex max-h-60 flex-col gap-px overflow-auto p-1">
           <button

@@ -57,8 +57,7 @@ function onDrop(event: DragEvent): void {
     return
   }
   event.preventDefault()
-  const files = [...(event.dataTransfer?.files ?? [])]
-    .filter(file => isImageFile(file) || isVideoFile(file))
+  const files = [...(event.dataTransfer?.files ?? [])].filter(file => isImageFile(file) || isVideoFile(file))
   if (files.length === 0) {
     toast.add({ title: t('admin.upload.toast.selectImage'), color: 'error' })
     return
@@ -84,8 +83,7 @@ function listen(on: boolean): void {
   for (const [type, handler] of listeners) {
     if (on) {
       globalThis.addEventListener(type, handler as EventListener)
-    }
-    else {
+    } else {
       globalThis.removeEventListener(type, handler as EventListener)
     }
   }
@@ -94,12 +92,16 @@ function listen(on: boolean): void {
 // Listeners exist only while drops are allowed: anonymous visitors pay
 // nothing for every dragover.
 onMounted(() => {
-  watch(() => props.enabled, (enabled) => {
-    listen(enabled)
-    if (!enabled) {
-      reset()
-    }
-  }, { immediate: true })
+  watch(
+    () => props.enabled,
+    enabled => {
+      listen(enabled)
+      if (!enabled) {
+        reset()
+      }
+    },
+    { immediate: true },
+  )
 })
 
 onBeforeUnmount(() => {
@@ -120,9 +122,11 @@ onBeforeUnmount(() => {
       <div
         v-if="active"
         class="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8"
-        style="background-color: color-mix(in srgb, var(--color-default) 82%, transparent); backdrop-filter: blur(6px);"
+        style="background-color: color-mix(in srgb, var(--color-default) 82%, transparent); backdrop-filter: blur(6px)"
       >
-        <div class="flex h-full w-full flex-col items-center justify-center gap-3 rounded-lg text-center shadow-[inset_0_0_0_1px_var(--color-primary)]">
+        <div
+          class="flex h-full w-full flex-col items-center justify-center gap-3 rounded-lg text-center shadow-[inset_0_0_0_1px_var(--color-primary)]"
+        >
           <span class="flex h-14 w-14 items-center justify-center rounded-full bg-muted text-primary">
             <Icon name="jannchie:cloud-upload" class="h-7 w-7" />
           </span>

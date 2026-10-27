@@ -13,13 +13,11 @@ function resolveQueryValue(value: QueryInput): string | number | boolean | null 
         if (entry.trim().length > 0) {
           return entry
         }
-      }
-      else if (typeof entry === 'number') {
+      } else if (typeof entry === 'number') {
         if (Number.isFinite(entry)) {
           return entry
         }
-      }
-      else if (typeof entry === 'boolean') {
+      } else if (typeof entry === 'boolean') {
         return entry
       }
     }
@@ -72,7 +70,9 @@ function parseQueryBoolean(value: QueryInput): boolean {
 
 function metadataField(path: string, alias: string): SQL.Aliased<string | null> {
   // json_valid guards malformed rows the way the old JSON.parse fallback did.
-  return sql<string | null>`case when json_valid(${files.metadata}) then json_extract(${files.metadata}, ${path}) end`.as(alias)
+  return sql<
+    string | null
+  >`case when json_valid(${files.metadata}) then json_extract(${files.metadata}, ${path}) end`.as(alias)
 }
 
 export interface WaterfallSummaryRow {
@@ -118,13 +118,16 @@ function parseSummaryRecompose(raw: string | null): RecomposeParams | undefined 
   }
   try {
     return validateRecomposeParams(JSON.parse(raw)) ?? undefined
-  }
-  catch {
+  } catch {
     return undefined
   }
 }
 
-export function parseListQuery(query: Record<string, unknown>): { limit: number | null, offset: number | null, waterfallOnly: boolean } {
+export function parseListQuery(query: Record<string, unknown>): {
+  limit: number | null
+  offset: number | null
+  waterfallOnly: boolean
+} {
   return {
     limit: parseQueryNumber(query.limit),
     offset: parseQueryNumber(query.offset),
@@ -147,9 +150,10 @@ export function toWaterfallSummary(row: WaterfallSummaryRow): {
     width: row.width,
     height: row.height,
     arthash: typeof row.arthash === 'string' ? row.arthash : undefined,
-    livePhotoVideoUrl: typeof row.livePhotoVideoUrl === 'string' && row.livePhotoVideoUrl.trim().length > 0
-      ? row.livePhotoVideoUrl
-      : undefined,
+    livePhotoVideoUrl:
+      typeof row.livePhotoVideoUrl === 'string' && row.livePhotoVideoUrl.trim().length > 0
+        ? row.livePhotoVideoUrl
+        : undefined,
     recompose: parseSummaryRecompose(row.recompose),
   }
 }

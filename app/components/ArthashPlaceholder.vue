@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import {
-  arthashReady,
-  decodeArthashToAnimatedSvg,
-  ensureArthashReady,
-} from '~/utils/arthash'
+import { arthashReady, decodeArthashToAnimatedSvg, ensureArthashReady } from '~/utils/arthash'
 
 const props = withDefaults(
   defineProps<{
@@ -45,7 +41,7 @@ function clearTimer(): void {
 
 watch(
   () => Boolean(rendered.value) && !props.loaded,
-  (visible) => {
+  visible => {
     if (visible) {
       wasVisible.value = true
     }
@@ -55,7 +51,7 @@ watch(
 
 watch(
   () => props.loaded,
-  (loaded) => {
+  loaded => {
     clearTimer()
     if (!loaded) {
       removed.value = false

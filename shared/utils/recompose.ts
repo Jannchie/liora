@@ -21,7 +21,7 @@ export function clampCropRect(crop: RecomposeCropRect, minSize: number = MIN_CRO
   }
 }
 
-export function createDefaultRecomposeParams(original: { width: number, height: number }): RecomposeParams {
+export function createDefaultRecomposeParams(original: { width: number; height: number }): RecomposeParams {
   return {
     version: 1,
     rotate90: 0,
@@ -38,18 +38,20 @@ export function createDefaultRecomposeParams(original: { width: number, height: 
 }
 
 export function isIdentityRecompose(params: RecomposeParams): boolean {
-  return params.rotate90 === 0
-    && !params.flipH
-    && !params.flipV
-    && params.straighten === 0
-    && params.stretchX === 1
-    && params.stretchY === 1
-    && params.perspectiveH === 0
-    && params.perspectiveV === 0
-    && params.crop.x === 0
-    && params.crop.y === 0
-    && params.crop.width === 1
-    && params.crop.height === 1
+  return (
+    params.rotate90 === 0 &&
+    !params.flipH &&
+    !params.flipV &&
+    params.straighten === 0 &&
+    params.stretchX === 1 &&
+    params.stretchY === 1 &&
+    params.perspectiveH === 0 &&
+    params.perspectiveV === 0 &&
+    params.crop.x === 0 &&
+    params.crop.y === 0 &&
+    params.crop.width === 1 &&
+    params.crop.height === 1
+  )
 }
 
 type Mat3 = number[]
@@ -79,7 +81,7 @@ function rotation(degrees: number): Mat3 {
   return [cos, -sin, 0, sin, cos, 0, 0, 0, 1]
 }
 
-export function applyHomography(matrix: Mat3, x: number, y: number): { x: number, y: number } {
+export function applyHomography(matrix: Mat3, x: number, y: number): { x: number; y: number } {
   const w = matrix[6]! * x + matrix[7]! * y + matrix[8]!
   return {
     x: (matrix[0]! * x + matrix[1]! * y + matrix[2]!) / w,
@@ -125,7 +127,7 @@ export function computeRecomposePlane(params: RecomposeParams): RecomposePlane {
   }
 }
 
-export function computeFramedDims(params: RecomposeParams): { width: number, height: number } {
+export function computeFramedDims(params: RecomposeParams): { width: number; height: number } {
   const plane = computeRecomposePlane(params)
   return {
     width: Math.max(1, Math.round(params.crop.width * plane.planeWidth)),
@@ -143,11 +145,8 @@ export function recomposeSourceScale(params: RecomposeParams): number {
  * Request size for the ORIGINAL image so a frame displayed at `targetWidth`
  * CSS pixels renders 1:1, capped at the original's own resolution.
  */
-export function recomposeSourceSize(params: RecomposeParams, targetWidth: number): { width: number, height: number } {
-  const width = Math.min(
-    params.original.width,
-    Math.max(1, Math.ceil(targetWidth * recomposeSourceScale(params))),
-  )
+export function recomposeSourceSize(params: RecomposeParams, targetWidth: number): { width: number; height: number } {
+  const width = Math.min(params.original.width, Math.max(1, Math.ceil(targetWidth * recomposeSourceScale(params))))
   const height = Math.max(1, Math.round((width * params.original.height) / params.original.width))
   return { width, height }
 }
@@ -167,7 +166,7 @@ export function recomposeCssMatrix(params: RecomposeParams, k: number): string {
   return `matrix3d(${a}, ${d}, 0, ${g}, ${b}, ${e}, 0, ${h}, 0, 0, 1, 0, ${c}, ${f}, 0, 1)`
 }
 
-function isPointInConvexQuad(quad: Array<{ x: number, y: number }>, x: number, y: number): boolean {
+function isPointInConvexQuad(quad: Array<{ x: number; y: number }>, x: number, y: number): boolean {
   let sign = 0
   for (let index = 0; index < 4; index++) {
     const from = quad[index]!
@@ -179,8 +178,7 @@ function isPointInConvexQuad(quad: Array<{ x: number, y: number }>, x: number, y
     const current = cross > 0 ? 1 : -1
     if (sign === 0) {
       sign = current
-    }
-    else if (sign !== current) {
+    } else if (sign !== current) {
       return false
     }
   }
@@ -188,7 +186,7 @@ function isPointInConvexQuad(quad: Array<{ x: number, y: number }>, x: number, y
 }
 
 /** The transformed image as a convex quad in plane coordinates. */
-export function computeImageQuad(params: RecomposeParams): Array<{ x: number, y: number }> {
+export function computeImageQuad(params: RecomposeParams): Array<{ x: number; y: number }> {
   const plane = computeRecomposePlane(params)
   const w0 = params.original.width
   const h0 = params.original.height
@@ -221,10 +219,12 @@ export function fitCropToBounds(params: RecomposeParams, aspect: number | null):
   const fits = (scale: number): boolean => {
     const halfW = baseHalfW * scale
     const halfH = baseHalfH * scale
-    return isPointInConvexQuad(quad, centerX - halfW, centerY - halfH)
-      && isPointInConvexQuad(quad, centerX + halfW, centerY - halfH)
-      && isPointInConvexQuad(quad, centerX + halfW, centerY + halfH)
-      && isPointInConvexQuad(quad, centerX - halfW, centerY + halfH)
+    return (
+      isPointInConvexQuad(quad, centerX - halfW, centerY - halfH) &&
+      isPointInConvexQuad(quad, centerX + halfW, centerY - halfH) &&
+      isPointInConvexQuad(quad, centerX + halfW, centerY + halfH) &&
+      isPointInConvexQuad(quad, centerX - halfW, centerY + halfH)
+    )
   }
 
   let low = 0
@@ -233,8 +233,7 @@ export function fitCropToBounds(params: RecomposeParams, aspect: number | null):
     const mid = (low + high) / 2
     if (fits(mid)) {
       low = mid
-    }
-    else {
+    } else {
       high = mid
     }
   }
@@ -290,7 +289,7 @@ export function validateRecomposeParams(input: unknown): RecomposeParams | null 
   const rotate90 = toFiniteNumber(candidate.rotate90)
   return {
     version: 1,
-    rotate90: (((rotate90 === null ? 0 : Math.round(rotate90)) % 4 + 4) % 4) as RecomposeParams['rotate90'],
+    rotate90: ((((rotate90 === null ? 0 : Math.round(rotate90)) % 4) + 4) % 4) as RecomposeParams['rotate90'],
     flipH: candidate.flipH === true,
     flipV: candidate.flipV === true,
     straighten: clamp(toFiniteNumber(candidate.straighten) ?? 0, -MAX_STRAIGHTEN, MAX_STRAIGHTEN),

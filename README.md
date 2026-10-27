@@ -49,28 +49,28 @@ Liora Gallery is a minimal, self-hosted gallery for photography and illustration
 
 Core environment variables:
 
-| Variable               | Required    | Description                                                                                        | Example                          |
-| ---------------------- | ----------- | -------------------------------------------------------------------------------------------------- | -------------------------------- |
-| `ADMIN_USERNAME`       | Yes         | Admin login for `/admin`                                                                           | `admin`                          |
-| `ADMIN_PASSWORD`       | Yes         | Admin password                                                                                     | `change-me`                      |
-| `ADMIN_SESSION_SECRET` | Recommended | Session signing secret (falls back to password if empty)                                           | `please-change-me`               |
+| Variable               | Required    | Description                                                                                      | Example                          |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------------------ | -------------------------------- |
+| `ADMIN_USERNAME`       | Yes         | Admin login for `/admin`                                                                         | `admin`                          |
+| `ADMIN_PASSWORD`       | Yes         | Admin password                                                                                   | `change-me`                      |
+| `ADMIN_SESSION_SECRET` | Recommended | Session signing secret (falls back to password if empty)                                         | `please-change-me`               |
 | `DATABASE_URL`         | Optional    | SQLite/LibSQL connection. Default: `file:./data/data.db` locally, `file:/data/data.db` in Docker | `libsql://host/db?authToken=...` |
-| `DATABASE_AUTH_TOKEN`  | Optional    | LibSQL/Turso auth token when required                                                              | `...`                            |
-| `S3_ENDPOINT`          | Yes         | S3-compatible endpoint (no trailing slash)                                                         | `https://s3.example.com`         |
-| `S3_BUCKET`            | Yes         | Bucket name                                                                                        | `liora`                          |
-| `S3_ACCESS_KEY_ID`     | Yes         | Access key                                                                                         | `AKIA...`                        |
-| `S3_SECRET_ACCESS_KEY` | Yes         | Secret key                                                                                         | `...`                            |
-| `S3_PUBLIC_BASE_URL`   | Optional    | Public base URL/CDN prefix for serving files                                                       | `https://cdn.example.com/liora`  |
-| `SITE_URL`             | Recommended | Canonical site URL for SEO/sitemap                                                                 | `https://gallery.example.com`    |
-| `SITE_INDEXABLE`       | Optional    | `true`/`false` to control robots/sitemap                                                           | `true`                           |
-| `OPENAI_API_KEY`       | Optional    | Enables AI genre classification                                                                    | `sk-...`                         |
+| `DATABASE_AUTH_TOKEN`  | Optional    | LibSQL/Turso auth token when required                                                            | `...`                            |
+| `S3_ENDPOINT`          | Yes         | S3-compatible endpoint (no trailing slash)                                                       | `https://s3.example.com`         |
+| `S3_BUCKET`            | Yes         | Bucket name                                                                                      | `liora`                          |
+| `S3_ACCESS_KEY_ID`     | Yes         | Access key                                                                                       | `AKIA...`                        |
+| `S3_SECRET_ACCESS_KEY` | Yes         | Secret key                                                                                       | `...`                            |
+| `S3_PUBLIC_BASE_URL`   | Optional    | Public base URL/CDN prefix for serving files                                                     | `https://cdn.example.com/liora`  |
+| `SITE_URL`             | Recommended | Canonical site URL for SEO/sitemap                                                               | `https://gallery.example.com`    |
+| `SITE_INDEXABLE`       | Optional    | `true`/`false` to control robots/sitemap                                                         | `true`                           |
+| `OPENAI_API_KEY`       | Optional    | Enables AI genre classification                                                                  | `sk-...`                         |
 
 Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCIAL_TWITTER`, `SOCIAL_INSTAGRAM`, `SOCIAL_WEIBO`, `SOCIAL_YOUTUBE`, `SOCIAL_BILIBILI`, `SOCIAL_TIKTOK`, `SOCIAL_LINKEDIN`.
 
 ## Local Development
 
 - Dev server: `pnpm dev`
-- Lint: `pnpm exec eslint .`
+- Lint / format: `pnpm lint` (oxlint), `pnpm format` (oxfmt)
 - Tests (add specs under `tests/` or alongside features): `pnpm exec vitest`
 - Production build/preview: `pnpm build && pnpm preview`
 - Static export (when needed): `pnpm generate`
@@ -147,7 +147,7 @@ Social links (rendered only when set): `SOCIAL_HOMEPAGE`, `SOCIAL_GITHUB`, `SOCI
 
 ## Contributing
 
-Use pnpm, keep commits focused (Conventional Commits), and run `pnpm exec eslint .` plus `pnpm exec vitest` before opening a PR. See `CHANGELOG.md` for recent updates; licensing is MIT.
+Use pnpm, keep commits focused (Conventional Commits), and run `pnpm lint`, `pnpm format:check` and `pnpm exec vitest` before opening a PR. See `CHANGELOG.md` for recent updates; licensing is MIT.
 
 ## License
 

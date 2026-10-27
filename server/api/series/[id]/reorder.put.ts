@@ -42,7 +42,7 @@ export default defineEventHandler(async (event): Promise<{ success: true }> => {
     throw createError({ statusCode: 400, statusMessage: 'Some files are not in this series.' })
   }
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     for (const item of items) {
       await tx
         .update(seriesFiles)

@@ -63,13 +63,8 @@ export function useExifExtraction(): {
     exifFailedFallback: string
   }) => Promise<{ errorMessage?: string }>
 } {
-  const {
-    exposureProgramOptions,
-    exposureModeOptions,
-    meteringModeOptions,
-    whiteBalanceOptions,
-    flashOptions,
-  } = useExposureOptions()
+  const { exposureProgramOptions, exposureModeOptions, meteringModeOptions, whiteBalanceOptions, flashOptions } =
+    useExposureOptions()
 
   const extractExif = async (params: {
     file: File
@@ -129,7 +124,10 @@ export function useExifExtraction(): {
       const focal = formatFocal(parsed.FocalLength)
       const iso = parsed.ISO ? String(parsed.ISO) : ''
       const exposureBias = formatExposureBias(parsed.ExposureBiasValue ?? parsed.ExposureCompensation)
-      const exposureProgram = normalizeToOption(normalizeExposureProgramValue(parsed.ExposureProgram), exposureProgramOptions.value)
+      const exposureProgram = normalizeToOption(
+        normalizeExposureProgramValue(parsed.ExposureProgram),
+        exposureProgramOptions.value,
+      )
       const exposureMode = normalizeToOption(normalizeExposureModeValue(parsed.ExposureMode), exposureModeOptions.value)
       const meteringMode = normalizeToOption(normalizeMeteringModeValue(parsed.MeteringMode), meteringModeOptions.value)
       const whiteBalance = normalizeToOption(normalizeWhiteBalanceValue(parsed.WhiteBalance), whiteBalanceOptions.value)
@@ -213,8 +211,7 @@ export function useExifExtraction(): {
         captureTimeLocal.value = toLocalInputString(captureTime)
       }
       return {}
-    }
-    catch (error) {
+    } catch (error) {
       return { errorMessage: error instanceof Error ? error.message : exifFailedFallback }
     }
   }

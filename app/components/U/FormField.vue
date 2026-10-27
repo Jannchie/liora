@@ -23,11 +23,7 @@ provide('u-form-field', {
 <template>
   <div class="flex flex-col gap-1.5">
     <div v-if="label || hint" class="flex items-baseline justify-between gap-2">
-      <label
-        v-if="label"
-        :for="fieldId"
-        class="text-xs font-medium text-muted"
-      >
+      <label v-if="label" :for="fieldId" class="text-xs font-medium text-muted">
         {{ label }}
         <span v-if="required" class="text-error" aria-hidden="true">*</span>
       </label>

@@ -5,12 +5,29 @@ import { basename } from 'node:path'
 import { eq } from 'drizzle-orm'
 import { createError, readMultipartFormData } from 'h3'
 import { computePerceptualHash, computeSha256, generateArthash, validateImage } from '../../../domain/files/image'
-import { buildMetadata, clampExtractedMetadata, mergeMetadataTextUpdates, normalizeMetadataTextUpdates, normalizeText, parseCharacters } from '../../../domain/files/metadata'
+import {
+  buildMetadata,
+  clampExtractedMetadata,
+  mergeMetadataTextUpdates,
+  normalizeMetadataTextUpdates,
+  normalizeText,
+  parseCharacters,
+} from '../../../domain/files/metadata'
 import { requireAdmin } from '../../../utils/auth'
 import { db, files } from '../../../utils/db'
-import { buildMetadataFallbacks, ensureMetadata, joinCharacters, mapCharacters, toFileResponse } from '../../../utils/file-mapper'
+import {
+  buildMetadataFallbacks,
+  ensureMetadata,
+  joinCharacters,
+  mapCharacters,
+  toFileResponse,
+} from '../../../utils/file-mapper'
 import { requireFileById } from '../../../utils/file-record'
-import { applyFocusMetadata, extractFocusMetadataFromBuffer, FOCUS_METADATA_FIELDS } from '../../../utils/focus-metadata'
+import {
+  applyFocusMetadata,
+  extractFocusMetadataFromBuffer,
+  FOCUS_METADATA_FIELDS,
+} from '../../../utils/focus-metadata'
 import { computeHistogram } from '../../../utils/histogram'
 import { requirePositiveIntRouterParam } from '../../../utils/route-params'
 import { requireS3Config, uploadBufferToS3 } from '../../../utils/s3'
@@ -52,7 +69,7 @@ async function parseMultipart(event: H3Event): Promise<ParsedForm> {
       }
       continue
     }
-    const value = typeof entry.data === 'string' ? entry.data : entry.data?.toString('utf8') ?? ''
+    const value = typeof entry.data === 'string' ? entry.data : (entry.data?.toString('utf8') ?? '')
     fields[name] = value
   }
 
@@ -71,7 +88,11 @@ function normalizeExt(filename: string | undefined): string {
   return ext.toLowerCase()
 }
 
-async function saveFile(file: MultipartEntry, event: H3Event, contentType: string | undefined): Promise<{ imageUrl: string, arthash?: string }> {
+async function saveFile(
+  file: MultipartEntry,
+  event: H3Event,
+  contentType: string | undefined,
+): Promise<{ imageUrl: string; arthash?: string }> {
   const ext = normalizeExt(file.filename)
   const safeName = file.filename ? basename(file.filename).replace(/\.[^/.]+$/, '') : 'image'
   const baseName = `${safeName}-${Date.now().toString(36)}-${randomUUID()}`
@@ -85,7 +106,7 @@ async function saveFile(file: MultipartEntry, event: H3Event, contentType: strin
     config: storageConfig,
   })
 
-  const arthash = await generateArthash(file.data) ?? undefined
+  const arthash = (await generateArthash(file.data)) ?? undefined
 
   return { imageUrl, arthash }
 }
@@ -103,21 +124,23 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     try {
       const parsed = JSON.parse(existing.metadata) as Partial<FileMetadata>
       return Number.isFinite(parsed.fileSize) ? Number(parsed.fileSize) : 0
-    }
-    catch {
+    } catch {
       return 0
     }
   })()
-  const existingMetadata = ensureMetadata(existing.metadata, buildMetadataFallbacks(existing, existingCharacters, {
-    fileSize: existingFileSize,
-  }))
+  const existingMetadata = ensureMetadata(
+    existing.metadata,
+    buildMetadataFallbacks(existing, existingCharacters, {
+      fileSize: existingFileSize,
+    }),
+  )
   const metadata = buildMetadata(fields, characters)
   const focusMetadata = clampExtractedMetadata(await extractFocusMetadataFromBuffer(file.data, file.filename))
   applyFocusMetadata(metadata, focusMetadata)
   metadata.fileSize = file.data.length
   metadata.processingStatus = 'completed'
 
-  metadata.perceptualHash = await computePerceptualHash(file.data) ?? undefined
+  metadata.perceptualHash = (await computePerceptualHash(file.data)) ?? undefined
   metadata.sha256 = computeSha256(file.data)
 
   const histogram = await computeHistogram(file.data)

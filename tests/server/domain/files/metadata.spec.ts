@@ -50,12 +50,16 @@ describe('domain/files/metadata', () => {
     const base = buildMetadata({}, ['A'])
     base.fanworkTitle = 'Old Work'
     base.shutterSpeed = '1/50s'
-    const merged = mergeMetadataTextUpdates(base, {
-      fanworkTitle: '',
-      shutterSpeed: '1/200s',
-    }, {
-      preserveOnEmpty: true,
-    })
+    const merged = mergeMetadataTextUpdates(
+      base,
+      {
+        fanworkTitle: '',
+        shutterSpeed: '1/200s',
+      },
+      {
+        preserveOnEmpty: true,
+      },
+    )
     expect(merged.fanworkTitle).toBe('Old Work')
     expect(merged.shutterSpeed).toBe('1/200s')
 
@@ -66,53 +70,67 @@ describe('domain/files/metadata', () => {
   })
 
   it('builds metadata with validated live photo still time', () => {
-    const withStillTime = buildMetadata({
-      latitude: '35.6',
-      longitude: '139.7',
-      livePhotoStillTime: '1.5',
-    }, [])
+    const withStillTime = buildMetadata(
+      {
+        latitude: '35.6',
+        longitude: '139.7',
+        livePhotoStillTime: '1.5',
+      },
+      [],
+    )
     expect(withStillTime.latitude).toBe(35.6)
     expect(withStillTime.longitude).toBe(139.7)
     expect(withStillTime.livePhotoStillTime).toBe(1.5)
 
-    const invalidStillTime = buildMetadata({
-      livePhotoStillTime: '-1',
-    }, [])
+    const invalidStillTime = buildMetadata(
+      {
+        livePhotoStillTime: '-1',
+      },
+      [],
+    )
     expect(invalidStillTime.livePhotoStillTime).toBeUndefined()
   })
 
   it('rejects fields that exceed length limits', () => {
     const metadata = buildMetadata({}, ['A'])
     metadata.notes = 'x'.repeat(5000)
-    expect(() => validateLengths({
-      title: '',
-      description: '',
-      genre: '',
-      metadata,
-      characters: ['A'],
-      originalName: 'a.jpg',
-    })).toThrowError()
+    expect(() =>
+      validateLengths({
+        title: '',
+        description: '',
+        genre: '',
+        metadata,
+        characters: ['A'],
+        originalName: 'a.jpg',
+      }),
+    ).toThrowError()
   })
 
   it('rejects oversized character values and oversized character list', () => {
     const metadata = buildMetadata({}, [])
-    expect(() => validateLengths({
-      title: '',
-      description: '',
-      genre: '',
-      metadata,
-      characters: ['x'.repeat(121)],
-      originalName: 'a.jpg',
-    })).toThrowError('Character exceeds the maximum length')
+    expect(() =>
+      validateLengths({
+        title: '',
+        description: '',
+        genre: '',
+        metadata,
+        characters: ['x'.repeat(121)],
+        originalName: 'a.jpg',
+      }),
+    ).toThrowError('Character exceeds the maximum length')
 
-    const longCharacters = Array.from({ length: 20 }, (_, index) => `character-${index.toString().padStart(2, '0')}`.repeat(10))
-    expect(() => validateLengths({
-      title: '',
-      description: '',
-      genre: '',
-      metadata,
-      characters: longCharacters,
-      originalName: 'a.jpg',
-    })).toThrowError('Character list exceeds the maximum length')
+    const longCharacters = Array.from({ length: 20 }, (_, index) =>
+      `character-${index.toString().padStart(2, '0')}`.repeat(10),
+    )
+    expect(() =>
+      validateLengths({
+        title: '',
+        description: '',
+        genre: '',
+        metadata,
+        characters: longCharacters,
+        originalName: 'a.jpg',
+      }),
+    ).toThrowError('Character list exceeds the maximum length')
   })
 })

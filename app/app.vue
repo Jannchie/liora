@@ -42,8 +42,7 @@ if (import.meta.client) {
     root.lang = htmlLang
     if (htmlDir) {
       root.dir = htmlDir
-    }
-    else {
+    } else {
       root.removeAttribute('dir')
     }
   })

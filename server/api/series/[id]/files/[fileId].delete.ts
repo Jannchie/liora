@@ -26,7 +26,7 @@ export default defineEventHandler(async (event): Promise<{ success: true }> => {
     throw createError({ statusCode: 404, statusMessage: 'Series not found.' })
   }
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     const deleted = await tx
       .delete(seriesFiles)
       .where(and(eq(seriesFiles.seriesId, seriesId), eq(seriesFiles.fileId, fileId)))

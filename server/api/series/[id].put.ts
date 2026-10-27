@@ -41,9 +41,7 @@ async function resolveUniqueSlug(baseSlug: string, excludeId?: number): Promise<
   let index = 2
   for (;;) {
     const existing = await db.query.series.findFirst({
-      where: excludeId
-        ? and(eq(series.slug, candidate), ne(series.id, excludeId))
-        : eq(series.slug, candidate),
+      where: excludeId ? and(eq(series.slug, candidate), ne(series.id, excludeId)) : eq(series.slug, candidate),
     })
     if (!existing) {
       return candidate
@@ -95,9 +93,7 @@ export default defineEventHandler(async (event): Promise<SeriesSummary> => {
   }
   const description = normalizeSeriesDescription(body.description ?? existing.description)
 
-  const nextSlugInput = body.slug === undefined
-    ? existing.slug
-    : normalizeSeriesSlug(body.slug)
+  const nextSlugInput = body.slug === undefined ? existing.slug : normalizeSeriesSlug(body.slug)
   const nextSlugBase = nextSlugInput || slugifySeriesTitle(title) || existing.slug || 'series'
   const slug = await resolveUniqueSlug(nextSlugBase, id)
 

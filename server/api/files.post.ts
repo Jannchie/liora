@@ -13,7 +13,7 @@ import { requireAdmin } from '../utils/auth'
 import { requireS3Config } from '../utils/s3'
 import { setUploadStatus } from '../utils/upload-status'
 
-export default defineEventHandler(async (event): Promise<{ accepted: true, uploadId: string }> => {
+export default defineEventHandler(async (event): Promise<{ accepted: true; uploadId: string }> => {
   requireAdmin(event)
   const storageConfig = requireS3Config(useRuntimeConfig(event).storage)
   const uploadId = randomUUID()
@@ -33,27 +33,34 @@ export default defineEventHandler(async (event): Promise<{ accepted: true, uploa
         assertContentTypePrefix(video.type, 'video/', 'Video')
       }
     }
-    startBackgroundUpload(() => processMultipartUpload({
-      image,
-      video,
-      fields,
-      storageConfig,
-      uploadId,
-    }), { uploadId })
-  }
-  else {
+    startBackgroundUpload(
+      () =>
+        processMultipartUpload({
+          image,
+          video,
+          fields,
+          storageConfig,
+          uploadId,
+        }),
+      { uploadId },
+    )
+  } else {
     const body = await readBody<DirectUploadBody>(event)
     const parsed = parseDirectBody(body)
-    startBackgroundUpload(() => processDirectUpload({
-      imageKey: parsed.imageKey,
-      imageContentType: parsed.imageContentType,
-      videoKey: parsed.videoKey,
-      videoContentType: parsed.videoContentType,
-      originalName: parsed.originalName,
-      fields: parsed.fields,
-      storageConfig,
-      uploadId,
-    }), { uploadId })
+    startBackgroundUpload(
+      () =>
+        processDirectUpload({
+          imageKey: parsed.imageKey,
+          imageContentType: parsed.imageContentType,
+          videoKey: parsed.videoKey,
+          videoContentType: parsed.videoContentType,
+          originalName: parsed.originalName,
+          fields: parsed.fields,
+          storageConfig,
+          uploadId,
+        }),
+      { uploadId },
+    )
   }
 
   event.node.res.statusCode = 202

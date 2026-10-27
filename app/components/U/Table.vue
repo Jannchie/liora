@@ -13,23 +13,26 @@ interface Column<R> {
   accessorFn?: (row: R) => unknown
 }
 
-const props = withDefaults(defineProps<{
-  columns: Column<Row>[]
-  data?: Row[]
-  loading?: boolean
-  empty?: string
-  ui?: {
-    wrapper?: string
-    table?: string
-    thead?: string
-    tbody?: string
-    th?: string
-    td?: string
-    tr?: string
-  }
-}>(), {
-  data: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    columns: Column<Row>[]
+    data?: Row[]
+    loading?: boolean
+    empty?: string
+    ui?: {
+      wrapper?: string
+      table?: string
+      thead?: string
+      tbody?: string
+      th?: string
+      td?: string
+      tr?: string
+    }
+  }>(),
+  {
+    data: () => [],
+  },
+)
 
 function resolveValue(row: Row, column: Column<Row>): unknown {
   if (column.accessorFn) {
@@ -63,7 +66,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
             class="border-b border-border px-3 py-2 text-left text-[11px] font-normal uppercase tracking-[0.06em] text-dimmed"
             :class="ui?.th"
           >
-            <slot :name="headerSlotName(column)" :column="(column as Column<Row>)">
+            <slot :name="headerSlotName(column)" :column="column as Column<Row>">
               {{ column.header }}
             </slot>
           </th>
@@ -99,7 +102,7 @@ const isEmpty = computed(() => !props.loading && props.data.length === 0)
             <slot
               :name="cellSlotName(column)"
               :row="{ original: row, index: rowIndex }"
-              :column="(column as Column<Row>)"
+              :column="column as Column<Row>"
               :get-value="() => resolveValue(row, column)"
             >
               {{ resolveValue(row, column) }}

@@ -2,9 +2,7 @@ import type { Client, InArgs, InStatement, Transaction, TransactionMode } from '
 import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 import type { Logger } from 'drizzle-orm/logger'
 import { join } from 'node:path'
-import {
-  createClient,
-} from '@libsql/client'
+import { createClient } from '@libsql/client'
 import { addBreadcrumb, captureException, startSpan } from '@sentry/nuxt'
 import { drizzle } from 'drizzle-orm/libsql'
 import * as schema from '../database/schema'
@@ -68,25 +66,21 @@ function withDbSpan<TArgs extends unknown[], TResult>(
 ): (...args: TArgs) => Promise<TResult> {
   return (...args: TArgs) => {
     const sql = extractSql(args[sqlIndex] as StatementInput)
-    return startSpan(
-      { name, op: 'db', attributes: spanAttributes(sql, name) },
-      async (span) => {
-        addBreadcrumb({
-          category: 'db',
-          message: truncateSql(sql),
-          level: 'info',
-          data: { operation: name },
-        })
-        try {
-          return await fn(...args)
-        }
-        catch (error) {
-          span.setStatus({ code: 2, message: 'internal_error' })
-          captureException(error)
-          throw error
-        }
-      },
-    )
+    return startSpan({ name, op: 'db', attributes: spanAttributes(sql, name) }, async span => {
+      addBreadcrumb({
+        category: 'db',
+        message: truncateSql(sql),
+        level: 'info',
+        data: { operation: name },
+      })
+      try {
+        return await fn(...args)
+      } catch (error) {
+        span.setStatus({ code: 2, message: 'internal_error' })
+        captureException(error)
+        throw error
+      }
+    })
   }
 }
 
@@ -95,11 +89,10 @@ function withDbSpanWithoutSql<TArgs extends unknown[], TResult>(
   fn: (...args: TArgs) => Promise<TResult>,
 ): (...args: TArgs) => Promise<TResult> {
   return (...args: TArgs) =>
-    startSpan({ name, op: 'db' }, async (span) => {
+    startSpan({ name, op: 'db' }, async span => {
       try {
         return await fn(...args)
-      }
-      catch (error) {
+      } catch (error) {
         span.setStatus({ code: 2, message: 'internal_error' })
         captureException(error)
         throw error
@@ -164,6 +157,7 @@ function instrumentClient(client: Client): Client {
     },
   }
 
+  // oxlint-disable-next-line unicorn/no-immediate-mutation -- the marker isn't part of `Client`
   ;(instrumented as InstrumentedClient).__sentryInstrumented = true
   return instrumented
 }

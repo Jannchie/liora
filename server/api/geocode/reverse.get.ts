@@ -2,7 +2,7 @@ import { createError, getQuery } from 'h3'
 import { reverseGeocodePlace } from '~~/server/utils/nominatim'
 import { requireAdmin } from '../../utils/auth'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async event => {
   requireAdmin(event)
   const { lat, lon, latitude, longitude } = getQuery(event)
   let rawLat = ''
@@ -10,15 +10,13 @@ export default defineEventHandler(async (event) => {
 
   if (typeof lat === 'string') {
     rawLat = lat
-  }
-  else if (typeof latitude === 'string') {
+  } else if (typeof latitude === 'string') {
     rawLat = latitude
   }
 
   if (typeof lon === 'string') {
     rawLon = lon
-  }
-  else if (typeof longitude === 'string') {
+  } else if (typeof longitude === 'string') {
     rawLon = longitude
   }
 

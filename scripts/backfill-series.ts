@@ -4,11 +4,9 @@ import { closeDb } from '../server/utils/db'
 try {
   const summary = await backfillSeries()
   console.log(`Backfill complete. ${summary.createdSeries} series created, ${summary.linkedFiles} files linked.`)
-}
-catch (error) {
+} catch (error) {
   console.error('[backfill-series] failed:', error)
   process.exitCode = 1
-}
-finally {
+} finally {
   await closeDb()
 }

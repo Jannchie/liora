@@ -73,11 +73,8 @@ const { t } = useI18n()
         :alt="t('admin.upload.sections.preview.alt')"
         class="max-h-full max-w-full object-contain"
         :style="{ maxHeight: `${props.previewMaxHeight}px` }"
-      >
-      <div
-        v-else-if="props.isLiveMode && props.hasSelectedVideo"
-        class="px-6 text-center text-[13px] text-dimmed"
-      >
+      />
+      <div v-else-if="props.isLiveMode && props.hasSelectedVideo" class="px-6 text-center text-[13px] text-dimmed">
         {{ t('admin.upload.sections.livePhoto.framePlaceholder') }}
       </div>
     </div>
@@ -87,17 +84,13 @@ const { t } = useI18n()
       class="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1 font-mono text-[11px] num-tabular"
     >
       <template v-if="props.hasSelectedFile">
-        <dt class="label-caption-sm">
-          image
-        </dt>
+        <dt class="label-caption-sm">image</dt>
         <dd class="truncate text-highlighted">
           {{ props.selectedFileName }} <span class="text-dimmed">· {{ props.selectedFileType || 'image' }}</span>
         </dd>
       </template>
       <template v-if="props.hasSelectedVideo">
-        <dt class="label-caption-sm">
-          video
-        </dt>
+        <dt class="label-caption-sm">video</dt>
         <dd class="truncate text-highlighted">
           {{ props.selectedVideoName }} <span class="text-dimmed">· {{ props.selectedVideoType || 'video' }}</span>
         </dd>
@@ -130,10 +123,12 @@ const { t } = useI18n()
           step="0.1"
           :value="props.liveFrameTime"
           class="frame-slider w-full"
-          :style="{ '--p': `${props.liveFrameDuration > 0 ? (props.liveFrameTime / props.liveFrameDuration) * 100 : 0}%` }"
+          :style="{
+            '--p': `${props.liveFrameDuration > 0 ? (props.liveFrameTime / props.liveFrameDuration) * 100 : 0}%`,
+          }"
           :disabled="props.liveFrameDuration <= 0"
           @input="event => emit('frameInput', event)"
-        >
+        />
         <span class="text-dimmed">{{ props.liveFrameDurationLabel }}</span>
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -159,10 +154,7 @@ const { t } = useI18n()
       </div>
       <!-- 2px ink fill on a border-strong track, like the icons site's slider. -->
       <div class="h-0.5 w-full overflow-hidden bg-border-strong">
-        <div
-          class="h-full bg-primary transition-[width]"
-          :style="{ width: `${props.uploadProgressPercent}%` }"
-        />
+        <div class="h-full bg-primary transition-[width]" :style="{ width: `${props.uploadProgressPercent}%` }" />
       </div>
       <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-dimmed num-tabular">
         <span>

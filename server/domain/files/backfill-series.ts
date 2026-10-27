@@ -191,10 +191,7 @@ export async function backfillSeries(): Promise<SeriesBackfillSummary> {
     }
   }
 
-  const finalSeries = await db
-    .select({ id: series.id })
-    .from(series)
-    .orderBy(asc(series.id))
+  const finalSeries = await db.select({ id: series.id }).from(series).orderBy(asc(series.id))
 
   logger.info(`[backfill-series] completed. total series: ${finalSeries.length}`)
   return {

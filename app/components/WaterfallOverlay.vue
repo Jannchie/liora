@@ -1,7 +1,14 @@
 <script setup lang="ts">
 import type { CSSProperties } from 'vue'
 import type { HistogramData } from '~/types/file'
-import type { FileLocation, LightroomRecipeView, LlrRecipeView, MetadataEntry, OverlayStat, ResolvedFile } from '~/types/gallery'
+import type {
+  FileLocation,
+  LightroomRecipeView,
+  LlrRecipeView,
+  MetadataEntry,
+  OverlayStat,
+  ResolvedFile,
+} from '~/types/gallery'
 import { computed, defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import WaterfallPreviewOverlay from './WaterfallPreviewOverlay.vue'
 
@@ -108,12 +115,7 @@ const resolvedPreviewImageSrc = computed<string | null>(() => {
       return trimmed
     }
   }
-  const candidates = [
-    file.imageUrl,
-    overlayImageSrc,
-    file.previewUrl,
-    file.coverUrl,
-  ]
+  const candidates = [file.imageUrl, overlayImageSrc, file.previewUrl, file.coverUrl]
   for (const candidate of candidates) {
     if (typeof candidate === 'string') {
       const trimmed = candidate.trim()
@@ -131,12 +133,7 @@ const viewerImageWidth = computed(() => recomposeParams.value?.original.width ??
 const viewerImageHeight = computed(() => recomposeParams.value?.original.height ?? file.height)
 
 const displayImageUrl = computed<string>(() => {
-  const candidates = [
-    overlayImageSrc,
-    file.previewUrl,
-    file.coverUrl,
-    file.imageUrl,
-  ]
+  const candidates = [overlayImageSrc, file.previewUrl, file.coverUrl, file.imageUrl]
   for (const candidate of candidates) {
     if (typeof candidate === 'string') {
       const trimmed = candidate.trim()
@@ -168,9 +165,7 @@ function parseNumbers(value: string | undefined): number[] {
   if (!matches) {
     return []
   }
-  return matches
-    .map(Number)
-    .filter(number => Number.isFinite(number))
+  return matches.map(Number).filter(number => Number.isFinite(number))
 }
 
 function parseMetadataNumber(value: string | undefined): number | null {
@@ -190,7 +185,7 @@ function parseUprightTransform(value: string | undefined): number[] | null {
 }
 
 function rotateAroundCenter(point: FocusPoint, angleDegrees: number): FocusPoint {
-  const radians = angleDegrees * Math.PI / 180
+  const radians = (angleDegrees * Math.PI) / 180
   const cos = Math.cos(radians)
   const sin = Math.sin(radians)
   const dx = point.x - 0.5
@@ -212,15 +207,15 @@ function applyHomography(point: FocusPoint, matrix: number[]): FocusPoint | null
   const m7 = matrix[7]
   const m8 = matrix[8]
   if (
-    m0 === undefined
-    || m1 === undefined
-    || m2 === undefined
-    || m3 === undefined
-    || m4 === undefined
-    || m5 === undefined
-    || m6 === undefined
-    || m7 === undefined
-    || m8 === undefined
+    m0 === undefined ||
+    m1 === undefined ||
+    m2 === undefined ||
+    m3 === undefined ||
+    m4 === undefined ||
+    m5 === undefined ||
+    m6 === undefined ||
+    m7 === undefined ||
+    m8 === undefined
   ) {
     return null
   }
@@ -263,7 +258,13 @@ function applyPerspectiveApproximation(
   return next
 }
 
-function applyCrop(point: FocusPoint, cropLeft: number, cropTop: number, cropRight: number, cropBottom: number): FocusPoint {
+function applyCrop(
+  point: FocusPoint,
+  cropLeft: number,
+  cropTop: number,
+  cropRight: number,
+  cropBottom: number,
+): FocusPoint {
   const cropWidth = cropRight - cropLeft
   const cropHeight = cropBottom - cropTop
   if (cropWidth <= 0 || cropHeight <= 0) {
@@ -357,7 +358,7 @@ const transformedFocusBox = computed<FocusBoxRect | null>(() => {
   const cropAngle = parseMetadataNumber(metadata.cropAngle) ?? 0
 
   const transformed = corners
-    .map((corner) => {
+    .map(corner => {
       let next: FocusPoint | null = matrix
         ? applyHomography(corner, matrix)
         : applyPerspectiveApproximation(
@@ -429,14 +430,16 @@ const overlayViewerStyle = computed<Record<string, string>>(() => {
 const { t } = useI18n()
 
 const canOpenPreview = computed(() => previewEnabled && Boolean(resolvedPreviewImageSrc.value))
-const livePhotoLabel = computed(() => (livePhotoPlaying.value ? t('gallery.livePhoto.still') : t('gallery.livePhoto.play')))
+const livePhotoLabel = computed(() =>
+  livePhotoPlaying.value ? t('gallery.livePhoto.still') : t('gallery.livePhoto.play'),
+)
 
 const WaterfallHistogramPanel = defineAsyncComponent(() => import('~/components/WaterfallHistogramPanel.vue'))
 const WaterfallLocationMap = defineAsyncComponent(() => import('~/components/WaterfallLocationMap.vue'))
 
 watch(
   viewerRef,
-  (next) => {
+  next => {
     emit('viewerMounted', next)
   },
   { immediate: true },
@@ -462,65 +465,56 @@ watch(
 
 watch(
   () => previewEnabled,
-  (enabled) => {
+  enabled => {
     if (!enabled) {
       previewOpen.value = false
     }
   },
 )
 
-watch(
-  hasLivePhoto,
-  (next) => {
-    if (next) {
-      livePhotoPlaying.value = true
-      return
-    }
-    livePhotoPlaying.value = false
-    if (videoRef.value) {
-      videoRef.value.pause()
-      videoRef.value.currentTime = 0
-    }
-  },
-)
+watch(hasLivePhoto, next => {
+  if (next) {
+    livePhotoPlaying.value = true
+    return
+  }
+  livePhotoPlaying.value = false
+  if (videoRef.value) {
+    videoRef.value.pause()
+    videoRef.value.currentTime = 0
+  }
+})
 
-watch(
-  livePhotoPlaying,
-  (playing) => {
-    const video = videoRef.value
-    if (!video) {
-      return
-    }
-    if (!playing) {
-      video.pause()
-      video.currentTime = 0
-      return
-    }
+watch(livePhotoPlaying, playing => {
+  const video = videoRef.value
+  if (!video) {
+    return
+  }
+  if (!playing) {
+    video.pause()
     video.currentTime = 0
-    const playPromise = video.play()
-    if (playPromise) {
-      playPromise.catch(() => {
-        livePhotoPlaying.value = false
-      })
-    }
-  },
-)
+    return
+  }
+  video.currentTime = 0
+  const playPromise = video.play()
+  if (playPromise) {
+    playPromise.catch(() => {
+      livePhotoPlaying.value = false
+    })
+  }
+})
 
-watch(
-  videoRef,
-  (video) => {
-    if (!video || !livePhotoPlaying.value) {
-      return
-    }
-    video.currentTime = 0
-    const playPromise = video.play()
-    if (playPromise) {
-      playPromise.catch(() => {
-        livePhotoPlaying.value = false
-      })
-    }
-  },
-)
+watch(videoRef, video => {
+  if (!video || !livePhotoPlaying.value) {
+    return
+  }
+  video.currentTime = 0
+  const playPromise = video.play()
+  if (playPromise) {
+    playPromise.catch(() => {
+      livePhotoPlaying.value = false
+    })
+  }
+})
 
 onBeforeUnmount(() => {
   emit('viewerMounted', null)
@@ -584,7 +578,9 @@ function handleFocusToggle(): void {
     />
     <div class="absolute inset-0" @click="emit('close')" />
     <div class="relative flex h-full w-full overlay-safe-area">
-      <div class="relative z-10 flex h-full w-full flex-col overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:overflow-y-visible">
+      <div
+        class="relative z-10 flex h-full w-full flex-col overflow-y-auto bg-default text-default backdrop-blur md:grid md:grid-cols-[minmax(0,2fr)_minmax(300px,380px)] md:overflow-y-visible"
+      >
         <div
           ref="viewerRef"
           class="overlay-viewer relative flex w-full shrink-0 items-center justify-center overflow-hidden bg-black md:h-full"
@@ -604,17 +600,16 @@ function handleFocusToggle(): void {
             content only appears while the viewer is zoomed out.
           -->
           <div
-            :style="[overlayImageFitStyle, overlayImageTransformStyle, { aspectRatio: `${file.width} / ${file.height}` }]"
+            :style="[
+              overlayImageFitStyle,
+              overlayImageTransformStyle,
+              { aspectRatio: `${file.width} / ${file.height}` },
+            ]"
             class="relative max-h-full max-w-full select-none"
           >
             <RecomposeFrame :params="recomposeParams" mode="reveal" :reveal-active="overlayZoomedOut">
               <template v-if="recomposeParams" #backdrop>
-                <img
-                  :src="displayImageUrl"
-                  alt=""
-                  class="h-full w-full"
-                  draggable="false"
-                >
+                <img :src="displayImageUrl" alt="" class="h-full w-full" draggable="false" />
               </template>
               <video
                 v-if="hasLivePhoto"
@@ -641,9 +636,7 @@ function handleFocusToggle(): void {
                 :show-status-overlay="false"
                 :focus-box="overlayFocusBox"
                 class="h-full w-full select-none bg-transparent rounded-none"
-                :class="[
-                  canOpenPreview ? 'cursor-zoom-in' : undefined,
-                ]"
+                :class="[canOpenPreview ? 'cursor-zoom-in' : undefined]"
                 @click="openPreview"
               />
             </RecomposeFrame>
@@ -699,10 +692,16 @@ function handleFocusToggle(): void {
         <div class="flex min-h-0 flex-col text-[13px] md:overflow-y-auto md:border-l md:border-border">
           <div class="flex items-start justify-between gap-3 border-b border-border px-5 py-5">
             <div class="min-w-0 space-y-2">
-              <h3 :id="`overlay-title-${file.id}`" class="font-title text-base font-semibold leading-snug tracking-[-0.01em] text-highlighted">
+              <h3
+                :id="`overlay-title-${file.id}`"
+                class="font-title text-base font-semibold leading-snug tracking-[-0.01em] text-highlighted"
+              >
                 {{ file.displayTitle }}
               </h3>
-              <div v-if="overlayStats.length > 0" class="flex flex-wrap items-center gap-x-3 gap-y-1 num-tabular text-xs text-dimmed">
+              <div
+                v-if="overlayStats.length > 0"
+                class="flex flex-wrap items-center gap-x-3 gap-y-1 num-tabular text-xs text-dimmed"
+              >
                 <span
                   v-for="stat in overlayStats"
                   :key="`${stat.icon}-${stat.label}`"

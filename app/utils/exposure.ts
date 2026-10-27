@@ -1,10 +1,5 @@
 function normalizeEnumToken(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replaceAll(/[_-]+/g, ' ')
-    .replaceAll(/,+/g, ' ')
-    .replaceAll(/\s+/g, ' ')
+  return value.trim().toLowerCase().replaceAll(/[_-]+/g, ' ').replaceAll(/,+/g, ' ').replaceAll(/\s+/g, ' ')
 }
 
 function toFiniteNumber(value: number | string | undefined): number | null {
@@ -53,16 +48,16 @@ export function normalizeExposureProgramValue(value: number | string | undefined
     },
     textMap: {
       'not defined': 'Not defined',
-      'manual': 'Manual',
-      'program': 'Program',
+      manual: 'Manual',
+      program: 'Program',
       'normal program': 'Program',
       'program normal': 'Program',
       'aperture priority': 'Aperture priority',
       'shutter priority': 'Shutter priority',
-      'creative': 'Creative',
-      'action': 'Action',
-      'portrait': 'Portrait',
-      'landscape': 'Landscape',
+      creative: 'Creative',
+      action: 'Action',
+      portrait: 'Portrait',
+      landscape: 'Landscape',
     },
     fallbackPrefix: 'Program',
   })
@@ -76,10 +71,10 @@ export function normalizeExposureModeValue(value: number | string | undefined): 
       2: 'Auto bracket',
     },
     textMap: {
-      'auto': 'Auto',
-      'manual': 'Manual',
+      auto: 'Auto',
+      manual: 'Manual',
       'auto bracket': 'Auto bracket',
-      'bracket': 'Auto bracket',
+      bracket: 'Auto bracket',
     },
     fallbackPrefix: 'Mode',
   })
@@ -98,19 +93,19 @@ export function normalizeMeteringModeValue(value: number | string | undefined): 
       255: 'Other',
     },
     textMap: {
-      'unknown': 'Unknown',
-      'average': 'Average',
+      unknown: 'Unknown',
+      average: 'Average',
       'center weighted': 'Center-weighted',
       'center weighted average': 'Center-weighted',
       'center-weighted': 'Center-weighted',
-      'spot': 'Spot',
+      spot: 'Spot',
       'multi spot': 'Multi-spot',
-      'multispot': 'Multi-spot',
+      multispot: 'Multi-spot',
       'multi-spot': 'Multi-spot',
-      'pattern': 'Pattern',
-      'matrix': 'Pattern',
-      'partial': 'Partial',
-      'other': 'Other',
+      pattern: 'Pattern',
+      matrix: 'Pattern',
+      partial: 'Partial',
+      other: 'Other',
     },
     fallbackPrefix: 'Mode',
   })
@@ -150,7 +145,7 @@ export function normalizeFlashValue(value: number | string | undefined): string 
   const normalized = normalizeEnumToken(raw)
   const mapping: Record<string, string> = {
     'did not fire': 'Did not fire',
-    'fired': 'Fired',
+    fired: 'Fired',
     'auto did not fire': 'Auto (did not fire)',
     'auto (did not fire)': 'Auto (did not fire)',
     'auto fired': 'Auto (fired)',

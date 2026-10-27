@@ -43,9 +43,11 @@ describe('app/utils/exif-format', () => {
     })
 
     it('resolves substring alias matches when no exact option matches', () => {
-      expect(normalizeToOption('auto, did not fire', ['Fired', 'Did not fire'], {
-        'auto, did not fire': 'Auto (did not fire)',
-      })).toBe('Auto (did not fire)')
+      expect(
+        normalizeToOption('auto, did not fire', ['Fired', 'Did not fire'], {
+          'auto, did not fire': 'Auto (did not fire)',
+        }),
+      ).toBe('Auto (did not fire)')
       expect(normalizeToOption('metering: matrix mode', stringOptions, { matrix: 'Pattern' })).toBe('Pattern')
     })
 

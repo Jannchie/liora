@@ -3,20 +3,24 @@ import { parseListQuery, toWaterfallSummary } from '../../../../server/domain/fi
 
 describe('domain/files/listing', () => {
   it('parses list query with fallbacks', () => {
-    expect(parseListQuery({
-      limit: '10',
-      offset: '3',
-      waterfall: 'true',
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: '10',
+        offset: '3',
+        waterfall: 'true',
+      }),
+    ).toEqual({
       limit: 10,
       offset: 3,
       waterfallOnly: true,
     })
-    expect(parseListQuery({
-      limit: '-1',
-      offset: [],
-      waterfall: '0',
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: '-1',
+        offset: [],
+        waterfall: '0',
+      }),
+    ).toEqual({
       limit: null,
       offset: null,
       waterfallOnly: false,
@@ -24,38 +28,46 @@ describe('domain/files/listing', () => {
   })
 
   it('parses query values from arrays and numbers', () => {
-    expect(parseListQuery({
-      limit: ['', '12'],
-      offset: [8, false],
-      waterfall: 1,
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: ['', '12'],
+        offset: [8, false],
+        waterfall: 1,
+      }),
+    ).toEqual({
       limit: 12,
       offset: 8,
       waterfallOnly: true,
     })
-    expect(parseListQuery({
-      limit: [' ', null],
-      offset: ['-1'],
-      waterfall: ['no'],
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: [' ', null],
+        offset: ['-1'],
+        waterfall: ['no'],
+      }),
+    ).toEqual({
       limit: null,
       offset: null,
       waterfallOnly: false,
     })
-    expect(parseListQuery({
-      limit: true,
-      offset: Number.POSITIVE_INFINITY,
-      waterfall: { enabled: true },
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: true,
+        offset: Number.POSITIVE_INFINITY,
+        waterfall: { enabled: true },
+      }),
+    ).toEqual({
       limit: null,
       offset: null,
       waterfallOnly: false,
     })
-    expect(parseListQuery({
-      limit: [Number.POSITIVE_INFINITY, 5],
-      offset: [Number.NaN, '2'],
-      waterfall: [false, '1'],
-    })).toEqual({
+    expect(
+      parseListQuery({
+        limit: [Number.POSITIVE_INFINITY, 5],
+        offset: [Number.NaN, '2'],
+        waterfall: [false, '1'],
+      }),
+    ).toEqual({
       limit: 5,
       offset: 2,
       waterfallOnly: false,

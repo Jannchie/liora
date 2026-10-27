@@ -21,7 +21,7 @@ describe('server/utils/llr-metadata', () => {
       'XMP-llr:Version': 1,
       'XMP-llr:Settings': JSON.stringify({ recipe: { exposure: 0.5 } }),
       // Another namespace's tags must not leak in.
-      'Settings': '{"recipe":{"exposure":9}}',
+      Settings: '{"recipe":{"exposure":9}}',
       'XMP-other:Version': 7,
     })
     expect(JSON.parse(recipe!)).toEqual({ recipe: { exposure: 0.5 }, version: '1' })
@@ -36,18 +36,43 @@ describe('server/utils/llr-metadata', () => {
 
   it('compacts strokes and guides to what a viewer can read', () => {
     const compact = compactLlrSettings({
-      masks: [{
-        id: 'm',
-        components: [
-          { type: 'brush', strokes: [{ points: [[0, 0], [1, 1]] }, { points: [[0.5, 0.5]] }] },
-          { type: 'radial', cx: 0.5 },
-        ],
-      }],
-      erase: [{ id: 'a', points: [[0, 0]] }, { id: 'b', points: [[0, 0]], mode: 'heal' }, { id: 'c', points: [] }],
+      masks: [
+        {
+          id: 'm',
+          components: [
+            {
+              type: 'brush',
+              strokes: [
+                {
+                  points: [
+                    [0, 0],
+                    [1, 1],
+                  ],
+                },
+                { points: [[0.5, 0.5]] },
+              ],
+            },
+            { type: 'radial', cx: 0.5 },
+          ],
+        },
+      ],
+      erase: [
+        { id: 'a', points: [[0, 0]] },
+        { id: 'b', points: [[0, 0]], mode: 'heal' },
+        { id: 'c', points: [] },
+      ],
       crop: { w: 1, h: 1, xf: { vertical: 10, guides: [[0, 0, 1, 1]] } },
       relight: { ambient: 0, lights: [{ id: 'l1', u: 0.2, v: 0.4, ev: 1, kind: 'sun' }] },
     })
-    expect(compact.masks).toEqual([{ id: 'm', components: [{ type: 'brush', strokes: 2 }, { type: 'radial', cx: 0.5 }] }])
+    expect(compact.masks).toEqual([
+      {
+        id: 'm',
+        components: [
+          { type: 'brush', strokes: 2 },
+          { type: 'radial', cx: 0.5 },
+        ],
+      },
+    ])
     expect(compact.erase).toEqual({ fill: 2, heal: 1 })
     expect(compact.crop).toEqual({ w: 1, h: 1, xf: { vertical: 10 } })
     expect(compact.relight).toEqual({ ambient: 0, lights: [{ ev: 1, kind: 'sun' }] })
@@ -75,7 +100,11 @@ describe('server/utils/llr-metadata', () => {
       grading: { shH: 209, shS: 40 },
       curve: {
         parametric: { lights: 12 },
-        rgb: [{ x: 0, y: 0 }, { x: 0.5, y: 0.6 }, { x: 1, y: 1 }],
+        rgb: [
+          { x: 0, y: 0 },
+          { x: 0.5, y: 0.6 },
+          { x: 1, y: 1 },
+        ],
       },
       denoise: { enabled: true, auto: true, amount: 50 },
       crop: { w: 0.8, h: 0.9, orientation: 90, flipH: false, flipV: false },

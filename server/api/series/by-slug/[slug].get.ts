@@ -19,8 +19,7 @@ function parseSlugFromPath(path: string): string | null {
   }
   try {
     return decodeURIComponent(match[1]).trim()
-  }
-  catch {
+  } catch {
     return match[1].trim()
   }
 }
@@ -43,9 +42,7 @@ function parseSlug(event: H3Event): string {
 
 function applyPagination<T>(query: T, limit: number | null, offset: number | null): T {
   if (typeof limit === 'number' && typeof offset === 'number') {
-    return (query as { limit: (value: number) => { offset: (offsetValue: number) => T } })
-      .limit(limit)
-      .offset(offset)
+    return (query as { limit: (value: number) => { offset: (offsetValue: number) => T } }).limit(limit).offset(offset)
   }
   if (typeof limit === 'number') {
     return (query as { limit: (value: number) => T }).limit(limit)
@@ -58,11 +55,7 @@ function applyPagination<T>(query: T, limit: number | null, offset: number | nul
 
 async function resolveSeriesCover(seriesId: number, coverFileId: number | null): Promise<FileSummary | null> {
   if (coverFileId) {
-    const coverRows = await db
-      .select(waterfallSummarySelection())
-      .from(files)
-      .where(eq(files.id, coverFileId))
-      .limit(1)
+    const coverRows = await db.select(waterfallSummarySelection()).from(files).where(eq(files.id, coverFileId)).limit(1)
     if (coverRows[0]) {
       return toWaterfallSummary(coverRows[0])
     }
@@ -89,32 +82,18 @@ export default defineEventHandler(async (event): Promise<SeriesDetail | null> =>
   const { limit, offset } = parseSeriesPagination(query as Record<string, unknown>)
 
   if (slug === UNCATEGORIZED_SERIES_SLUG) {
-    const [
-      countRow,
-      coverRows,
-      filesRows,
-    ] = await Promise.all([
+    const [countRow, coverRows, filesRows] = await Promise.all([
       db
         .select({ count: sql<number>`count(*)` })
         .from(files)
         .where(
-          notExists(
-            db
-              .select({ id: seriesFiles.fileId })
-              .from(seriesFiles)
-              .where(eq(seriesFiles.fileId, files.id)),
-          ),
+          notExists(db.select({ id: seriesFiles.fileId }).from(seriesFiles).where(eq(seriesFiles.fileId, files.id))),
         ),
       db
         .select(waterfallSummarySelection())
         .from(files)
         .where(
-          notExists(
-            db
-              .select({ id: seriesFiles.fileId })
-              .from(seriesFiles)
-              .where(eq(seriesFiles.fileId, files.id)),
-          ),
+          notExists(db.select({ id: seriesFiles.fileId }).from(seriesFiles).where(eq(seriesFiles.fileId, files.id))),
         )
         .orderBy(desc(files.captureTime), desc(files.createdAt), desc(files.id))
         .limit(1),
@@ -123,12 +102,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail | null> =>
           .select(waterfallSummarySelection())
           .from(files)
           .where(
-            notExists(
-              db
-                .select({ id: seriesFiles.fileId })
-                .from(seriesFiles)
-                .where(eq(seriesFiles.fileId, files.id)),
-            ),
+            notExists(db.select({ id: seriesFiles.fileId }).from(seriesFiles).where(eq(seriesFiles.fileId, files.id))),
           )
           .orderBy(desc(files.captureTime), desc(files.createdAt), desc(files.id)),
         limit,
@@ -164,11 +138,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail | null> =>
     throw createError({ statusCode: 404, statusMessage: 'Series not found.' })
   }
 
-  const [
-    countRow,
-    cover,
-    filesRows,
-  ] = await Promise.all([
+  const [countRow, cover, filesRows] = await Promise.all([
     db
       .select({ count: sql<number>`count(*)` })
       .from(seriesFiles)
@@ -180,12 +150,7 @@ export default defineEventHandler(async (event): Promise<SeriesDetail | null> =>
         .from(seriesFiles)
         .innerJoin(files, eq(files.id, seriesFiles.fileId))
         .where(eq(seriesFiles.seriesId, seriesRow.id))
-        .orderBy(
-          asc(seriesFiles.sortOrder),
-          desc(files.captureTime),
-          desc(files.createdAt),
-          desc(files.id),
-        ),
+        .orderBy(asc(seriesFiles.sortOrder), desc(files.captureTime), desc(files.createdAt), desc(files.id)),
       limit,
       offset,
     ),

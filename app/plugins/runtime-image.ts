@@ -10,8 +10,7 @@ function toHost(value: string): string | null {
   try {
     const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`
     return new URL(normalized).host
-  }
-  catch {
+  } catch {
     return null
   }
 }

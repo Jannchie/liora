@@ -6,7 +6,13 @@ type Validator<S> = (state: S) => Record<string, ValidationResult> | Promise<Rec
 
 interface FormProps<S> {
   state?: S
-  schema?: { parse?: (input: unknown) => unknown, safeParse?: (input: unknown) => { success: boolean, error?: { issues: Array<{ path: (string | number)[], message: string }> } } }
+  schema?: {
+    parse?: (input: unknown) => unknown
+    safeParse?: (input: unknown) => {
+      success: boolean
+      error?: { issues: Array<{ path: (string | number)[]; message: string }> }
+    }
+  }
   validate?: Validator<S>
 }
 

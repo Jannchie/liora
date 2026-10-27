@@ -11,7 +11,7 @@ function normalizeRouteParam(param: string | string[] | null | undefined): strin
 definePageMeta({
   layout: 'gallery',
   path: String.raw`/:section(photo)?/:id(\d+)?`,
-  validate: (route) => {
+  validate: route => {
     const section = normalizeRouteParam(route.params.section)
     const id = normalizeRouteParam(route.params.id)
     if (!section) {

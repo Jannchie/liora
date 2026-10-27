@@ -44,13 +44,15 @@ export function toPhotoFeatures(points: PhotoLocation[]): FeatureCollection<Poin
   }
 }
 
-export function toFocusFeatures(point: { latitude: number, longitude: number } | null): FeatureCollection<Point> {
+export function toFocusFeatures(point: { latitude: number; longitude: number } | null): FeatureCollection<Point> {
   if (!point) {
     return EMPTY
   }
   return {
     type: 'FeatureCollection',
-    features: [{ type: 'Feature', geometry: { type: 'Point', coordinates: [point.longitude, point.latitude] }, properties: {} }],
+    features: [
+      { type: 'Feature', geometry: { type: 'Point', coordinates: [point.longitude, point.latitude] }, properties: {} },
+    ],
   }
 }
 
@@ -68,7 +70,10 @@ export function toMapLocale(locale: string): Locale {
 /** [west, south, east, north] */
 export type MapBounds = [number, number, number, number]
 
-export function isInBounds(point: { latitude: number, longitude: number }, [west, south, east, north]: MapBounds): boolean {
+export function isInBounds(
+  point: { latitude: number; longitude: number },
+  [west, south, east, north]: MapBounds,
+): boolean {
   if (point.latitude < south || point.latitude > north) {
     return false
   }

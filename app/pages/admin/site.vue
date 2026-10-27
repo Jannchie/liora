@@ -103,10 +103,10 @@ const resolvedIconPreview = computed(() => {
   return '/favicon.ico'
 })
 
-const infoPlacementOptions = computed(() => ([
+const infoPlacementOptions = computed(() => [
   { label: t('admin.site.fields.infoPlacement.header'), value: 'header' as const },
   { label: t('admin.site.fields.infoPlacement.waterfall'), value: 'waterfall' as const },
-]))
+])
 
 async function handleSubmit(): Promise<void> {
   saving.value = true
@@ -123,12 +123,10 @@ async function handleSubmit(): Promise<void> {
       },
     })
     setSettings(updated)
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.saveFailedFallback
     toast.add({ title: toastMessages.value.saveFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     saving.value = false
   }
 }
@@ -159,12 +157,10 @@ async function handleIconFileChange(event: Event): Promise<void> {
     })
     applySettings(updated)
     setSettings(updated)
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.iconUploadFailedFallback
     toast.add({ title: toastMessages.value.iconUploadFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     uploadingIcon.value = false
   }
 }
@@ -176,12 +172,11 @@ function handleReset(): void {
 
 <template>
   <div>
-    <UPageHeader
-      :title="t('admin.site.title')"
-      :description="t('admin.site.seoDescription')"
-    >
+    <UPageHeader :title="t('admin.site.title')" :description="t('admin.site.seoDescription')">
       <template #actions>
-        <span class="mr-1.5 hidden self-center num-tabular text-xs text-dimmed sm:inline-flex sm:items-center sm:gap-1.5">
+        <span
+          class="mr-1.5 hidden self-center num-tabular text-xs text-dimmed sm:inline-flex sm:items-center sm:gap-1.5"
+        >
           <Icon name="jannchie:clock" class="h-3.5 w-3.5" />
           {{ lastUpdated }}
         </span>
@@ -210,19 +205,10 @@ function handleReset(): void {
 
     <!-- Page-level alerts live in their own band so the rule rhythm holds. -->
     <div v-if="settingsError" class="wire-band">
-      <UAlert
-        color="error"
-        variant="soft"
-        :title="toastMessages.loadFailed"
-        :description="settingsError?.message"
-      />
+      <UAlert color="error" variant="soft" :title="toastMessages.loadFailed" :description="settingsError?.message" />
     </div>
 
-    <USection
-      panel
-      :label="t('admin.site.sections.basic.title')"
-      icon="jannchie:settings"
-    >
+    <USection panel :label="t('admin.site.sections.basic.title')" icon="jannchie:settings">
       <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
         <UFormField :label="t('admin.site.fields.name.label')" :description="t('admin.site.fields.name.help')">
           <UInput
@@ -232,7 +218,10 @@ function handleReset(): void {
             :disabled="saving || loadingSettings"
           />
         </UFormField>
-        <UFormField :label="t('admin.site.fields.infoPlacement.label')" :description="t('admin.site.fields.infoPlacement.help')">
+        <UFormField
+          :label="t('admin.site.fields.infoPlacement.label')"
+          :description="t('admin.site.fields.infoPlacement.help')"
+        >
           <USelect
             v-model="form.infoPlacement"
             class="w-full"
@@ -240,7 +229,11 @@ function handleReset(): void {
             :disabled="saving || loadingSettings"
           />
         </UFormField>
-        <UFormField :label="t('admin.site.fields.description.label')" :description="t('admin.site.fields.description.help')" class="sm:col-span-2">
+        <UFormField
+          :label="t('admin.site.fields.description.label')"
+          :description="t('admin.site.fields.description.help')"
+          class="sm:col-span-2"
+        >
           <UTextarea
             v-model="form.description"
             class="w-full"
@@ -249,13 +242,17 @@ function handleReset(): void {
             :disabled="saving || loadingSettings"
           />
         </UFormField>
-        <UFormField :label="t('admin.site.fields.icon.label')" :description="t('admin.site.fields.icon.help')" class="sm:col-span-2">
+        <UFormField
+          :label="t('admin.site.fields.icon.label')"
+          :description="t('admin.site.fields.icon.help')"
+          class="sm:col-span-2"
+        >
           <div class="flex gap-2">
             <img
               :src="resolvedIconPreview"
               alt="Site icon preview"
               class="h-9 w-9 shrink-0 self-center rounded-md border border-border bg-white object-contain p-0.5"
-            >
+            />
             <UInput
               v-model="form.iconUrl"
               class="min-w-0 flex-1"
@@ -279,17 +276,13 @@ function handleReset(): void {
               accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
               class="hidden"
               @change="handleIconFileChange"
-            >
+            />
           </div>
         </UFormField>
       </div>
     </USection>
 
-    <USection
-      panel
-      :label="t('admin.site.fields.customCss.label')"
-      icon="jannchie:code"
-    >
+    <USection panel :label="t('admin.site.fields.customCss.label')" icon="jannchie:code">
       <UFormField :description="t('admin.site.fields.customCss.help')">
         <UTextarea
           v-model="form.customCss"
@@ -301,38 +294,88 @@ function handleReset(): void {
       </UFormField>
     </USection>
 
-    <USection
-      panel
-      :label="t('admin.site.sections.social.title')"
-      icon="jannchie:share"
-    >
+    <USection panel :label="t('admin.site.sections.social.title')" icon="jannchie:share">
       <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
         <UFormField label="Homepage">
-          <UInput v-model="form.social.homepage" class="w-full" :placeholder="t('admin.site.fields.homepage.placeholder')" :disabled="saving || loadingSettings" icon="jannchie:home" />
+          <UInput
+            v-model="form.social.homepage"
+            class="w-full"
+            :placeholder="t('admin.site.fields.homepage.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="jannchie:home"
+          />
         </UFormField>
         <UFormField label="GitHub">
-          <UInput v-model="form.social.github" class="w-full" :placeholder="t('admin.site.fields.github.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-github" />
+          <UInput
+            v-model="form.social.github"
+            class="w-full"
+            :placeholder="t('admin.site.fields.github.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-github"
+          />
         </UFormField>
         <UFormField label="X (Twitter)">
-          <UInput v-model="form.social.twitter" class="w-full" :placeholder="t('admin.site.fields.twitter.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-x" />
+          <UInput
+            v-model="form.social.twitter"
+            class="w-full"
+            :placeholder="t('admin.site.fields.twitter.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-x"
+          />
         </UFormField>
         <UFormField label="Instagram">
-          <UInput v-model="form.social.instagram" class="w-full" :placeholder="t('admin.site.fields.instagram.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-instagram" />
+          <UInput
+            v-model="form.social.instagram"
+            class="w-full"
+            :placeholder="t('admin.site.fields.instagram.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-instagram"
+          />
         </UFormField>
         <UFormField label="YouTube">
-          <UInput v-model="form.social.youtube" class="w-full" :placeholder="t('admin.site.fields.youtube.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-youtube" />
+          <UInput
+            v-model="form.social.youtube"
+            class="w-full"
+            :placeholder="t('admin.site.fields.youtube.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-youtube"
+          />
         </UFormField>
         <UFormField label="Bilibili">
-          <UInput v-model="form.social.bilibili" class="w-full" :placeholder="t('admin.site.fields.bilibili.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-bilibili" />
+          <UInput
+            v-model="form.social.bilibili"
+            class="w-full"
+            :placeholder="t('admin.site.fields.bilibili.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-bilibili"
+          />
         </UFormField>
         <UFormField label="TikTok">
-          <UInput v-model="form.social.tiktok" class="w-full" :placeholder="t('admin.site.fields.tiktok.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-tiktok" />
+          <UInput
+            v-model="form.social.tiktok"
+            class="w-full"
+            :placeholder="t('admin.site.fields.tiktok.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-tiktok"
+          />
         </UFormField>
         <UFormField label="LinkedIn">
-          <UInput v-model="form.social.linkedin" class="w-full" :placeholder="t('admin.site.fields.linkedin.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-linkedin" />
+          <UInput
+            v-model="form.social.linkedin"
+            class="w-full"
+            :placeholder="t('admin.site.fields.linkedin.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-linkedin"
+          />
         </UFormField>
         <UFormField label="Weibo">
-          <UInput v-model="form.social.weibo" class="w-full" :placeholder="t('admin.site.fields.weibo.placeholder')" :disabled="saving || loadingSettings" icon="tabler:brand-weibo" />
+          <UInput
+            v-model="form.social.weibo"
+            class="w-full"
+            :placeholder="t('admin.site.fields.weibo.placeholder')"
+            :disabled="saving || loadingSettings"
+            icon="tabler:brand-weibo"
+          />
         </UFormField>
       </div>
     </USection>

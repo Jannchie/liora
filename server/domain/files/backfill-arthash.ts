@@ -6,8 +6,7 @@ import { computePerceptualHash, computeSha256, generateArthash } from './image'
 function parseMetadata(raw: string): Record<string, unknown> {
   try {
     return JSON.parse(raw) as Record<string, unknown>
-  }
-  catch {
+  } catch {
     return {}
   }
 }
@@ -21,8 +20,7 @@ async function fetchImage(url: string): Promise<Buffer | null> {
     }
     const arrayBuffer = await response.arrayBuffer()
     return Buffer.from(arrayBuffer)
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn(`Skip ${url}: ${String(error)}`)
     return null
   }
@@ -70,7 +68,9 @@ export async function backfillArthash(): Promise<ArthashBackfillSummary> {
     }
 
     const arthash = hasArthash ? String(metadata.arthash) : await generateArthash(imageBuffer)
-    const perceptualHash = hasPerceptualHash ? String(metadata.perceptualHash) : await computePerceptualHash(imageBuffer)
+    const perceptualHash = hasPerceptualHash
+      ? String(metadata.perceptualHash)
+      : await computePerceptualHash(imageBuffer)
     const sha256 = hasSha256 ? String(metadata.sha256) : computeSha256(imageBuffer)
 
     let changed = false

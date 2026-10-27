@@ -1,17 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = withDefaults(defineProps<{
-  page?: number
-  itemsPerPage?: number
-  total?: number
-  siblingCount?: number
-}>(), {
-  page: 1,
-  itemsPerPage: 10,
-  total: 0,
-  siblingCount: 1,
-})
+const props = withDefaults(
+  defineProps<{
+    page?: number
+    itemsPerPage?: number
+    total?: number
+    siblingCount?: number
+  }>(),
+  {
+    page: 1,
+    itemsPerPage: 10,
+    total: 0,
+    siblingCount: 1,
+  },
+)
 
 const emit = defineEmits<{
   'update:page': [value: number]
@@ -47,7 +50,8 @@ function go(target: number): void {
   emit('update:page', target)
 }
 
-const btnBase = 'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 num-tabular text-[12.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
+const btnBase =
+  'inline-flex h-7 min-w-7 items-center justify-center rounded-md px-1.5 num-tabular text-[12.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]'
 </script>
 
 <template>
@@ -66,12 +70,7 @@ const btnBase = 'inline-flex h-7 min-w-7 items-center justify-center rounded-md 
       <button
         v-if="typeof item === 'number'"
         type="button"
-        :class="[
-          btnBase,
-          item === page
-            ? 'chip-raised'
-            : 'text-muted hover:text-fg-highlighted',
-        ]"
+        :class="[btnBase, item === page ? 'chip-raised' : 'text-muted hover:text-fg-highlighted']"
         :aria-current="item === page ? 'page' : undefined"
         @click="go(item)"
       >

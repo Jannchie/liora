@@ -24,13 +24,13 @@ export function parseLivePhotoShareMetadata(raw: string): LivePhotoShareMetadata
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>
     const livePhotoVideoUrl = typeof parsed.livePhotoVideoUrl === 'string' ? parsed.livePhotoVideoUrl : undefined
-    const stillTimeRaw = typeof parsed.livePhotoStillTime === 'number'
-      ? parsed.livePhotoStillTime
-      : Number(parsed.livePhotoStillTime)
+    const stillTimeRaw =
+      typeof parsed.livePhotoStillTime === 'number' ? parsed.livePhotoStillTime : Number(parsed.livePhotoStillTime)
     const livePhotoStillTime = Number.isFinite(stillTimeRaw) && stillTimeRaw >= 0 ? stillTimeRaw : 0
     const shareImageUrl = typeof parsed.livePhotoShareImageUrl === 'string' ? parsed.livePhotoShareImageUrl : undefined
     const shareVideoUrl = typeof parsed.livePhotoShareVideoUrl === 'string' ? parsed.livePhotoShareVideoUrl : undefined
-    const shareContentId = typeof parsed.livePhotoShareContentId === 'string' ? parsed.livePhotoShareContentId : undefined
+    const shareContentId =
+      typeof parsed.livePhotoShareContentId === 'string' ? parsed.livePhotoShareContentId : undefined
     return {
       parsed,
       livePhotoVideoUrl,
@@ -39,8 +39,7 @@ export function parseLivePhotoShareMetadata(raw: string): LivePhotoShareMetadata
       shareVideoUrl,
       shareContentId,
     }
-  }
-  catch {
+  } catch {
     return { parsed: {}, livePhotoStillTime: 0 }
   }
 }
@@ -74,7 +73,11 @@ function registerCleanup(event: H3Event, cleanup: () => Promise<void>): void {
   })
 }
 
-async function persistShareMetadata(fileId: number, parsed: Record<string, unknown>, assets: LivePhotoShareAssets): Promise<void> {
+async function persistShareMetadata(
+  fileId: number,
+  parsed: Record<string, unknown>,
+  assets: LivePhotoShareAssets,
+): Promise<void> {
   const nextMetadata = {
     ...parsed,
     livePhotoShareImageUrl: assets.imageUrl,

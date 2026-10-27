@@ -3,17 +3,20 @@ import { computed } from 'vue'
 
 type Color = 'primary' | 'error' | 'warning' | 'success' | 'info' | 'neutral'
 
-const props = withDefaults(defineProps<{
-  color?: Color
-  variant?: 'solid' | 'soft' | 'subtle' | 'outline'
-  title?: string
-  description?: string
-  icon?: string
-  closable?: boolean
-}>(), {
-  color: 'primary',
-  variant: 'soft',
-})
+const props = withDefaults(
+  defineProps<{
+    color?: Color
+    variant?: 'solid' | 'soft' | 'subtle' | 'outline'
+    title?: string
+    description?: string
+    icon?: string
+    closable?: boolean
+  }>(),
+  {
+    color: 'primary',
+    variant: 'soft',
+  },
+)
 
 const emit = defineEmits<{
   close: []
@@ -62,16 +65,14 @@ const TINT: Record<Color, string> = {
   info: 'text-info',
 }
 
-const variantClass = computed(() => props.variant === 'solid' ? SOLID[props.color] : `border text-foreground ${FRAME[props.color]}`)
-const tintClass = computed(() => props.variant === 'solid' ? '' : TINT[props.color])
+const variantClass = computed(() =>
+  props.variant === 'solid' ? SOLID[props.color] : `border text-foreground ${FRAME[props.color]}`,
+)
+const tintClass = computed(() => (props.variant === 'solid' ? '' : TINT[props.color]))
 </script>
 
 <template>
-  <div
-    class="flex w-full items-start gap-3 rounded-lg px-3.5 py-3"
-    :class="variantClass"
-    role="alert"
-  >
+  <div class="flex w-full items-start gap-3 rounded-lg px-3.5 py-3" :class="variantClass" role="alert">
     <slot name="icon">
       <Icon :name="iconName" class="mt-px h-[18px] w-[18px] shrink-0" :class="tintClass" />
     </slot>

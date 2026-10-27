@@ -53,11 +53,7 @@ const primaryExposureLabels = computed(() => ({
 
 const mainExposureEntries = computed<MetadataEntry[]>(() => {
   const labels = primaryExposureLabels.value
-  const order = [
-    labels.shutterSpeed,
-    labels.aperture,
-    labels.iso,
-  ]
+  const order = [labels.shutterSpeed, labels.aperture, labels.iso]
   return order
     .map(label => exposureEntries.value.find(entry => entry.label === label))
     .filter(entry => isMetadataEntry(entry))
@@ -65,10 +61,7 @@ const mainExposureEntries = computed<MetadataEntry[]>(() => {
 
 const halfWidthExposureEntries = computed<MetadataEntry[]>(() => {
   const labels = primaryExposureLabels.value
-  const order = [
-    labels.focalLength,
-    labels.exposureBias,
-  ]
+  const order = [labels.focalLength, labels.exposureBias]
   return order
     .map(label => exposureEntries.value.find(entry => entry.label === label))
     .filter(entry => isMetadataEntry(entry))
@@ -144,8 +137,9 @@ const llrBadges = computed<string[]>(() => {
   if (!recipe) {
     return []
   }
-  return [recipe.version ? `v${recipe.version}` : null, ...recipe.toggles]
-    .filter((badge): badge is string => badge !== null)
+  return [recipe.version ? `v${recipe.version}` : null, ...recipe.toggles].filter(
+    (badge): badge is string => badge !== null,
+  )
 })
 
 const totalEntryCount = computed<number>(() => {
@@ -154,7 +148,15 @@ const totalEntryCount = computed<number>(() => {
   const lightroomCount = lightroomRecipe.value ? 1 : 0
   const llrCount = llrRecipe.value ? 1 : 0
   const cameraLookCount = showCameraLookCard.value ? 1 : 0
-  return metadataEntries.value.length + exposureEntries.value.length + focusCount + cropCount + lightroomCount + llrCount + cameraLookCount
+  return (
+    metadataEntries.value.length +
+    exposureEntries.value.length +
+    focusCount +
+    cropCount +
+    lightroomCount +
+    llrCount +
+    cameraLookCount
+  )
 })
 </script>
 
@@ -170,7 +172,9 @@ const totalEntryCount = computed<number>(() => {
   <div class="text-[13px] text-default">
     <template v-if="hasMetadata">
       <section
-        v-if="mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0 || secondaryExposureEntries.length > 0"
+        v-if="
+          mainExposureEntries.length > 0 || halfWidthExposureEntries.length > 0 || secondaryExposureEntries.length > 0
+        "
         class="border-b border-border"
       >
         <p class="label-caption flex items-center gap-1.5 px-5 pb-3 pt-4">
@@ -197,10 +201,7 @@ const totalEntryCount = computed<number>(() => {
             </div>
           </div>
         </template>
-        <div
-          v-if="secondaryExposureEntries.length > 0"
-          class="flex flex-wrap gap-1 border-t border-border px-4 py-3"
-        >
+        <div v-if="secondaryExposureEntries.length > 0" class="flex flex-wrap gap-1 border-t border-border px-4 py-3">
           <span
             v-for="item in secondaryExposureEntries"
             :key="item.label"
@@ -227,7 +228,9 @@ const totalEntryCount = computed<number>(() => {
             v-if="focusEntry"
             type="button"
             class="meta-row w-full text-left outline-none transition-colors hover:bg-focus-point-soft focus-visible:bg-focus-point-soft"
-            :class="focusIndicatorActive ? 'bg-focus-point-soft shadow-[inset_2px_0_0_var(--color-focus-point)]' : undefined"
+            :class="
+              focusIndicatorActive ? 'bg-focus-point-soft shadow-[inset_2px_0_0_var(--color-focus-point)]' : undefined
+            "
             @mouseenter="handleFocusHover(true)"
             @mouseleave="handleFocusHover(false)"
             @focus="handleFocusHover(true)"
@@ -260,11 +263,7 @@ const totalEntryCount = computed<number>(() => {
               {{ cameraLook }}
             </span>
           </div>
-          <div
-            v-for="item in metadataEntries"
-            :key="item.key ?? item.label"
-            class="meta-row"
-          >
+          <div v-for="item in metadataEntries" :key="item.key ?? item.label" class="meta-row">
             <span class="meta-key">
               <Icon :name="item.icon" class="h-3.5 w-3.5" />
               <span>{{ item.label }}</span>
@@ -278,7 +277,9 @@ const totalEntryCount = computed<number>(() => {
             <span
               v-else
               class="meta-value whitespace-pre-line"
-              :class="item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'num-tabular text-xs' : undefined"
+              :class="
+                item.icon === 'jannchie:clock' || item.icon === 'jannchie:crop' ? 'num-tabular text-xs' : undefined
+              "
             >
               {{ item.value }}
             </span>

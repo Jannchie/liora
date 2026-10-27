@@ -29,8 +29,7 @@ function resolveExtension(url: string, fallback: string): string {
   try {
     const resolved = extname(new URL(url).pathname)
     return resolved.length > 0 ? resolved : fallback
-  }
-  catch {
+  } catch {
     return fallback
   }
 }
@@ -82,17 +81,14 @@ export async function createLivePhotoImage(
   const outputPath = join(workspace.dir, `${baseName}.jpg`)
   try {
     await downloadToFile(imageUrl, sourcePath)
-    await sharp(sourcePath)
-      .jpeg({ quality: jpegQuality })
-      .toFile(outputPath)
+    await sharp(sourcePath).jpeg({ quality: jpegQuality }).toFile(outputPath)
     await writeLivePhotoImageMetadata(outputPath, contentId)
     return {
       filePath: outputPath,
       fileName: `${baseName}.jpg`,
       cleanup: workspace.cleanup,
     }
-  }
-  catch (error) {
+  } catch (error) {
     await workspace.cleanup()
     throw error
   }
@@ -110,17 +106,14 @@ export async function createLivePhotoVideo(
   try {
     await downloadToFile(videoUrl, sourcePath)
     const sourceExt = extname(sourcePath).toLowerCase()
-    await (sourceExt === '.mov'
-      ? copyFile(sourcePath, outputPath)
-      : rewrapVideoToMov(sourcePath, outputPath))
+    await (sourceExt === '.mov' ? copyFile(sourcePath, outputPath) : rewrapVideoToMov(sourcePath, outputPath))
     await writeLivePhotoVideoMetadata(outputPath, contentId, stillTime)
     return {
       filePath: outputPath,
       fileName: `${baseName}.mov`,
       cleanup: workspace.cleanup,
     }
-  }
-  catch (error) {
+  } catch (error) {
     await workspace.cleanup()
     throw error
   }
@@ -129,7 +122,7 @@ export async function createLivePhotoVideo(
 async function writeLivePhotoImageMetadata(filePath: string, contentId: string): Promise<void> {
   const tags = {
     'XMP:ContentIdentifier': contentId,
-    'ContentIdentifier': contentId,
+    ContentIdentifier: contentId,
   } as WriteTags
   await exiftool.write(filePath, tags, ['-overwrite_original'])
 }
@@ -139,7 +132,7 @@ async function writeLivePhotoVideoMetadata(filePath: string, contentId: string, 
   const tags = {
     'QuickTime:ContentIdentifier': contentId,
     'QuickTime:StillImageTime': safeStillTime,
-    'ContentIdentifier': contentId,
+    ContentIdentifier: contentId,
   } as WriteTags
   await exiftool.write(filePath, tags, ['-overwrite_original'])
 }
@@ -149,8 +142,7 @@ async function resolveFfmpegPath(): Promise<string> {
     try {
       await access(ffmpegPath)
       return ffmpegPath
-    }
-    catch {
+    } catch {
       // Fall back to PATH resolution below.
     }
   }
@@ -177,11 +169,10 @@ async function runCommand(command: string, args: string[]): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, { stdio: 'ignore' })
     child.on('error', reject)
-    child.on('close', (code) => {
+    child.on('close', code => {
       if (code === 0) {
         resolve()
-      }
-      else {
+      } else {
         reject(new Error(`Command failed: ${command} ${args.join(' ')}`))
       }
     })

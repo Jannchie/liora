@@ -39,8 +39,9 @@ export default defineNitroPlugin(() => {
   }
 
   if (missingRequired.length > 0) {
-    const message = `Missing required configuration: ${missingRequired.join(', ')}. `
-      + 'Set these environment variables before starting the server.'
+    const message =
+      `Missing required configuration: ${missingRequired.join(', ')}. ` +
+      'Set these environment variables before starting the server.'
     if (isProduction) {
       logger.error('configuration validation failed', { missing: missingRequired })
       throw new Error(message)
@@ -49,8 +50,10 @@ export default defineNitroPlugin(() => {
   }
 
   if (isBlank(config.admin?.sessionSecret)) {
-    logger.warn('ADMIN_SESSION_SECRET is not set; falling back to ADMIN_PASSWORD for session signing. '
-      + 'Set a dedicated secret so changing the password does not invalidate the secret derivation.')
+    logger.warn(
+      'ADMIN_SESSION_SECRET is not set; falling back to ADMIN_PASSWORD for session signing. ' +
+        'Set a dedicated secret so changing the password does not invalidate the secret derivation.',
+    )
   }
 
   const storageEnvNames: Record<keyof StorageConfig, string> = {
@@ -59,8 +62,8 @@ export default defineNitroPlugin(() => {
     accessKeyId: 'S3_ACCESS_KEY_ID',
     secretAccessKey: 'S3_SECRET_ACCESS_KEY',
   }
-  const storageMissing = (Object.keys(storageEnvNames) as (keyof StorageConfig)[]).filter(
-    key => isBlank(config.storage?.[key]),
+  const storageMissing = (Object.keys(storageEnvNames) as (keyof StorageConfig)[]).filter(key =>
+    isBlank(config.storage?.[key]),
   )
   if (storageMissing.length > 0) {
     logger.warn('S3-compatible storage is not fully configured; uploads will be unavailable', {

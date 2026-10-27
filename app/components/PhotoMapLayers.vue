@@ -42,53 +42,59 @@ function syncFocus(): void {
   source?.setData(toFocusFeatures(props.focus))
 }
 
-watch(controller, (ctrl) => {
-  if (!ctrl) {
-    return
-  }
-  const map = ctrl.map
-  // First load and every restyle (theme / language switch).
-  ctrl.onStyleLoad(() => {
-    syncPhotos()
-    syncFocus()
-  })
-  map.on('click', 'point', (event) => {
-    const feature = event.features?.[0]
-    if (feature) {
-      pick(featureId(feature))
+watch(
+  controller,
+  ctrl => {
+    if (!ctrl) {
+      return
     }
-  })
-  map.on('mouseenter', 'point', () => {
-    map.getCanvas().style.cursor = 'pointer'
-  })
-  map.on('mouseleave', 'point', () => {
-    map.getCanvas().style.cursor = ''
-  })
-  const reportBounds = (): void => {
-    const b = map.getBounds()
-    emit('bounds', [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()])
-  }
-  map.on('moveend', reportBounds)
-  if (map.loaded()) {
-    reportBounds()
-  }
-  else {
-    map.once('load', reportBounds)
-  }
-}, { immediate: true })
+    const map = ctrl.map
+    // First load and every restyle (theme / language switch).
+    ctrl.onStyleLoad(() => {
+      syncPhotos()
+      syncFocus()
+    })
+    map.on('click', 'point', event => {
+      const feature = event.features?.[0]
+      if (feature) {
+        pick(featureId(feature))
+      }
+    })
+    map.on('mouseenter', 'point', () => {
+      map.getCanvas().style.cursor = 'pointer'
+    })
+    map.on('mouseleave', 'point', () => {
+      map.getCanvas().style.cursor = ''
+    })
+    const reportBounds = (): void => {
+      const b = map.getBounds()
+      emit('bounds', [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()])
+    }
+    map.on('moveend', reportBounds)
+    if (map.loaded()) {
+      reportBounds()
+    } else {
+      map.once('load', reportBounds)
+    }
+  },
+  { immediate: true },
+)
 
 watch(() => props.points, syncPhotos)
 
-watch(() => props.focus, (point) => {
-  syncFocus()
-  if (point && point.id !== pickedOnMap) {
-    controller.value?.reveal([point.longitude, point.latitude])
-  }
-  pickedOnMap = null
-})
+watch(
+  () => props.focus,
+  point => {
+    syncFocus()
+    if (point && point.id !== pickedOnMap) {
+      controller.value?.reveal([point.longitude, point.latitude])
+    }
+    pickedOnMap = null
+  },
+)
 
 function pinImages(features: MapGeoJSONFeature[]): (string | null)[] {
-  return features.map((feature) => {
+  return features.map(feature => {
     const point = pointsById.value.get(featureId(feature))
     return point ? thumb(point.imageUrl, 160) : null
   })
@@ -120,9 +126,12 @@ function clusterPoints(features: { properties?: Record<string, unknown> | null }
             :key="point.id"
             type="button"
             :title="point.title || point.place"
-            @click="close(); emit('pick', point.id)"
+            @click="
+              close()
+              emit('pick', point.id)
+            "
           >
-            <img :src="thumb(point.imageUrl, 200)" alt="" loading="lazy">
+            <img :src="thumb(point.imageUrl, 200)" alt="" loading="lazy" />
           </button>
         </div>
       </div>
@@ -135,7 +144,7 @@ function clusterPoints(features: { properties?: Record<string, unknown> | null }
     :focus="focus?.id ?? null"
     :min-zoom="15"
     :max="24"
-    @pick="(feature) => pick(featureId(feature))"
+    @pick="feature => pick(featureId(feature))"
   />
 </template>
 

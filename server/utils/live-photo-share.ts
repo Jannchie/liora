@@ -60,8 +60,7 @@ export async function createLivePhotoShareAssets(options: {
         await Promise.all([imageAsset.cleanup(), videoAsset.cleanup()])
       },
     }
-  }
-  catch (error) {
+  } catch (error) {
     await Promise.all([imageAsset.cleanup(), videoAsset.cleanup()])
     throw error
   }

@@ -50,10 +50,12 @@ const brandLogoUrl = computed(() => {
   return `data:image/svg+xml;base64,${btoa(svg)}`
 })
 
-const exposureSegments = computed(() => props.exposure
-  .split(' · ')
-  .map(segment => segment.trim().replace(/^f\//, 'ƒ/'))
-  .filter(segment => segment.length > 0))
+const exposureSegments = computed(() =>
+  props.exposure
+    .split(' · ')
+    .map(segment => segment.trim().replace(/^f\//, 'ƒ/'))
+    .filter(segment => segment.length > 0),
+)
 
 const hasGearRow = computed(() => Boolean(props.camera || brandLogoUrl.value || props.brandLabel))
 
@@ -173,19 +175,11 @@ const dividerStyle: Record<string, string> = {
 
 <template>
   <div :style="containerStyle">
-    <img
-      v-if="props.imageUrl"
-      :src="props.imageUrl"
-      :style="photoStyle"
-    >
+    <img v-if="props.imageUrl" :src="props.imageUrl" :style="photoStyle" />
     <div :style="scrimStyle" />
     <div :style="contentStyle">
       <div v-if="hasGearRow" :style="gearRowStyle">
-        <img
-          v-if="brandLogoUrl"
-          :src="brandLogoUrl"
-          :style="logoStyle"
-        >
+        <img v-if="brandLogoUrl" :src="brandLogoUrl" :style="logoStyle" />
         <p v-else-if="props.brandLabel" :style="cameraStyle">
           {{ props.brandLabel }}
         </p>

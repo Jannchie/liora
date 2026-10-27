@@ -59,8 +59,7 @@ export async function usePhotoShareSeo(): Promise<void> {
       }
       try {
         return await $fetch<FileResponse>(`/api/files/${routePhotoId.value}`)
-      }
-      catch {
+      } catch {
         // Missing photo falls back to the page's own card.
         return null
       }
@@ -74,10 +73,12 @@ export async function usePhotoShareSeo(): Promise<void> {
     if (!photo) {
       return
     }
-    return photo.title.trim()
-      || photo.fanworkTitle.trim()
-      || photo.originalName.trim().replace(/\.[a-z0-9]+$/i, '')
-      || t('common.labels.untitled')
+    return (
+      photo.title.trim() ||
+      photo.fanworkTitle.trim() ||
+      photo.originalName.trim().replace(/\.[a-z0-9]+$/i, '') ||
+      t('common.labels.untitled')
+    )
   })
 
   const photoDescription = computed<string | undefined>(() => {
@@ -91,22 +92,14 @@ export async function usePhotoShareSeo(): Promise<void> {
 
   /* The focal length belongs with the lens, not with the exposure triad —
      it names the framing rather than the light. */
-  const photoLens = computed(() => joinParts(
-    [sharedPhoto.value?.metadata.lensModel, sharedPhoto.value?.metadata.focalLength],
-    ' · ',
-  ))
+  const photoLens = computed(() =>
+    joinParts([sharedPhoto.value?.metadata.lensModel, sharedPhoto.value?.metadata.focalLength], ' · '),
+  )
 
   const photoExposure = computed(() => {
     const metadata = sharedPhoto.value?.metadata
     const iso = metadata?.iso.trim()
-    return joinParts(
-      [
-        metadata?.aperture,
-        metadata?.shutterSpeed,
-        iso ? `ISO ${iso}` : undefined,
-      ],
-      ' · ',
-    )
+    return joinParts([metadata?.aperture, metadata?.shutterSpeed, iso ? `ISO ${iso}` : undefined], ' · ')
   })
 
   /* Satori cannot decode webp/avif, and originals can be either — route the
@@ -134,18 +127,22 @@ export async function usePhotoShareSeo(): Promise<void> {
     if (!photo || !photoOgImageUrl.value) {
       return
     }
-    defineOgImage('LioraPhotoCard', {
-      imageUrl: photoOgImageUrl.value,
-      // Every line is optional — an illustration with no EXIF simply drops
-      // the whole caption block rather than showing an empty rule.
-      brand: photoBrand.value.brandIcon ?? '',
-      brandLabel: photoBrand.value.brandLabel ?? '',
-      camera: truncate(photoBrand.value.model, 46),
-      lens: truncate(photoLens.value, 60),
-      exposure: truncate(photoExposure.value, 60),
-    }, {
-      alt: photoTitle.value,
-    })
+    defineOgImage(
+      'LioraPhotoCard',
+      {
+        imageUrl: photoOgImageUrl.value,
+        // Every line is optional — an illustration with no EXIF simply drops
+        // the whole caption block rather than showing an empty rule.
+        brand: photoBrand.value.brandIcon ?? '',
+        brandLabel: photoBrand.value.brandLabel ?? '',
+        camera: truncate(photoBrand.value.model, 46),
+        lens: truncate(photoLens.value, 60),
+        exposure: truncate(photoExposure.value, 60),
+      },
+      {
+        alt: photoTitle.value,
+      },
+    )
   }
 
   // Keeps the head in sync across client-side photo navigation. Registered

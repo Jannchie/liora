@@ -9,24 +9,27 @@ type Item = Primitive | OptionObject
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(defineProps<{
-  modelValue?: Primitive
-  items?: Item[]
-  valueAttribute?: string
-  optionAttribute?: string
-  placeholder?: string
-  disabled?: boolean
-  variant?: 'soft' | 'outline' | 'ghost'
-  size?: 'sm' | 'md' | 'lg'
-  invalid?: boolean
-  id?: string
-}>(), {
-  variant: 'soft',
-  size: 'md',
-  valueAttribute: 'value',
-  optionAttribute: 'label',
-  items: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: Primitive
+    items?: Item[]
+    valueAttribute?: string
+    optionAttribute?: string
+    placeholder?: string
+    disabled?: boolean
+    variant?: 'soft' | 'outline' | 'ghost'
+    size?: 'sm' | 'md' | 'lg'
+    invalid?: boolean
+    id?: string
+  }>(),
+  {
+    variant: 'soft',
+    size: 'md',
+    valueAttribute: 'value',
+    optionAttribute: 'label',
+    items: () => [],
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: Primitive]
@@ -48,7 +51,7 @@ function readField(item: Item, field: string): unknown {
 }
 
 const normalized = computed<NormalizedOption[]>(() => {
-  return (props.items ?? []).map((item) => {
+  return (props.items ?? []).map(item => {
     if (item && typeof item === 'object') {
       const rawValue = readField(item, props.valueAttribute)
       const rawLabel = readField(item, props.optionAttribute) ?? rawValue
@@ -247,7 +250,7 @@ function cancelScheduledPositionUpdate(): void {
   }
 }
 
-watch(isOpen, (next) => {
+watch(isOpen, next => {
   if (!import.meta.client) {
     return
   }
@@ -255,8 +258,7 @@ watch(isOpen, (next) => {
     document.addEventListener('pointerdown', onDocumentPointerDown, true)
     window.addEventListener('scroll', schedulePositionUpdate, true)
     window.addEventListener('resize', schedulePositionUpdate)
-  }
-  else {
+  } else {
     document.removeEventListener('pointerdown', onDocumentPointerDown, true)
     window.removeEventListener('scroll', schedulePositionUpdate, true)
     window.removeEventListener('resize', schedulePositionUpdate)
@@ -333,9 +335,7 @@ onBeforeUnmount(() => {
             class="h-3.5 w-3.5 shrink-0 text-highlighted"
           />
         </button>
-        <p v-if="normalized.length === 0" class="px-2 py-2 text-xs text-dimmed">
-          —
-        </p>
+        <p v-if="normalized.length === 0" class="px-2 py-2 text-xs text-dimmed">—</p>
       </div>
     </Teleport>
   </div>

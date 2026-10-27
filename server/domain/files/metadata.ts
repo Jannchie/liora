@@ -120,7 +120,9 @@ export const METADATA_TEXT_FIELDS = [
 
 export type MetadataTextField = (typeof METADATA_TEXT_FIELDS)[number]
 
-export function readMetadataTextValues(source: Partial<Record<MetadataTextField, string | undefined>>): Record<MetadataTextField, string> {
+export function readMetadataTextValues(
+  source: Partial<Record<MetadataTextField, string | undefined>>,
+): Record<MetadataTextField, string> {
   const values = {} as Record<MetadataTextField, string>
   for (const field of METADATA_TEXT_FIELDS) {
     values[field] = normalizeText(source[field])
@@ -194,7 +196,10 @@ function escapeRegExp(value: string): string {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\\$&`)
 }
 
-export function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraModel: string, lensModel: string } {
+export function stripLensFromCamera(
+  cameraModel: string,
+  lensModel: string,
+): { cameraModel: string; lensModel: string } {
   const camera = cameraModel.trim()
   const lens = lensModel.trim()
   const separators = ['·', '|', '/']
@@ -213,7 +218,11 @@ export function stripLensFromCamera(cameraModel: string, lensModel: string): { c
     const index = camera.lastIndexOf(separator)
     if (index > 0 && index < camera.length - 2) {
       const base = camera.slice(0, index).trim()
-      const extracted = camera.slice(index + 1).trim().replace(/^[·|/,-]+/, '').trim()
+      const extracted = camera
+        .slice(index + 1)
+        .trim()
+        .replace(/^[·|/,-]+/, '')
+        .trim()
       if (base.length > 0 && extracted.length > 0) {
         return { cameraModel: base, lensModel: extracted }
       }
@@ -275,7 +284,11 @@ export function validateLengths(payload: {
   assertLength(payload.metadata.software, LENGTH_LIMITS.software.max, LENGTH_LIMITS.software.label)
   assertLength(payload.metadata.captureTime, LENGTH_LIMITS.captureTime.max, LENGTH_LIMITS.captureTime.label)
   assertLength(payload.metadata.focusDistance ?? '', LENGTH_LIMITS.focusDistance.max, LENGTH_LIMITS.focusDistance.label)
-  assertLength(payload.metadata.focusFrameSize ?? '', LENGTH_LIMITS.focusFrameSize.max, LENGTH_LIMITS.focusFrameSize.label)
+  assertLength(
+    payload.metadata.focusFrameSize ?? '',
+    LENGTH_LIMITS.focusFrameSize.max,
+    LENGTH_LIMITS.focusFrameSize.label,
+  )
   assertLength(payload.metadata.focusLocation ?? '', LENGTH_LIMITS.focusLocation.max, LENGTH_LIMITS.focusLocation.label)
   assertLength(payload.metadata.focusMode ?? '', LENGTH_LIMITS.focusMode.max, LENGTH_LIMITS.focusMode.label)
   assertLength(payload.metadata.focusPosition ?? '', LENGTH_LIMITS.focusPosition.max, LENGTH_LIMITS.focusPosition.label)
@@ -285,13 +298,41 @@ export function validateLengths(payload: {
   assertLength(payload.metadata.cropRight ?? '', LENGTH_LIMITS.cropRight.max, LENGTH_LIMITS.cropRight.label)
   assertLength(payload.metadata.cropBottom ?? '', LENGTH_LIMITS.cropBottom.max, LENGTH_LIMITS.cropBottom.label)
   assertLength(payload.metadata.cropAngle ?? '', LENGTH_LIMITS.cropAngle.max, LENGTH_LIMITS.cropAngle.label)
-  assertLength(payload.metadata.perspectiveHorizontal ?? '', LENGTH_LIMITS.perspectiveHorizontal.max, LENGTH_LIMITS.perspectiveHorizontal.label)
-  assertLength(payload.metadata.perspectiveVertical ?? '', LENGTH_LIMITS.perspectiveVertical.max, LENGTH_LIMITS.perspectiveVertical.label)
-  assertLength(payload.metadata.perspectiveRotate ?? '', LENGTH_LIMITS.perspectiveRotate.max, LENGTH_LIMITS.perspectiveRotate.label)
-  assertLength(payload.metadata.perspectiveScale ?? '', LENGTH_LIMITS.perspectiveScale.max, LENGTH_LIMITS.perspectiveScale.label)
-  assertLength(payload.metadata.perspectiveUpright ?? '', LENGTH_LIMITS.perspectiveUpright.max, LENGTH_LIMITS.perspectiveUpright.label)
-  assertLength(payload.metadata.uprightTransform ?? '', LENGTH_LIMITS.uprightTransform.max, LENGTH_LIMITS.uprightTransform.label)
-  assertLength(payload.metadata.lightroomRecipe ?? '', LENGTH_LIMITS.lightroomRecipe.max, LENGTH_LIMITS.lightroomRecipe.label)
+  assertLength(
+    payload.metadata.perspectiveHorizontal ?? '',
+    LENGTH_LIMITS.perspectiveHorizontal.max,
+    LENGTH_LIMITS.perspectiveHorizontal.label,
+  )
+  assertLength(
+    payload.metadata.perspectiveVertical ?? '',
+    LENGTH_LIMITS.perspectiveVertical.max,
+    LENGTH_LIMITS.perspectiveVertical.label,
+  )
+  assertLength(
+    payload.metadata.perspectiveRotate ?? '',
+    LENGTH_LIMITS.perspectiveRotate.max,
+    LENGTH_LIMITS.perspectiveRotate.label,
+  )
+  assertLength(
+    payload.metadata.perspectiveScale ?? '',
+    LENGTH_LIMITS.perspectiveScale.max,
+    LENGTH_LIMITS.perspectiveScale.label,
+  )
+  assertLength(
+    payload.metadata.perspectiveUpright ?? '',
+    LENGTH_LIMITS.perspectiveUpright.max,
+    LENGTH_LIMITS.perspectiveUpright.label,
+  )
+  assertLength(
+    payload.metadata.uprightTransform ?? '',
+    LENGTH_LIMITS.uprightTransform.max,
+    LENGTH_LIMITS.uprightTransform.label,
+  )
+  assertLength(
+    payload.metadata.lightroomRecipe ?? '',
+    LENGTH_LIMITS.lightroomRecipe.max,
+    LENGTH_LIMITS.lightroomRecipe.label,
+  )
   assertLength(payload.metadata.llrRecipe ?? '', LENGTH_LIMITS.llrRecipe.max, LENGTH_LIMITS.llrRecipe.label)
   assertLength(payload.metadata.notes, LENGTH_LIMITS.notes.max, LENGTH_LIMITS.notes.label)
   assertLength(payload.originalName, LENGTH_LIMITS.originalName.max, LENGTH_LIMITS.originalName.label)

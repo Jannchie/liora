@@ -23,8 +23,7 @@ describe('server/domain/files/field-parsers', () => {
     expect(() => requireTrimmedString(42, 'title')).toThrowError('title must be a string.')
     try {
       requireTrimmedString(42, 'title')
-    }
-    catch (error) {
+    } catch (error) {
       expect((error as { statusCode?: number }).statusCode).toBe(400)
     }
   })

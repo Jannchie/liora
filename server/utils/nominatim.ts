@@ -38,7 +38,7 @@ let pendingChain: Promise<unknown> = Promise.resolve()
 
 // Repeated lookups for the same place otherwise re-hit nominatim and queue
 // behind the 1 req/s throttle; place data is stable enough for a long TTL.
-const resultCache = new Map<string, { expiresAt: number, results: GeocodeResult[] }>()
+const resultCache = new Map<string, { expiresAt: number; results: GeocodeResult[] }>()
 
 function readCache(key: string): GeocodeResult[] | null {
   const entry = resultCache.get(key)
@@ -73,14 +73,16 @@ function enqueueRequest<T>(task: () => Promise<T>): Promise<T> {
     }
     try {
       return await task()
-    }
-    finally {
+    } finally {
       lastRequestAt = Date.now()
     }
   }
 
   const next = pendingChain.then(run, run)
-  pendingChain = next.then(() => null, () => null)
+  pendingChain = next.then(
+    () => null,
+    () => null,
+  )
   return next
 }
 
@@ -112,14 +114,16 @@ export async function geocodePlace(event: H3Event, query: string, limit = 5): Pr
     addressdetails: '0',
   })
 
-  const results = await enqueueRequest(() => $fetch<NominatimResult[]>(`${NOMINATIM_BASE_URL}?${searchParams.toString()}`, {
-    headers: {
-      'User-Agent': USER_AGENT,
-    },
-  }))
+  const results = await enqueueRequest(() =>
+    $fetch<NominatimResult[]>(`${NOMINATIM_BASE_URL}?${searchParams.toString()}`, {
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
+    }),
+  )
 
   const mapped = results
-    .map((entry) => {
+    .map(entry => {
       const latitude = parseCoordinate(entry.lat)
       const longitude = parseCoordinate(entry.lon)
       if (latitude === null || longitude === null) {
@@ -143,7 +147,11 @@ export async function geocodePlace(event: H3Event, query: string, limit = 5): Pr
   return mapped
 }
 
-export async function reverseGeocodePlace(event: H3Event, latitude: number, longitude: number): Promise<GeocodeResult[]> {
+export async function reverseGeocodePlace(
+  event: H3Event,
+  latitude: number,
+  longitude: number,
+): Promise<GeocodeResult[]> {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
     throw createError({ statusCode: 400, statusMessage: 'Latitude and longitude are required.' })
   }
@@ -162,11 +170,13 @@ export async function reverseGeocodePlace(event: H3Event, latitude: number, long
     zoom: '18',
   })
 
-  const result = await enqueueRequest(() => $fetch<NominatimReverseResult>(`${NOMINATIM_REVERSE_URL}?${searchParams.toString()}`, {
-    headers: {
-      'User-Agent': USER_AGENT,
-    },
-  }))
+  const result = await enqueueRequest(() =>
+    $fetch<NominatimReverseResult>(`${NOMINATIM_REVERSE_URL}?${searchParams.toString()}`, {
+      headers: {
+        'User-Agent': USER_AGENT,
+      },
+    }),
+  )
 
   if (!result) {
     return []

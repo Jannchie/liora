@@ -30,8 +30,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
     mergedMetadata = { ...existingMetadata, recompose: undefined }
     width = originalDims.width
     height = originalDims.height
-  }
-  else {
+  } else {
     const params = validateRecomposeParams(body.recompose)
     if (!params) {
       throw createError({ statusCode: 400, statusMessage: 'Invalid recompose parameters.' })
@@ -42,8 +41,7 @@ export default defineEventHandler(async (event): Promise<FileResponse> => {
       mergedMetadata = { ...existingMetadata, recompose: undefined }
       width = originalDims.width
       height = originalDims.height
-    }
-    else {
+    } else {
       const framed = computeFramedDims(params)
       mergedMetadata = { ...existingMetadata, recompose: params }
       width = framed.width

@@ -30,19 +30,19 @@ const point = computed<[number, number] | null>(() => {
 })
 
 const PLACE_ZOOM = 14
-const WORLD: { center: [number, number], zoom: number } = { center: [0, 20], zoom: 0.5 }
+const WORLD: { center: [number, number]; zoom: number } = { center: [0, 20], zoom: 0.5 }
 
 // The view only follows the point when it moved from outside (typed, searched,
 // another photo): a click is already where the user is looking.
 const view = ref(resolveView())
 let pickedHere: string | null = null
 
-function resolveView(): { center: [number, number], zoom: number } {
+function resolveView(): { center: [number, number]; zoom: number } {
   const target = point.value ?? lastPicked.value
   return target ? { center: target, zoom: PLACE_ZOOM } : WORLD
 }
 
-watch(point, (next) => {
+watch(point, next => {
   if (next) {
     lastPicked.value = next
   }
@@ -58,10 +58,7 @@ function onLoad(ctrl: MapController): void {
   const map = ctrl.map
   map.getCanvas().style.cursor = 'crosshair'
   map.on('click', (event: MapMouseEvent) => {
-    const lngLat: [number, number] = [
-      Number(event.lngLat.lng.toFixed(6)),
-      Number(event.lngLat.lat.toFixed(6)),
-    ]
+    const lngLat: [number, number] = [Number(event.lngLat.lng.toFixed(6)), Number(event.lngLat.lat.toFixed(6))]
     pickedHere = lngLat.join(',')
     emit('pick', lngLat)
   })

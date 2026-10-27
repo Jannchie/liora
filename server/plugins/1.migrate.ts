@@ -16,8 +16,7 @@ export default defineNitroPlugin(async () => {
   try {
     await migrate(db, { migrationsFolder })
     logger.info('database migrations applied', { migrationsFolder })
-  }
-  catch (error) {
+  } catch (error) {
     logger.error('database migration failed; refusing to start', { migrationsFolder })
     throw error
   }

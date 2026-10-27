@@ -8,15 +8,18 @@ interface TabItem {
   [key: string]: unknown
 }
 
-const props = withDefaults(defineProps<{
-  items: TabItem[]
-  modelValue?: V
-  content?: boolean
-  variant?: 'underline' | 'pill'
-}>(), {
-  content: true,
-  variant: 'underline',
-})
+const props = withDefaults(
+  defineProps<{
+    items: TabItem[]
+    modelValue?: V
+    content?: boolean
+    variant?: 'underline' | 'pill'
+  }>(),
+  {
+    content: true,
+    variant: 'underline',
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: V]
@@ -28,7 +31,8 @@ function setActive(value: V): void {
   emit('update:modelValue', value)
 }
 
-const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 text-[13px] transition-colors outline-none focus-visible:shadow-[var(--ring-focus)]'
+const tabBaseClass =
+  'inline-flex shrink-0 items-center gap-1.5 text-[13px] transition-colors outline-none focus-visible:shadow-[var(--ring-focus)]'
 </script>
 
 <template>
@@ -47,15 +51,16 @@ const tabBaseClass = 'inline-flex shrink-0 items-center gap-1.5 text-[13px] tran
         :class="[
           tabBaseClass,
           variant === 'underline'
-            ? ['-mb-px h-9 border-b px-3', active === item.value
-              ? 'border-primary text-highlighted'
-              : 'border-transparent text-dimmed hover:text-fg-highlighted']
+            ? [
+                '-mb-px h-9 border-b px-3',
+                active === item.value
+                  ? 'border-primary text-highlighted'
+                  : 'border-transparent text-dimmed hover:text-fg-highlighted',
+              ]
             : [
-              'h-7 rounded-md px-2.5',
-              active === item.value
-                ? 'chip-raised'
-                : 'text-dimmed hover:text-fg-highlighted',
-            ],
+                'h-7 rounded-md px-2.5',
+                active === item.value ? 'chip-raised' : 'text-dimmed hover:text-fg-highlighted',
+              ],
         ]"
         @click="setActive(item.value)"
       >

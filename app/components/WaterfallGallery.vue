@@ -139,7 +139,7 @@ const hoverPreviewQuery = ref<MediaQueryList | null>(null)
 const overlayDownloadHideDelayMs = 500
 const overlayDownloadHideTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const overlayViewerRef = ref<HTMLElement | null>(null)
-const overlayViewerSize = ref<{ width: number, height: number }>({ width: 0, height: 0 })
+const overlayViewerSize = ref<{ width: number; height: number }>({ width: 0, height: 0 })
 const overlayViewerResizeObserver = ref<ResizeObserver | null>(null)
 const overlayZoom = ref<number>(1)
 const overlayPan = ref<{
@@ -167,13 +167,15 @@ const overlayDragState = ref<{
   originX: 0,
   originY: 0,
 })
-const overlayPointers = ref<Map<number, { x: number, y: number }>>(new Map())
-const overlayPinchBase = ref<{ distance: number, zoom: number } | null>(null)
+const overlayPointers = ref<Map<number, { x: number; y: number }>>(new Map())
+const overlayPinchBase = ref<{ distance: number; zoom: number } | null>(null)
 const depthProcessing = reactive<Record<number, boolean>>({})
 
 // 'error' still unlocks the reveal: the viewer falls back to the raw URL and
 // must not stay parked behind the blur waiting for a download that failed.
-const overlayImageReady = computed<boolean>(() => overlayDownloadState.value.status === 'done' || overlayDownloadState.value.status === 'error')
+const overlayImageReady = computed<boolean>(
+  () => overlayDownloadState.value.status === 'done' || overlayDownloadState.value.status === 'error',
+)
 const overlayPreviewSrc = computed<string | null>(() => {
   const file = activeFile.value
   if (!file) {
@@ -183,11 +185,7 @@ const overlayPreviewSrc = computed<string | null>(() => {
   if (original.length > 0) {
     return resolveCorsSafeUrl(original) ?? original
   }
-  const candidates = [
-    file.previewUrl,
-    file.coverUrl,
-    overlayImageSrc.value,
-  ]
+  const candidates = [file.previewUrl, file.coverUrl, overlayImageSrc.value]
   const base = candidates.find(value => typeof value === 'string' && value.trim().length > 0)?.trim()
   if (!base) {
     return null
@@ -291,7 +289,10 @@ function normalizeGenreKey(value: string | undefined): string | null {
   if (!value) {
     return null
   }
-  const normalized = value.trim().toLowerCase().replaceAll(/[\s_-]+/g, '')
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replaceAll(/[\s_-]+/g, '')
   return normalized.length > 0 ? normalized : null
 }
 
@@ -312,7 +313,7 @@ const characterSeparator = computed(() => t('gallery.metadata.characterSeparator
 const resolvedEmptyText = computed(() => props.emptyText ?? t('gallery.empty'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 
-function fileAspectRatio(file: { width: number, height: number }): number | undefined {
+function fileAspectRatio(file: { width: number; height: number }): number | undefined {
   if (file.width > 0 && file.height > 0) {
     return file.width / file.height
   }
@@ -332,8 +333,7 @@ function resolveUrlOrigin(value: string): string | null {
     const windowRef = globalThis.window
     const base = windowRef ? windowRef.location.href : undefined
     return new URL(value, base).origin
-  }
-  catch {
+  } catch {
     return null
   }
 }
@@ -342,8 +342,7 @@ function setLivePreviewRef(id: number, element: Element | ComponentPublicInstanc
   const resolvedElement = element instanceof Element ? element : element?.$el
   if (resolvedElement instanceof HTMLVideoElement) {
     livePreviewRefs.set(id, resolvedElement)
-  }
-  else {
+  } else {
     livePreviewRefs.delete(id)
   }
 }
@@ -462,15 +461,13 @@ async function prepareLivePhotoShareAssets(file: ResolvedFile): Promise<void> {
       imageFile,
       videoFile,
     }
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return
     }
     console.warn('Failed to prepare live photo share assets', error)
     livePhotoShareAssets.value = null
-  }
-  finally {
+  } finally {
     if (livePhotoShareAbortController.value === controller) {
       livePhotoShareAbortController.value = null
       preparingLivePhotoShare.value = false
@@ -540,12 +537,12 @@ function formatDisplayDateTime(value: string | undefined): string | undefined {
 
 function computeDisplaySize(file: FileResponse, aspectRatio: number | undefined, targetWidth: number): DisplaySize {
   const width = file.width > 0 ? Math.min(file.width, targetWidth) : targetWidth
-  const ratio
-    = file.width > 0 && file.height > 0
+  const ratio =
+    file.width > 0 && file.height > 0
       ? file.width / file.height
-      : (aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
-          ? aspectRatio
-          : 1)
+      : aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
+        ? aspectRatio
+        : 1
   const height = Math.round(width / ratio)
   return { width, height }
 }
@@ -557,7 +554,7 @@ function normalizeImageSize(value: number): number {
   return Math.max(1, Math.round(value))
 }
 
-function resolveOverlayContainerSize(): { width: number, height: number } {
+function resolveOverlayContainerSize(): { width: number; height: number } {
   const measuredWidth = overlayViewerSize.value.width
   const measuredHeight = overlayViewerSize.value.height
   if (measuredWidth > 0 && measuredHeight > 0) {
@@ -574,7 +571,7 @@ function resolveOverlayContainerSize(): { width: number, height: number } {
   }
 }
 
-function resolveOverlayDisplaySize(file: ResolvedFile): { width: number, height: number } | null {
+function resolveOverlayDisplaySize(file: ResolvedFile): { width: number; height: number } | null {
   const container = resolveOverlayContainerSize()
   if (container.width <= 0 || container.height <= 0) {
     return null
@@ -683,10 +680,8 @@ function resolveOverlayPlaceholderUrl(src: string | undefined, aspectRatio: numb
     blur: 60,
     quality: 20,
   }
-  const height
-    = aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0
-      ? Math.max(1, Math.round(width / aspectRatio))
-      : null
+  const height =
+    aspectRatio && Number.isFinite(aspectRatio) && aspectRatio > 0 ? Math.max(1, Math.round(width / aspectRatio)) : null
   if (height) {
     modifiers.height = height
   }
@@ -713,9 +708,8 @@ const columnWidth = computed(() => {
   if (columns.value <= 0) {
     return maxDisplayWidth
   }
-  const available = wrapperWidth.value > 0
-    ? wrapperWidth.value - waterfallGap * (columns.value - 1)
-    : maxDisplayWidth * columns.value
+  const available =
+    wrapperWidth.value > 0 ? wrapperWidth.value - waterfallGap * (columns.value - 1) : maxDisplayWidth * columns.value
   const width = available / columns.value
   const clamped = Math.min(maxDisplayWidth, width)
   return Math.max(1, clamped)
@@ -736,10 +730,7 @@ function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile 
   const imageAttrs = resolveImageAttrs(baseImageUrl, sourceSize, 'inside')
   const previewAttrs = imageAttrs
   const previewUrl = (previewAttrs.src ?? '').trim() || baseImageUrl
-  const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(
-    baseImageUrl,
-    aspectRatio,
-  )
+  const overlayPlaceholderUrl = resolveOverlayPlaceholderUrl(baseImageUrl, aspectRatio)
   return {
     ...file,
     imageUrl,
@@ -843,20 +834,20 @@ const waterfallEntries = computed<WaterfallEntry[]>(() => {
 
 const waterfallItems = computed(() => waterfallEntries.value.map(item => item.displaySize))
 
+function buildChannel(source: number[] | null | undefined): number[] | null {
+  if (!Array.isArray(source)) {
+    return null
+  }
+  return Array.from({ length: 256 }, (_, index) => {
+    const value = source[index] ?? 0
+    return Number.isFinite(value) ? Number(value) : 0
+  })
+}
+
 function normalizeHistogram(raw: HistogramData | null | undefined): HistogramData | null {
   if (!raw) {
     return null
   }
-  const buildChannel = (source: number[] | null | undefined): number[] | null => {
-    if (!Array.isArray(source)) {
-      return null
-    }
-    return Array.from({ length: 256 }, (_, index) => {
-      const value = source[index] ?? 0
-      return Number.isFinite(value) ? Number(value) : 0
-    })
-  }
-
   const red = buildChannel(raw.red)
   const green = buildChannel(raw.green)
   const blue = buildChannel(raw.blue)
@@ -899,8 +890,7 @@ onMounted(async () => {
       hoverPreviewEnabled.value = query.matches
       if (typeof query.addEventListener === 'function') {
         query.addEventListener('change', handleHoverPreviewChange)
-      }
-      else if (typeof query.addListener === 'function') {
+      } else if (typeof query.addListener === 'function') {
         query.addListener(handleHoverPreviewChange)
       }
     }
@@ -918,8 +908,7 @@ onBeforeUnmount(() => {
   if (hoverQuery) {
     if (typeof hoverQuery.removeEventListener === 'function') {
       hoverQuery.removeEventListener('change', handleHoverPreviewChange)
-    }
-    else if (typeof hoverQuery.removeListener === 'function') {
+    } else if (typeof hoverQuery.removeListener === 'function') {
       hoverQuery.removeListener(handleHoverPreviewChange)
     }
   }
@@ -933,7 +922,7 @@ onBeforeUnmount(() => {
 
 function resolveOverlayRouteId(value: string | string[] | null | undefined): number | null {
   const normalized = Array.isArray(value)
-    ? value.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
+    ? (value.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null)
     : value
   if (typeof normalized !== 'string') {
     return null
@@ -965,12 +954,14 @@ const resolvedOverlayRouteParam = computed(() => {
   const key = props.overlayRouteParam?.trim() ?? ''
   return key.length > 0 ? key : 'id'
 })
-const overlayPathPattern = computed(() => new RegExp(String.raw`^${escapeOverlayPathRegExp(resolvedOverlayBasePath.value)}/(\d+)/?$`))
+const overlayPathPattern = computed(
+  () => new RegExp(String.raw`^${escapeOverlayPathRegExp(resolvedOverlayBasePath.value)}/(\d+)/?$`),
+)
 
 function resolveOverlayRouteIdFromPathParam(): number | null {
   const param = route.params[resolvedOverlayRouteParam.value]
   const normalized = Array.isArray(param)
-    ? param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null
+    ? (param.find((entry): entry is string => typeof entry === 'string' && entry.trim().length > 0) ?? null)
     : param
   if (typeof normalized !== 'string') {
     const pathMatch = route.path.match(overlayPathPattern.value)
@@ -1175,15 +1166,13 @@ async function handleShareLivePhoto(): Promise<void> {
       files: [imageFile, videoFile],
       title: file.displayTitle,
     })
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       return
     }
     const description = error instanceof Error ? error.message : t('common.toast.loadFailed')
     toast.add({ title: t('gallery.livePhoto.shareFailed'), description, color: 'error' })
-  }
-  finally {
+  } finally {
     sharingLivePhoto.value = false
   }
 }
@@ -1212,7 +1201,7 @@ const replaceFile = ref<File | null>(null)
 const editForm = reactive<MediaFormState>(createEmptyMediaFormState())
 const editFormModel = computed<MediaFormState>({
   get: () => editForm,
-  set: (value) => {
+  set: value => {
     Object.assign(editForm, value)
   },
 })
@@ -1283,8 +1272,7 @@ async function saveEditFromModal(): Promise<void> {
     const keepInCurrentSeries = shouldKeepInCurrentSeries(updated)
     if (keepInCurrentSeries) {
       nextHidden.delete(updated.id)
-    }
-    else {
+    } else {
       nextHidden.add(updated.id)
     }
     hiddenFileIds.value = nextHidden
@@ -1292,12 +1280,10 @@ async function saveEditFromModal(): Promise<void> {
     activeFile.value = resolved
     editingFile.value = resolved
     closeEditModal()
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : editToastMessages.value.updateFailedFallback
     toast.add({ title: editToastMessages.value.updateFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     editing.value = false
   }
 }
@@ -1334,28 +1320,30 @@ async function generateDepthMapFromEdit(): Promise<void> {
     const updated = await $fetch<FileResponse>(`/api/files/${file.id}`)
     fileOverrides.value = { ...fileOverrides.value, [updated.id]: updated }
     editingFile.value = toResolvedFile(updated, columnWidth.value)
-    toast.add({ title: editToastMessages.value.depthSuccess, description: editToastMessages.value.depthSuccessDescription })
-  }
-  catch (error) {
+    toast.add({
+      title: editToastMessages.value.depthSuccess,
+      description: editToastMessages.value.depthSuccessDescription,
+    })
+  } catch (error) {
     const message = error instanceof Error ? error.message : editToastMessages.value.depthFailedFallback
     toast.add({ title: editToastMessages.value.depthFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     depthProcessing[file.id] = false
   }
 }
 
-function dedupeCameraLens(
-  camera: string | undefined,
-  lens: string | undefined,
-): { camera?: string, lens?: string } {
+function dedupeCameraLens(camera: string | undefined, lens: string | undefined): { camera?: string; lens?: string } {
   const cameraText = toDisplayText(camera)
   const lensText = toDisplayText(lens)
   const separators = ['·', '|', '/']
 
   if (cameraText && lensText) {
     const pattern = new RegExp(String.raw`\s*[·|/,-]?\s*${escapeRegExp(lensText)}`, 'i')
-    const cleanedCamera = cameraText.replace(pattern, '').trim().replace(/[·|/,-]+$/, '').trim()
+    const cleanedCamera = cameraText
+      .replace(pattern, '')
+      .trim()
+      .replace(/[·|/,-]+$/, '')
+      .trim()
     return {
       camera: toDisplayText(cleanedCamera) ?? cameraText,
       lens: lensText,
@@ -1367,7 +1355,11 @@ function dedupeCameraLens(
       const index = cameraText.lastIndexOf(separator)
       if (index > 0 && index < cameraText.length - 2) {
         const base = cameraText.slice(0, index).trim()
-        const extracted = cameraText.slice(index + 1).trim().replace(/^[·|/,-]+/, '').trim()
+        const extracted = cameraText
+          .slice(index + 1)
+          .trim()
+          .replace(/^[·|/,-]+/, '')
+          .trim()
         if (base.length > 0 && extracted.length > 0) {
           return { camera: base, lens: extracted }
         }
@@ -1397,10 +1389,10 @@ function formatResolutionValue(
   const unitMap: Record<string, string> = {
     'pixels/inch': t('gallery.metadata.resolutionUnit.inch'),
     'pixels/in': t('gallery.metadata.resolutionUnit.inch'),
-    'ppi': t('gallery.metadata.resolutionUnit.inch'),
+    ppi: t('gallery.metadata.resolutionUnit.inch'),
     'pixels/centimeter': t('gallery.metadata.resolutionUnit.cm'),
     'pixels/cm': t('gallery.metadata.resolutionUnit.cm'),
-    'ppcm': t('gallery.metadata.resolutionUnit.cm'),
+    ppcm: t('gallery.metadata.resolutionUnit.cm'),
   }
   const unit = unitMap[unitKey] ?? toDisplayText(resolutionUnit)
   if (x && y) {
@@ -1475,10 +1467,11 @@ function formatCropRectValue(metadata: {
   if (!summary) {
     return undefined
   }
-  const isFullFrame = isNearlyEqual(summary.left, 0)
-    && isNearlyEqual(summary.top, 0)
-    && isNearlyEqual(summary.right, 1)
-    && isNearlyEqual(summary.bottom, 1)
+  const isFullFrame =
+    isNearlyEqual(summary.left, 0) &&
+    isNearlyEqual(summary.top, 0) &&
+    isNearlyEqual(summary.right, 1) &&
+    isNearlyEqual(summary.bottom, 1)
   if (isFullFrame) {
     return undefined
   }
@@ -1542,42 +1535,42 @@ function translateEnum(value: string | undefined, dictionary: Record<string, str
 function translateExposureProgram(value: string | undefined): string | undefined {
   return translateEnum(normalizeExposureProgramValue(value), {
     'not defined': t('admin.upload.options.exposureProgram.notDefined'),
-    'manual': t('admin.upload.options.exposureProgram.manual'),
-    'program': t('admin.upload.options.exposureProgram.program'),
+    manual: t('admin.upload.options.exposureProgram.manual'),
+    program: t('admin.upload.options.exposureProgram.program'),
     'normal program': t('admin.upload.options.exposureProgram.program'),
     'aperture priority': t('admin.upload.options.exposureProgram.aperturePriority'),
     'shutter priority': t('admin.upload.options.exposureProgram.shutterPriority'),
-    'creative': t('admin.upload.options.exposureProgram.creative'),
-    'action': t('admin.upload.options.exposureProgram.action'),
-    'portrait': t('admin.upload.options.exposureProgram.portrait'),
-    'landscape': t('admin.upload.options.exposureProgram.landscape'),
+    creative: t('admin.upload.options.exposureProgram.creative'),
+    action: t('admin.upload.options.exposureProgram.action'),
+    portrait: t('admin.upload.options.exposureProgram.portrait'),
+    landscape: t('admin.upload.options.exposureProgram.landscape'),
   })
 }
 
 function translateExposureMode(value: string | undefined): string | undefined {
   return translateEnum(normalizeExposureModeValue(value), {
-    'auto': t('admin.upload.options.exposureMode.auto'),
-    'manual': t('admin.upload.options.exposureMode.manual'),
+    auto: t('admin.upload.options.exposureMode.auto'),
+    manual: t('admin.upload.options.exposureMode.manual'),
     'auto bracket': t('admin.upload.options.exposureMode.bracket'),
-    'bracket': t('admin.upload.options.exposureMode.bracket'),
+    bracket: t('admin.upload.options.exposureMode.bracket'),
   })
 }
 
 function translateMeteringMode(value: string | undefined): string | undefined {
   return translateEnum(normalizeMeteringModeValue(value), {
-    'unknown': t('admin.upload.options.metering.unknown'),
-    'average': t('admin.upload.options.metering.average'),
+    unknown: t('admin.upload.options.metering.unknown'),
+    average: t('admin.upload.options.metering.average'),
     'center-weighted': t('admin.upload.options.metering.center'),
     'center weighted': t('admin.upload.options.metering.center'),
     'center-weighted average': t('admin.upload.options.metering.center'),
     'multi-spot': t('admin.upload.options.metering.multiSpot'),
-    'multispot': t('admin.upload.options.metering.multiSpot'),
+    multispot: t('admin.upload.options.metering.multiSpot'),
     'multi spot': t('admin.upload.options.metering.multiSpot'),
-    'spot': t('admin.upload.options.metering.spot'),
-    'pattern': t('admin.upload.options.metering.pattern'),
-    'matrix': t('admin.upload.options.metering.pattern'),
-    'partial': t('admin.upload.options.metering.partial'),
-    'other': t('admin.upload.options.metering.other'),
+    spot: t('admin.upload.options.metering.spot'),
+    pattern: t('admin.upload.options.metering.pattern'),
+    matrix: t('admin.upload.options.metering.pattern'),
+    partial: t('admin.upload.options.metering.partial'),
+    other: t('admin.upload.options.metering.other'),
   })
 }
 
@@ -1594,7 +1587,7 @@ function translateFlash(value: string | undefined): string | undefined {
     'auto (did not fire)': t('admin.upload.options.flash.autoDidNotFire'),
     'auto, did not fire': t('admin.upload.options.flash.autoDidNotFire'),
     'auto - did not fire': t('admin.upload.options.flash.autoDidNotFire'),
-    'fired': t('admin.upload.options.flash.fired'),
+    fired: t('admin.upload.options.flash.fired'),
     'auto (fired)': t('admin.upload.options.flash.autoFired'),
     'auto, fired': t('admin.upload.options.flash.autoFired'),
   })
@@ -1671,9 +1664,7 @@ const focusEntry = computed<MetadataEntry | null>(() => {
   if (!focusMode && !focusDistance) {
     return null
   }
-  const focusValue = focusMode && focusDistance
-    ? `${focusMode} (${focusDistance})`
-    : (focusMode ?? focusDistance ?? '')
+  const focusValue = focusMode && focusDistance ? `${focusMode} (${focusDistance})` : (focusMode ?? focusDistance ?? '')
   return {
     key: 'focus',
     label: metadataLabels.value.focus,
@@ -1818,13 +1809,14 @@ const exposureEntries = computed<MetadataEntry[]>(() => {
   return entries
 })
 
-const hasMetadata = computed<boolean>(() =>
-  metadataEntries.value.length > 0
-  || exposureEntries.value.length > 0
-  || focusEntry.value !== null
-  || cropEntry.value !== null
-  || lightroomRecipe.value !== null
-  || llrRecipe.value !== null,
+const hasMetadata = computed<boolean>(
+  () =>
+    metadataEntries.value.length > 0 ||
+    exposureEntries.value.length > 0 ||
+    focusEntry.value !== null ||
+    cropEntry.value !== null ||
+    lightroomRecipe.value !== null ||
+    llrRecipe.value !== null,
 )
 
 const overlayStats = computed<OverlayStat[]>(() => {
@@ -2048,7 +2040,7 @@ const overlayPlaneFitZoom = computed<number | null>(() => {
  * transform anchors on the frame's center, so centering the plane means
  * offsetting by the frame-center → plane-center distance in screen pixels.
  */
-function computeOverlayPlaneCenterPan(zoom: number): { x: number, y: number } | null {
+function computeOverlayPlaneCenterPan(zoom: number): { x: number; y: number } | null {
   const recompose = activeFile.value?.metadata.recompose
   if (!recompose) {
     return null
@@ -2074,7 +2066,11 @@ const viewerTouchAction = computed<string>(() => {
   if (isOverlayInteractionDisabled.value) {
     return 'pan-y'
   }
-  if (overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon || overlayPointers.value.size >= 2 || overlayPannableAtMin.value) {
+  if (
+    overlayZoom.value > overlayZoomMin.value + overlayZoomEpsilon ||
+    overlayPointers.value.size >= 2 ||
+    overlayPannableAtMin.value
+  ) {
     return 'none'
   }
   return 'pan-y pinch-zoom'
@@ -2113,12 +2109,7 @@ const overlayBackgroundStyle = computed<Record<string, string> | null>(() => {
   if (!file) {
     return null
   }
-  const source
-    = file.placeholder
-      || file.overlayPlaceholderUrl
-      || file.previewUrl
-      || file.coverUrl
-      || file.imageUrl
+  const source = file.placeholder || file.overlayPlaceholderUrl || file.previewUrl || file.coverUrl || file.imageUrl
   if (!source) {
     return null
   }
@@ -2145,16 +2136,8 @@ function handleKeydown(event: KeyboardEvent): void {
 const overlayRouteId = computed<number | null>(() => getOverlayRouteIdFromRoute())
 
 watch(
-  [
-    overlayRouteId,
-    resolvedFiles,
-    isHydrated,
-  ],
-  ([
-    routeId,
-    files,
-    hydrated,
-  ]) => {
+  [overlayRouteId, resolvedFiles, isHydrated],
+  ([routeId, files, hydrated]) => {
     if (!hydrated) {
       return
     }
@@ -2185,7 +2168,7 @@ watch(
 
 watch(
   () => props.files.map(file => file.id),
-  (ids) => {
+  ids => {
     if (hiddenFileIds.value.size === 0) {
       return
     }
@@ -2201,38 +2184,29 @@ watch(
   { immediate: true },
 )
 
-watch(
-  currentSeriesSlug,
-  () => {
-    hiddenFileIds.value = new Set()
-  },
-)
+watch(currentSeriesSlug, () => {
+  hiddenFileIds.value = new Set()
+})
 
-watch(
-  overlayBaseScale,
-  (nextBase) => {
-    if (!Number.isFinite(nextBase) || nextBase <= 0) {
-      return
-    }
-    if (overlayZoom.value < nextBase - overlayZoomEpsilon) {
-      overlayZoom.value = nextBase
-      overlayPan.value = { x: 0, y: 0 }
-    }
-  },
-)
+watch(overlayBaseScale, nextBase => {
+  if (!Number.isFinite(nextBase) || nextBase <= 0) {
+    return
+  }
+  if (overlayZoom.value < nextBase - overlayZoomEpsilon) {
+    overlayZoom.value = nextBase
+    overlayPan.value = { x: 0, y: 0 }
+  }
+})
 
-watch(
-  [isSmallScreen, activeFile],
-  ([isSmall, file], [previousIsSmall, previousFile]) => {
-    if (!file || file !== previousFile || isSmall === previousIsSmall) {
-      return
-    }
-    if (isSmall) {
-      resetOverlayZoom()
-    }
-    startOverlayImageLoad(file, overlayImageSrc.value)
-  },
-)
+watch([isSmallScreen, activeFile], ([isSmall, file], [previousIsSmall, previousFile]) => {
+  if (!file || file !== previousFile || isSmall === previousIsSmall) {
+    return
+  }
+  if (isSmall) {
+    resetOverlayZoom()
+  }
+  startOverlayImageLoad(file, overlayImageSrc.value)
+})
 
 function abortOverlayImageFetch(): void {
   overlayImageAbortController.value?.abort()
@@ -2335,7 +2309,10 @@ function resetOverlayZoom(): void {
   }
 }
 
-function computeOverlayPanForFocus(point: OverlayPointer, targetZoom: number): {
+function computeOverlayPanForFocus(
+  point: OverlayPointer,
+  targetZoom: number,
+): {
   x: number
   y: number
 } | null {
@@ -2370,8 +2347,7 @@ function setOverlayZoom(next: number, focalPoint?: OverlayPointer): void {
   let nextPan = overlayPan.value
   if (clamped <= minZoom + overlayZoomEpsilon && !overlayPannableAtMin.value) {
     nextPan = { x: 0, y: 0 }
-  }
-  else if (focalPoint) {
+  } else if (focalPoint) {
     const focusedPan = computeOverlayPanForFocus(focalPoint, clamped)
     if (focusedPan) {
       nextPan = focusedPan
@@ -2404,8 +2380,7 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
     if (atWholeOriginal) {
       overlayZoom.value = overlayFitScale.value
       overlayPan.value = { x: 0, y: 0 }
-    }
-    else {
+    } else {
       overlayZoom.value = planeFit
       overlayPan.value = computeOverlayPlaneCenterPan(planeFit) ?? { x: 0, y: 0 }
     }
@@ -2414,9 +2389,8 @@ function handleOverlayDoubleClick(event: MouseEvent): void {
   }
   const isAtOriginal = Math.abs(overlayZoom.value - 1) <= overlayZoomEpsilon
   const target = isAtOriginal ? overlayFitScale.value : 1
-  const focal = target > overlayZoomMin.value + overlayZoomEpsilon
-    ? { clientX: event.clientX, clientY: event.clientY }
-    : undefined
+  const focal =
+    target > overlayZoomMin.value + overlayZoomEpsilon ? { clientX: event.clientX, clientY: event.clientY } : undefined
   setOverlayZoom(target, focal)
 }
 
@@ -2560,10 +2534,7 @@ function navigateOverlay(offset: number): void {
   runViewTransition(() => openOverlay(target))
 }
 
-function startOverlayImageLoad(
-  file: ResolvedFile,
-  immediateSrc: string | null = null,
-): void {
+function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null = null): void {
   const sessionId = overlaySessionId.value
   const isSessionActive = (): boolean => isOverlaySessionActive(sessionId)
   abortOverlayImageFetch()
@@ -2583,7 +2554,9 @@ function startOverlayImageLoad(
     file.coverUrl,
     file.imageAttrs?.src,
     file.imageUrl,
-  ].find(value => typeof value === 'string' && value.trim().length > 0)?.trim()
+  ]
+    .find(value => typeof value === 'string' && value.trim().length > 0)
+    ?.trim()
   overlayImageSrc.value = firstAvailable || previewSrc
   if (typeof Image === 'undefined') {
     overlayImageSrc.value = fullImageSrc || overlayImageSrc.value
@@ -2657,13 +2630,14 @@ function startOverlayImageLoad(
           break
         }
         if (value) {
-          const buffer = value.buffer instanceof ArrayBuffer
-            ? value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength)
-            : (() => {
-                const copy = new ArrayBuffer(value.byteLength)
-                new Uint8Array(copy).set(value)
-                return copy
-              })()
+          const buffer =
+            value.buffer instanceof ArrayBuffer
+              ? value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength)
+              : (() => {
+                  const copy = new ArrayBuffer(value.byteLength)
+                  new Uint8Array(copy).set(value)
+                  return copy
+                })()
           chunks.push(buffer)
           loaded += value.length
           if (!isSessionActive()) {
@@ -2676,8 +2650,7 @@ function startOverlayImageLoad(
       const blob = new Blob(chunks, { type: response.headers.get('content-type') ?? 'image/jpeg' })
       markOverlayDownloadDone(blob.size, total ?? blob.size, sessionId)
       applyBlobSrc(blob)
-    }
-    catch {
+    } catch {
       if (controller.signal.aborted) {
         return
       }
@@ -2686,8 +2659,7 @@ function startOverlayImageLoad(
       }
       overlayDownloadState.value = { status: 'error', loaded: 0, total: null }
       overlayImageSrc.value = rawFullImageSrc || fullImageSrc
-    }
-    finally {
+    } finally {
       overlayImageAbortController.value = null
     }
   }
@@ -2712,8 +2684,7 @@ function startOverlayImageLoad(
     if (previewLoader.decode) {
       try {
         await previewLoader.decode()
-      }
-      catch {
+      } catch {
         // Ignore decode errors and still show the preview.
       }
     }
@@ -2760,14 +2731,16 @@ function startOverlayImageLoad(
             v-else
             type="button"
             class="group relative block h-full w-full overflow-hidden bg-default focus:outline-none"
-            :style="entry.placeholder && !isEntryLoaded(entry.id)
-              ? {
-                backgroundImage: `url('${entry.placeholder}')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat',
-              }
-              : undefined"
+            :style="
+              entry.placeholder && !isEntryLoaded(entry.id)
+                ? {
+                    backgroundImage: `url('${entry.placeholder}')`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                  }
+                : undefined
+            "
             :aria-label="t('gallery.viewLarge', { title: entry.displayTitle })"
             @click="handleEntryClick($event, entry)"
             @mouseenter="handleLivePreviewEnter(entry)"
@@ -2796,7 +2769,7 @@ function startOverlayImageLoad(
                 class="h-full w-full"
                 v-bind="entry.imageAttrs"
                 @load="markEntryLoaded(entry.id)"
-              >
+              />
             </RecomposeFrame>
             <img
               v-else
@@ -2809,11 +2782,8 @@ function startOverlayImageLoad(
               class="h-full w-full object-contain transition-opacity group-hover:opacity-90"
               v-bind="entry.imageAttrs"
               @load="markEntryLoaded(entry.id)"
-            >
-            <ArthashPlaceholder
-              :arthash="entry.metadata.arthash"
-              :loaded="isEntryLoaded(entry.id)"
             />
+            <ArthashPlaceholder :arthash="entry.metadata.arthash" :loaded="isEntryLoaded(entry.id)" />
             <video
               v-if="entry.metadata.livePhotoVideoUrl"
               :ref="element => setLivePreviewRef(entry.id, element)"

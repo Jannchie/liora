@@ -67,7 +67,10 @@ async function loadSeriesPreviews(seriesIds: number[]): Promise<Map<number, File
     .select({
       seriesId: seriesFiles.seriesId,
       ...waterfallSummarySelection(),
-      rowNumber: sql<number>`row_number() over (partition by ${seriesFiles.seriesId} order by ${seriesFiles.sortOrder} asc, ${files.captureTime} desc, ${files.createdAt} desc, ${files.id} desc)`.as('rowNumber'),
+      rowNumber:
+        sql<number>`row_number() over (partition by ${seriesFiles.seriesId} order by ${seriesFiles.sortOrder} asc, ${files.captureTime} desc, ${files.createdAt} desc, ${files.id} desc)`.as(
+          'rowNumber',
+        ),
     })
     .from(seriesFiles)
     .innerJoin(files, eq(files.id, seriesFiles.fileId))
@@ -121,21 +124,21 @@ export default defineEventHandler(async (event): Promise<SeriesSummary[] | null>
       .groupBy(seriesFiles.seriesId),
   ])
 
-  const coverFileIds = [...new Set(seriesRows.map(row => row.coverFileId).filter((id): id is number => typeof id === 'number'))]
+  const coverFileIds = [
+    ...new Set(seriesRows.map(row => row.coverFileId).filter((id): id is number => typeof id === 'number')),
+  ]
 
-  const coverRows = coverFileIds.length > 0
-    ? await db
-        .select(waterfallSummarySelection())
-        .from(files)
-        .where(inArray(files.id, coverFileIds))
-    : []
+  const coverRows =
+    coverFileIds.length > 0
+      ? await db.select(waterfallSummarySelection()).from(files).where(inArray(files.id, coverFileIds))
+      : []
 
   const counts = mapCounts(countRows)
   const coverByFileId = new Map<number, FileSummary>(coverRows.map(row => [row.id, toWaterfallSummary(row)]))
   const previewBySeriesId = await loadSeriesPreviews(seriesRows.map(row => row.id))
 
   const mappedSeries = seriesRows.map((row: SeriesBaseRow) => {
-    const directCover = row.coverFileId ? coverByFileId.get(row.coverFileId) ?? null : null
+    const directCover = row.coverFileId ? (coverByFileId.get(row.coverFileId) ?? null) : null
     const previews = previewBySeriesId.get(row.id) ?? []
     // The preview window shares the fallback-cover ordering, so the first
     // preview is exactly the cover the old per-series fallback query produced.
@@ -160,24 +163,12 @@ export default defineEventHandler(async (event): Promise<SeriesSummary[] | null>
       .select({ count: sql<number>`count(*)` })
       .from(files)
       .where(
-        notExists(
-          db
-            .select({ id: seriesFiles.fileId })
-            .from(seriesFiles)
-            .where(eq(seriesFiles.fileId, files.id)),
-        ),
+        notExists(db.select({ id: seriesFiles.fileId }).from(seriesFiles).where(eq(seriesFiles.fileId, files.id))),
       ),
     db
       .select(waterfallSummarySelection())
       .from(files)
-      .where(
-        notExists(
-          db
-            .select({ id: seriesFiles.fileId })
-            .from(seriesFiles)
-            .where(eq(seriesFiles.fileId, files.id)),
-        ),
-      )
+      .where(notExists(db.select({ id: seriesFiles.fileId }).from(seriesFiles).where(eq(seriesFiles.fileId, files.id))))
       .orderBy(desc(files.captureTime), desc(files.createdAt), desc(files.id))
       .limit(SERIES_PREVIEW_LIMIT),
   ])
@@ -211,7 +202,12 @@ export default defineEventHandler(async (event): Promise<SeriesSummary[] | null>
   ]
   // Exclude the virtual entry's per-request timestamps from the ETag so
   // unchanged listings still revalidate to a 304.
-  if (handleJsonEtag(event, summaries.map(entry => entry.isVirtual ? { ...entry, createdAt: '', updatedAt: '' } : entry))) {
+  if (
+    handleJsonEtag(
+      event,
+      summaries.map(entry => (entry.isVirtual ? { ...entry, createdAt: '', updatedAt: '' } : entry)),
+    )
+  ) {
     return null
   }
   return summaries

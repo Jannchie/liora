@@ -18,7 +18,11 @@ const SOURCE_URL = `https://cdn.jsdelivr.net/npm/@jannchie/iconify-json@${VERSIO
 const ROOT = join(import.meta.dirname, '..')
 const OUTPUT = join(ROOT, 'app/assets/icons/jannchie.json')
 
-interface IconifyIcon { body: string, width?: number, height?: number }
+interface IconifyIcon {
+  body: string
+  width?: number
+  height?: number
+}
 interface IconifyJSON {
   prefix: string
   icons: Record<string, IconifyIcon>
@@ -28,7 +32,7 @@ interface IconifyJSON {
 }
 
 function walk(dir: string): string[] {
-  return readdirSync(dir).flatMap((entry) => {
+  return readdirSync(dir).flatMap(entry => {
     const path = join(dir, entry)
     return statSync(path).isDirectory() ? walk(path) : [path]
   })
@@ -56,7 +60,7 @@ async function loadSource(): Promise<IconifyJSON> {
   if (!response.ok) {
     throw new Error(`Failed to fetch ${SOURCE_URL}: ${response.status}`)
   }
-  return await response.json() as IconifyJSON
+  return (await response.json()) as IconifyJSON
 }
 
 const source = await loadSource()
@@ -66,8 +70,7 @@ for (const name of [...collectNames()].toSorted()) {
   const resolved = source.icons[name] ?? source.icons[source.aliases?.[name]?.parent ?? '']
   if (resolved) {
     icons[name] = resolved
-  }
-  else {
+  } else {
     missing.push(name)
   }
 }

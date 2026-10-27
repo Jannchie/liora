@@ -38,29 +38,47 @@ describe('domain/files/upload', () => {
   })
 
   it('validates presign file constraints', () => {
-    const valid = assertPresignFile({
-      filename: 'a.jpg',
-      contentType: 'image/jpeg',
-      size: 1024,
-    }, 'Image')
+    const valid = assertPresignFile(
+      {
+        filename: 'a.jpg',
+        contentType: 'image/jpeg',
+        size: 1024,
+      },
+      'Image',
+    )
     expect(valid.contentType).toBe('image/jpeg')
     expect(() => assertMaxFileSize(MAX_FILE_SIZE_BYTES + 1, 'Image')).toThrowError()
     expect(() => assertContentTypePrefix('text/plain', 'image/', 'Image contentType')).toThrowError()
-    expect(() => assertPresignFile({
-      filename: '',
-      contentType: 'image/jpeg',
-      size: 1,
-    }, 'Image')).toThrowError('Image filename is required.')
-    expect(() => assertPresignFile({
-      filename: 'a.jpg',
-      contentType: '',
-      size: 1,
-    }, 'Image')).toThrowError('Image contentType is required.')
-    expect(() => assertPresignFile({
-      filename: 'a.jpg',
-      contentType: 'image/jpeg',
-      size: 0,
-    }, 'Image')).toThrowError('Image size is invalid.')
+    expect(() =>
+      assertPresignFile(
+        {
+          filename: '',
+          contentType: 'image/jpeg',
+          size: 1,
+        },
+        'Image',
+      ),
+    ).toThrowError('Image filename is required.')
+    expect(() =>
+      assertPresignFile(
+        {
+          filename: 'a.jpg',
+          contentType: '',
+          size: 1,
+        },
+        'Image',
+      ),
+    ).toThrowError('Image contentType is required.')
+    expect(() =>
+      assertPresignFile(
+        {
+          filename: 'a.jpg',
+          contentType: 'image/jpeg',
+          size: 0,
+        },
+        'Image',
+      ),
+    ).toThrowError('Image size is invalid.')
   })
 
   it('parses direct upload body into normalized fields', () => {
@@ -80,13 +98,17 @@ describe('domain/files/upload', () => {
 
   it('rejects invalid direct upload body payload', () => {
     expect(() => parseDirectBody(undefined)).toThrowError('Request body is required.')
-    expect(() => parseDirectBody({
-      imageKey: '/abs/path.jpg',
-    })).toThrowError('imageKey is invalid.')
-    expect(() => parseDirectBody({
-      imageKey: 'ok.jpg',
-      videoKey: '../bad.mov',
-    })).toThrowError('videoKey is invalid.')
+    expect(() =>
+      parseDirectBody({
+        imageKey: '/abs/path.jpg',
+      }),
+    ).toThrowError('imageKey is invalid.')
+    expect(() =>
+      parseDirectBody({
+        imageKey: 'ok.jpg',
+        videoKey: '../bad.mov',
+      }),
+    ).toThrowError('videoKey is invalid.')
   })
 
   it('validates multipart content-type header', () => {

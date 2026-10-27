@@ -31,6 +31,38 @@ function formatDuration(seconds: number): string {
   return `${minutes}:${remainder.toString().padStart(2, '0')}`
 }
 
+async function seekVideo(video: HTMLVideoElement, time: number): Promise<void> {
+  if (!Number.isFinite(time)) {
+    return
+  }
+  if (Math.abs(video.currentTime - time) < 0.02) {
+    return
+  }
+  await new Promise<void>((resolve, reject) => {
+    let handleSeeked: (() => void) | null = null
+    let handleError: (() => void) | null = null
+    const cleanup = (): void => {
+      if (handleSeeked) {
+        video.removeEventListener('seeked', handleSeeked)
+      }
+      if (handleError) {
+        video.removeEventListener('error', handleError)
+      }
+    }
+    handleSeeked = (): void => {
+      cleanup()
+      resolve()
+    }
+    handleError = (): void => {
+      cleanup()
+      reject(new Error('Seek failed.'))
+    }
+    video.addEventListener('seeked', handleSeeked, { once: true })
+    video.addEventListener('error', handleError, { once: true })
+    video.currentTime = time
+  })
+}
+
 export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
   videoPreviewUrl: Ref<string>
   liveFrameTime: Ref<number>
@@ -82,38 +114,6 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
     return Math.min(Math.max(0, value), maxTime)
   }
 
-  const seekVideo = async (video: HTMLVideoElement, time: number): Promise<void> => {
-    if (!Number.isFinite(time)) {
-      return
-    }
-    if (Math.abs(video.currentTime - time) < 0.02) {
-      return
-    }
-    await new Promise<void>((resolve, reject) => {
-      let handleSeeked: (() => void) | null = null
-      let handleError: (() => void) | null = null
-      const cleanup = (): void => {
-        if (handleSeeked) {
-          video.removeEventListener('seeked', handleSeeked)
-        }
-        if (handleError) {
-          video.removeEventListener('error', handleError)
-        }
-      }
-      handleSeeked = (): void => {
-        cleanup()
-        resolve()
-      }
-      handleError = (): void => {
-        cleanup()
-        reject(new Error('Seek failed.'))
-      }
-      video.addEventListener('seeked', handleSeeked, { once: true })
-      video.addEventListener('error', handleError, { once: true })
-      video.currentTime = time
-    })
-  }
-
   const captureLiveFrame = async (): Promise<void> => {
     const video = videoElementRef.value
     const selectedVideo = options.videoValue.value
@@ -147,12 +147,10 @@ export function useLivePhotoFrame(options: UseLivePhotoFrameOptions): {
       const baseName = stripExtension(selectedVideo.name) || 'live-photo'
       const frameFile = new File([blob], `${baseName}-frame.jpg`, { type: blob.type || 'image/jpeg' })
       options.setUploadValue(frameFile)
-    }
-    catch (error) {
+    } catch (error) {
       const message = error instanceof Error ? error.message : options.frameFailedFallback()
       options.onFrameError(message)
-    }
-    finally {
+    } finally {
       liveFramePending.value = false
     }
   }

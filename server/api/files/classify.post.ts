@@ -35,8 +35,7 @@ export default defineEventHandler(async (event): Promise<ClassificationResponse>
       throw createError({ statusCode: 400, statusMessage: 'Image file is required.' })
     }
     classification = await classifyPhotoGenreFromBuffer(event, fileEntry.data)
-  }
-  else {
+  } else {
     const body = await readBody<{ imageUrl?: string }>(event)
     const imageUrl = typeof body?.imageUrl === 'string' ? body.imageUrl.trim() : ''
     if (!imageUrl) {

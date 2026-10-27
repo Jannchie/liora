@@ -19,10 +19,7 @@ export default defineEventHandler(async (event): Promise<BatchActionResult> => {
     throw createError({ statusCode: 404, statusMessage: 'Series not found.' })
   }
 
-  const fileRows = await db
-    .select({ id: files.id })
-    .from(files)
-    .where(inArray(files.id, fileIds))
+  const fileRows = await db.select({ id: files.id }).from(files).where(inArray(files.id, fileIds))
   const existingSet = new Set(fileRows.map(row => row.id))
 
   const validFileIds = fileIds.filter(fileId => existingSet.has(fileId))

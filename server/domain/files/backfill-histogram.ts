@@ -14,9 +14,7 @@ interface ParsedMetadata {
 export type HistogramBackfillSummary = BackfillSummary
 
 export async function backfillHistogram(): Promise<HistogramBackfillSummary> {
-  const rows = await db
-    .select({ id: files.id, imageUrl: files.imageUrl, metadata: files.metadata })
-    .from(files)
+  const rows = await db.select({ id: files.id, imageUrl: files.imageUrl, metadata: files.metadata }).from(files)
 
   let updated = 0
   let skipped = 0
@@ -49,8 +47,7 @@ export async function backfillHistogram(): Promise<HistogramBackfillSummary> {
       updated += 1
 
       logger.info(`Updated histogram for file #${file.id}`)
-    }
-    catch (error) {
+    } catch (error) {
       logger.warn(`Failed to update histogram for file #${file.id}:`, { error })
       skipped += 1
     }

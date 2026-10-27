@@ -95,7 +95,17 @@ describe('shared/utils/recompose', () => {
     const matrixString = recomposeCssMatrix(params, k)
     const values = matrixString.slice('matrix3d('.length, -1).split(',').map(Number)
     // matrix3d is column-major: recover the 2D homography rows.
-    const flat = [values[0]!, values[4]!, values[12]!, values[1]!, values[5]!, values[13]!, values[3]!, values[7]!, values[15]!]
+    const flat = [
+      values[0]!,
+      values[4]!,
+      values[12]!,
+      values[1]!,
+      values[5]!,
+      values[13]!,
+      values[3]!,
+      values[7]!,
+      values[15]!,
+    ]
     // The plane point at the crop origin comes from some wrapper-local point; instead verify
     // a known source point: the wrapper point for original pixel p is p * k.
     const source = applyHomography(plane.homography, 0, 0)

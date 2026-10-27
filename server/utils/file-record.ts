@@ -19,7 +19,11 @@ export async function requireFileById(id: number): Promise<FileRow> {
   return file
 }
 
-export async function requireFileFromRouterParam(event: H3Event, key: string, invalidMessage: string): Promise<FileRow> {
+export async function requireFileFromRouterParam(
+  event: H3Event,
+  key: string,
+  invalidMessage: string,
+): Promise<FileRow> {
   const id = requirePositiveIntRouterParam(event, key, invalidMessage)
   return requireFileById(id)
 }

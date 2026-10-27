@@ -108,11 +108,7 @@ const redDotStyle: Record<string, string> = {
 
 <template>
   <div :style="containerStyle">
-    <div
-      v-for="(style, corner) in framePositions"
-      :key="corner"
-      :style="[frameCornerBaseStyle, style]"
-    />
+    <div v-for="(style, corner) in framePositions" :key="corner" :style="[frameCornerBaseStyle, style]" />
     <div :style="redDotStyle" aria-hidden="true" />
     <div :style="textColumnStyle">
       <h1 :style="titleStyle">

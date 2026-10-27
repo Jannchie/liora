@@ -30,7 +30,9 @@ const pointsById = computed(() => new Map(points.value.map(point => [point.id, p
 
 // ---- The picked photo, kept in ?photo=<id> so the view can be shared ----
 const focusId = ref<number | null>(null)
-const focus = computed<PhotoLocation | null>(() => (focusId.value === null ? null : pointsById.value.get(focusId.value) ?? null))
+const focus = computed<PhotoLocation | null>(() =>
+  focusId.value === null ? null : (pointsById.value.get(focusId.value) ?? null),
+)
 const focusDetail = shallowRef<FileResponse | null>(null)
 const sheet = ref<SheetSnap>('half')
 
@@ -43,12 +45,11 @@ function pick(id: number | null): void {
 }
 
 let detailSeq = 0
-watch(focusId, async (id) => {
+watch(focusId, async id => {
   const url = new URL(location.href)
   if (id === null) {
     url.searchParams.delete('photo')
-  }
-  else {
+  } else {
     url.searchParams.set('photo', String(id))
   }
   history.replaceState(history.state, '', url)
@@ -104,7 +105,13 @@ function frameInitialView(): void {
     south = Math.min(south, point.latitude)
     north = Math.max(north, point.latitude)
   }
-  map.fitBounds([[west, south], [east, north]], { padding: 64, maxZoom: 14, duration: 0 })
+  map.fitBounds(
+    [
+      [west, south],
+      [east, north],
+    ],
+    { padding: 64, maxZoom: 14, duration: 0 },
+  )
 }
 
 function onLoad(ctrl: MapController): void {
@@ -155,7 +162,10 @@ const exposure = computed(() => {
 })
 const device = computed(() => {
   const metadata = focusDetail.value?.metadata
-  return [metadata?.cameraModel, metadata?.lensModel].map(value => value?.trim()).filter(Boolean).join(' · ')
+  return [metadata?.cameraModel, metadata?.lensModel]
+    .map(value => value?.trim())
+    .filter(Boolean)
+    .join(' · ')
 })
 
 // Esc steps back out of the detail; with nothing picked it falls through.
@@ -194,7 +204,7 @@ usePageSeo({
       @load="onLoad"
     >
       <template #map>
-        <PhotoMapLayers :points="points" :focus="focus" @pick="pick" @bounds="(next) => (bounds = next)" />
+        <PhotoMapLayers :points="points" :focus="focus" @pick="pick" @bounds="next => (bounds = next)" />
       </template>
 
       <!-- Title only while browsing; the detail takes the space when a photo is open. -->
@@ -229,7 +239,9 @@ usePageSeo({
       <div class="px-3 pb-3">
         <!-- The picked photo -->
         <article v-if="focus" :key="focus.id">
-          <div class="sticky top-0 z-10 -mx-3 mb-2 flex items-center justify-between bg-[var(--mapette-bg)] px-2 py-2 backdrop-blur-xl">
+          <div
+            class="sticky top-0 z-10 -mx-3 mb-2 flex items-center justify-between bg-[var(--mapette-bg)] px-2 py-2 backdrop-blur-xl"
+          >
             <UButton color="neutral" variant="ghost" size="sm" icon="jannchie:chevron-left" @click="pick(null)">
               {{ t('mapView.back') }}
             </UButton>
@@ -249,7 +261,7 @@ usePageSeo({
             :style="{ aspectRatio: `${focus.width} / ${focus.height}` }"
             :title="t('mapView.openPhoto')"
           >
-            <img :src="thumb(focus.imageUrl, 720)" :alt="photoTitle(focus)" class="block h-full w-full object-cover">
+            <img :src="thumb(focus.imageUrl, 720)" :alt="photoTitle(focus)" class="block h-full w-full object-cover" />
           </NuxtLink>
           <h2 class="mt-3 text-[15px] font-semibold leading-snug text-highlighted [overflow-wrap:anywhere]">
             {{ photoTitle(focus) }}
@@ -285,7 +297,11 @@ usePageSeo({
             </div>
           </dl>
           <ul v-if="exposure.length > 0" class="mt-3 grid grid-cols-[repeat(auto-fit,minmax(68px,1fr))] gap-1.5">
-            <li v-for="entry in exposure" :key="entry.label" class="flex flex-col gap-0.5 rounded-md bg-muted px-2.5 py-2">
+            <li
+              v-for="entry in exposure"
+              :key="entry.label"
+              class="flex flex-col gap-0.5 rounded-md bg-muted px-2.5 py-2"
+            >
               <span class="text-[11px] text-dimmed">{{ entry.label }}</span>
               <b class="num-tabular text-[13px] font-semibold text-highlighted">{{ entry.value }}</b>
             </li>
@@ -296,7 +312,14 @@ usePageSeo({
               {{ t('mapView.openPhoto') }}
             </UButton>
             <div class="flex gap-2">
-              <UButton class="flex-1" block color="neutral" variant="soft" icon="jannchie:focus" @click="showOnMap(focus)">
+              <UButton
+                class="flex-1"
+                block
+                color="neutral"
+                variant="soft"
+                icon="jannchie:focus"
+                @click="showOnMap(focus)"
+              >
                 {{ t('mapView.showOnMap') }}
               </UButton>
               <UButton
@@ -318,7 +341,11 @@ usePageSeo({
         <!-- Photos in the visible area -->
         <section v-else>
           <p class="num-tabular mx-1 mb-2.5 text-xs text-dimmed">
-            {{ inView.length > LIST_LIMIT ? t('mapView.inViewTruncated', { count: inView.length, shown: LIST_LIMIT }) : t('mapView.inView', inView.length) }}
+            {{
+              inView.length > LIST_LIMIT
+                ? t('mapView.inViewTruncated', { count: inView.length, shown: LIST_LIMIT })
+                : t('mapView.inView', inView.length)
+            }}
           </p>
           <p v-if="!pending && inView.length === 0" class="mx-1 text-[13px] text-dimmed">
             {{ points.length === 0 ? t('mapView.empty') : t('mapView.emptyHere') }}
@@ -337,9 +364,11 @@ usePageSeo({
                 alt=""
                 loading="lazy"
                 class="aspect-[4/3] w-full rounded-md bg-muted object-cover -outline-offset-2 group-hover:outline-2 group-hover:outline-[var(--mapette-accent)] group-focus-visible:outline-2 group-focus-visible:outline-[var(--mapette-accent)]"
-              >
+              />
               <span class="line-clamp-1 text-xs text-toned">{{ photoTitle(point) }}</span>
-              <span v-if="point.captureTime" class="num-tabular -mt-1 text-[11px] text-dimmed">{{ formatDate(point.captureTime) }}</span>
+              <span v-if="point.captureTime" class="num-tabular -mt-1 text-[11px] text-dimmed">{{
+                formatDate(point.captureTime)
+              }}</span>
             </button>
           </div>
         </section>
@@ -348,9 +377,21 @@ usePageSeo({
       <template #footer>
         <div class="flex items-center gap-1 px-2 py-1.5 text-[11px] text-dimmed">
           <span class="min-w-0 flex-1 truncate px-1">
-            <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="hover:text-fg-highlighted">© OpenStreetMap</a>
+            <a
+              href="https://www.openstreetmap.org/copyright"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-fg-highlighted"
+              >© OpenStreetMap</a
+            >
             ·
-            <a href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer" class="hover:text-fg-highlighted">OpenFreeMap</a>
+            <a
+              href="https://openfreemap.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-fg-highlighted"
+              >OpenFreeMap</a
+            >
           </span>
           <UThemeToggle />
           <LanguageSwitcher />

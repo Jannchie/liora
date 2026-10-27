@@ -42,13 +42,11 @@ async function handleSubmit(): Promise<void> {
       body: { username: form.username, password: form.password },
     })
     await navigateTo('/admin')
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : t('admin.login.errorFallback')
     errorMessage.value = message
     toast.add({ title: t('admin.login.toastFailed'), description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     submitting.value = false
   }
 }
@@ -113,14 +111,7 @@ async function handleSubmit(): Promise<void> {
             </template>
           </UAlert>
 
-          <UButton
-            type="submit"
-            color="primary"
-            variant="solid"
-            block
-            :loading="submitting"
-            icon="jannchie:login"
-          >
+          <UButton type="submit" color="primary" variant="solid" block :loading="submitting" icon="jannchie:login">
             {{ t('admin.login.submit') }}
           </UButton>
         </UForm>

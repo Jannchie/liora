@@ -82,7 +82,12 @@ const classifySource = computed(() => props.classifySource ?? { file: null, imag
 const replacePreviewUrl = ref<string>('')
 const replaceInput = ref<HTMLInputElement | null>(null)
 const replaceFileName = computed(() => replaceFile.value?.name ?? '')
-const { data: seriesOptionsData, pending: seriesOptionsPending, error: seriesOptionsError, refresh: refreshSeriesOptions } = useFetch<SeriesSummary[]>('/api/series', {
+const {
+  data: seriesOptionsData,
+  pending: seriesOptionsPending,
+  error: seriesOptionsError,
+  refresh: refreshSeriesOptions,
+} = useFetch<SeriesSummary[]>('/api/series', {
   default: () => [],
   server: false,
   immediate: false,
@@ -129,9 +134,9 @@ const mergedSeriesOptionItems = computed<SeriesOptionItem[]>(() => {
 })
 const selectedSeriesValues = computed<number[]>({
   get: () => seriesIds.value,
-  set: (values) => {
+  set: values => {
     const normalized = values
-      .map((value) => {
+      .map(value => {
         if (typeof value === 'number') {
           return Number.isInteger(value) && value > 0 ? value : null
         }
@@ -220,7 +225,7 @@ async function detectReplaceSize(file: File): Promise<void> {
   const objectUrl = URL.createObjectURL(file)
   replacePreviewUrl.value = objectUrl
   try {
-    const size = await new Promise<{ width: number, height: number }>((resolve, reject) => {
+    const size = await new Promise<{ width: number; height: number }>((resolve, reject) => {
       const img = new Image()
       img.addEventListener('load', () => resolve({ width: img.naturalWidth, height: img.naturalHeight }))
       img.addEventListener('error', () => reject(new Error(t('admin.upload.toast.sizeReadError'))))
@@ -228,8 +233,7 @@ async function detectReplaceSize(file: File): Promise<void> {
     })
     form.value.width = size.width
     form.value.height = size.height
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : t('admin.upload.toast.sizeFailedFallback')
     toast.add({ title: t('admin.upload.toast.sizeFailed'), description: message, color: 'error' })
     clearReplaceSelection()
@@ -248,14 +252,11 @@ async function handleReplaceChange(event: Event): Promise<void> {
   await detectReplaceSize(file)
 }
 
-watch(
-  open,
-  (isOpen) => {
-    if (isOpen) {
-      void refreshSeriesOptions()
-    }
-  },
-)
+watch(open, isOpen => {
+  if (isOpen) {
+    void refreshSeriesOptions()
+  }
+})
 </script>
 
 <template>
@@ -268,7 +269,8 @@ watch(
     :ui="{
       overlay: 'z-70',
       wrapper: 'z-71',
-      content: 'fixed inset-0 z-72 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
+      content:
+        'fixed inset-0 z-72 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
     }"
   >
     <template #content>
@@ -278,10 +280,13 @@ watch(
         split into a preview pane and a metadata pane by a single rule.
       -->
       <div class="flex h-full flex-col bg-bg">
-        <header class="wire-bar sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-8">
+        <header
+          class="wire-bar sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-8"
+        >
           <div class="min-w-0 space-y-0.5">
             <p class="label-caption">
-              {{ t('common.actions.edit') }}<template v-if="file">
+              {{ t('common.actions.edit')
+              }}<template v-if="file">
                 · <span class="num-tabular">#{{ file.id }}</span>
               </template>
             </p>
@@ -289,7 +294,14 @@ watch(
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="ghost" color="neutral" icon="jannchie:x" square :aria-label="t('common.actions.close')" @click="handleClose" />
+          <UButton
+            variant="ghost"
+            color="neutral"
+            icon="jannchie:x"
+            square
+            :aria-label="t('common.actions.close')"
+            @click="handleClose"
+          />
         </header>
         <div class="relative flex-1 overflow-y-auto">
           <UForm
@@ -302,7 +314,9 @@ watch(
               v-if="file && effectivePreviewAttrs"
               class="w-full border-b border-border lg:w-112 lg:shrink-0 lg:border-r lg:border-b-0"
             >
-              <div class="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 sm:px-6">
+              <div
+                class="flex min-h-12 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2 sm:px-6"
+              >
                 <p class="label-caption">
                   {{ t('admin.files.table.headers.preview') }}
                 </p>
@@ -367,7 +381,7 @@ watch(
                       :alt="file.title || t('common.labels.untitled')"
                       loading="lazy"
                       class="h-full w-full"
-                    >
+                    />
                   </RecomposeFrame>
                 </div>
                 <img
@@ -381,18 +395,16 @@ watch(
                   :height="effectivePreviewAttrs.height || file.height"
                   loading="lazy"
                   class="h-auto max-h-[70vh] w-auto max-w-full object-contain"
-                >
+                />
               </div>
-              <dl class="num-tabular flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-3 text-xs sm:px-6">
+              <dl
+                class="num-tabular flex flex-wrap items-baseline gap-x-3 gap-y-1 border-b border-border px-4 py-3 text-xs sm:px-6"
+              >
                 <dd class="min-w-0 truncate font-mono text-highlighted">
                   {{ replaceFileName || file.originalName || file.title || t('common.labels.untitled') }}
                 </dd>
-                <dd v-if="replaceFile" class="text-dimmed">
-                  {{ (replaceFile.size / 1024 / 1024).toFixed(2) }} MB
-                </dd>
-                <dd v-if="form.width && form.height" class="text-dimmed">
-                  {{ form.width }} × {{ form.height }}
-                </dd>
+                <dd v-if="replaceFile" class="text-dimmed">{{ (replaceFile.size / 1024 / 1024).toFixed(2) }} MB</dd>
+                <dd v-if="form.width && form.height" class="text-dimmed">{{ form.width }} × {{ form.height }}</dd>
               </dl>
               <div v-if="depthMapUrl" class="border-b border-border">
                 <div class="flex min-h-11 items-center justify-between gap-2 border-b border-border px-4 py-2 sm:px-6">
@@ -411,16 +423,10 @@ watch(
                     :height="depthMapHeight ?? undefined"
                     loading="lazy"
                     class="h-auto max-h-64 w-auto max-w-full object-contain"
-                  >
+                  />
                 </div>
               </div>
-              <input
-                ref="replaceInput"
-                type="file"
-                accept="image/*"
-                class="hidden"
-                @change="handleReplaceChange"
-              >
+              <input ref="replaceInput" type="file" accept="image/*" class="hidden" @change="handleReplaceChange" />
             </aside>
 
             <!-- METADATA PANE -->
@@ -467,16 +473,14 @@ watch(
                             {{ item.label }}
                           </p>
                           <p class="truncate text-[11px] text-dimmed">
-                            <span class="font-mono">/{{ item.slug }}</span> · <span class="num-tabular">{{ t('series.list.count', { count: item.fileCount }) }}</span>
+                            <span class="font-mono">/{{ item.slug }}</span> ·
+                            <span class="num-tabular">{{ t('series.list.count', { count: item.fileCount }) }}</span>
                           </p>
                         </div>
                       </template>
                     </UInputMenu>
 
-                    <p
-                      v-if="!seriesOptionsPending && seriesOptionItems.length === 0"
-                      class="text-xs text-dimmed"
-                    >
+                    <p v-if="!seriesOptionsPending && seriesOptionItems.length === 0" class="text-xs text-dimmed">
                       {{ t('series.assign.noSeries') }}
                     </p>
                   </div>
@@ -496,7 +500,9 @@ watch(
               />
             </div>
           </UForm>
-          <footer class="wire-bar sticky bottom-0 z-10 flex items-center justify-end gap-2 border-t border-border px-4 py-3 sm:px-8">
+          <footer
+            class="wire-bar sticky bottom-0 z-10 flex items-center justify-end gap-2 border-t border-border px-4 py-3 sm:px-8"
+          >
             <template v-if="isQueue">
               <span class="num-tabular mr-auto text-xs text-dimmed">
                 {{ t('admin.files.locationQueue.remaining', { count: queueRemaining ?? 0 }) }}
@@ -521,24 +527,14 @@ watch(
               <UButton variant="ghost" color="neutral" @click="handleClose">
                 {{ t('common.actions.cancel') }}
               </UButton>
-              <UButton
-                color="primary"
-                type="button"
-                :loading="loading"
-                icon="jannchie:save"
-                @click="handleSubmit"
-              >
+              <UButton color="primary" type="button" :loading="loading" icon="jannchie:save" @click="handleSubmit">
                 {{ t('common.actions.save') }}
               </UButton>
             </template>
           </footer>
         </div>
       </div>
-      <AdminRecomposeEditorModal
-        v-model:open="recomposeOpen"
-        :file="file"
-        @saved="handleRecomposeSaved"
-      />
+      <AdminRecomposeEditorModal v-model:open="recomposeOpen" :file="file" @saved="handleRecomposeSaved" />
     </template>
   </UModal>
 </template>

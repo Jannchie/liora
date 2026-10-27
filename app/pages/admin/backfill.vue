@@ -73,16 +73,14 @@ async function run(command: BackfillCommand): Promise<void> {
       description: t(`admin.backfill.commands.${command.key}.title`),
       color: 'success',
     })
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : t('admin.backfill.toast.failedFallback')
     toast.add({
       title: t('admin.backfill.toast.failed'),
       description: message,
       color: 'error',
     })
-  }
-  finally {
+  } finally {
     runningKey.value = null
   }
 }
@@ -90,10 +88,7 @@ async function run(command: BackfillCommand): Promise<void> {
 
 <template>
   <div>
-    <UPageHeader
-      :title="t('admin.backfill.title')"
-      :description="t('admin.backfill.seoDescription')"
-    />
+    <UPageHeader :title="t('admin.backfill.title')" :description="t('admin.backfill.seoDescription')" />
 
     <div class="wire-band">
       <UAlert

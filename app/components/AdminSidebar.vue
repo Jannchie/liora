@@ -10,19 +10,17 @@ const { items, isActive } = useAdminNavItems()
 </script>
 
 <template>
-  <aside class="sticky top-[var(--admin-header-h)] h-[calc(100vh-var(--admin-header-h))] self-start overflow-y-auto border-r border-border px-2.5 pb-10 pt-5">
-    <p class="label-caption px-2.5 pb-2.5">
-      {{ t('admin.nav.label') }} · {{ items.length }}
-    </p>
+  <aside
+    class="sticky top-[var(--admin-header-h)] h-[calc(100vh-var(--admin-header-h))] self-start overflow-y-auto border-r border-border px-2.5 pb-10 pt-5"
+  >
+    <p class="label-caption px-2.5 pb-2.5">{{ t('admin.nav.label') }} · {{ items.length }}</p>
     <nav class="flex flex-col gap-px" :aria-label="t('admin.nav.label')">
       <NuxtLink
         v-for="item in items"
         :key="item.to"
         :to="item.to"
         class="group flex items-center gap-2 rounded-md px-2.5 py-[5px] text-[13.5px] outline-none transition-colors focus-visible:shadow-[var(--ring-focus)]"
-        :class="isActive(item.to)
-          ? 'bg-muted text-highlighted'
-          : 'text-muted hover:bg-muted hover:text-fg-highlighted'"
+        :class="isActive(item.to) ? 'bg-muted text-highlighted' : 'text-muted hover:bg-muted hover:text-fg-highlighted'"
         :aria-current="isActive(item.to) ? 'page' : undefined"
       >
         <Icon

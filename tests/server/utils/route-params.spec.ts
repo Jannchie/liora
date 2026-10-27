@@ -22,6 +22,8 @@ describe('server/utils/route-params', () => {
       },
     }
     expect(requirePositiveIntRouterParam(event as never, 'id', 'Invalid file id.')).toBe(7)
-    expect(() => requirePositiveIntRouterParam({ context: { params: {} } } as never, 'id', 'Invalid file id.')).toThrowError('Invalid file id.')
+    expect(() =>
+      requirePositiveIntRouterParam({ context: { params: {} } } as never, 'id', 'Invalid file id.'),
+    ).toThrowError('Invalid file id.')
   })
 })

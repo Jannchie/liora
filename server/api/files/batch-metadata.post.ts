@@ -3,15 +3,10 @@ import type { BatchActionResult, BatchMetadataField, BatchMetadataPayload } from
 import { eq, inArray } from 'drizzle-orm'
 import { readBody } from 'h3'
 import { parseBatchMetadataPayload, pickMaskedChanges } from '../../domain/files/batch'
-import {
-  requireNullableNumber,
-  requirePositiveNumber,
-  requireTrimmedString,
-} from '../../domain/files/field-parsers'
+import { requireNullableNumber, requirePositiveNumber, requireTrimmedString } from '../../domain/files/field-parsers'
 import {
   mergeMetadataTextUpdates,
   METADATA_TEXT_FIELDS,
-
   normalizeMetadataTextUpdates,
   parseCharacters,
   validateLengths,
@@ -68,18 +63,12 @@ export default defineEventHandler(async (event): Promise<BatchActionResult> => {
       const currentCharacters = mapCharacters(current.characterList)
       const currentMetadata = ensureMetadata(current.metadata, buildMetadataFallbacks(current, currentCharacters))
 
-      const nextTitle = hasField(maskSet, 'title')
-        ? requireTrimmedString(maskedChanges.title, 'title')
-        : current.title
+      const nextTitle = hasField(maskSet, 'title') ? requireTrimmedString(maskedChanges.title, 'title') : current.title
       const nextDescription = hasField(maskSet, 'description')
         ? requireTrimmedString(maskedChanges.description, 'description')
         : current.description
-      const nextGenre = hasField(maskSet, 'genre')
-        ? requireTrimmedString(maskedChanges.genre, 'genre')
-        : current.genre
-      const nextWidth = hasField(maskSet, 'width')
-        ? requirePositiveNumber(maskedChanges.width, 'width')
-        : current.width
+      const nextGenre = hasField(maskSet, 'genre') ? requireTrimmedString(maskedChanges.genre, 'genre') : current.genre
+      const nextWidth = hasField(maskSet, 'width') ? requirePositiveNumber(maskedChanges.width, 'width') : current.width
       const nextHeight = hasField(maskSet, 'height')
         ? requirePositiveNumber(maskedChanges.height, 'height')
         : current.height
@@ -136,8 +125,7 @@ export default defineEventHandler(async (event): Promise<BatchActionResult> => {
         .where(eq(files.id, fileId))
 
       success += 1
-    }
-    catch (error) {
+    } catch (error) {
       failures.push({
         id: fileId,
         message: error instanceof Error ? error.message : 'Failed to update metadata.',

@@ -29,7 +29,7 @@ type IconClass = string | string[] | Record<string, boolean>
 
 const attrs = useAttrs()
 
-const collection = simpleIcons as { icons: Record<string, SimpleIcon>, width?: number, height?: number }
+const collection = simpleIcons as { icons: Record<string, SimpleIcon>; width?: number; height?: number }
 const collectionWidth = collection.width ?? 24
 const collectionHeight = collection.height ?? 24
 
@@ -71,8 +71,7 @@ async function measureBoundingBox(): Promise<void> {
       measuredBox.value = { x: box.x, y: box.y, width: box.width, height: box.height }
       return
     }
-  }
-  catch {
+  } catch {
     // ignore getBBox errors
   }
   measuredBox.value = null

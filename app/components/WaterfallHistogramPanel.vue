@@ -82,22 +82,25 @@ watch(() => props.histogram, render, { flush: 'post' })
 
 // A GPU reset drops every canvas's backing store; the browser restores the
 // context empty, so draw again instead of leaving a blank plate.
-watch(histogramCanvasRef, (canvas, previous) => {
-  resizeObserver?.disconnect()
-  resizeObserver = null
-  previous?.removeEventListener('contextrestored', render)
-  if (canvas) {
-    canvas.addEventListener('contextrestored', render)
-    // The observer's first callback is also the first draw.
-    if (typeof ResizeObserver === 'undefined') {
-      render()
+watch(
+  histogramCanvasRef,
+  (canvas, previous) => {
+    resizeObserver?.disconnect()
+    resizeObserver = null
+    previous?.removeEventListener('contextrestored', render)
+    if (canvas) {
+      canvas.addEventListener('contextrestored', render)
+      // The observer's first callback is also the first draw.
+      if (typeof ResizeObserver === 'undefined') {
+        render()
+      } else {
+        resizeObserver = new ResizeObserver(() => render())
+        resizeObserver.observe(canvas)
+      }
     }
-    else {
-      resizeObserver = new ResizeObserver(() => render())
-      resizeObserver.observe(canvas)
-    }
-  }
-}, { flush: 'post' })
+  },
+  { flush: 'post' },
+)
 
 onBeforeUnmount(() => {
   histogramCanvasRef.value?.removeEventListener('contextrestored', render)
@@ -120,10 +123,7 @@ onBeforeUnmount(() => {
     </p>
     <div class="relative h-20 w-full border-t border-border bg-[#0c0c0c]">
       <canvas ref="histogramCanvasRef" class="absolute inset-0 block h-full w-full" />
-      <div
-        v-if="!histogram"
-        class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-white/60"
-      >
+      <div v-if="!histogram" class="absolute inset-0 flex items-center justify-center gap-2 text-xs text-white/60">
         <Icon name="jannchie:loader" class="h-4 w-4 animate-spin" />
         <span>{{ t('gallery.histogram.pending') }}</span>
       </div>

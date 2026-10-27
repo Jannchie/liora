@@ -55,9 +55,10 @@ function parseClassification(raw: string): GenreClassificationResult | null {
           .map(entry => (typeof entry === 'string' ? entry.trim() : ''))
           .filter(entry => entry.length > 0)
       : []
-    const confidence = typeof parsed.confidence === 'number' && Number.isFinite(parsed.confidence)
-      ? Math.min(1, Math.max(0, parsed.confidence))
-      : null
+    const confidence =
+      typeof parsed.confidence === 'number' && Number.isFinite(parsed.confidence)
+        ? Math.min(1, Math.max(0, parsed.confidence))
+        : null
     const reason = typeof parsed.reason === 'string' ? parsed.reason.trim() : ''
     if (!primary && secondary.length === 0 && confidence === null && !reason) {
       return null
@@ -70,8 +71,7 @@ function parseClassification(raw: string): GenreClassificationResult | null {
       model: MODEL_NAME,
       updatedAt: new Date(),
     }
-  }
-  catch {
+  } catch {
     return null
   }
 }
@@ -103,7 +103,10 @@ async function prepareImageBuffer(data: Buffer): Promise<Buffer> {
     .toBuffer()
 }
 
-export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer): Promise<GenreClassificationResult | null> {
+export async function classifyPhotoGenreFromBuffer(
+  event: H3Event,
+  data: Buffer,
+): Promise<GenreClassificationResult | null> {
   const prompt = await loadPrompt()
   const apiKey = resolveApiKey(event)
   const client = createOpenAI({ apiKey })
@@ -124,8 +127,7 @@ export async function classifyPhotoGenreFromBuffer(event: H3Event, data: Buffer)
       ],
     })
     return parseClassification(result.text)
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'TimeoutError') {
       throw createError({ statusCode: 504, statusMessage: 'Image classification timed out.' })
     }
@@ -140,13 +142,12 @@ function assertHttpUrl(rawUrl: string): URL {
       throw createError({ statusCode: 400, statusMessage: 'Only http(s) image URLs are allowed.' })
     }
     return parsed
-  }
-  catch {
+  } catch {
     throw createError({ statusCode: 400, statusMessage: 'Invalid image URL.' })
   }
 }
 
-async function fetchImageBuffer(rawUrl: string): Promise<{ buffer: Buffer, contentType: string }> {
+async function fetchImageBuffer(rawUrl: string): Promise<{ buffer: Buffer; contentType: string }> {
   const url = assertHttpUrl(rawUrl)
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS)
@@ -162,14 +163,12 @@ async function fetchImageBuffer(rawUrl: string): Promise<{ buffer: Buffer, conte
     }
     const arrayBuffer = await response.arrayBuffer()
     return { buffer: Buffer.from(arrayBuffer), contentType }
-  }
-  catch (error) {
+  } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw createError({ statusCode: 504, statusMessage: 'Image fetch timed out.' })
     }
     throw error
-  }
-  finally {
+  } finally {
     clearTimeout(timeout)
   }
 }

@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+/* oxlint-disable no-console */
 // Centralised structured logger for the server runtime.
 //
 // In production each entry is emitted as a single JSON line (time, level, msg,

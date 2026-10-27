@@ -18,11 +18,7 @@ definePageMeta({
 
 const toast = useToast()
 const image = useImage()
-const {
-  saveFileEdit,
-  updateFilesBatchMetadata,
-  addFilesToSeriesBatch,
-} = useFileEditApi()
+const { saveFileEdit, updateFilesBatchMetadata, addFilesToSeriesBatch } = useFileEditApi()
 const { uploadDepthMap } = useDepthMapUpload()
 
 const pageTitle = computed(() => t('admin.files.seoTitle'))
@@ -63,7 +59,12 @@ useSeoMeta({
   robots: 'noindex, nofollow',
 })
 
-const { data: filesData, pending: pendingFiles, refresh, error: fetchError } = useFetch<FileResponse[]>('/api/files', {
+const {
+  data: filesData,
+  pending: pendingFiles,
+  refresh,
+  error: fetchError,
+} = useFetch<FileResponse[]>('/api/files', {
   default: () => [],
   server: false,
 })
@@ -86,9 +87,9 @@ function hasLocation(file: FileResponse): boolean {
 type FileFilter = 'all' | 'missing-location'
 const fileFilter = ref<FileFilter>('all')
 const missingLocationCount = computed(() => files.value.filter(file => !hasLocation(file)).length)
-const filteredFiles = computed<FileResponse[]>(() => (
-  fileFilter.value === 'missing-location' ? files.value.filter(file => !hasLocation(file)) : files.value
-))
+const filteredFiles = computed<FileResponse[]>(() =>
+  fileFilter.value === 'missing-location' ? files.value.filter(file => !hasLocation(file)) : files.value,
+)
 
 function setFileFilter(next: FileFilter): void {
   fileFilter.value = next
@@ -114,8 +115,7 @@ const sortedFiles = computed<FileResponse[]>(() => {
     const insertIndex = result.findIndex(existing => compare(item, existing) < 0)
     if (insertIndex === -1) {
       result.push(item)
-    }
-    else {
+    } else {
       result.splice(insertIndex, 0, item)
     }
   }
@@ -139,7 +139,9 @@ const paginatedFiles = computed<FileRow[]>(() => {
   }))
 })
 const recordCountText = computed(() => t('common.labels.recordCount', { count: totalFiles.value }))
-const paginationText = computed(() => t('common.labels.pageIndicator', { page: page.value, pageCount: pageCount.value }))
+const paginationText = computed(() =>
+  t('common.labels.pageIndicator', { page: page.value, pageCount: pageCount.value }),
+)
 const tableEmptyText = computed(() => t('admin.files.table.empty'))
 const untitledLabel = computed(() => t('common.labels.untitled'))
 const unknownLabel = computed(() => t('common.labels.unknown'))
@@ -181,19 +183,23 @@ const batchProgressPercent = computed(() => {
   }
   return Math.min(100, (batchProgress.processed / batchProgress.total) * 100)
 })
-const batchProgressLabel = computed(() => t('admin.files.batch.progress', {
-  processed: batchProgress.processed,
-  total: batchProgress.total,
-}))
-const batchProgressSummary = computed(() => t('admin.files.batch.summary', {
-  success: batchProgress.success,
-  failed: batchProgress.failed,
-  skipped: batchProgress.skipped,
-}))
+const batchProgressLabel = computed(() =>
+  t('admin.files.batch.progress', {
+    processed: batchProgress.processed,
+    total: batchProgress.total,
+  }),
+)
+const batchProgressSummary = computed(() =>
+  t('admin.files.batch.summary', {
+    success: batchProgress.success,
+    failed: batchProgress.failed,
+    skipped: batchProgress.skipped,
+  }),
+)
 
 watch(
   () => totalFiles.value,
-  (count) => {
+  count => {
     const maxPage = Math.max(1, Math.ceil(count / pageSize.value))
     if (page.value > maxPage) {
       page.value = maxPage
@@ -206,7 +212,11 @@ const tableColumns = computed(() => [
   { id: 'select', header: t('admin.files.table.headers.select'), accessorFn: (row: FileResponse) => row.id },
   { id: 'preview', header: t('admin.files.table.headers.preview'), accessorFn: (row: FileResponse) => row.imageUrl },
   { id: 'file', header: t('admin.files.table.headers.file'), accessorFn: (row: FileResponse) => row.originalName },
-  { id: 'captureTime', header: t('admin.files.table.headers.captureTime'), accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt },
+  {
+    id: 'captureTime',
+    header: t('admin.files.table.headers.captureTime'),
+    accessorFn: (row: FileResponse) => row.metadata.captureTime || row.createdAt,
+  },
   { accessorKey: 'createdAt', id: 'createdAt', header: t('admin.files.table.headers.createdAt') },
   { id: 'actions', header: t('admin.files.table.headers.actions'), accessorFn: (row: FileResponse) => row.id },
 ])
@@ -216,7 +226,9 @@ const selectedFileIdSet = computed(() => new Set(selectedFileIds.value))
 const selectedCount = computed(() => selectedFileIds.value.length)
 const pageFileIds = computed<number[]>(() => paginatedFiles.value.map(file => file.id))
 const selectedCountOnPage = computed(() => pageFileIds.value.filter(id => selectedFileIdSet.value.has(id)).length)
-const allOnPageSelected = computed(() => pageFileIds.value.length > 0 && selectedCountOnPage.value === pageFileIds.value.length)
+const allOnPageSelected = computed(
+  () => pageFileIds.value.length > 0 && selectedCountOnPage.value === pageFileIds.value.length,
+)
 const someOnPageSelected = computed(() => selectedCountOnPage.value > 0 && !allOnPageSelected.value)
 
 const bulkMetadataModalOpen = ref(false)
@@ -230,7 +242,7 @@ const bulkSeriesSaving = ref(false)
 const selectedSeriesIdForBatch = ref<number | null>(null)
 const selectedSeriesIdForBatchModel = computed<number | undefined>({
   get: () => selectedSeriesIdForBatch.value ?? undefined,
-  set: (value) => {
+  set: value => {
     selectedSeriesIdForBatch.value = typeof value === 'number' ? value : null
   },
 })
@@ -240,7 +252,7 @@ const { data: seriesOptionsData, refresh: refreshSeriesOptions } = useFetch<Seri
   immediate: false,
 })
 
-const batchEditableFields = computed<Array<{ key: BatchMetadataField, label: string }>>(() => [
+const batchEditableFields = computed<Array<{ key: BatchMetadataField; label: string }>>(() => [
   { key: 'title', label: t('admin.files.form.title.label') },
   { key: 'description', label: t('admin.files.form.description.label') },
   { key: 'genre', label: t('admin.files.form.genre.label') },
@@ -285,19 +297,16 @@ const seriesSelectItems = computed(() => {
 
 watch(
   files,
-  (items) => {
+  items => {
     const available = new Set(items.map(item => item.id))
     selectedFileIds.value = selectedFileIds.value.filter(id => available.has(id))
   },
   { immediate: true },
 )
 
-watch(
-  bulkMetadataCaptureTimeLocal,
-  (value) => {
-    bulkMetadataForm.captureTime = value ? toIsoWithOffset(value) : ''
-  },
-)
+watch(bulkMetadataCaptureTimeLocal, value => {
+  bulkMetadataForm.captureTime = value ? toIsoWithOffset(value) : ''
+})
 
 function hasDepthMap(file: FileResponse): boolean {
   const raw = file.metadata.depthMapUrl
@@ -309,10 +318,12 @@ function hasDepthMap(file: FileResponse): boolean {
 
 const missingDepthFiles = computed<FileResponse[]>(() => files.value.filter(file => !hasDepthMap(file)))
 const missingDepthCount = computed(() => missingDepthFiles.value.length)
-const depthBatchLabel = computed(() => t('admin.files.actions.depthBatch', {
-  count: missingDepthCount.value,
-  locale: locale.value,
-}))
+const depthBatchLabel = computed(() =>
+  t('admin.files.actions.depthBatch', {
+    count: missingDepthCount.value,
+    locale: locale.value,
+  }),
+)
 
 /** Contain-fit box for the framed composition inside the square 56x56 table thumbnail. */
 function resolveFramedThumbStyle(file: FileResponse): Record<string, string> {
@@ -350,9 +361,9 @@ function resolvePreviewImage(file: FileResponse): ImageAttributes {
     modifiers,
     sizes: '112px',
   })
-  const resolvedSrc
-    = sizes.src
-    ?? image.getImage(source, {
+  const resolvedSrc =
+    sizes.src ??
+    image.getImage(source, {
       modifiers,
     }).url
   return {
@@ -400,8 +411,7 @@ function compareValues(a: string | number | undefined, b: string | number | unde
 function handleSort(column: SortKey): void {
   if (sortKey.value === column) {
     sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-  }
-  else {
+  } else {
     sortKey.value = column
     sortDirection.value = 'desc'
   }
@@ -482,12 +492,10 @@ async function generateDepthMap(file: FileResponse): Promise<void> {
         editingFile.value = updated
       }
     }
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.depthFailedFallback
     toast.add({ title: toastMessages.value.depthFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     depthProcessing[file.id] = false
   }
 }
@@ -522,11 +530,9 @@ async function generateMissingDepthMaps(): Promise<void> {
           missingImageMessage: toastMessages.value.depthFailedFallback,
         })
         batchProgress.success += 1
-      }
-      catch {
+      } catch {
         batchProgress.failed += 1
-      }
-      finally {
+      } finally {
         depthProcessing[file.id] = false
         batchProgress.processed += 1
       }
@@ -551,8 +557,7 @@ async function generateMissingDepthMaps(): Promise<void> {
       description: t('admin.files.toast.depthBatchSummary', summaryParams),
       color: hasFailures ? 'warning' : 'primary',
     })
-  }
-  finally {
+  } finally {
     bulkDepthProcessing.value = false
   }
 }
@@ -569,7 +574,7 @@ type EditableForm = MediaFormState
 const editForm = reactive<EditableForm>(createEmptyMediaFormState())
 const editFormModel = computed<EditableForm>({
   get: () => editForm,
-  set: (value) => {
+  set: value => {
     Object.assign(editForm, value)
   },
 })
@@ -659,18 +664,20 @@ async function saveEdit(options: { keepOpen?: boolean } = {}): Promise<boolean> 
     })
     filesData.value = filesData.value?.map(file => (file.id === updated.id ? updated : file)) ?? []
     editingFile.value = updated
-    toast.add({ title: toastMessages.value.updateSuccess, description: toastMessages.value.updateSuccessDescription, color: 'primary' })
+    toast.add({
+      title: toastMessages.value.updateSuccess,
+      description: toastMessages.value.updateSuccessDescription,
+      color: 'primary',
+    })
     if (!options.keepOpen) {
       closeEdit()
     }
     return true
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.updateFailedFallback
     toast.add({ title: toastMessages.value.updateFailed, description: message, color: 'error' })
     return false
-  }
-  finally {
+  } finally {
     updating.value = false
   }
 }
@@ -775,12 +782,10 @@ async function saveBulkMetadata(): Promise<void> {
     if (!hasFailures) {
       bulkMetadataModalOpen.value = false
     }
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.bulkFailedFallback
     toast.add({ title: toastMessages.value.bulkMetadataFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     bulkMetadataSaving.value = false
   }
 }
@@ -812,12 +817,10 @@ async function saveBulkSeries(): Promise<void> {
     if (!hasFailures) {
       bulkSeriesModalOpen.value = false
     }
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.bulkFailedFallback
     toast.add({ title: toastMessages.value.bulkSeriesFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     bulkSeriesSaving.value = false
   }
 }
@@ -850,12 +853,10 @@ async function reclassifyMissing(): Promise<void> {
         color: 'warning',
       })
     }
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.classifyFailedFallback
     toast.add({ title: toastMessages.value.classifyFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     reclassifying.value = false
   }
 }
@@ -874,12 +875,10 @@ async function confirmDelete(): Promise<void> {
     await $fetch(`/api/files/${deleteTarget.value.id}`, { method: 'DELETE' })
     filesData.value = filesData.value?.filter(item => item.id !== deleteTarget.value?.id) ?? []
     deleteModalOpen.value = false
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : toastMessages.value.deleteFailedFallback
     toast.add({ title: toastMessages.value.deleteFailed, description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     deletingId.value = null
   }
 }
@@ -890,7 +889,7 @@ async function handleRefresh(): Promise<void> {
   clearSelection()
 }
 
-watch(fetchError, (value) => {
+watch(fetchError, value => {
   if (value) {
     toast.add({ title: toastMessages.value.loadFailed, description: value.message, color: 'error' })
   }
@@ -899,9 +898,7 @@ watch(fetchError, (value) => {
 
 <template>
   <div>
-    <UPageHeader
-      :title="t('admin.files.title')"
-    >
+    <UPageHeader :title="t('admin.files.title')">
       <template #actions>
         <UButton
           color="neutral"
@@ -925,23 +922,14 @@ watch(fetchError, (value) => {
         >
           {{ depthBatchLabel }}
         </UButton>
-        <UButton
-          color="primary"
-          size="sm"
-          :loading="isLoading"
-          icon="jannchie:refresh"
-          @click="handleRefresh"
-        >
+        <UButton color="primary" size="sm" :loading="isLoading" icon="jannchie:refresh" @click="handleRefresh">
           {{ t('admin.files.actions.refresh') }}
         </UButton>
       </template>
     </UPageHeader>
 
     <!-- Batch depth progress: its own band, a 2px ink-on-hairline track. -->
-    <section
-      v-if="showBatchProgress"
-      class="wire-band space-y-2.5"
-    >
+    <section v-if="showBatchProgress" class="wire-band space-y-2.5">
       <div class="label-caption flex items-center justify-between gap-2">
         <span class="flex items-center gap-1.5">
           <Icon name="jannchie:layers" class="h-3.5 w-3.5" />
@@ -950,10 +938,7 @@ watch(fetchError, (value) => {
         <span class="num-tabular">{{ batchProgressPercent.toFixed(1) }}%</span>
       </div>
       <div class="h-0.5 w-full overflow-hidden bg-border-strong">
-        <div
-          class="h-full bg-primary transition-all"
-          :style="{ width: `${batchProgressPercent}%` }"
-        />
+        <div class="h-full bg-primary transition-all" :style="{ width: `${batchProgressPercent}%` }" />
       </div>
       <div class="num-tabular flex flex-wrap items-center justify-between gap-2 text-xs text-dimmed">
         <span>{{ batchProgressLabel }}</span>
@@ -968,7 +953,9 @@ watch(fetchError, (value) => {
       line to the shell's edge.
     -->
     <section class="border-b border-border">
-      <header class="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5 sm:px-8">
+      <header
+        class="flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5 sm:px-8"
+      >
         <span class="label-caption flex shrink-0 items-center gap-2">
           <Icon name="jannchie:table" class="h-3.5 w-3.5" />
           <span>{{ t('admin.files.section.title') }}</span>
@@ -1007,41 +994,17 @@ watch(fetchError, (value) => {
         <span class="num-tabular mr-2 text-xs text-highlighted">
           {{ t('admin.files.bulk.selected', { count: selectedCount }) }}
         </span>
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="outline"
-          icon="jannchie:edit"
-          @click="openBulkMetadataModal"
-        >
+        <UButton size="xs" color="neutral" variant="outline" icon="jannchie:edit" @click="openBulkMetadataModal">
           {{ t('admin.files.bulk.editMetadata') }}
         </UButton>
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="outline"
-          icon="jannchie:upload"
-          @click="openBulkSeriesModal"
-        >
+        <UButton size="xs" color="neutral" variant="outline" icon="jannchie:upload" @click="openBulkSeriesModal">
           {{ t('admin.files.bulk.addToSeries') }}
         </UButton>
-        <UButton
-          size="xs"
-          color="neutral"
-          variant="ghost"
-          icon="jannchie:x"
-          @click="clearSelection"
-        >
+        <UButton size="xs" color="neutral" variant="ghost" icon="jannchie:x" @click="clearSelection">
           {{ t('admin.files.bulk.clearSelection') }}
         </UButton>
       </div>
-      <UTable
-        :columns="tableColumns"
-        :data="paginatedFiles"
-        :loading="isLoading"
-        :empty="tableEmptyText"
-        :ui="tableUi"
-      >
+      <UTable :columns="tableColumns" :data="paginatedFiles" :loading="isLoading" :empty="tableEmptyText" :ui="tableUi">
         <template #select-header>
           <div class="flex items-center">
             <input
@@ -1050,7 +1013,7 @@ watch(fetchError, (value) => {
               :aria-label="t('admin.files.bulk.selectPage')"
               class="h-3.5 w-3.5 cursor-pointer accent-primary"
               @change="toggleSelectOnPage(($event.target as HTMLInputElement).checked)"
-            >
+            />
             <span v-if="someOnPageSelected" class="sr-only">{{ t('admin.files.bulk.partialSelected') }}</span>
           </div>
         </template>
@@ -1095,17 +1058,13 @@ watch(fetchError, (value) => {
               :aria-label="t('admin.files.bulk.selectOne', { id: row.original.id })"
               class="h-3.5 w-3.5 cursor-pointer accent-primary"
               @change="toggleFileSelection(row.original.id, ($event.target as HTMLInputElement).checked)"
-            >
+            />
           </div>
         </template>
         <template #preview-cell="{ row }">
           <!-- Square, square-cornered thumbnail on a sunken well. -->
           <div class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-none bg-muted">
-            <div
-              v-if="row.original.metadata.recompose"
-              class="relative"
-              :style="resolveFramedThumbStyle(row.original)"
-            >
+            <div v-if="row.original.metadata.recompose" class="relative" :style="resolveFramedThumbStyle(row.original)">
               <RecomposeFrame :params="row.original.metadata.recompose">
                 <img
                   :key="row.original.id"
@@ -1113,7 +1072,7 @@ watch(fetchError, (value) => {
                   loading="lazy"
                   class="h-full w-full"
                   v-bind="resolvePreviewImage(row.original)"
-                >
+                />
               </RecomposeFrame>
             </div>
             <img
@@ -1123,7 +1082,7 @@ watch(fetchError, (value) => {
               loading="lazy"
               class="h-full w-full object-cover"
               v-bind="resolvePreviewImage(row.original)"
-            >
+            />
           </div>
         </template>
         <!--
@@ -1159,13 +1118,7 @@ watch(fetchError, (value) => {
         </template>
         <template #actions-cell="{ row }">
           <div class="flex flex-wrap items-center justify-end gap-1">
-            <UButton
-              size="xs"
-              variant="ghost"
-              color="neutral"
-              icon="jannchie:edit"
-              @click="openEdit(row.original)"
-            >
+            <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:edit" @click="openEdit(row.original)">
               {{ t('common.actions.edit') }}
             </UButton>
             <UButton
@@ -1242,12 +1195,7 @@ watch(fetchError, (value) => {
         <UButton variant="ghost" color="neutral" @click="deleteModalOpen = false">
           {{ t('common.actions.cancel') }}
         </UButton>
-        <UButton
-          color="error"
-          :loading="deletingId !== null"
-          icon="jannchie:trash"
-          @click="confirmDelete"
-        >
+        <UButton color="error" :loading="deletingId !== null" icon="jannchie:trash" @click="confirmDelete">
           {{ t('admin.files.delete.confirm') }}
         </UButton>
       </div>
@@ -1276,16 +1224,17 @@ watch(fetchError, (value) => {
                 type="checkbox"
                 class="h-3.5 w-3.5 cursor-pointer accent-primary"
                 :checked="selectedBatchFields.includes(field.key)"
-                @change="(event) => {
-                  const checked = (event.target as HTMLInputElement).checked
-                  if (checked) {
-                    selectedBatchFields = [...new Set([...selectedBatchFields, field.key])]
+                @change="
+                  event => {
+                    const checked = (event.target as HTMLInputElement).checked
+                    if (checked) {
+                      selectedBatchFields = [...new Set([...selectedBatchFields, field.key])]
+                    } else {
+                      selectedBatchFields = selectedBatchFields.filter(item => item !== field.key)
+                    }
                   }
-                  else {
-                    selectedBatchFields = selectedBatchFields.filter(item => item !== field.key)
-                  }
-                }"
-              >
+                "
+              />
               <span>{{ field.label }}</span>
             </label>
           </div>
@@ -1302,12 +1251,7 @@ watch(fetchError, (value) => {
           <UButton variant="ghost" color="neutral" @click="bulkMetadataModalOpen = false">
             {{ t('common.actions.cancel') }}
           </UButton>
-          <UButton
-            color="primary"
-            type="submit"
-            icon="jannchie:save"
-            :loading="bulkMetadataSaving"
-          >
+          <UButton color="primary" type="submit" icon="jannchie:save" :loading="bulkMetadataSaving">
             {{ t('common.actions.save') }}
           </UButton>
         </div>
@@ -1334,12 +1278,7 @@ watch(fetchError, (value) => {
         <UButton variant="ghost" color="neutral" @click="bulkSeriesModalOpen = false">
           {{ t('common.actions.cancel') }}
         </UButton>
-        <UButton
-          color="primary"
-          icon="jannchie:upload"
-          :loading="bulkSeriesSaving"
-          @click="saveBulkSeries"
-        >
+        <UButton color="primary" icon="jannchie:upload" :loading="bulkSeriesSaving" @click="saveBulkSeries">
           {{ t('admin.files.bulk.confirmAddSeries') }}
         </UButton>
       </div>

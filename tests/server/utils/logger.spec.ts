@@ -13,8 +13,7 @@ function capture(fn: () => void): Captured[] {
   const error = vi.spyOn(console, 'error').mockImplementation((...args) => void calls.push({ level: 'error', args }))
   try {
     fn()
-  }
-  finally {
+  } finally {
     log.mockRestore()
     warn.mockRestore()
     error.mockRestore()

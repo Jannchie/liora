@@ -80,7 +80,7 @@ function toFileResponseSummary(file: FileSummary): FileResponse {
 
 definePageMeta({
   path: String.raw`/series/:slug/:section(photo)?/:id(\d+)?`,
-  validate: (route) => {
+  validate: route => {
     const slug = normalizeRouteParam(route.params.slug)
     if (!slug) {
       return false
@@ -280,8 +280,7 @@ async function ensureRouteFile(): Promise<void> {
     const file = await $fetch<FileResponse>(`/api/files/${targetId}`)
     summaryIds.delete(file.id)
     replaceFile(file)
-  }
-  catch {
+  } catch {
     // Ignore missing route data.
   }
 }
@@ -295,7 +294,7 @@ function setupLoadMoreObserver(): void {
   }
   loadMoreObserver.value?.disconnect()
   loadMoreObserver.value = new IntersectionObserver(
-    (entries) => {
+    entries => {
       if (entries.some(entry => entry.isIntersecting)) {
         void loadMore()
       }
@@ -344,18 +343,16 @@ async function loadMore(): Promise<void> {
     }
     await nextTick()
     refreshLoadMoreObserver()
-  }
-  catch {
+  } catch {
     loadMoreError.value = true
-  }
-  finally {
+  } finally {
     isLoadingMore.value = false
   }
 }
 
 watch(
   data,
-  async (nextData) => {
+  async nextData => {
     seriesDetail.value = nextData ?? null
     syncInitialFiles(nextData ?? null)
     await nextTick()
@@ -416,12 +413,15 @@ onBeforeUnmount(() => {
           <span class="sr-only">{{ t('common.loading') }}</span>
         </template>
         <template v-else>
-          <h1 class="mt-2 flex items-baseline gap-2.5 text-xl font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted">
+          <h1
+            class="mt-2 flex items-baseline gap-2.5 text-xl font-semibold leading-[1.3] tracking-[-0.01em] text-highlighted"
+          >
             {{ displaySeriesTitle }}
             <small
               class="num-tabular text-[13px] font-normal text-dimmed"
               :title="t('series.list.count', { count: seriesDetail?.fileCount ?? files.length })"
-            >{{ seriesDetail?.fileCount ?? files.length }}</small>
+              >{{ seriesDetail?.fileCount ?? files.length }}</small
+            >
           </h1>
           <p class="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-dimmed">
             {{ displaySeriesDescription }}
@@ -430,12 +430,7 @@ onBeforeUnmount(() => {
       </header>
 
       <div v-if="error" class="wire-band">
-        <UAlert
-          color="error"
-          variant="soft"
-          :title="t('series.detail.loadFailed')"
-          :description="error.message"
-        />
+        <UAlert color="error" variant="soft" :title="t('series.detail.loadFailed')" :description="error.message" />
       </div>
 
       <WaterfallGallery
@@ -469,7 +464,10 @@ onBeforeUnmount(() => {
             variant="ghost"
             color="neutral"
             icon="jannchie:refresh"
-            @click="loadMoreError = false; loadMore()"
+            @click="
+              loadMoreError = false
+              loadMore()
+            "
           >
             {{ t('common.actions.retry') }}
           </UButton>

@@ -39,11 +39,13 @@ describe('domain/files/batch', () => {
       notes: '  memo ',
     })
 
-    expect(() => parseBatchMetadataPayload({
-      fileIds: [1],
-      fieldMask: ['title'],
-      changes: { notes: 'x' },
-    })).toThrowError('changes.title is required')
+    expect(() =>
+      parseBatchMetadataPayload({
+        fileIds: [1],
+        fieldMask: ['title'],
+        changes: { notes: 'x' },
+      }),
+    ).toThrowError('changes.title is required')
   })
 
   it('parses batch series payload', () => {
@@ -58,11 +60,13 @@ describe('domain/files/batch', () => {
       action: 'add',
     })
 
-    expect(() => parseBatchSeriesPayload({
-      fileIds: [1],
-      seriesId: 2,
-      action: 'remove' as 'add',
-    })).toThrowError('action must be add')
+    expect(() =>
+      parseBatchSeriesPayload({
+        fileIds: [1],
+        seriesId: 2,
+        action: 'remove' as 'add',
+      }),
+    ).toThrowError('action must be add')
   })
 
   it('parses batch upload payload', () => {
@@ -79,10 +83,12 @@ describe('domain/files/batch', () => {
     expect(parsed.items).toHaveLength(2)
     expect(parsed.items[1]?.metadataOverrides?.notes).toBe('item note')
 
-    expect(() => parseBatchUploadPayload({
-      fieldMask: ['title'],
-      sharedChanges: {},
-      items: [{ imageKey: 'a.jpg' }],
-    })).toThrowError('sharedChanges.title is required')
+    expect(() =>
+      parseBatchUploadPayload({
+        fieldMask: ['title'],
+        sharedChanges: {},
+        items: [{ imageKey: 'a.jpg' }],
+      }),
+    ).toThrowError('sharedChanges.title is required')
   })
 })

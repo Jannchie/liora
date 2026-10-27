@@ -1,27 +1,30 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 
-const props = withDefaults(defineProps<{
-  open?: boolean
-  title?: string
-  description?: string
-  fullscreen?: boolean
-  scrollable?: boolean
-  closable?: boolean
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
-  ui?: {
-    overlay?: string
-    wrapper?: string
-    content?: string
-  }
-}>(), {
-  closable: true,
-  size: 'md',
-})
+const props = withDefaults(
+  defineProps<{
+    open?: boolean
+    title?: string
+    description?: string
+    fullscreen?: boolean
+    scrollable?: boolean
+    closable?: boolean
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl'
+    ui?: {
+      overlay?: string
+      wrapper?: string
+      content?: string
+    }
+  }>(),
+  {
+    closable: true,
+    size: 'md',
+  },
+)
 
 const emit = defineEmits<{
   'update:open': [value: boolean]
-  'close': []
+  close: []
 }>()
 
 const isClient = import.meta.client
@@ -58,9 +61,13 @@ function setBodyScroll(locked: boolean): void {
   document.body.style.overflow = locked ? 'hidden' : ''
 }
 
-watch(open, (next) => {
-  setBodyScroll(next)
-}, { immediate: true })
+watch(
+  open,
+  next => {
+    setBodyScroll(next)
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
   if (!import.meta.client) {
@@ -88,10 +95,10 @@ const wrapperClass = computed(() => {
 })
 
 const sizeWidth: Record<NonNullable<typeof props.size>, string> = {
-  'sm': 'max-w-md',
-  'md': 'max-w-xl',
-  'lg': 'max-w-3xl',
-  'xl': 'max-w-5xl',
+  sm: 'max-w-md',
+  md: 'max-w-xl',
+  lg: 'max-w-3xl',
+  xl: 'max-w-5xl',
   '2xl': 'max-w-6xl',
 }
 
@@ -117,11 +124,7 @@ const contentClass = computed(() => {
       leave-to-class="opacity-0"
     >
       <div v-if="open">
-        <div
-          class="fixed inset-0 z-[70] bg-black/35 backdrop-blur-[2px]"
-          :class="ui?.overlay"
-          @click="close"
-        />
+        <div class="fixed inset-0 z-[70] bg-black/35 backdrop-blur-[2px]" :class="ui?.overlay" @click="close" />
         <div
           :class="[wrapperClass, ui?.wrapper]"
           role="dialog"
@@ -129,17 +132,12 @@ const contentClass = computed(() => {
           :aria-label="title"
           :aria-description="description"
         >
-          <slot
-            name="content"
-            :close="close"
-            :title="title"
-            :description="description"
-          >
-            <div
-              :class="[contentClass, ui?.content]"
-              @click.stop
-            >
-              <header v-if="title || description" class="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+          <slot name="content" :close="close" :title="title" :description="description">
+            <div :class="[contentClass, ui?.content]" @click.stop>
+              <header
+                v-if="title || description"
+                class="flex items-start justify-between gap-3 border-b border-border px-5 py-4"
+              >
                 <div class="space-y-1">
                   <h3 v-if="title" class="text-[15px] font-semibold tracking-[-0.01em] text-highlighted">
                     {{ title }}

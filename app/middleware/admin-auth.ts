@@ -21,8 +21,7 @@ export default defineNuxtRouteMiddleware(async () => {
     if (!session.authenticated) {
       return navigateTo('/admin/login')
     }
-  }
-  catch {
+  } catch {
     cache.value = null
     checkedAt.value = now
     return navigateTo('/admin/login')

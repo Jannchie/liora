@@ -11,7 +11,7 @@ interface FormFieldContext {
  * Lets a control inside `UFormField` pick up the field's id (so clicking
  * the label focuses it) and its error state, unless the caller set them.
  */
-export function useFormFieldContext(props: { id?: string, invalid?: boolean }) {
+export function useFormFieldContext(props: { id?: string; invalid?: boolean }) {
   const field = inject<FormFieldContext | null>('u-form-field', null)
   return {
     id: computed(() => props.id ?? field?.id.value),

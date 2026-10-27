@@ -190,7 +190,7 @@ export async function openObjectStreamFromS3({
 }: {
   key: string
   config: S3Config
-}): Promise<{ stream: Readable, contentType?: string, contentLength?: number }> {
+}): Promise<{ stream: Readable; contentType?: string; contentLength?: number }> {
   const client = getClient(config)
   const response = await client.send(
     new GetObjectCommand({
@@ -202,11 +202,12 @@ export async function openObjectStreamFromS3({
     throw createError({ statusCode: 404, statusMessage: 'Object not found.' })
   }
   const body = response.Body as unknown
-  const stream = body instanceof Readable
-    ? body
-    : typeof (body as WebReadableStream<Uint8Array>).getReader === 'function'
-      ? Readable.fromWeb(body as WebReadableStream<Uint8Array>)
-      : Readable.from(await streamToBuffer(body))
+  const stream =
+    body instanceof Readable
+      ? body
+      : typeof (body as WebReadableStream<Uint8Array>).getReader === 'function'
+        ? Readable.fromWeb(body as WebReadableStream<Uint8Array>)
+        : Readable.from(await streamToBuffer(body))
   return {
     stream,
     contentType: response.ContentType ?? undefined,
@@ -220,7 +221,7 @@ export async function downloadObjectFromS3({
 }: {
   key: string
   config: S3Config
-}): Promise<{ buffer: Buffer, contentType?: string, contentLength?: number }> {
+}): Promise<{ buffer: Buffer; contentType?: string; contentLength?: number }> {
   const client = getClient(config)
   const response = await client.send(
     new GetObjectCommand({
@@ -245,7 +246,7 @@ export async function headObjectFromS3({
 }: {
   key: string
   config: S3Config
-}): Promise<{ contentType?: string, contentLength?: number }> {
+}): Promise<{ contentType?: string; contentLength?: number }> {
   const client = getClient(config)
   const response = await client.send(
     new HeadObjectCommand({
@@ -264,7 +265,7 @@ export async function createPresignedPutUrl({
   contentType,
   expiresIn = 300,
   config,
-}: PresignedPutParams): Promise<{ url: string, headers: Record<string, string> }> {
+}: PresignedPutParams): Promise<{ url: string; headers: Record<string, string> }> {
   const client = getClient(config)
   const command = new PutObjectCommand({
     Bucket: config.bucket,

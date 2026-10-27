@@ -116,7 +116,9 @@ function resolveContentType(extension: string, fallback: string | undefined): st
   return fallback ?? OUTPUT_CONTENT_TYPE
 }
 
-async function normalizeIconBuffer(entry: MultipartEntry): Promise<{ buffer: Buffer, extension: string, contentType: string }> {
+async function normalizeIconBuffer(
+  entry: MultipartEntry,
+): Promise<{ buffer: Buffer; extension: string; contentType: string }> {
   try {
     const extension = resolveExtension(entry)
     const lowerExt = extension.toLowerCase()
@@ -136,8 +138,7 @@ async function normalizeIconBuffer(entry: MultipartEntry): Promise<{ buffer: Buf
       .toBuffer()
 
     return { buffer: normalizedBuffer, extension: '.png', contentType: OUTPUT_CONTENT_TYPE }
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('icon normalization failed', { error })
     throw createError({ statusCode: 400, statusMessage: '图标处理失败，请确认文件为有效的图片。' })
   }

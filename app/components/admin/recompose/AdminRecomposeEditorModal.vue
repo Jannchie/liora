@@ -23,14 +23,15 @@ const { updateRecompose } = useFileEditApi()
 const editor = ref<ReturnType<typeof useRecomposeEditor> | null>(null)
 const saving = ref(false)
 
-watch(open, (isOpen) => {
-  editor.value = isOpen && props.file
-    ? useRecomposeEditor({
-        width: props.file.width,
-        height: props.file.height,
-        recompose: props.file.metadata.recompose,
-      })
-    : null
+watch(open, isOpen => {
+  editor.value =
+    isOpen && props.file
+      ? useRecomposeEditor({
+          width: props.file.width,
+          height: props.file.height,
+          recompose: props.file.metadata.recompose,
+        })
+      : null
 })
 
 const previewSrc = computed<string>(() => {
@@ -53,7 +54,7 @@ const stageEl = ref<HTMLElement | null>(null)
 const stageSize = ref({ width: 0, height: 0 })
 let stageObserver: ResizeObserver | null = null
 
-watch(stageEl, (next) => {
+watch(stageEl, next => {
   stageObserver?.disconnect()
   stageObserver = null
   if (!next) {
@@ -61,7 +62,7 @@ watch(stageEl, (next) => {
     return
   }
   stageSize.value = { width: next.clientWidth, height: next.clientHeight }
-  stageObserver = new ResizeObserver((entries) => {
+  stageObserver = new ResizeObserver(entries => {
     const entry = entries[0]
     if (entry) {
       stageSize.value = { width: entry.contentRect.width, height: entry.contentRect.height }
@@ -174,24 +175,18 @@ async function handleSave(): Promise<void> {
   }
   saving.value = true
   try {
-    const payload = state.isIdentity
-      ? null
-      : structuredClone(toRaw(state.params))
+    const payload = state.isIdentity ? null : structuredClone(toRaw(state.params))
     const updated = await updateRecompose(file.id, payload)
     toast.add({
-      title: payload === null
-        ? t('admin.files.recompose.toast.resetDone')
-        : t('admin.files.recompose.toast.saved'),
+      title: payload === null ? t('admin.files.recompose.toast.resetDone') : t('admin.files.recompose.toast.saved'),
       color: 'success',
     })
     emit('saved', updated)
     open.value = false
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : ''
     toast.add({ title: t('admin.files.recompose.toast.failed'), description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     saving.value = false
   }
 }
@@ -206,7 +201,8 @@ async function handleSave(): Promise<void> {
     :ui="{
       overlay: 'z-80',
       wrapper: 'z-81',
-      content: 'fixed inset-0 z-82 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
+      content:
+        'fixed inset-0 z-82 w-screen h-screen max-w-none max-h-none rounded-none p-0 sm:p-0 top-0! left-0! translate-x-0! translate-y-0! m-0!',
     }"
   >
     <template #content>
@@ -220,23 +216,21 @@ async function handleSave(): Promise<void> {
               {{ file?.title || t('common.labels.untitled') }}
             </h3>
           </div>
-          <UButton variant="ghost" color="neutral" icon="jannchie:x" :aria-label="t('common.actions.close')" @click="handleClose" />
+          <UButton
+            variant="ghost"
+            color="neutral"
+            icon="jannchie:x"
+            :aria-label="t('common.actions.close')"
+            @click="handleClose"
+          />
         </header>
 
         <div class="flex min-h-0 flex-1 flex-col lg:flex-row">
           <!-- STAGE: the photo is the hero, so the canvas stays black in both themes. -->
-          <div
-            ref="stageEl"
-            class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black"
-          >
+          <div ref="stageEl" class="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden bg-black">
             <div v-if="editor && planeStyle" class="relative" :style="planeStyle">
               <div v-if="imageWrapperStyle" :style="imageWrapperStyle">
-                <img
-                  :src="previewSrc"
-                  :alt="file?.title || ''"
-                  class="h-full w-full select-none"
-                  draggable="false"
-                >
+                <img :src="previewSrc" :alt="file?.title || ''" class="h-full w-full select-none" draggable="false" />
               </div>
               <AdminRecomposeCropOverlay
                 :crop="editor.params.crop"
@@ -278,10 +272,24 @@ async function handleSave(): Promise<void> {
             <div class="border-b border-border px-5 py-4">
               <USection :label="t('admin.files.recompose.rotate.label')" icon="jannchie:rotate">
                 <div class="flex flex-wrap gap-1">
-                  <UButton size="sm" type="button" color="neutral" variant="ghost" icon="jannchie:rotate" @click="editor.rotate90(1)">
+                  <UButton
+                    size="sm"
+                    type="button"
+                    color="neutral"
+                    variant="ghost"
+                    icon="jannchie:rotate"
+                    @click="editor.rotate90(1)"
+                  >
                     {{ t('admin.files.recompose.rotate.cw') }}
                   </UButton>
-                  <UButton size="sm" type="button" color="neutral" variant="ghost" icon="jannchie:rotate-ccw" @click="editor.rotate90(-1)">
+                  <UButton
+                    size="sm"
+                    type="button"
+                    color="neutral"
+                    variant="ghost"
+                    icon="jannchie:rotate-ccw"
+                    @click="editor.rotate90(-1)"
+                  >
                     {{ t('admin.files.recompose.rotate.ccw') }}
                   </UButton>
                   <UButton
@@ -319,11 +327,13 @@ async function handleSave(): Promise<void> {
                     max="45"
                     step="0.1"
                     :value="editor.params.straighten"
-                    :style="{ '--p': `${(editor.params.straighten + 45) / 90 * 100}%` }"
+                    :style="{ '--p': `${((editor.params.straighten + 45) / 90) * 100}%` }"
                     class="recompose-slider"
                     @input="editor.setStraighten(Number(($event.target as HTMLInputElement).value))"
+                  />
+                  <span class="w-14 shrink-0 text-right text-xs tabular-nums text-highlighted"
+                    >{{ editor.params.straighten.toFixed(1) }}°</span
                   >
-                  <span class="w-14 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.straighten.toFixed(1) }}°</span>
                 </div>
               </USection>
             </div>
@@ -332,32 +342,40 @@ async function handleSave(): Promise<void> {
               <USection :label="t('admin.files.recompose.stretch.label')" icon="jannchie:arrows-horizontal">
                 <div class="space-y-1">
                   <div class="flex items-center gap-3">
-                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.stretch.x') }}</span>
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{
+                      t('admin.files.recompose.stretch.x')
+                    }}</span>
                     <input
                       type="range"
                       min="0.5"
                       max="2"
                       step="0.01"
                       :value="editor.params.stretchX"
-                      :style="{ '--p': `${(editor.params.stretchX - 0.5) / 1.5 * 100}%` }"
+                      :style="{ '--p': `${((editor.params.stretchX - 0.5) / 1.5) * 100}%` }"
                       class="recompose-slider"
                       @input="editor.setStretch('x', Number(($event.target as HTMLInputElement).value))"
+                    />
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted"
+                      >{{ editor.params.stretchX.toFixed(2) }}×</span
                     >
-                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.stretchX.toFixed(2) }}×</span>
                   </div>
                   <div class="flex items-center gap-3">
-                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.stretch.y') }}</span>
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{
+                      t('admin.files.recompose.stretch.y')
+                    }}</span>
                     <input
                       type="range"
                       min="0.5"
                       max="2"
                       step="0.01"
                       :value="editor.params.stretchY"
-                      :style="{ '--p': `${(editor.params.stretchY - 0.5) / 1.5 * 100}%` }"
+                      :style="{ '--p': `${((editor.params.stretchY - 0.5) / 1.5) * 100}%` }"
                       class="recompose-slider"
                       @input="editor.setStretch('y', Number(($event.target as HTMLInputElement).value))"
+                    />
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted"
+                      >{{ editor.params.stretchY.toFixed(2) }}×</span
                     >
-                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.stretchY.toFixed(2) }}×</span>
                   </div>
                 </div>
               </USection>
@@ -367,32 +385,40 @@ async function handleSave(): Promise<void> {
               <USection :label="t('admin.files.recompose.perspective.label')" icon="jannchie:perspective">
                 <div class="space-y-1">
                   <div class="flex items-center gap-3">
-                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.perspective.h') }}</span>
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{
+                      t('admin.files.recompose.perspective.h')
+                    }}</span>
                     <input
                       type="range"
                       min="-1"
                       max="1"
                       step="0.01"
                       :value="editor.params.perspectiveH"
-                      :style="{ '--p': `${(editor.params.perspectiveH + 1) / 2 * 100}%` }"
+                      :style="{ '--p': `${((editor.params.perspectiveH + 1) / 2) * 100}%` }"
                       class="recompose-slider"
                       @input="editor.setPerspective('h', Number(($event.target as HTMLInputElement).value))"
-                    >
-                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveH.toFixed(2) }}</span>
+                    />
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{
+                      editor.params.perspectiveH.toFixed(2)
+                    }}</span>
                   </div>
                   <div class="flex items-center gap-3">
-                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{ t('admin.files.recompose.perspective.v') }}</span>
+                    <span class="w-10 shrink-0 text-[13px] text-dimmed">{{
+                      t('admin.files.recompose.perspective.v')
+                    }}</span>
                     <input
                       type="range"
                       min="-1"
                       max="1"
                       step="0.01"
                       :value="editor.params.perspectiveV"
-                      :style="{ '--p': `${(editor.params.perspectiveV + 1) / 2 * 100}%` }"
+                      :style="{ '--p': `${((editor.params.perspectiveV + 1) / 2) * 100}%` }"
                       class="recompose-slider"
                       @input="editor.setPerspective('v', Number(($event.target as HTMLInputElement).value))"
-                    >
-                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{ editor.params.perspectiveV.toFixed(2) }}</span>
+                    />
+                    <span class="w-12 shrink-0 text-right text-xs tabular-nums text-highlighted">{{
+                      editor.params.perspectiveV.toFixed(2)
+                    }}</span>
                   </div>
                 </div>
               </USection>
@@ -429,13 +455,7 @@ async function handleSave(): Promise<void> {
             <UButton variant="ghost" color="neutral" @click="handleClose">
               {{ t('common.actions.cancel') }}
             </UButton>
-            <UButton
-              color="primary"
-              type="button"
-              icon="jannchie:save"
-              :loading="saving"
-              @click="handleSave"
-            >
+            <UButton color="primary" type="button" icon="jannchie:save" :loading="saving" @click="handleSave">
               {{ t('common.actions.save') }}
             </UButton>
           </div>

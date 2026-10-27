@@ -19,8 +19,7 @@ export function joinCharacters(characters: string[]): string {
 function parseMetadata(raw: string): Partial<FileMetadata> {
   try {
     return JSON.parse(raw) as Partial<FileMetadata>
-  }
-  catch {
+  } catch {
     return {}
   }
 }
@@ -35,29 +34,26 @@ function parseTextMetadataField(value: unknown): string | undefined {
   return undefined
 }
 
-export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] }): FileMetadata {
+export function ensureMetadata(
+  raw: string,
+  fallbacks: Omit<FileMetadata, 'characters'> & { characters: string[] },
+): FileMetadata {
   const parsed = parseMetadata(raw)
   const parsedFileSize = typeof parsed.fileSize === 'number' ? parsed.fileSize : Number(parsed.fileSize)
   const parsedLivePhotoVideoUrl = typeof parsed.livePhotoVideoUrl === 'string' ? parsed.livePhotoVideoUrl : undefined
-  const parsedLivePhotoStillTime = typeof parsed.livePhotoStillTime === 'number'
-    ? parsed.livePhotoStillTime
-    : Number(parsed.livePhotoStillTime)
+  const parsedLivePhotoStillTime =
+    typeof parsed.livePhotoStillTime === 'number' ? parsed.livePhotoStillTime : Number(parsed.livePhotoStillTime)
   const parsedDepthMapUrl = typeof parsed.depthMapUrl === 'string' ? parsed.depthMapUrl : undefined
-  const parsedDepthMapWidth = typeof parsed.depthMapWidth === 'number'
-    ? parsed.depthMapWidth
-    : Number(parsed.depthMapWidth)
-  const parsedDepthMapHeight = typeof parsed.depthMapHeight === 'number'
-    ? parsed.depthMapHeight
-    : Number(parsed.depthMapHeight)
-  const parsedShareImageUrl = typeof parsed.livePhotoShareImageUrl === 'string'
-    ? parsed.livePhotoShareImageUrl
-    : undefined
-  const parsedShareVideoUrl = typeof parsed.livePhotoShareVideoUrl === 'string'
-    ? parsed.livePhotoShareVideoUrl
-    : undefined
-  const parsedShareContentId = typeof parsed.livePhotoShareContentId === 'string'
-    ? parsed.livePhotoShareContentId
-    : undefined
+  const parsedDepthMapWidth =
+    typeof parsed.depthMapWidth === 'number' ? parsed.depthMapWidth : Number(parsed.depthMapWidth)
+  const parsedDepthMapHeight =
+    typeof parsed.depthMapHeight === 'number' ? parsed.depthMapHeight : Number(parsed.depthMapHeight)
+  const parsedShareImageUrl =
+    typeof parsed.livePhotoShareImageUrl === 'string' ? parsed.livePhotoShareImageUrl : undefined
+  const parsedShareVideoUrl =
+    typeof parsed.livePhotoShareVideoUrl === 'string' ? parsed.livePhotoShareVideoUrl : undefined
+  const parsedShareContentId =
+    typeof parsed.livePhotoShareContentId === 'string' ? parsed.livePhotoShareContentId : undefined
   const parsedFocusDistance = parseTextMetadataField(parsed.focusDistance)
   const parsedFocusFrameSize = parseTextMetadataField(parsed.focusFrameSize)
   const parsedFocusLocation = parseTextMetadataField(parsed.focusLocation)
@@ -77,21 +73,19 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   const parsedUprightTransform = parseTextMetadataField(parsed.uprightTransform)
   const parsedLightroomRecipe = parseTextMetadataField(parsed.lightroomRecipe)
   const parsedLlrRecipe = parseTextMetadataField(parsed.llrRecipe)
-  const livePhotoStillTime = Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
-    ? parsedLivePhotoStillTime
-    : fallbacks.livePhotoStillTime
-  const depthMapWidth = Number.isFinite(parsedDepthMapWidth) && parsedDepthMapWidth > 0
-    ? parsedDepthMapWidth
-    : fallbacks.depthMapWidth
-  const depthMapHeight = Number.isFinite(parsedDepthMapHeight) && parsedDepthMapHeight > 0
-    ? parsedDepthMapHeight
-    : fallbacks.depthMapHeight
-  const parsedOrientation = typeof parsed.orientation === 'number'
-    ? parsed.orientation
-    : Number(parsed.orientation)
-  const orientation = Number.isInteger(parsedOrientation) && parsedOrientation >= 1 && parsedOrientation <= 8
-    ? parsedOrientation
-    : fallbacks.orientation
+  const livePhotoStillTime =
+    Number.isFinite(parsedLivePhotoStillTime) && parsedLivePhotoStillTime >= 0
+      ? parsedLivePhotoStillTime
+      : fallbacks.livePhotoStillTime
+  const depthMapWidth =
+    Number.isFinite(parsedDepthMapWidth) && parsedDepthMapWidth > 0 ? parsedDepthMapWidth : fallbacks.depthMapWidth
+  const depthMapHeight =
+    Number.isFinite(parsedDepthMapHeight) && parsedDepthMapHeight > 0 ? parsedDepthMapHeight : fallbacks.depthMapHeight
+  const parsedOrientation = typeof parsed.orientation === 'number' ? parsed.orientation : Number(parsed.orientation)
+  const orientation =
+    Number.isInteger(parsedOrientation) && parsedOrientation >= 1 && parsedOrientation <= 8
+      ? parsedOrientation
+      : fallbacks.orientation
   const recompose = validateRecomposeParams(parsed.recompose) ?? fallbacks.recompose
   return {
     fanworkTitle: parsed.fanworkTitle ?? fallbacks.fanworkTitle,
@@ -158,7 +152,9 @@ export function ensureMetadata(raw: string, fallbacks: Omit<FileMetadata, 'chara
   }
 }
 
-type MetadataFallbackRow = Pick<FileRow, | 'fanworkTitle'
+type MetadataFallbackRow = Pick<
+  FileRow,
+  | 'fanworkTitle'
   | 'location'
   | 'locationName'
   | 'latitude'
@@ -168,7 +164,8 @@ type MetadataFallbackRow = Pick<FileRow, | 'fanworkTitle'
   | 'focalLength'
   | 'iso'
   | 'shutterSpeed'
-  | 'captureTime'>
+  | 'captureTime'
+>
 
 export function buildMetadataFallbacks(
   file: MetadataFallbackRow,

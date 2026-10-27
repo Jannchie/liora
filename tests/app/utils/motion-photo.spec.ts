@@ -11,7 +11,7 @@ function ascii(text: string): number[] {
 }
 
 function uint32(value: number): number[] {
-  return [(value >>> 24) & 0xFF, (value >>> 16) & 0xFF, (value >>> 8) & 0xFF, value & 0xFF]
+  return [(value >>> 24) & 0xff, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff]
 }
 
 function box(type: string, payload: number[]): number[] {
@@ -20,7 +20,17 @@ function box(type: string, payload: number[]): number[] {
 
 /** Minimal MP4: ftyp + moov/mvhd (v0, timescale 600, given duration) + mdat. */
 function mp4(brand = 'isom', durationSeconds = 3): number[] {
-  const mvhd = box('mvhd', [0, 0, 0, 0, ...uint32(0), ...uint32(0), ...uint32(600), ...uint32(durationSeconds * 600), ...Array.from({ length: 80 }).fill(0)])
+  const mvhd = box('mvhd', [
+    0,
+    0,
+    0,
+    0,
+    ...uint32(0),
+    ...uint32(0),
+    ...uint32(600),
+    ...uint32(durationSeconds * 600),
+    ...Array.from({ length: 80 }).fill(0),
+  ])
   return [
     ...box('ftyp', [...ascii(brand), ...uint32(0), ...ascii(brand)]),
     ...box('moov', mvhd),
@@ -29,7 +39,7 @@ function mp4(brand = 'isom', durationSeconds = 3): number[] {
 }
 
 function jpeg(xmp = ''): number[] {
-  return [0xFF, 0xD8, ...ascii(xmp), 0x11, 0x22, 0x33, 0xFF, 0xD9]
+  return [0xff, 0xd8, ...ascii(xmp), 0x11, 0x22, 0x33, 0xff, 0xd9]
 }
 
 function file(name: string, bytes: number[], type: string): File {
@@ -61,7 +71,11 @@ describe('app/utils/motion-photo', () => {
     const still = [...jpeg(), ...ascii('MotionPhoto_Data')]
     const trailer = ascii('SEFHjunk')
     const layout = parseMotionPhoto(new Uint8Array([...still, ...video, ...trailer]))
-    expect(layout).toMatchObject({ videoStart: still.length, videoEnd: still.length + video.length, videoType: 'video/quicktime' })
+    expect(layout).toMatchObject({
+      videoStart: still.length,
+      videoEnd: still.length + video.length,
+      videoType: 'video/quicktime',
+    })
   })
 
   it('ignores plain images, including a heic whose own ftyp is at offset 0', () => {
@@ -98,7 +112,9 @@ describe('app/utils/motion-photo', () => {
   })
   it('splits a motion photo using only the slices the xmp points at', async () => {
     const video = mp4('mp42', 4)
-    const still = jpeg(`<x:xmpmeta>GCamera:MicroVideoOffset="${video.length}" GCamera:MicroVideoPresentationTimestampUs="-1"</x:xmpmeta>`)
+    const still = jpeg(
+      `<x:xmpmeta>GCamera:MicroVideoOffset="${video.length}" GCamera:MicroVideoPresentationTimestampUs="-1"</x:xmpmeta>`,
+    )
     const [entry] = await resolveLivePhotoEntries([file('MVIMG_1.jpg', [...still, ...video], 'image/jpeg')])
     expect(entry?.image?.size).toBe(still.length)
     expect(entry?.video?.type).toBe('video/mp4')
@@ -106,10 +122,7 @@ describe('app/utils/motion-photo', () => {
   })
 
   it('estimates the cover time of a heic + mov pair from the mov header', async () => {
-    const [entry] = await resolveLivePhotoEntries([
-      file('IMG_1.HEIC', [1], ''),
-      file('IMG_1.MOV', mp4('qt  ', 3), ''),
-    ])
+    const [entry] = await resolveLivePhotoEntries([file('IMG_1.HEIC', [1], ''), file('IMG_1.MOV', mp4('qt  ', 3), '')])
     expect(entry?.video?.name).toBe('IMG_1.MOV')
     expect(entry?.stillTime).toBe(1.5)
   })

@@ -16,8 +16,7 @@ function resolveArthashWasmPath(): string {
     // Normal Node module resolution (source tree, dev, and Nitro's traced
     // server node_modules when the file is included in the server bundle).
     resolvedByRequire = require.resolve('arthash/wasm/pkg/arthash_wasm_bg.wasm')
-  }
-  catch {
+  } catch {
     resolvedByRequire = undefined
   }
   const candidates = [
@@ -37,9 +36,7 @@ function resolveArthashWasmPath(): string {
     }
   }
 
-  throw new Error(
-    `Unable to locate arthash WASM file. Tried:\n${candidates.map(path => `- ${path}`).join('\n')}`,
-  )
+  throw new Error(`Unable to locate arthash WASM file. Tried:\n${candidates.map(path => `- ${path}`).join('\n')}`)
 }
 
 let initPromise: Promise<void> | null = null
@@ -56,8 +53,7 @@ export async function ensureArthashReady(): Promise<void> {
   }
   try {
     await initPromise
-  }
-  catch (error) {
+  } catch (error) {
     // Allow future calls to retry after a transient failure (e.g. a missing
     // WASM file during a rolling deploy) instead of being stuck forever.
     initPromise = null

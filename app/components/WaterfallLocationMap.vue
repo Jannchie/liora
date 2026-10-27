@@ -58,7 +58,11 @@ const mapViewUrl = computed(() => (props.photoId ? `/map?photo=${props.photoId}`
           <Icon name="jannchie:map-pin" class="h-3.5 w-3.5" />
           <span>{{ t('gallery.map.title') }}</span>
         </p>
-        <p class="truncate text-[13px] text-highlighted" :class="locationLabel === formattedCoordinates ? 'num-tabular' : undefined" :title="locationLabel">
+        <p
+          class="truncate text-[13px] text-highlighted"
+          :class="locationLabel === formattedCoordinates ? 'num-tabular' : undefined"
+          :title="locationLabel"
+        >
           {{ locationLabel }}
         </p>
         <p v-if="locationLabel !== formattedCoordinates" class="truncate num-tabular text-xs text-dimmed">

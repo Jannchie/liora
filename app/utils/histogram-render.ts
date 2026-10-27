@@ -52,7 +52,7 @@ export function sqrtScaler(max: number): (value: number) => number {
  * railed channels (white = all three, yellow = R+G, …), so a single channel
  * saturating reads differently from overall over / under-exposure.
  */
-export function clipIndicators(data: HistogramData): { shadow: string | null, highlight: string | null } {
+export function clipIndicators(data: HistogramData): { shadow: string | null; highlight: string | null } {
   let total = 0
   for (let index = 0; index < 256; index += 1) {
     total += at(data.luminance, index)

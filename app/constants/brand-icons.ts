@@ -25,6 +25,6 @@ export const brandIconKeys = [
   'lg',
 ] as const
 
-export type BrandIconKey = typeof brandIconKeys[number]
+export type BrandIconKey = (typeof brandIconKeys)[number]
 
 export const brandIconSet = new Set<string>(brandIconKeys)

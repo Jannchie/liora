@@ -5,28 +5,31 @@ type Variant = 'solid' | 'soft' | 'ghost' | 'outline' | 'subtle' | 'link'
 type Color = 'primary' | 'neutral' | 'error' | 'warning' | 'success' | 'info'
 type Size = 'xs' | 'sm' | 'md' | 'lg'
 
-const props = withDefaults(defineProps<{
-  variant?: Variant
-  color?: Color
-  size?: Size
-  icon?: string
-  trailingIcon?: string
-  loading?: boolean
-  disabled?: boolean
-  block?: boolean
-  square?: boolean
-  type?: 'button' | 'submit' | 'reset'
-  to?: string
-  /** External URL — renders an anchor. Pair with target/rel attrs as needed. */
-  href?: string
-  ariaLabel?: string
-  ariaPressed?: boolean
-}>(), {
-  variant: 'solid',
-  color: 'primary',
-  size: 'md',
-  type: 'button',
-})
+const props = withDefaults(
+  defineProps<{
+    variant?: Variant
+    color?: Color
+    size?: Size
+    icon?: string
+    trailingIcon?: string
+    loading?: boolean
+    disabled?: boolean
+    block?: boolean
+    square?: boolean
+    type?: 'button' | 'submit' | 'reset'
+    to?: string
+    /** External URL — renders an anchor. Pair with target/rel attrs as needed. */
+    href?: string
+    ariaLabel?: string
+    ariaPressed?: boolean
+  }>(),
+  {
+    variant: 'solid',
+    color: 'primary',
+    size: 'md',
+    type: 'button',
+  },
+)
 
 /*
  * Wireframe buttons, after the icons site's toolbar: small (28–32px),
@@ -40,35 +43,46 @@ const isDisabled = computed(() => props.disabled || props.loading)
 const sizeClass = computed(() => {
   if (props.square) {
     switch (props.size) {
-      case 'xs': { return 'h-6 w-6 text-xs'
+      case 'xs': {
+        return 'h-6 w-6 text-xs'
       }
-      case 'sm': { return 'h-7 w-7 text-[13px]'
+      case 'sm': {
+        return 'h-7 w-7 text-[13px]'
       }
-      case 'lg': { return 'h-10 w-10 text-sm'
+      case 'lg': {
+        return 'h-10 w-10 text-sm'
       }
-      default: { return 'h-8 w-8 text-[13px]'
+      default: {
+        return 'h-8 w-8 text-[13px]'
       }
     }
   }
   switch (props.size) {
-    case 'xs': { return 'h-6 px-2 text-xs gap-1'
+    case 'xs': {
+      return 'h-6 px-2 text-xs gap-1'
     }
-    case 'sm': { return 'h-7 px-2.5 text-[13px] gap-1.5'
+    case 'sm': {
+      return 'h-7 px-2.5 text-[13px] gap-1.5'
     }
-    case 'lg': { return 'h-10 px-4 text-sm gap-2'
+    case 'lg': {
+      return 'h-10 px-4 text-sm gap-2'
     }
-    default: { return 'h-8 px-3 text-[13px] gap-1.5'
+    default: {
+      return 'h-8 px-3 text-[13px] gap-1.5'
     }
   }
 })
 
 const iconSize = computed(() => {
   switch (props.size) {
-    case 'xs': { return 'h-3.5 w-3.5'
+    case 'xs': {
+      return 'h-3.5 w-3.5'
     }
-    case 'lg': { return 'h-[18px] w-[18px]'
+    case 'lg': {
+      return 'h-[18px] w-[18px]'
     }
-    default: { return 'h-4 w-4'
+    default: {
+      return 'h-4 w-4'
     }
   }
 })

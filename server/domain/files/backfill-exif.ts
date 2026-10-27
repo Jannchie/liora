@@ -22,8 +22,8 @@ function escapeRegExp(value: string): string {
   return value.replaceAll(/[-/\\^$*+?.()|[\]{}]/g, String.raw`\\$&`)
 }
 
-function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraModel: string, lensModel: string } {
-  // eslint-disable-next-line unicorn/consistent-function-scoping
+function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraModel: string; lensModel: string } {
+  // oxlint-disable-next-line unicorn/consistent-function-scoping
   const normalizeSpaces = (value: string): string => value.replaceAll(/\s+/g, ' ').trim()
   const separators = ['·', '|', '/', '-', '—', '–', '+', ',']
   const separatorClass = `[${separators.map(element => escapeRegExp(element)).join('')}]`
@@ -31,7 +31,7 @@ function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraMo
   const camera = normalizeSpaces(cameraModel)
   const lens = normalizeSpaces(lensModel)
 
-  const tryRemoveExplicitLens = (): { cameraModel: string, lensModel: string } | null => {
+  const tryRemoveExplicitLens = (): { cameraModel: string; lensModel: string } | null => {
     if (!lens) {
       return null
     }
@@ -42,8 +42,13 @@ function stripLensFromCamera(cameraModel: string, lensModel: string): { cameraMo
       return null
     }
     const beforeLens = camera.slice(0, lensIndex).replace(new RegExp(String.raw`\s*${separatorClass}\s*$`, 'u'), '')
-    const afterLens = camera.slice(lensIndex + lens.length).replace(new RegExp(String.raw`^${separatorClass}\s*`, 'u'), '')
-    const cleaned = `${beforeLens} ${afterLens}`.trim().replace(new RegExp(String.raw`${separatorClass}+$`, 'u'), '').trim()
+    const afterLens = camera
+      .slice(lensIndex + lens.length)
+      .replace(new RegExp(String.raw`^${separatorClass}\s*`, 'u'), '')
+    const cleaned = `${beforeLens} ${afterLens}`
+      .trim()
+      .replace(new RegExp(String.raw`${separatorClass}+$`, 'u'), '')
+      .trim()
     return { cameraModel: cleaned.length > 0 ? cleaned : camera, lensModel: lens }
   }
 
@@ -116,8 +121,7 @@ function parseMetadata(raw: string): ParsedMetadata {
     if (parsed && typeof parsed === 'object') {
       return parsed as ParsedMetadata
     }
-  }
-  catch {
+  } catch {
     // ignore
   }
   return {}
@@ -139,7 +143,7 @@ function formatExposureProgram(value: number | string | undefined): string {
     return ''
   }
   const numeric = typeof value === 'string' ? Number(value) : value
-  const text = Number.isFinite(numeric) ? map[numeric] ?? `Program ${numeric}` : String(value).trim()
+  const text = Number.isFinite(numeric) ? (map[numeric] ?? `Program ${numeric}`) : String(value).trim()
   return normalizeToOption(text, Object.values(map), {
     'normal program': 'Program',
     'program normal': 'Program',
@@ -156,7 +160,7 @@ function formatExposureMode(value: number | string | undefined): string {
     return ''
   }
   const numeric = typeof value === 'string' ? Number(value) : value
-  const text = Number.isFinite(numeric) ? map[numeric] ?? `Mode ${numeric}` : String(value).trim()
+  const text = Number.isFinite(numeric) ? (map[numeric] ?? `Mode ${numeric}`) : String(value).trim()
   return normalizeToOption(text, Object.values(map))
 }
 
@@ -175,10 +179,10 @@ function formatMeteringMode(value: number | string | undefined): string {
     return ''
   }
   const numeric = typeof value === 'string' ? Number(value) : value
-  const text = Number.isFinite(numeric) ? map[numeric] ?? `Mode ${numeric}` : String(value).trim()
+  const text = Number.isFinite(numeric) ? (map[numeric] ?? `Mode ${numeric}`) : String(value).trim()
   return normalizeToOption(text, Object.values(map), {
-    'matrix': 'Pattern',
-    'multispot': 'Multi-spot',
+    matrix: 'Pattern',
+    multispot: 'Multi-spot',
     'multi-spot': 'Multi-spot',
     'center-weighted average': 'Center-weighted',
   })
@@ -193,7 +197,7 @@ function formatWhiteBalance(value: number | string | undefined): string {
     return ''
   }
   const numeric = typeof value === 'string' ? Number(value) : value
-  const text = Number.isFinite(numeric) ? map[numeric] ?? `WB ${numeric}` : String(value).trim()
+  const text = Number.isFinite(numeric) ? (map[numeric] ?? `WB ${numeric}`) : String(value).trim()
   return normalizeToOption(text, Object.values(map))
 }
 
@@ -228,8 +232,7 @@ async function fetchImageBuffer(url: string): Promise<Buffer | null> {
     }
     const arrayBuffer = await response.arrayBuffer()
     return Buffer.from(arrayBuffer)
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn(`Skip ${url}: ${String(error)}`)
     return null
   }
@@ -310,8 +313,7 @@ async function readExif(buffer: Buffer): Promise<ExifResult | null> {
       xpComment: parsed.XPComment,
       xpKeywords: parsed.XPKeywords,
     }
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('Failed to read EXIF:', { error })
     return null
   }
@@ -332,7 +334,10 @@ function mergeMetadata(existing: ParsedMetadata, exif: ExifResult): MergeResult 
     merged.notes = descriptionSource.join(' ')
   }
 
-  const cameraParts = [exif.make, exif.model].filter(Boolean).map(value => String(value).trim()).filter(value => value.length > 0)
+  const cameraParts = [exif.make, exif.model]
+    .filter(Boolean)
+    .map(value => String(value).trim())
+    .filter(value => value.length > 0)
   if (!merged.cameraModel && cameraParts.length > 0) {
     merged.cameraModel = cameraParts.join(' ')
   }
@@ -462,7 +467,9 @@ export async function backfillExifMetadata(): Promise<ExifBackfillSummary> {
 
     const existingMetadata = parseMetadata(file.metadata)
     const exif = await readExif(buffer)
-    const mergeResult = exif ? mergeMetadata(existingMetadata, exif) : { metadata: { ...existingMetadata }, cameraModel: null }
+    const mergeResult = exif
+      ? mergeMetadata(existingMetadata, exif)
+      : { metadata: { ...existingMetadata }, cameraModel: null }
     const mergedMetadata = mergeResult.metadata
     if (!mergedMetadata.fileSize || Number(mergedMetadata.fileSize) <= 0) {
       mergedMetadata.fileSize = buffer.length
@@ -504,10 +511,7 @@ export async function backfillExifMetadata(): Promise<ExifBackfillSummary> {
       data.longitude = mergedMetadata.longitude
     }
 
-    await db
-      .update(filesTable)
-      .set(data)
-      .where(eq(filesTable.id, file.id))
+    await db.update(filesTable).set(data).where(eq(filesTable.id, file.id))
     updated += 1
     logger.info(`Updated #${file.id} (${file.title || 'untitled'})`)
   }

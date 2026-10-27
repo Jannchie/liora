@@ -23,7 +23,7 @@ const emit = defineEmits<{
 
 const viewerRef = ref<HTMLElement | null>(null)
 const zoom = ref<number>(1)
-const pan = ref<{ x: number, y: number }>({ x: 0, y: 0 })
+const pan = ref<{ x: number; y: number }>({ x: 0, y: 0 })
 const zoomStep = 0.2
 const zoomEpsilon = 0.001
 const zoomMaxFactor = 5
@@ -40,8 +40,8 @@ const dragState = ref<{
   originX: 0,
   originY: 0,
 })
-const pointers = ref<Map<number, { x: number, y: number }>>(new Map())
-const pinchBase = ref<{ distance: number, zoom: number } | null>(null)
+const pointers = ref<Map<number, { x: number; y: number }>>(new Map())
+const pinchBase = ref<{ distance: number; zoom: number } | null>(null)
 
 const resolvedSrc = computed<string | null>(() => {
   const trimmed = props.src?.trim() ?? ''
@@ -83,7 +83,7 @@ const { t } = useI18n()
 
 watch(
   () => props.open,
-  async (open) => {
+  async open => {
     if (!open || !resolvedSrc.value) {
       return
     }
@@ -92,29 +92,23 @@ watch(
   },
 )
 
-watch(
-  resolvedSrc,
-  async (next) => {
-    if (!props.open || !next) {
-      return
-    }
-    await nextTick()
-    resetTransform()
-  },
-)
+watch(resolvedSrc, async next => {
+  if (!props.open || !next) {
+    return
+  }
+  await nextTick()
+  resetTransform()
+})
 
-watch(
-  baseScale,
-  (nextBase) => {
-    if (!props.open || !Number.isFinite(nextBase) || nextBase <= 0) {
-      return
-    }
-    if (zoom.value < nextBase - zoomEpsilon) {
-      zoom.value = nextBase
-      pan.value = { x: 0, y: 0 }
-    }
-  },
-)
+watch(baseScale, nextBase => {
+  if (!props.open || !Number.isFinite(nextBase) || nextBase <= 0) {
+    return
+  }
+  if (zoom.value < nextBase - zoomEpsilon) {
+    zoom.value = nextBase
+    pan.value = { x: 0, y: 0 }
+  }
+})
 
 function close(): void {
   emit('update:open', false)
@@ -134,7 +128,10 @@ function resetTransform(): void {
   }
 }
 
-function computePanForFocus(point: { clientX: number, clientY: number }, targetZoom: number): {
+function computePanForFocus(
+  point: { clientX: number; clientY: number },
+  targetZoom: number,
+): {
   x: number
   y: number
 } | null {
@@ -160,7 +157,7 @@ function computePanForFocus(point: { clientX: number, clientY: number }, targetZ
   }
 }
 
-function setZoom(next: number, focalPoint?: { clientX: number, clientY: number }): void {
+function setZoom(next: number, focalPoint?: { clientX: number; clientY: number }): void {
   const minZoom = zoomMin.value
   const maxZoom = zoomMax.value
   const clamped = Math.min(maxZoom, Math.max(minZoom, next))
@@ -170,8 +167,7 @@ function setZoom(next: number, focalPoint?: { clientX: number, clientY: number }
   let nextPan = pan.value
   if (clamped <= minZoom + zoomEpsilon) {
     nextPan = { x: 0, y: 0 }
-  }
-  else if (focalPoint) {
+  } else if (focalPoint) {
     const focusedPan = computePanForFocus(focalPoint, clamped)
     if (focusedPan) {
       nextPan = focusedPan
@@ -192,9 +188,7 @@ function handleDoubleClick(event: MouseEvent): void {
   const minZoom = zoomMin.value
   const zoomInTarget = Math.min(zoomMax.value, Math.max(1, minZoom * 2))
   const target = zoom.value > minZoom + zoomEpsilon ? minZoom : zoomInTarget
-  const focal = target > minZoom + zoomEpsilon
-    ? { clientX: event.clientX, clientY: event.clientY }
-    : undefined
+  const focal = target > minZoom + zoomEpsilon ? { clientX: event.clientX, clientY: event.clientY } : undefined
   setZoom(target, focal)
 }
 
@@ -357,7 +351,7 @@ function endPointer(event: PointerEvent): void {
           loading="eager"
           draggable="false"
           class="max-h-none max-w-none select-none"
-        >
+        />
       </div>
     </div>
   </Transition>

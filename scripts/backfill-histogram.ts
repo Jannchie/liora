@@ -4,11 +4,9 @@ import { closeDb } from '../server/utils/db'
 try {
   const summary = await backfillHistogram()
   console.log(`Backfill complete. Updated ${summary.updated}, skipped ${summary.skipped} of ${summary.total} records.`)
-}
-catch (error) {
+} catch (error) {
   console.error('Backfill failed:', error)
   process.exitCode = 1
-}
-finally {
+} finally {
   await closeDb()
 }

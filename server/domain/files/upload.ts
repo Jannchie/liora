@@ -101,7 +101,11 @@ function normalizeVideoExt(filename: string | undefined): string {
 
 function buildBaseName(filename: string | undefined, ext: string, fallback: string): string {
   const raw = basename(filename ?? '', ext)
-  const normalized = raw.normalize('NFKD').replaceAll(/[^\w-]+/g, '-').replaceAll(/-+/g, '-').replaceAll(/^-|-$/g, '')
+  const normalized = raw
+    .normalize('NFKD')
+    .replaceAll(/[^\w-]+/g, '-')
+    .replaceAll(/-+/g, '-')
+    .replaceAll(/^-|-$/g, '')
   const limited = normalized.slice(0, 80)
   return limited.length > 0 ? limited : fallback
 }
@@ -243,8 +247,7 @@ export async function parseMultipart(event: H3Event): Promise<ParsedMultipartFor
       if (!imageEntry) {
         imageEntry = candidate
       }
-    }
-    else {
+    } else {
       fields[fieldName] = entry.data.toString('utf8')
     }
   }

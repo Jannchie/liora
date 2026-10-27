@@ -7,8 +7,7 @@ import { getUploadStatus, setUploadStatus } from '../../utils/upload-status'
 function parseMetadata(raw: string): Partial<FileMetadata> {
   try {
     return JSON.parse(raw) as Partial<FileMetadata>
-  }
-  catch {
+  } catch {
     return {}
   }
 }

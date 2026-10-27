@@ -21,12 +21,10 @@ async function handleLogout(): Promise<void> {
   try {
     await $fetch('/api/auth/logout', { method: 'POST' })
     await navigateTo('/admin/login')
-  }
-  catch (error) {
+  } catch (error) {
     const message = error instanceof Error ? error.message : t('admin.nav.logoutFailed')
     toast.add({ title: t('admin.nav.logoutFailed'), description: message, color: 'error' })
-  }
-  finally {
+  } finally {
     loggingOut.value = false
   }
 }

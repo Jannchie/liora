@@ -20,11 +20,7 @@ async function uploadDepthMap(params: {
 }
 
 export function useDepthMapUpload(): {
-  uploadDepthMap: (params: {
-    fileId: number
-    imageUrl: string
-    missingImageMessage: string
-  }) => Promise<void>
+  uploadDepthMap: (params: { fileId: number; imageUrl: string; missingImageMessage: string }) => Promise<void>
 } {
   return { uploadDepthMap }
 }

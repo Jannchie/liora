@@ -16,8 +16,7 @@ export default defineEventHandler(async (event): Promise<HealthResponse> => {
   let dbStatus: 'ok' | 'error' = 'ok'
   try {
     await db.run(sql`select 1`)
-  }
-  catch (error) {
+  } catch (error) {
     dbStatus = 'error'
     logger.error('health check: database unreachable', { error })
   }

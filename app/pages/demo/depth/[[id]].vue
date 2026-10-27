@@ -94,15 +94,13 @@ async function loadFromFileId(id: number): Promise<void> {
       return
     }
     setDepthSource(depthMap, `depth-${id}.png`, false)
-  }
-  catch (error) {
+  } catch (error) {
     if (token !== fileLoadToken) {
       return
     }
     const message = error instanceof Error ? error.message : t('demoDepth.errors.fileNotFound')
     statusMessage.value = message
-  }
-  finally {
+  } finally {
     if (token === fileLoadToken) {
       isFetching.value = false
     }
@@ -129,8 +127,7 @@ watch(
     }
     if (fileId.value) {
       void loadFromFileId(fileId.value)
-    }
-    else if (value === undefined) {
+    } else if (value === undefined) {
       fileTitle.value = ''
       imageWidth.value = null
       imageHeight.value = null
@@ -194,47 +191,19 @@ watch(
         <div class="grid gap-4 sm:grid-cols-3">
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.blur') }}</span>
-            <input
-              v-model.number="maxBlur"
-              type="range"
-              min="0"
-              max="200"
-              step="1"
-              class="w-full"
-            >
+            <input v-model.number="maxBlur" type="range" min="0" max="200" step="1" class="w-full" />
           </label>
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.direction') }}</span>
-            <input
-              v-model.number="directionalDelay"
-              type="range"
-              min="0"
-              max="0.6"
-              step="0.02"
-              class="w-full"
-            >
+            <input v-model.number="directionalDelay" type="range" min="0" max="0.6" step="0.02" class="w-full" />
           </label>
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.depthDelay') }}</span>
-            <input
-              v-model.number="depthDelay"
-              type="range"
-              min="0"
-              max="0.3"
-              step="0.02"
-              class="w-full"
-            >
+            <input v-model.number="depthDelay" type="range" min="0" max="0.3" step="0.02" class="w-full" />
           </label>
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.depthCurve') }}</span>
-            <input
-              v-model.number="depthEasePower"
-              type="range"
-              min="0.1"
-              max="5"
-              step="0.1"
-              class="w-full"
-            >
+            <input v-model.number="depthEasePower" type="range" min="0.1" max="5" step="0.1" class="w-full" />
             <span class="text-xs text-muted">{{ depthEasePower.toFixed(1) }}</span>
           </label>
           <label class="space-y-2 text-sm text-muted">
@@ -254,32 +223,18 @@ watch(
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.directionDuration') }}</span>
-            <input
-              v-model.number="directionDurationSeconds"
-              type="range"
-              min="0.5"
-              max="4"
-              step="0.1"
-              class="w-full"
-            >
+            <input v-model.number="directionDurationSeconds" type="range" min="0.5" max="4" step="0.1" class="w-full" />
             <span class="text-xs text-muted">{{ directionDurationSeconds.toFixed(1) }}s</span>
           </label>
           <label class="space-y-2 text-sm text-muted">
             <span class="font-medium text-highlighted">{{ t('demoDepth.controls.depthDuration') }}</span>
-            <input
-              v-model.number="depthDurationSeconds"
-              type="range"
-              min="0.5"
-              max="4"
-              step="0.1"
-              class="w-full"
-            >
+            <input v-model.number="depthDurationSeconds" type="range" min="0.5" max="4" step="0.1" class="w-full" />
             <span class="text-xs text-muted">{{ depthDurationSeconds.toFixed(1) }}s</span>
           </label>
         </div>
 
         <label class="flex items-center gap-2 text-sm text-muted">
-          <input v-model="invertDepth" type="checkbox" class="h-4 w-4">
+          <input v-model="invertDepth" type="checkbox" class="h-4 w-4" />
           <span class="font-medium text-highlighted">{{ t('demoDepth.controls.invert') }}</span>
         </label>
 

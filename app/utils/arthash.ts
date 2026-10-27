@@ -17,7 +17,7 @@ export function ensureArthashReady(): Promise<void> {
       .then(() => {
         arthashReady.value = true
       })
-      .catch((error) => {
+      .catch(error => {
         console.warn('Failed to initialize arthash:', error)
       })
   }
@@ -47,8 +47,7 @@ export function decodeArthashToDataUrl(value: string | undefined): string | null
     const bytes = base64ToBytes(value)
     const svg = toSvgSync(bytes, ARTHASH_CODEC, SVG_OPTIONS)
     return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
-  }
-  catch (error) {
+  } catch (error) {
     console.warn('Failed to decode arthash:', error)
     return null
   }
@@ -96,10 +95,7 @@ export function decodeArthashToAnimatedSvg(
     const rectCount = (raw.match(/<rect\b/g) ?? []).length
     const order = permutation(rectCount)
     let rectIdx = 0
-    let svg = raw.replace(
-      /<path\b/,
-      `<path style="transition:opacity ${fadeDuration}ms ease-out;transition-delay:0ms"`,
-    )
+    let svg = raw.replace(/<path\b/, `<path style="transition:opacity ${fadeDuration}ms ease-out;transition-delay:0ms"`)
     svg = svg.replaceAll(/<rect\b/g, () => {
       const delay = stagger + order[rectIdx]! * stagger
       rectIdx += 1
@@ -112,8 +108,7 @@ export function decodeArthashToAnimatedSvg(
     )
     const totalDurationMs = fadeDuration + stagger * (rectCount + 1)
     return { svg, totalDurationMs }
-  }
-  catch (error) {
+  } catch (error) {
     console.warn('Failed to decode arthash:', error)
     return null
   }

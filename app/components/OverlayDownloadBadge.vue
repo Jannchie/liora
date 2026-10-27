@@ -27,15 +27,10 @@ const safePercent = computed<number | null>(() => {
         <Icon name="jannchie:download" class="h-4 w-4 shrink-0 text-white/70" />
         <span class="truncate font-medium">{{ label }}</span>
       </div>
-      <span v-if="safePercent !== null" class="num-tabular text-xs text-white/80">
-        {{ safePercent }}%
-      </span>
+      <span v-if="safePercent !== null" class="num-tabular text-xs text-white/80"> {{ safePercent }}% </span>
     </div>
     <div v-if="safePercent !== null" class="mt-2.5 h-0.5 bg-white/20">
-      <div
-        class="h-full bg-white"
-        :style="{ width: `${safePercent}%` }"
-      />
+      <div class="h-full bg-white" :style="{ width: `${safePercent}%` }" />
     </div>
   </div>
 </template>

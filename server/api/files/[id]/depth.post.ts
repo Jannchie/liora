@@ -65,7 +65,7 @@ async function processDepthImage(
   file: MultipartEntry,
   originalWidth: number,
   originalHeight: number,
-): Promise<{ buffer: Buffer, width: number, height: number }> {
+): Promise<{ buffer: Buffer; width: number; height: number }> {
   if (file.data.length === 0) {
     throw createError({ statusCode: 400, statusMessage: 'Depth image is empty.' })
   }
@@ -98,11 +98,8 @@ async function processDepthImage(
       width: needsResize ? targetWidth : width,
       height: needsResize ? targetHeight : height,
     }
-  }
-  catch (error) {
-    throw error instanceof Error
-      ? error
-      : createError({ statusCode: 400, statusMessage: 'Invalid depth image.' })
+  } catch (error) {
+    throw error instanceof Error ? error : createError({ statusCode: 400, statusMessage: 'Invalid depth image.' })
   }
 }
 

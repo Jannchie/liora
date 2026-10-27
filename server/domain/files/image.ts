@@ -26,7 +26,9 @@ export function resolveContentType(format: string | undefined, fallback: string 
   return fallbackType && fallbackType.length > 0 ? fallbackType : undefined
 }
 
-export async function validateImage(file: MultipartEntry): Promise<{ width: number, height: number, contentType?: string, orientation?: number }> {
+export async function validateImage(
+  file: MultipartEntry,
+): Promise<{ width: number; height: number; contentType?: string; orientation?: number }> {
   try {
     const metadata = await sharp(file.data).metadata()
     // Store display dimensions: EXIF orientations 5-8 rotate by 90°, so the
@@ -42,8 +44,7 @@ export async function validateImage(file: MultipartEntry): Promise<{ width: numb
       contentType: resolveContentType(metadata.format, file.type),
       orientation: metadata.orientation,
     }
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('image validation failed', { error })
     throw createError({ statusCode: 400, statusMessage: 'Invalid image file.' })
   }
@@ -73,8 +74,7 @@ export async function computePerceptualHash(data: Buffer): Promise<string | null
       hex += nibble.toString(16)
     }
     return hex.padStart(16, '0')
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('perceptual hash generation failed', { error })
     return null
   }
@@ -93,8 +93,7 @@ export async function generateArthash(data: Buffer): Promise<string | null> {
       .toBuffer({ resolveWithObject: true })
     const hash = await encodeArthashFromRgb(new Uint8Array(raw), info.width, info.height)
     return Buffer.from(hash).toString('base64')
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('arthash generation failed', { error })
     return null
   }

@@ -25,10 +25,13 @@ let worker: Worker | null = null
 let workerRequestId = 0
 let preferredDeviceConfigured = false
 let preferredDevice: DeviceType | null = null
-const workerResolvers = new Map<number, {
-  resolve: (value: DepthEstimateResult) => void
-  reject: (error: Error) => void
-}>()
+const workerResolvers = new Map<
+  number,
+  {
+    resolve: (value: DepthEstimateResult) => void
+    reject: (error: Error) => void
+  }
+>()
 
 interface WorkerRequest {
   id: number
@@ -138,7 +141,9 @@ async function getDepthPipeline(): Promise<DepthEstimationPipeline> {
   return pipelinePromise
 }
 
-async function resolveDepthOutput(output: DepthEstimationOutput | DepthEstimationOutput[]): Promise<DepthEstimationOutput> {
+async function resolveDepthOutput(
+  output: DepthEstimationOutput | DepthEstimationOutput[],
+): Promise<DepthEstimationOutput> {
   if (Array.isArray(output)) {
     const [first] = output
     if (!first) {
@@ -149,7 +154,10 @@ async function resolveDepthOutput(output: DepthEstimationOutput | DepthEstimatio
   return output
 }
 
-async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<{ image: RawImageInstance, width: number, height: number }> {
+async function loadImageFromUrl(
+  imageUrl: string,
+  scaleFactor: number,
+): Promise<{ image: RawImageInstance; width: number; height: number }> {
   const { RawImage } = await loadTransformers()
   const response = await fetch(imageUrl)
   if (!response.ok) {
@@ -171,15 +179,14 @@ async function loadImageFromUrl(imageUrl: string, scaleFactor: number): Promise<
 
 async function encodeDepthBlob(depth: RawImageInstance): Promise<Blob> {
   try {
-    const webp = await depth.toBlob('image/webp', 0.92) as Blob | null
+    const webp = (await depth.toBlob('image/webp', 0.92)) as Blob | null
     if (webp && webp.size > 0 && webp.type === 'image/webp') {
       return webp
     }
-  }
-  catch {
+  } catch {
     // Fallback to PNG below.
   }
-  return await depth.toBlob('image/png') as Blob
+  return (await depth.toBlob('image/png')) as Blob
 }
 
 async function estimateDepthInMainThread(imageUrl: string, scaleFactor: number): Promise<DepthEstimateResult> {
@@ -208,8 +215,7 @@ async function estimateDepthInWorker(imageUrl: string, scaleFactor: number): Pro
     workerResolvers.set(id, { resolve, reject })
     try {
       depthWorker.postMessage(request)
-    }
-    catch (error) {
+    } catch (error) {
       workerResolvers.delete(id)
       const message = error instanceof Error ? error.message : 'Depth estimation worker failed.'
       reject(new Error(message))
@@ -217,7 +223,10 @@ async function estimateDepthInWorker(imageUrl: string, scaleFactor: number): Pro
   })
 }
 
-export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstimateOptions = {}): Promise<DepthEstimateResult> {
+export async function estimateDepthFromUrl(
+  imageUrl: string,
+  options: DepthEstimateOptions = {},
+): Promise<DepthEstimateResult> {
   if (!import.meta.client) {
     throw new Error('Depth estimation is only available in the browser.')
   }
@@ -230,8 +239,7 @@ export async function estimateDepthFromUrl(imageUrl: string, options: DepthEstim
   if (depthWorker) {
     try {
       return await estimateDepthInWorker(trimmedUrl, scaleFactor)
-    }
-    catch {
+    } catch {
       return await estimateDepthInMainThread(trimmedUrl, scaleFactor)
     }
   }

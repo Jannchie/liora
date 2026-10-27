@@ -4,7 +4,8 @@ import type { SiteSettings, SiteSettingsPayload } from '~/types/site'
 import { requireAdmin } from '../utils/auth'
 import { updateSiteSettings } from '../utils/site-settings'
 
-const normalizeInfoPlacement = (value: string | undefined): SiteInfoPlacement => (value === 'waterfall' ? 'waterfall' : 'header')
+const normalizeInfoPlacement = (value: string | undefined): SiteInfoPlacement =>
+  value === 'waterfall' ? 'waterfall' : 'header'
 
 function normalizePayload(body: Partial<SiteSettingsPayload>): SiteSettingsPayload {
   return {

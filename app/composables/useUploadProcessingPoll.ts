@@ -10,11 +10,14 @@ interface ToastMessages {
   processingFailedDescription: string
 }
 
-type RequestFetch = <T>(request: string, options?: {
-  params?: Record<string, string>
-  retry?: number
-  [key: string]: unknown
-}) => Promise<T>
+type RequestFetch = <T>(
+  request: string,
+  options?: {
+    params?: Record<string, string>
+    retry?: number
+    [key: string]: unknown
+  },
+) => Promise<T>
 
 interface ToastOptions {
   title: string
@@ -95,8 +98,7 @@ export function useUploadProcessingPoll(toast: ToastApi): {
         }
         pushProcessingToast(response.status, messages)
         stopProcessingStatusPoll()
-      }
-      catch {
+      } catch {
         if (attempts >= maxAttempts) {
           pushProcessingToast('failed', messages)
           stopProcessingStatusPoll()

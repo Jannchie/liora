@@ -4,19 +4,22 @@ import { useFormFieldContext } from '~/composables/useFormFieldContext'
 
 defineOptions({ inheritAttrs: false })
 
-const props = withDefaults(defineProps<{
-  modelValue?: string
-  placeholder?: string
-  rows?: number
-  disabled?: boolean
-  readonly?: boolean
-  variant?: 'soft' | 'outline'
-  invalid?: boolean
-  id?: string
-}>(), {
-  variant: 'soft',
-  rows: 3,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string
+    placeholder?: string
+    rows?: number
+    disabled?: boolean
+    readonly?: boolean
+    variant?: 'soft' | 'outline'
+    invalid?: boolean
+    id?: string
+  }>(),
+  {
+    variant: 'soft',
+    rows: 3,
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]

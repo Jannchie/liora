@@ -10,8 +10,8 @@ export default defineI18nConfig(() => ({
   missingWarn: false,
   fallbackWarn: false,
   messages: {
-    'en': en,
+    en,
     'zh-CN': zhCN,
-    'ja': ja,
+    ja,
   },
 }))

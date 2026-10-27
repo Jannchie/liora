@@ -32,11 +32,13 @@ const localeCookie = useCookie<string | null>(detectBrowserLanguage?.cookieKey ?
   domain: detectBrowserLanguage?.cookieDomain || undefined,
 })
 
-const options = computed(() => locales.value.map((item) => {
-  const label = typeof item === 'string' ? t(`locales.${item}`) : item.name ?? t(`locales.${item.code}`)
-  const value = typeof item === 'string' ? item : item.code
-  return { label, value }
-}))
+const options = computed(() =>
+  locales.value.map(item => {
+    const label = typeof item === 'string' ? t(`locales.${item}`) : (item.name ?? t(`locales.${item.code}`))
+    const value = typeof item === 'string' ? item : item.code
+    return { label, value }
+  }),
+)
 
 function isLocaleCode(value: unknown): value is typeof locale.value {
   if (typeof value !== 'string') {

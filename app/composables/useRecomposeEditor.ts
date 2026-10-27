@@ -70,8 +70,7 @@ export function useRecomposeEditor(source: RecomposeEditorSource) {
   function setStretch(axis: 'x' | 'y', value: number): void {
     if (axis === 'x') {
       params.stretchX = value
-    }
-    else {
+    } else {
       params.stretchY = value
     }
     constrainCrop()
@@ -80,8 +79,7 @@ export function useRecomposeEditor(source: RecomposeEditorSource) {
   function setPerspective(axis: 'h' | 'v', value: number): void {
     if (axis === 'h') {
       params.perspectiveH = value
-    }
-    else {
+    } else {
       params.perspectiveV = value
     }
     constrainCrop()
@@ -96,13 +94,12 @@ export function useRecomposeEditor(source: RecomposeEditorSource) {
     const { x, y, width, height } = params.crop
     if (direction === 1) {
       // Clockwise on screen.
-      params.rotate90 = (((params.rotate90 + 1) % 4) + 4) % 4 as RecomposeParams['rotate90']
+      params.rotate90 = ((((params.rotate90 + 1) % 4) + 4) % 4) as RecomposeParams['rotate90']
       ;[params.stretchX, params.stretchY] = [params.stretchY, params.stretchX]
       ;[params.perspectiveH, params.perspectiveV] = [-params.perspectiveV, params.perspectiveH]
       params.crop = clampCrop({ x: 1 - (y + height), y: x, width: height, height: width })
-    }
-    else {
-      params.rotate90 = (((params.rotate90 - 1) % 4) + 4) % 4 as RecomposeParams['rotate90']
+    } else {
+      params.rotate90 = ((((params.rotate90 - 1) % 4) + 4) % 4) as RecomposeParams['rotate90']
       ;[params.stretchX, params.stretchY] = [params.stretchY, params.stretchX]
       ;[params.perspectiveH, params.perspectiveV] = [params.perspectiveV, -params.perspectiveH]
       params.crop = clampCrop({ x: y, y: 1 - (x + width), width: height, height: width })
@@ -119,14 +116,13 @@ export function useRecomposeEditor(source: RecomposeEditorSource) {
    * and reflects the rotate90 step, so the on-screen result is a pure mirror.
    */
   function flip(axis: 'h' | 'v'): void {
-    params.rotate90 = (((4 - params.rotate90) % 4) + 4) % 4 as RecomposeParams['rotate90']
+    params.rotate90 = ((((4 - params.rotate90) % 4) + 4) % 4) as RecomposeParams['rotate90']
     params.straighten = -params.straighten
     if (axis === 'h') {
       params.flipH = !params.flipH
       params.perspectiveH = -params.perspectiveH
       params.crop = clampCrop({ ...params.crop, x: 1 - (params.crop.x + params.crop.width) })
-    }
-    else {
+    } else {
       params.flipV = !params.flipV
       params.perspectiveV = -params.perspectiveV
       params.crop = clampCrop({ ...params.crop, y: 1 - (params.crop.y + params.crop.height) })

@@ -72,11 +72,7 @@ const formattedValue = computed<string>(() => {
         {{ formattedValue }}
       </span>
     </div>
-    <div
-      v-if="trackStyle"
-      class="relative my-px h-1 rounded-full"
-      :style="trackStyle"
-    >
+    <div v-if="trackStyle" class="relative my-px h-1 rounded-full" :style="trackStyle">
       <div
         class="pointer-events-none absolute -top-0.5 -bottom-0.5 w-0.5 -translate-x-1/2 rounded-full bg-primary shadow-[0_0_0_1px_var(--color-default)]"
         :style="{ left: `${position.toFixed(4)}%` }"

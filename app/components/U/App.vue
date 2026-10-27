@@ -36,7 +36,9 @@ const iconColorClass: Record<ToastColor, string> = {
     container inside that stable target.
   -->
   <Teleport to="#teleports">
-    <div class="pointer-events-none fixed inset-x-0 bottom-0 z-[9999] flex flex-col items-center gap-2 px-4 pb-4 sm:bottom-4 sm:left-auto sm:right-4 sm:items-end sm:px-0">
+    <div
+      class="pointer-events-none fixed inset-x-0 bottom-0 z-[9999] flex flex-col items-center gap-2 px-4 pb-4 sm:bottom-4 sm:left-auto sm:right-4 sm:items-end sm:px-0"
+    >
       <TransitionGroup
         enter-active-class="transition duration-200 ease-out"
         enter-from-class="opacity-0 translate-y-2"

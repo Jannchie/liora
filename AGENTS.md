@@ -12,13 +12,13 @@
 - Use pnpm for all tasks: `pnpm install`.
 - Local dev: `pnpm dev` (<http://localhost:3000>). Production bundle: `pnpm build`; preview: `pnpm preview`. Static export when needed: `pnpm generate`.
 - Database workflow: `pnpm run db:generate` to create migrations from the schema; `pnpm run db:migrate` to apply migrations to the target database.
-- After every code change, always run `pnpm exec eslint .` and `pnpm exec nuxi typecheck`; consider the task complete only when both pass.
+- After every code change, always run `pnpm exec oxfmt`, `pnpm exec oxlint` and `pnpm exec nuxi typecheck`; consider the task complete only when lint and typecheck pass.
 - Testing: run Vitest (add it if missing) with Nuxt test utils, e.g., `pnpm exec vitest`. Keep CI fast; prefer `--runInBand` when hitting the real DB.
 
 ## Coding Style & Naming Conventions
 
 - TypeScript everywhere; prefer `<script setup>` in `.vue` files. Components in `PascalCase`, composables in `useXxx.ts`, server handlers in `verb.resource.ts`.
-- Two-space indentation; keep imports ordered and explicit. Run linting with `pnpm exec eslint .` (configured via `@nuxt/eslint` and `.nuxt/eslint.config.mjs`).
+- Two-space indentation; keep imports ordered and explicit. Formatting is owned by oxfmt (`.oxfmtrc.json`, import order included) and linting by oxlint (`.oxlintrc.json`); suppress a rule with `// oxlint-disable-next-line <rule>`.
 - Favor Tailwind utility classes in `main.css`; keep UI minimal (no heavy gradients/shadows). Reuse `~/types` and `~/components` instead of redefining shapes.
 
 ## Testing Guidelines
@@ -29,7 +29,7 @@
 ## Commit & Pull Request Guidelines
 
 - Follow Conventional Commits (`feat:`, `fix:`, `chore:`). Keep commits focused and rebased.
-- Before opening a PR, run `pnpm exec eslint .` and `pnpm exec vitest`; summarize behavior changes, link issues, and add screenshots for UI shifts.
+- Before opening a PR, run `pnpm exec oxfmt --check`, `pnpm exec oxlint` and `pnpm exec vitest`; summarize behavior changes, link issues, and add screenshots for UI shifts.
 - Note schema or config changes in the PR description; include migration names and any new env vars.
 
 ## Security & Configuration Tips

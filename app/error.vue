@@ -9,7 +9,7 @@ const { t } = useI18n()
 const statusCode = computed(() => props.error?.statusCode ?? 500)
 const isNotFound = computed(() => statusCode.value === 404)
 
-const title = computed(() => isNotFound.value ? t('error.notFound.title') : t('error.generic.title'))
+const title = computed(() => (isNotFound.value ? t('error.notFound.title') : t('error.generic.title')))
 
 /*
  * A 404 is self-explanatory, so the copy stays generic and the path below

@@ -1,15 +1,5 @@
-import type {
-  LightroomRecipeView,
-  RecipeAdjustmentGroup,
-  RecipeAdjustmentItem,
-} from '~/types/gallery'
-import {
-  asObject,
-  createRecipeItem,
-  parseCurvePoints,
-  parseRecipeText,
-  toDisplayText,
-} from './recipe-fields'
+import type { LightroomRecipeView, RecipeAdjustmentGroup, RecipeAdjustmentItem } from '~/types/gallery'
+import { asObject, createRecipeItem, parseCurvePoints, parseRecipeText, toDisplayText } from './recipe-fields'
 
 // Pure parsing of the `lightroomRecipe` metadata field into a view model.
 // Extracted from WaterfallGallery.vue so it can be unit tested in isolation.
@@ -296,16 +286,65 @@ function parseLegacyLightroomRecipeView(text: string): LightroomRecipeView | nul
 
   const basicItems = [
     createRecipeItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
-    createRecipeItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({
+      key: 'contrast',
+      label: 'Contrast',
+      source: basicPayload.contrast,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
+    createRecipeItem({
+      key: 'highlights',
+      label: 'Highlights',
+      source: basicPayload.highlights,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
+    createRecipeItem({
+      key: 'shadows',
+      label: 'Shadows',
+      source: basicPayload.shadows,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
     createRecipeItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
     createRecipeItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({
+      key: 'texture',
+      label: 'Texture',
+      source: basicPayload.texture,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
+    createRecipeItem({
+      key: 'clarity',
+      label: 'Clarity',
+      source: basicPayload.clarity,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
     createRecipeItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
-    createRecipeItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+    createRecipeItem({
+      key: 'vibrance',
+      label: 'Vibrance',
+      source: basicPayload.vibrance,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
+    createRecipeItem({
+      key: 'saturation',
+      label: 'Saturation',
+      source: basicPayload.saturation,
+      min: -100,
+      max: 100,
+      digits: 0,
+    }),
     createRecipeItem({
       key: 'temperature',
       label: 'Temperature',
@@ -340,8 +379,7 @@ export function parseLightroomRecipeView(value: string | undefined): LightroomRe
   let parsed: LightroomRecipePayload
   try {
     parsed = JSON.parse(text) as LightroomRecipePayload
-  }
-  catch {
+  } catch {
     return parseLegacyLightroomRecipeView(text)
   }
   const parsedObject = asObject(parsed)
@@ -353,17 +391,73 @@ export function parseLightroomRecipeView(value: string | undefined): LightroomRe
   const basicPayload = asObject(parsedObject.basic)
   if (basicPayload) {
     const items = [
-      createRecipeItem({ key: 'exposure', label: 'Exposure', source: basicPayload.exposure, min: -5, max: 5, digits: 2 }),
-      createRecipeItem({ key: 'contrast', label: 'Contrast', source: basicPayload.contrast, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'highlights', label: 'Highlights', source: basicPayload.highlights, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'shadows', label: 'Shadows', source: basicPayload.shadows, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({
+        key: 'exposure',
+        label: 'Exposure',
+        source: basicPayload.exposure,
+        min: -5,
+        max: 5,
+        digits: 2,
+      }),
+      createRecipeItem({
+        key: 'contrast',
+        label: 'Contrast',
+        source: basicPayload.contrast,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
+      createRecipeItem({
+        key: 'highlights',
+        label: 'Highlights',
+        source: basicPayload.highlights,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
+      createRecipeItem({
+        key: 'shadows',
+        label: 'Shadows',
+        source: basicPayload.shadows,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
       createRecipeItem({ key: 'whites', label: 'Whites', source: basicPayload.whites, min: -100, max: 100, digits: 0 }),
       createRecipeItem({ key: 'blacks', label: 'Blacks', source: basicPayload.blacks, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'texture', label: 'Texture', source: basicPayload.texture, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'clarity', label: 'Clarity', source: basicPayload.clarity, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({
+        key: 'texture',
+        label: 'Texture',
+        source: basicPayload.texture,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
+      createRecipeItem({
+        key: 'clarity',
+        label: 'Clarity',
+        source: basicPayload.clarity,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
       createRecipeItem({ key: 'dehaze', label: 'Dehaze', source: basicPayload.dehaze, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'vibrance', label: 'Vibrance', source: basicPayload.vibrance, min: -100, max: 100, digits: 0 }),
-      createRecipeItem({ key: 'saturation', label: 'Saturation', source: basicPayload.saturation, min: -100, max: 100, digits: 0 }),
+      createRecipeItem({
+        key: 'vibrance',
+        label: 'Vibrance',
+        source: basicPayload.vibrance,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
+      createRecipeItem({
+        key: 'saturation',
+        label: 'Saturation',
+        source: basicPayload.saturation,
+        min: -100,
+        max: 100,
+        digits: 0,
+      }),
       createRecipeItem({
         key: 'temperature',
         label: 'Temperature',

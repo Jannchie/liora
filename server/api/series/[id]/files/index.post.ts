@@ -32,15 +32,8 @@ export default defineEventHandler(async (event): Promise<{ added: number }> => {
     throw createError({ statusCode: 404, statusMessage: 'Series not found.' })
   }
 
-  const [
-    fileRows,
-    existingRows,
-    maxSortRow,
-  ] = await Promise.all([
-    db
-      .select({ id: files.id })
-      .from(files)
-      .where(inArray(files.id, fileIds)),
+  const [fileRows, existingRows, maxSortRow] = await Promise.all([
+    db.select({ id: files.id }).from(files).where(inArray(files.id, fileIds)),
     db
       .select({ fileId: seriesFiles.fileId })
       .from(seriesFiles)
@@ -65,7 +58,7 @@ export default defineEventHandler(async (event): Promise<{ added: number }> => {
   const maxSort = maxSortRow[0]?.maxSort
   const baseSort = typeof maxSort === 'number' && Number.isInteger(maxSort) ? maxSort : 0
 
-  await db.transaction(async (tx) => {
+  await db.transaction(async tx => {
     await tx.insert(seriesFiles).values(
       missingIds.map((fileId, index) => ({
         seriesId,

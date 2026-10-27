@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = withDefaults(defineProps<{
-  modelValue?: File | null
-  accept?: string
-  label?: string
-  description?: string
-  multiple?: boolean
-  disabled?: boolean
-}>(), {
-  modelValue: null,
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue?: File | null
+    accept?: string
+    label?: string
+    description?: string
+    multiple?: boolean
+    disabled?: boolean
+  }>(),
+  {
+    modelValue: null,
+  },
+)
 
 const emit = defineEmits<{
   'update:modelValue': [value: File | null]
@@ -78,9 +81,7 @@ defineExpose({ inputRef, clear })
   <div
     class="group relative flex cursor-pointer flex-col outline-none transition-colors duration-150 focus-visible:shadow-[var(--ring-focus)]"
     :class="[
-      isDragging
-        ? 'bg-muted shadow-[inset_0_0_0_1px_var(--color-primary)]'
-        : 'hover:bg-muted',
+      isDragging ? 'bg-muted shadow-[inset_0_0_0_1px_var(--color-primary)]' : 'hover:bg-muted',
       disabled ? 'pointer-events-none opacity-60' : '',
     ]"
     role="button"
@@ -99,7 +100,10 @@ defineExpose({ inputRef, clear })
         class="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-highlighted transition-colors duration-150 group-hover:bg-accented"
         :class="isDragging ? 'bg-accented text-primary' : ''"
       >
-        <Icon name="jannchie:cloud-upload" class="h-6 w-6 transition-transform duration-150 group-hover:-translate-y-0.5" />
+        <Icon
+          name="jannchie:cloud-upload"
+          class="h-6 w-6 transition-transform duration-150 group-hover:-translate-y-0.5"
+        />
       </span>
       <div class="space-y-1">
         <p v-if="label" class="text-[13px] font-medium text-highlighted">
@@ -121,6 +125,6 @@ defineExpose({ inputRef, clear })
       :multiple="multiple"
       :disabled="disabled"
       @change="onChange"
-    >
+    />
   </div>
 </template>

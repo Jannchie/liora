@@ -19,8 +19,7 @@ export interface OrientationBackfillSummary {
 function parseMetadata(raw: string): Record<string, unknown> {
   try {
     return JSON.parse(raw) as Record<string, unknown>
-  }
-  catch {
+  } catch {
     return {}
   }
 }
@@ -34,8 +33,7 @@ async function fetchImage(url: string): Promise<Buffer | null> {
     }
     const arrayBuffer = await response.arrayBuffer()
     return Buffer.from(arrayBuffer)
-  }
-  catch (error) {
+  } catch (error) {
     logger.warn('orientation backfill: image fetch failed', { url, error })
     return null
   }
@@ -87,8 +85,7 @@ export async function backfillOrientation(options?: { concurrency?: number }): P
         orientedWidth = imageMetadata.autoOrient?.width ?? imageMetadata.width
         orientedHeight = imageMetadata.autoOrient?.height ?? imageMetadata.height
         orientation = imageMetadata.orientation
-      }
-      catch (error) {
+      } catch (error) {
         logger.warn('orientation backfill: metadata read failed', { fileId: file.id, error })
         failed += 1
         continue

@@ -44,12 +44,14 @@ function validateIconUrl(value: string): string {
     if (protocol === 'http:' || protocol === 'https:') {
       return normalized
     }
-  }
-  catch {
+  } catch {
     // fall through to error
   }
 
-  throw createError({ statusCode: 400, statusMessage: 'Icon URL must be an http(s) URL, a relative path, or a data:image URI.' })
+  throw createError({
+    statusCode: 400,
+    statusMessage: 'Icon URL must be an http(s) URL, a relative path, or a data:image URI.',
+  })
 }
 
 function resolveDefaultSocial(): SiteSocialLinks {

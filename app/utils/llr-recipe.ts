@@ -50,7 +50,7 @@ interface LlrSliderSpec {
 
 // LLR's slider groups, in the editor's order. The group key is LLR's own panel
 // key, which is also what its `bypass` list names.
-const SLIDER_GROUPS: { key: string, items: LlrSliderSpec[] }[] = [
+const SLIDER_GROUPS: { key: string; items: LlrSliderSpec[] }[] = [
   {
     key: 'tone',
     items: [
@@ -72,7 +72,15 @@ const SLIDER_GROUPS: { key: string, items: LlrSliderSpec[] }[] = [
   {
     key: 'color',
     items: [
-      { key: 'temperature', min: 2000, max: 12_000, defaultValue: 6500, zeroCentered: false, unit: 'K', track: 'temperature' },
+      {
+        key: 'temperature',
+        min: 2000,
+        max: 12_000,
+        defaultValue: 6500,
+        zeroCentered: false,
+        unit: 'K',
+        track: 'temperature',
+      },
       { key: 'tint', min: -100, max: 100 },
       { key: 'vibrance', min: -100, max: 100 },
       { key: 'saturation', min: -100, max: 100 },
@@ -233,8 +241,13 @@ function buildItems(
   labelPrefix: string,
 ): RecipeAdjustmentItem[] {
   return specs
-    .map((spec) => {
-      const item = createRecipeItem({ ...spec, digits: spec.digits ?? 0, label: t(`${labelPrefix}.${spec.key}`), source: source[spec.key] })
+    .map(spec => {
+      const item = createRecipeItem({
+        ...spec,
+        digits: spec.digits ?? 0,
+        label: t(`${labelPrefix}.${spec.key}`),
+        source: source[spec.key],
+      })
       return item && spec.track ? { ...item, track: spec.track } : item
     })
     .filter(present)
@@ -321,11 +334,13 @@ function buildGradingItems(grading: Record<string, unknown>, t: LlrTranslate): R
 }
 
 function isIdentityCurve(points: RecipeCurvePoint[]): boolean {
-  return points.length === 2
-    && isNearlyEqual(points[0]!.x, 0)
-    && isNearlyEqual(points[0]!.y, 0)
-    && isNearlyEqual(points[1]!.x, 1)
-    && isNearlyEqual(points[1]!.y, 1)
+  return (
+    points.length === 2 &&
+    isNearlyEqual(points[0]!.x, 0) &&
+    isNearlyEqual(points[0]!.y, 0) &&
+    isNearlyEqual(points[1]!.x, 1) &&
+    isNearlyEqual(points[1]!.y, 1)
+  )
 }
 
 function parseCurveChannel(source: unknown): RecipeCurvePoint[] | undefined {
@@ -369,8 +384,7 @@ function describeDenoise(denoise: Record<string, unknown>, t: LlrTranslate): str
   const model = parseRecipeText(denoise.model)
   if (model) {
     parts.push(model)
-  }
-  else if (denoise.auto === true) {
+  } else if (denoise.auto === true) {
     parts.push(t('gallery.llr.denoise.auto'))
   }
   const amount = parseRecipeNumber(denoise.amount)
@@ -532,9 +546,7 @@ function buildMasks(source: unknown, t: LlrTranslate): LlrMaskView[] {
   if (!Array.isArray(source)) {
     return []
   }
-  return source
-    .map((mask, index) => buildMask(mask, index, t))
-    .filter(present)
+  return source.map((mask, index) => buildMask(mask, index, t)).filter(present)
 }
 
 /**
@@ -572,7 +584,7 @@ function describeGeometry(crop: Record<string, unknown>, t: LlrTranslate): strin
 }
 
 function describeTransform(transform: Record<string, unknown>, t: LlrTranslate): string | undefined {
-  const perspective: { key: string, neutral: number }[] = [
+  const perspective: { key: string; neutral: number }[] = [
     { key: 'vertical', neutral: 0 },
     { key: 'horizontal', neutral: 0 },
     { key: 'aspect', neutral: 0 },
@@ -598,13 +610,11 @@ function describeErase(source: unknown, t: LlrTranslate): string | undefined {
     for (const stroke of source) {
       if (asObject(stroke)?.mode === 'heal') {
         heal += 1
-      }
-      else {
+      } else {
         fill += 1
       }
     }
-  }
-  else {
+  } else {
     const counts = asObject(source)
     fill = parseRecipeNumber(counts?.fill) ?? 0
     heal = parseRecipeNumber(counts?.heal) ?? 0
@@ -669,8 +679,7 @@ export function parseLlrRecipeView(value: string | undefined, t: LlrTranslate): 
   let parsed: unknown
   try {
     parsed = JSON.parse(text)
-  }
-  catch {
+  } catch {
     return null
   }
   const payload = asObject(parsed)
@@ -707,7 +716,11 @@ export function parseLlrRecipeView(value: string | undefined, t: LlrTranslate): 
   const curve = asObject(payload.curve)
   const toneCurve = curve ? buildToneCurve(curve) : undefined
   const parametric = curve ? asObject(curve.parametric) : null
-  pushGroup('curve', parametric ? buildItems(parametric, PARAMETRIC_SPECS, t, 'gallery.llr.parametric') : [], 'parametric')
+  pushGroup(
+    'curve',
+    parametric ? buildItems(parametric, PARAMETRIC_SPECS, t, 'gallery.llr.parametric') : [],
+    'parametric',
+  )
 
   // The Creative Look's tweaks drive Sony's own stages rather than the Tone
   // panel's sliders, so they are a group of their own.
@@ -740,21 +753,27 @@ export function parseLlrRecipeView(value: string | undefined, t: LlrTranslate): 
   const aspect = parseRecipeText(payload.aspect)
   // `orig` and `free` are the two unconstrained modes; only a ratio says
   // something about the framing.
-  pushFact('aspect', t('gallery.metadata.llrAspect'), aspect && aspect !== 'orig' && aspect !== 'free' ? aspect.replace(/^custom:/, '') : undefined)
+  pushFact(
+    'aspect',
+    t('gallery.metadata.llrAspect'),
+    aspect && aspect !== 'orig' && aspect !== 'free' ? aspect.replace(/^custom:/, '') : undefined,
+  )
   const cropObject = asObject(payload.crop)
   pushFact('geometry', t('gallery.metadata.llrGeometry'), cropObject ? describeGeometry(cropObject, t) : undefined)
   const transform = cropObject ? asObject(cropObject.xf) : null
-  pushFact('transform', t('gallery.llr.group.transform'), transform ? describeTransform(transform, t) : undefined, 'transform')
+  pushFact(
+    'transform',
+    t('gallery.llr.group.transform'),
+    transform ? describeTransform(transform, t) : undefined,
+    'transform',
+  )
   pushFact('erase', t('gallery.metadata.llrErase'), describeErase(payload.erase, t))
 
   const masks = buildMasks(payload.masks, t)
   const toggles = buildToggles(payload, t)
 
-  const hasContent = groups.length > 0
-    || masks.length > 0
-    || facts.length > 0
-    || toggles.length > 0
-    || Boolean(toneCurve)
+  const hasContent =
+    groups.length > 0 || masks.length > 0 || facts.length > 0 || toggles.length > 0 || Boolean(toneCurve)
 
   if (!hasContent) {
     return null

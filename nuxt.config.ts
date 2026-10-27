@@ -2,9 +2,7 @@ import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import jannchieIcons from './app/assets/icons/jannchie.json'
 
-const arthashWasmPath = fileURLToPath(
-  new URL('node_modules/arthash/wasm/pkg/arthash_wasm_bg.wasm', import.meta.url),
-)
+const arthashWasmPath = fileURLToPath(new URL('node_modules/arthash/wasm/pkg/arthash_wasm_bg.wasm', import.meta.url))
 
 function resolveDomains(): string[] {
   const domains = new Set<string>()
@@ -17,8 +15,7 @@ function resolveDomains(): string[] {
       if (host) {
         domains.add(host)
       }
-    }
-    catch {
+    } catch {
       // ignore invalid URLs
     }
   }
@@ -31,15 +28,11 @@ function resolveDomains(): string[] {
 const resolveSiteEnv = (): string => process.env.SITE_ENV ?? process.env.NODE_ENV ?? 'development'
 
 function resolveSiteUrl(siteEnv: string): string | undefined {
-  const envUrl = process.env.NUXT_PUBLIC_I18N_BASE_URL
-    ?? process.env.NUXT_PUBLIC_SITE_URL
-    ?? process.env.SITE_URL
+  const envUrl = process.env.NUXT_PUBLIC_I18N_BASE_URL ?? process.env.NUXT_PUBLIC_SITE_URL ?? process.env.SITE_URL
   if (envUrl && envUrl.trim().length > 0) {
     return envUrl.trim()
   }
-  const isDev = process.env.NUXT_DEV === 'true'
-    || process.env.NODE_ENV === 'development'
-    || siteEnv === 'development'
+  const isDev = process.env.NUXT_DEV === 'true' || process.env.NODE_ENV === 'development' || siteEnv === 'development'
   if (isDev) {
     return 'http://localhost:3000'
   }
@@ -84,9 +77,7 @@ export default defineNuxtConfig({
     externals: {
       // Keep the WASM binary in the server bundle so upload-time arthash
       // generation works in production images that only ship .output.
-      traceInclude: [
-        arthashWasmPath,
-      ],
+      traceInclude: [arthashWasmPath],
     },
   },
   css: ['~/assets/css/main.css'],
@@ -170,7 +161,6 @@ export default defineNuxtConfig({
     },
   },
   modules: [
-    '@nuxt/eslint',
     '@nuxt/fonts',
     '@nuxt/hints',
     '@nuxt/image',
@@ -273,11 +263,6 @@ export default defineNuxtConfig({
   icon: {
     // Subset vendored by `pnpm icons:generate`; brand logos stay on tabler.
     customCollections: [jannchieIcons],
-  },
-  eslint: {
-    config: {
-      standalone: false,
-    },
   },
   sentry: {
     sourceMapsUploadOptions: {
