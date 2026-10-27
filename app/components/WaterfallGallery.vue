@@ -67,9 +67,16 @@ const toast = useToast()
 const { saveFileEdit } = useFileEditApi()
 const { uploadDepthMap } = useDepthMapUpload()
 
-const maxDisplayWidth = 400
-const minColumns = 2
-const waterfallGap = 4
+// Spacing follows 500px's feed: columns at least 300px wide, at most six,
+// 24px gutters (16px on phones).
+const minColumnWidth = 300
+const maxColumns = 6
+const narrowGap = 16
+const wideGap = 24
+const narrowBreakpoint = 640
+const initialColumns = 2
+// The info card is designed at 400 x 260 and scales with the column.
+const infoCardBaseWidth = 400
 const infoCardBaseHeight = 260
 const image = useImage()
 const runtimeConfig = useRuntimeConfig()
@@ -79,13 +86,10 @@ const router = useRouter()
 const breakpoints = useBreakpoints(breakpointsTailwind)
 const isSmallScreen = breakpoints.smaller('md')
 
-function getInitialColumns(): number {
-  return minColumns
-}
-
 const galleryRef = ref<HTMLElement | null>(null)
-const columns = ref<number>(getInitialColumns())
-const wrapperWidth = ref<number>(maxDisplayWidth * columns.value + waterfallGap * (columns.value - 1))
+const columns = ref<number>(initialColumns)
+const waterfallGap = ref<number>(wideGap)
+const wrapperWidth = ref<number>(infoCardBaseWidth * columns.value + waterfallGap.value * (columns.value - 1))
 const isHydrated = ref<boolean>(false)
 
 /*
@@ -705,14 +709,8 @@ function entryTransitionStyle(id: number): Record<string, string> | undefined {
 }
 
 const columnWidth = computed(() => {
-  if (columns.value <= 0) {
-    return maxDisplayWidth
-  }
-  const available =
-    wrapperWidth.value > 0 ? wrapperWidth.value - waterfallGap * (columns.value - 1) : maxDisplayWidth * columns.value
-  const width = available / columns.value
-  const clamped = Math.min(maxDisplayWidth, width)
-  return Math.max(1, clamped)
+  const available = wrapperWidth.value - waterfallGap.value * (columns.value - 1)
+  return Math.max(1, available / columns.value)
 })
 
 function toResolvedFile(file: FileResponse, displayWidth: number): ResolvedFile {
@@ -821,7 +819,7 @@ const socialLinks = computed<SocialLink[]>(() => {
 
 const infoCardDisplaySize = computed<DisplaySize>(() => ({
   width: columnWidth.value,
-  height: Math.round((columnWidth.value / maxDisplayWidth) * infoCardBaseHeight),
+  height: Math.round((columnWidth.value / infoCardBaseWidth) * infoCardBaseHeight),
 }))
 
 const waterfallEntries = computed<WaterfallEntry[]>(() => {
@@ -863,10 +861,17 @@ function normalizeHistogram(raw: HistogramData | null | undefined): HistogramDat
 const resizeObserver = ref<ResizeObserver | null>(null)
 
 function updateColumns(): void {
-  const width = galleryRef.value?.clientWidth ?? null
-  if (typeof width === 'number' && Number.isFinite(width) && width > 0) {
-    const target = Math.max(minColumns, Math.ceil(width / maxDisplayWidth))
-    columns.value = target
+  const element = galleryRef.value
+  if (!element) {
+    return
+  }
+  // The root carries the page gutters; lay the columns out inside them.
+  const style = getComputedStyle(element)
+  const width = element.clientWidth - Number.parseFloat(style.paddingLeft) - Number.parseFloat(style.paddingRight)
+  if (Number.isFinite(width) && width > 0) {
+    const gap = width < narrowBreakpoint ? narrowGap : wideGap
+    waterfallGap.value = gap
+    columns.value = Math.min(maxColumns, Math.max(1, Math.floor((width + gap) / (minColumnWidth + gap))))
     wrapperWidth.value = width
   }
 }
@@ -2706,7 +2711,7 @@ function startOverlayImageLoad(file: ResolvedFile, immediateSrc: string | null =
 </script>
 
 <template>
-  <div ref="galleryRef" class="relative">
+  <div ref="galleryRef" class="relative px-4 pt-4 sm:px-6 sm:pt-6 min-[120rem]:px-20">
     <template v-if="!showLoadingState">
       <Waterfall
         :gap="waterfallGap"
