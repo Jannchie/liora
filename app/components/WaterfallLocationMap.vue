@@ -92,7 +92,7 @@ const mapViewUrl = computed(() => (props.photoId ? `/map?photo=${props.photoId}`
       </div>
     </div>
     <div class="h-45 overflow-hidden rounded-md border border-border bg-muted" role="region" :aria-label="altText">
-      <MapView preset="compact" :center="center" :zoom="13" :locale="mapLocale">
+      <MapView preset="compact" :center="center" :zoom="10" :locale="mapLocale">
         <LocationMarker :lng-lat="center" pulse />
         <MapControls :locate="false" />
       </MapView>
