@@ -32,6 +32,12 @@ function pick(id: number): void {
   emit('pick', id)
 }
 
+// A photo picked from a cluster's list closes the list first.
+function pickFromCluster(close: () => void, id: number): void {
+  close()
+  emit('pick', id)
+}
+
 function syncPhotos(): void {
   const source = controller.value?.map.getSource(PHOTO_SOURCE) as GeoJSONSource | undefined
   source?.setData(toPhotoFeatures(props.points))
@@ -126,10 +132,7 @@ function clusterPoints(features: { properties?: Record<string, unknown> | null }
             :key="point.id"
             type="button"
             :title="point.title || point.place"
-            @click="
-              close()
-              emit('pick', point.id)
-            "
+            @click="pickFromCluster(close, point.id)"
           >
             <img :src="thumb(point.imageUrl, 200)" alt="" loading="lazy" />
           </button>

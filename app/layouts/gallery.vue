@@ -277,6 +277,11 @@ if (import.meta.client) {
   )
 }
 
+function retryLoadMore(): void {
+  loadMoreError.value = false
+  void loadMore()
+}
+
 async function loadMore(): Promise<void> {
   if (isLoadingMore.value || pending.value || !hasMore.value || loadMoreError.value) {
     return
@@ -483,16 +488,7 @@ defineOgImage('LioraCard', {
           </template>
           <template v-else-if="loadMoreError">
             <span>{{ t('common.toast.loadFailed') }}</span>
-            <UButton
-              size="xs"
-              variant="ghost"
-              color="neutral"
-              icon="jannchie:refresh"
-              @click="
-                loadMoreError = false
-                loadMore()
-              "
-            >
+            <UButton size="xs" variant="ghost" color="neutral" icon="jannchie:refresh" @click="retryLoadMore">
               {{ t('common.actions.retry') }}
             </UButton>
           </template>
